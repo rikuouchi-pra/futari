@@ -169,6 +169,23 @@
   }
   var SAMPLE = { limits: function(){ return {}; }, json: async function(prompt){ return parseReceipt(prompt); }, local: true };
 
+  /* ---------- Apps Script 呼び出し（JSONP：スクリプトタグで読むので、ブラウザの通信制限を受けない） ---------- */
+  var jpN = 0;
+  function jsonp_(url, req){
+    return new Promise(function(ok, ng){
+      var cb = "__fjp" + Date.now().toString(36) + (jpN++), sc = document.createElement("script"), done = false;
+      var fail = function(code){ if(done) return; done = true; cleanup(); var e = new Error(code); e.code = code; ng(e); };
+      var cleanup = function(){ clearTimeout(t); try{ delete window[cb]; }catch(x){ window[cb] = undefined; } sc.remove(); };
+      window[cb] = function(res){ if(done) return; done = true; cleanup(); ok(res || {}); };
+      var q = encodeURIComponent(JSON.stringify(req));
+      if(q.length > 7000){ fail("送る内容が長すぎます"); return; }
+      sc.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "cb=" + cb + "&q=" + q;
+      sc.onerror = function(){ fail(navigator.onLine === false ? "server_unavailable" : "Apps Scriptに接続できません（URLと公開設定を確認）"); };
+      var t = setTimeout(function(){ fail("Apps Scriptから返事がありません。Safariで …/exec?diag=1 を開いて結果を確認してください"); }, 30000);
+      document.head.appendChild(sc);
+    });
+  }
+
   /* ---------- window.claude 互換 ---------- */
   window.claude = { use: async function(name){
     if(name === "db"){ try{ await ready; return DB; }catch(e){ return null; } }
@@ -180,18 +197,10 @@
     if(name === "sample") return SAMPLE;
     if(name === "mcp"){ var G = (window.FUTARI_GAS_URLS || {})[(me.email || "").toLowerCase()] || window.FUTARI_GAS_URL; if(!G) return null;
       return { callTool: async function(server, tool, args){
-        var tok = await me.getIdToken(), r;
-        try{ r = await fetch(G, { method: "POST", body: JSON.stringify({ idToken: tok, tool: tool, args: args || {} }) }); }
-        catch(e){ var x = new Error("offline"); x.code = navigator.onLine === false ? "server_unavailable" : "通信できません：Apps ScriptのURLが正しいか、デプロイの「アクセスできるユーザー」が「全員」か確認"; throw x; }
-        var txt = await r.text(), j;
-        try{ j = JSON.parse(txt); }catch(e){
-          var y = new Error("bad response"); var t = txt.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
-          y.code = /ログイン|Sign in|accounts\.google/i.test(txt) ? "Apps Scriptの公開設定が「全員」になっていません（デプロイを管理→編集→アクセス：全員）"
-            : /Calendar is not defined|Calendar.*定義/i.test(txt) ? "Apps Scriptに「Google Calendar API」サービスが追加されていません"
-            : /許可|authorization|承認/i.test(txt) ? "Apps Scriptで setupTest を実行して許可してください"
-            : "Apps Scriptの応答が不正です（HTTP " + r.status + "：" + t + "）";
-          throw y; }
-        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code === "tool_error" || j.error.code === "not_granted" || j.error.code === "needs_reauth" ? j.error.code : j.error.code; z.detail = j.error.message; throw z; }
+        if(/googleusercontent\.com\/macros\/echo/.test(G) || !/\/exec(\?|$)/.test(G)){ var q = new Error("bad url"); q.code = "config.js のURLが違います。Apps Scriptの「デプロイを管理」に表示される https://script.google.com/macros/s/…/exec の形のURLを入れてください"; throw q; }
+        var tok = await me.getIdToken();
+        var j = await jsonp_(G, { idToken: tok, tool: tool, args: args || {} });
+        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
         return { payload: j.payload };
       } }; }
     return null;
