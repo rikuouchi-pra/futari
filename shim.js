@@ -182,9 +182,16 @@
       return { callTool: async function(server, tool, args){
         var tok = await me.getIdToken(), r;
         try{ r = await fetch(G, { method: "POST", body: JSON.stringify({ idToken: tok, tool: tool, args: args || {} }) }); }
-        catch(e){ var x = new Error("offline"); x.code = "server_unavailable"; throw x; }
-        var j; try{ j = await r.json(); }catch(e){ var y = new Error("bad response"); y.code = "server_unavailable"; throw y; }
-        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; throw z; }
+        catch(e){ var x = new Error("offline"); x.code = navigator.onLine === false ? "server_unavailable" : "通信できません：Apps ScriptのURLが正しいか、デプロイの「アクセスできるユーザー」が「全員」か確認"; throw x; }
+        var txt = await r.text(), j;
+        try{ j = JSON.parse(txt); }catch(e){
+          var y = new Error("bad response"); var t = txt.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+          y.code = /ログイン|Sign in|accounts\.google/i.test(txt) ? "Apps Scriptの公開設定が「全員」になっていません（デプロイを管理→編集→アクセス：全員）"
+            : /Calendar is not defined|Calendar.*定義/i.test(txt) ? "Apps Scriptに「Google Calendar API」サービスが追加されていません"
+            : /許可|authorization|承認/i.test(txt) ? "Apps Scriptで setupTest を実行して許可してください"
+            : "Apps Scriptの応答が不正です（HTTP " + r.status + "：" + t + "）";
+          throw y; }
+        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code === "tool_error" || j.error.code === "not_granted" || j.error.code === "needs_reauth" ? j.error.code : j.error.code; z.detail = j.error.message; throw z; }
         return { payload: j.payload };
       } }; }
     return null;

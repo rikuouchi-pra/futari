@@ -1599,9 +1599,9 @@ async function loadGoogleDay(date,force){
 function gErrText(e){ const c=e&&e.code;
   return c==="server_not_connected"?"Googleカレンダー連携が未設定です（config.js の FUTARI_GAS_URL）"
    : c==="needs_reauth"?"Googleカレンダー連携の認証に失敗しました。いったんログアウトしてログインし直してください"
-   : c==="not_in_manifest"||c==="not_granted"?"このページでのGoogleカレンダー利用が許可されていません"
+   : c==="not_in_manifest"||c==="not_granted"?"Googleカレンダーを使えません："+((e&&e.detail)||"")
    : c==="server_unavailable"?"Googleカレンダーに一時的につながりません。少し待ってからもう一度"
-   : "Googleカレンダーとの通信に失敗しました（"+(c||"不明")+"）"; }
+   : "Googleカレンダーとの通信に失敗しました（"+(c||"不明")+((e&&e.detail)?"："+e.detail:"")+"）"; }
 function viewPsched(){
   const t=today(), me=myRole(), ot=otherRole(), mode=state.psMode;
   let h=`<div class="tools">${seg("psmode",mode,[["cal","カレンダー"],["list","一覧"]])}${seg("psf",state.psFilter,[["mine",`${esc(nameOf(me))}＋ふたり`],["all","すべて"]])}</div>`;
