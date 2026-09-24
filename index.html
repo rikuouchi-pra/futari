@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=97"></script>
+<script src="shim.js?v=98"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1258,6 +1258,28 @@ body.mic-xl :is(.rtab,.rhome,.fkey:not(.add)) svg{width:30px!important;height:30
 body.mic-xl .rtab{height:56px}
 body.micc-tab :is(.rtab,.fkey):not([aria-selected="true"]):not([aria-current="true"]) svg{color:var(--tabc,var(--muted))}
 body.micc-accent :is(.rtab,.rhome,.fkey:not(.add)):not([aria-selected="true"]):not([aria-current="true"]) svg{color:var(--accent)}
+
+/* v98: 習慣の「できなかった」 */
+.hd.miss{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--danger) 45%,transparent)}
+.hmissb{border:0;margin-left:6px;height:22px;padding:0 9px;border-radius:999px;font-size:10.5px;font-weight:700;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--muted);cursor:pointer;white-space:nowrap}
+.hmissb.on{background:color-mix(in srgb,var(--danger) 13%,transparent);color:var(--danger)}
+.htag.skip{background:color-mix(in srgb,var(--danger) 10%,transparent);color:var(--danger)}
+
+/* v98: 写真の上の文字を読みやすく（見出しに薄い影） */
+html.has-bgphoto header :is(h1,#appTitle,.gw){text-shadow:0 1px 8px color-mix(in srgb,var(--ground) 70%,transparent)}
+
+/* v98: 今日の1曲 */
+.song{flex:0 1 auto;min-width:0;max-width:128px;display:inline-flex;align-items:center;gap:5px;border:0;cursor:pointer;height:40px;padding:0 10px 0 8px;border-radius:14px;background:color-mix(in srgb,var(--surface) 72%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent) inset;color:var(--ink);margin-top:4px;font-size:12px;font-weight:700}
+.song[hidden]{display:none}
+.song svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--diary);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.song span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow-r{min-width:0}
+.song-t{font-size:18px;font-weight:800;line-height:1.35}
+.song-a{font-size:13px;color:var(--muted);font-weight:700;margin-top:2px}
+.song-r{font-size:13px;line-height:1.6;margin:8px 0 0}
+.song-l{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+.song-l .btn{text-decoration:none;display:inline-flex;align-items:center}
+.song-f{display:flex;gap:14px;margin-top:10px}
 </style>
 <style id="palStyle"></style>
 
@@ -1267,7 +1289,7 @@ body.micc-accent :is(.rtab,.rhome,.fkey:not(.add)):not([aria-selected="true"]):n
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
     <div class="brand">
-      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
+      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="song" id="song" hidden aria-label="今日の1曲"></button><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
       <div class="hr">
         <button class="hbtn plus" id="plus" aria-label="追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="hbtn" id="chkBtn" aria-label="未入力・未確認" style="position:relative"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg><span class="badge" id="b-chk" hidden></span></button>
@@ -1332,7 +1354,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="97";
+const APP_VERSION="98";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1408,7 +1430,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -1419,7 +1441,10 @@ function applyPrefs(){
   let css;
   /* 背景の色を選んだら、その明るさに合わせて明るい／暗い表示を自動で決める（選んだ色が必ず出るように） */
   const bgLum=hexOk(prefs.bg)?(parseInt(prefs.bg.slice(1,3),16)*.299+parseInt(prefs.bg.slice(3,5),16)*.587+parseInt(prefs.bg.slice(5,7),16)*.114)/255:null;
-  const eff=bgLum!=null?(bgLum>=.45?"light":"dark"):prefs.mode;
+  let eff=bgLum!=null?(bgLum>=.45?"light":"dark"):prefs.mode;
+  /* 背景の写真があるときは、写真の明るさに合わせて文字の色（明るい／暗い表示）を決める */
+  if(prefs.bgPhoto){ const tone=prefs.bgTone||"auto", pl=prefs.bgPhotoLumId===prefs.bgPhoto?Number(prefs.bgPhotoLum):NaN;
+    if(tone==="light"||tone==="dark") eff=tone; else if(!isNaN(pl)) eff=pl>=.55?"light":"dark"; }
   { const R=document.documentElement; if(R.dataset.hostTheme===undefined) R.dataset.hostTheme=R.dataset.theme||""; if(eff==="light"||eff==="dark") R.dataset.theme=eff; else if(R.dataset.hostTheme) R.dataset.theme=R.dataset.hostTheme; else delete R.dataset.theme; }
   if(eff==="light") css=`html:root:root:root{color-scheme:light;${vars(L)}}`;
   else if(eff==="dark") css=`html:root:root:root{color-scheme:dark;${vars(D)}}`;
@@ -1438,7 +1463,7 @@ applyPrefs();
 
 /* ================= state ================= */
 const state={view:"home",items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
-  fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],activity:[],chores:[],qa:[],shOcr:null,diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
+  fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],activity:[],chores:[],qa:[],music:[],shOcr:null,diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
   paint:{on:false,val:"休",who:""},refFilter:"all",psFilter:"mine",
   busy:false,dirty:false,editing:null,sel:today(),calMonth:(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1)})(),calWeek:false,
   diaryDate:today(),diaryTab:"me",sheet:{open:false,kind:"task",date:"",time:"",tlevel:"mid",clevel:"warn",pcat:"wish",pkind:"do",phz:"someday",budget:""}};
@@ -1684,7 +1709,7 @@ function rightLabel(c,x){
   if(c==="chores") return ((x.log||{})[today()])?"今日の記録を取り消す":"今日やった";
   if(c==="items"||c==="pitems") return myDone(x)?"戻す":(c==="items"&&bothTask(x)?"自分の分を完了":"完了");
   if(c==="topics") return x.status==="done"?"戻す":"話した";
-  if(c==="habits") return (x.log||{})[today()]?"今日を取り消す":"今日できた";
+  if(c==="habits") return habitLog(x)[today()]?"今日を取り消す":"今日できた";
   if(c==="troubles") return x.status==="open"?"対応する":x.status==="doing"?"解決":"未対応に戻す";
   if(c==="cautions"){ if(cCanDo(x)) return cLog(x,myRole())[today()]?"今日を取り消す":"今日できた"; if(!cNeedAck(x)) return ""; return x.by===state.me?"":(x.ack&&x.ack[state.me||"local"]?"未確認に戻す":"確認した"); }
   if(c==="plans") return planDone(x)?"戻す":(PCATS[x.cat]||PCATS.wish).doneL;
@@ -2016,13 +2041,19 @@ function saveTalkNotes(){ const ta=$("talkNotes"); if(!ta) return; const d=state
 
 /* ================= じぶん: private layer ================= */
 /* habits */
-function habitLog(h){ return h.log||{}; }
-function toggleHabit(id,date){
+/* 記録：1＝できた、"x"＝できなかった（確定）。集計の「できた日」は habitLog、生の記録は hRaw */
+const hRaw=h=>h.log||{};
+const _hl=new WeakMap();
+function habitLog(h){ const r=hRaw(h); let m=_hl.get(r); if(m) return m; m={}; for(const d in r) if(r[d]&&r[d]!=="x") m[d]=1; _hl.set(r,m); return m; }
+const hMiss=(h,d)=>hRaw(h)[d]==="x";
+function toggleHabit(id,date,cycle){
   const h=state.habits.find(x=>x.id===id); if(!h) return; if(date>today()) return;
-  const on=!habitLog(h)[date]; h.log={...habitLog(h),[date]:on?1:null};
-  dupd("habits",id,{log:{[date]:on?1:null}});
+  const cur=hRaw(h)[date], nx=cycle?(!cur?1:cur==="x"?null:"x"):(cur===1||cur===true?null:1), on=nx===1;
+  h.log={...hRaw(h),[date]:nx};
+  dupd("habits",id,{log:{[date]:nx}});
+  if(nx==="x") toast(`「${h.text}」を「できなかった」で記録しました（未入力には出ません）`);
   if(on){ const D=habitDue(h); toast(D?`「${h.text}」を記録しました${D.kind==="iv"?`（次は ${short(D.next)} ごろ）`:""}`:`「${h.text}」今日できました`); }
-  if(!state.editing) render(); else { const el=document.querySelector(`[data-hday="${date}"][data-hid="${CSS.escape(id)}"]`); if(el) el.classList.toggle("on",on); }
+  if(!state.editing) render(); else { const el=document.querySelector(`[data-hday="${date}"][data-hid="${CSS.escape(id)}"]`); if(el){ el.classList.toggle("on",on); el.classList.toggle("miss",nx==="x"); } }
 }
 function habitStats(h){
   const L=habitLog(h), t=today(); let d=L[t]?t:addDays(t,-1), streak=0; while(L[d]){ streak++; d=addDays(d,-1); }
@@ -2054,6 +2085,7 @@ const hSince=h=>h.createdAt?ymd(new Date(h.createdAt)):today();
 const PCUR={"週":"今週","2週":"この2週","月":"今月","2か月":"この2か月","3か月":"この3か月","半年":"この半年","年":"今年"};
 function habitDue(h){
   const c=tgtCode(h), L=habitLog(h), t=today(); if(c==="7") return null;
+  if(hMiss(h,t)) return {kind:c==="iv"?"iv":"per",status:"skip",left:0,text:"今日はできなかった（記録済み）",P:hPeriod(c==="iv"?"1":c,t),need:0,done:0,last:null,next:t};
   if(c==="iv"){ const ev=Number(h.every)||30, lead=Math.min(7,Math.max(1,Math.round(ev*.2))), ds=Object.keys(L).filter(k=>L[k]&&k<=t).sort(), last=ds[ds.length-1]||null;
     const next=last?addDays(last,ev):hSince(h), left=dDiff(next,t);
     const status=!last?"ok":last===t?"done":left<0?"over":left<=lead?"soon":"ok";
@@ -2062,7 +2094,7 @@ function habitDue(h){
   const status=done>=need?"done":left<=lead?"soon":"ok";
   return {kind:"per",P,need,done,left,status,lead,text:`${P.cur} ${done}/${need}`};
 }
-function dueTag(h){ const D=habitDue(h); if(!D) return "";
+function dueTag(h){ const D=habitDue(h); if(!D) return ""; if(D.status==="skip") return `<span class="htag skip">今日はできなかった</span>`;
   if(D.status==="done") return `<span class="htag done">${D.kind==="iv"?"今日やった":`${D.P.cur}は済`} ✓</span>`;
   if(D.status==="over") return `<span class="htag over">${-D.left}日超過</span>`;
   if(D.status==="soon") return `<span class="htag soon">そろそろ・${D.left===0?"今日まで":`あと${D.left}日`}</span>`;
@@ -2121,13 +2153,13 @@ function habitRow(h){
       `<button class="check ${D.status==="done"?"on":""}" style="--c:var(--habit)" data-act="right" aria-label="今日やった">${CHECK}</button>`,
       `<div class="text">${esc(h.text)}</div><div class="meta">${dueTag(h)}<span>${esc(D.text)}</span><span>${esc(tgtLabel(h))}</span></div>
        <div class="pcells">${cells.map(x=>`<i class="pc ${x.cls}" title="${esc(x.tt)}"><b></b><small>${esc(x.lb)}</small></i>`).join("")}</div>
-       <div class="meta"><span>${D.kind==="iv"?"期限内":"達成"} ${S2.ok}/${S2.n}${S2.n?`（${S2.rate}%）`:""}</span><span>連続 ${S2.streak}回</span></div>`); }
-  const days=[...Array(7)].map((_,i)=>addDays(t,i-6));
+       <div class="meta"><span>${D.kind==="iv"?"期限内":"達成"} ${S2.ok}/${S2.n}${S2.n?`（${S2.rate}%）`:""}</span><span>連続 ${S2.streak}回</span>${(D.status==="soon"||D.status==="over"||D.status==="skip")?`<button class="hmissb ${D.status==="skip"?"on":""}" data-act="hmiss">${D.status==="skip"?"今日はできなかった ✓":"今日はできない"}</button>`:""}</div>`); }
+  const days=[...Array(7)].map((_,i)=>addDays(t,i-6)), mT=hMiss(h,t);
   const tg=tgtLabel(h);
   return wrapRow("habits",h,"",
     `<button class="check ${L[t]?"on":""}" style="--c:var(--habit)" data-act="right" aria-label="${rightLabel("habits",h)}">${CHECK}</button>`,
     `<div class="text">${esc(h.text)}</div><div class="meta">${dueTag(h)}${tgtCode(h)==="7"?`<span>連続${st.streak}日</span>`:`<span>30日で${st.count}回</span>`}<span>達成率 ${st.rate}%</span><span>目標 ${tg}</span></div>
-     <div class="hwk">${days.map(d=>`<button class="hd ${L[d]?"on":""} ${d===t?"today":""}" data-hday="${d}" data-hid="${esc(h.id)}" aria-label="${short(d)} ${L[d]?"できた":"未"}">${parse(d).getDate()}</button>`).join("")}</div>`);
+     <div class="hwk">${days.map(d=>`<button class="hd ${L[d]?"on":hMiss(h,d)?"miss":""} ${d===t?"today":""}" data-hday="${d}" data-hid="${esc(h.id)}" aria-label="${short(d)} ${L[d]?"できた":hMiss(h,d)?"できなかった":"未"}">${parse(d).getDate()}</button>`).join("")}${!L[t]?`<button class="hmissb ${mT?"on":""}" data-act="hmiss" aria-pressed="${mT}">${mT?"できなかった ✓":"できなかった"}</button>`:""}</div>`);
 }
 const HABIT_TPL=["早起き","運動30分","読書","ストレッチ","英語の勉強","資格の勉強","水を2L飲む","22時以降スマホを見ない"];
 function viewHabit(){
@@ -2146,7 +2178,7 @@ function viewHabit(){
     h+=`<div class="section-label">ふりかえり</div>`+barChart("全体の達成率（週ごと・目標に対して）",vals,ws.map(short),100,0,"%",`全体の達成率。最新週 ${vals[vals.length-1]}%`);
   }
   h+=habitHeatHTML();
-  return h+`<p class="hint">習慣：→で今日できた・←で削除・日付のマスで過去の日を記録<br>タップで詳しいグラフ・上から↓で追加・←→でタブ切替</p>`;
+  return h+`<p class="hint">習慣：→で今日できた・「できなかった」で確定（未入力に出なくなります）・日付のマスは タップで できた→できなかった→取消<br>タップで詳しいグラフ・上から↓で追加・←→でタブ切替</p>`;
 }
 
 /* reflection */
@@ -2724,7 +2756,8 @@ function viewSettings(){
     <p>色を選ぶと、その色に合わせて文字などの明るい／暗い表示も自動で切り替わります（表示モードの設定より優先）。背景は単色になり、グラス／ダイナミックの色のにじみは消えます。</p>
     <h2>背景の写真</h2>
     <div class="opts"><button class="opt" data-act="bgPhotoPick">${prefs.bgPhoto?"写真を変える":"写真を選ぶ"}</button>${prefs.bgPhoto?'<button class="opt" data-act="bgPhotoClr">写真をやめる</button>':""}</div>
-    ${prefs.bgPhoto?`<h2>写真の見え方（文字を読みやすく）</h2><div class="opts">${[["20","はっきり"],["45","ふつう"],["65","うすく"],["80","とてもうすく"]].map(([v,l])=>opt("bgDim",v,l)).join("")}</div><div class="opts">${opt("bgBlur","0","ぼかさない")}${opt("bgBlur","1","ぼかす")}</div>`:""}
+    ${prefs.bgPhoto?`<h2>文字の色</h2><div class="opts">${opt("bgTone","auto","写真に合わせる")}${opt("bgTone","dark","暗い文字")}${opt("bgTone","light","明るい文字")}</div><p class="who">「写真に合わせる」は、写真が明るければ暗い文字、暗ければ明るい文字にします${prefs.bgPhotoLumId===prefs.bgPhoto&&prefs.bgPhotoLum?`（この写真の明るさ：${Math.round(Number(prefs.bgPhotoLum)*100)}%）`:""}。</p>
+    <h2>写真の見え方（文字を読みやすく）</h2><div class="opts">${[["20","はっきり"],["45","ふつう"],["65","うすく"],["80","とてもうすく"]].map(([v,l])=>opt("bgDim",v,l)).join("")}</div><div class="opts">${opt("bgBlur","0","ぼかさない")}${opt("bgBlur","1","ぼかす")}</div>`:""}
     <p class="who">${state.assets?"写真は縮小して保存され、この画面（"+esc(nameOf(myRole()))+"）の背景だけに使われます。":"この画面では写真を保存できません。"}</p></section>
   <section class="card"><h2>テーマカラー</h2><div class="swatches">${sw}</div>
     <div class="colorrow"><input type="color" id="accentPick" value="${esc(prefs.accent||PALETTES[prefs.pal].light.task)}" aria-label="メインカラー"><span style="font-size:13px">メインカラーを自由に選ぶ</span>${prefs.accent?'<button class="link" data-act="accentReset">元に戻す</button>':""}</div>
@@ -2755,6 +2788,12 @@ function viewSettings(){
       const zs=hdrZ(k);
       return `<li><span class="hord-n"><span class="hord-t">${L}</span><span class="hsz">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>`<button type="button" data-act="hsz" data-k="${k}" data-v="${v}" aria-pressed="${zs===v}">${l}</button>`).join("")}</span></span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
     <div class="opts"><button class="opt" data-act="hreset">初期に戻す</button></div></section>
+  <section class="card"><h2>今日の1曲</h2><div class="opts">${opt("music","on","表示する")}${opt("music","off","表示しない")}</div>
+    <p>ふたりの好きな音楽から、AIが毎日1曲選んで天気の左に出します（ふたりとも同じ曲）。タップで音楽アプリを開けます。</p>
+    <label class="sho-f"><span class="who">${esc(nameOf(myRole()))}の好きな音楽（アーティスト・ジャンル・曲など）</span><textarea id="musicIn" rows="2" maxlength="200" placeholder="例：あいみょん、King Gnu、90年代J-POP、ジャズ">${esc(musicTaste(myRole()))}</textarea></label>
+    <p class="who">${esc(nameOf(otherRole()))}の好み：${esc(musicTaste(otherRole())||"まだ入っていません")}</p>
+    <h2>聞くアプリ</h2><div class="opts">${Object.entries(SVC).map(([k,[l]])=>opt("musicSvc",k,l)).join("")}</div>
+    ${aiText()?"":'<p class="who">曲を選ぶにはAI機能を「使う」にしてください。</p>'}</section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
     <p>見出しの右に今の天気と気温、今日の最高・最低・降水確率を出します。タップで12時間と3日間の予報。雨が降りそうな日は「今日のまとめ」にも出ます。</p>
     <div class="opts"><button class="opt" data-act="wxHere">現在地にする</button><button class="opt" data-act="wxDef" aria-pressed="${!prefs.wxLat}">刈谷（既定）</button></div>
@@ -2844,7 +2883,7 @@ function counts(){
     diary:state.me?state.comments.filter(c=>((c.ownerRole&&c.ownerRole===myRole())||(c.owner&&c.owner===state.me))&&authorRole(c)!==myRole()&&c.at>(prefs.seenC||0)).length:0,
     future:state.plans.filter(p=>(p.cat==="anniv"&&p.date&&annivInfo(p).days<=14&&!planDone(p))||(p.cat==="bousai"&&planSoon(p))).length,
     talk:state.topics.filter(t=>t.status!=="done").length,
-    habit:state.habits.filter(h=>tgtCode(h)==="7"&&!habitLog(h)[today()]).length+state.habits.filter(h=>{ const D=habitDue(h); return D&&(D.status==="soon"||D.status==="over"); }).length,
+    habit:state.habits.filter(h=>tgtCode(h)==="7"&&!habitLog(h)[today()]&&!hMiss(h,today())).length+state.habits.filter(h=>{ const D=habitDue(h); return D&&(D.status==="soon"||D.status==="over"); }).length,
     ptask:state.pitems.filter(i=>i.list==="task"&&!i.done).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done).length,
     psched:mySched(0).filter(o=>o.d<=today()).length};
 }
@@ -2885,7 +2924,7 @@ function renderChrome(){
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
-  renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); logoApply();
+  renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); songRender(); logoApply();
 }
 function render(anim){
   state.dirty=false;
@@ -3089,7 +3128,7 @@ $("main").addEventListener("click",e=>{
   const wk=e.target.closest("[data-wcwk]"); if(wk){ const r=state.paint.who||myRole(), C=wcCfg(r), i=wk.dataset.wcwk, nx=C.wk.includes(i)?C.wk.replace(i,""):C.wk+i; wcSave(r,{wk:nx.split("").sort().join("")}); state.wcDay=null; if(r===myRole()&&C.on) wcRun(r,true); render(); return; }
   const sgo=e.target.closest("[data-sgo]"); if(sgo){ searchGo(sgo.dataset.sgo,sgo.dataset.sid,sgo.dataset.ssub); return; }
   const so=e.target.closest("[data-sho]"); if(so&&state.shOcr&&state.shOcr.days){ const L=[...SHIFTS.map(x=>x[0]),""], cur=state.shOcr.days[so.dataset.sho]||"", nx=L[(L.indexOf(cur)+1)%L.length]; if(nx) state.shOcr.days[so.dataset.sho]=nx; else delete state.shOcr.days[so.dataset.sho]; haptic("tick"); render(); return; }
-  const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday); return; }
+  const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday,true); return; }
   const cd=e.target.closest("[data-cday]"); if(cd){ toggleCautionDay(cd.dataset.cid,cd.dataset.cday); return; }
   const l2h=e.target.closest("[data-l2h]"); if(l2h){ learnToHabit(l2h.dataset.l2h); return; }
   const mcc=e.target.closest("[data-mcc]"); if(mcc){ state.mchartCat=mcc.dataset.mcc; render(); return; }
@@ -3182,6 +3221,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="wxHere") wxLocate();
   else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
   else if(a==="cmode"){ const w=b.dataset.v==="week"; if(w!==state.calWeek){ haptic("tick"); setWeek(w); } }
+  else if(a==="hmiss"){ const li2=b.closest("[data-id]"); if(li2){ const x=state.habits.find(q=>q.id===li2.dataset.id); if(x){ const t=today(), nx=hMiss(x,t)?null:"x"; x.log={...hRaw(x),[t]:nx}; dupd("habits",x.id,{log:{[t]:nx}}); haptic("tick"); if(nx) toast(`「${x.text}」今日はできなかった、で記録しました`); render(); } } }
   else if(a==="futBack"){ state.fut=null; render(-40); }
   else if(a==="mvItem"&&c&&id){ const x=state[c].find(i=>i.id===id); if(x){ const toP=c==="items", now=Date.now();
       const keep=["list","text","due","time","memo","budget","done","doneAt","createdAt","link","actual"], o={};
@@ -3277,7 +3317,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
-$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
+$("main").addEventListener("change",e=>{ if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
 $("main").addEventListener("input",e=>{
   if(e.target.id==="talkNotes"){ $("talkSave").textContent="入力中…"; clearTimeout(talkTimer); talkTimer=setTimeout(saveTalkNotes,900); return; }
   if(e.target.id==="thxIn"||e.target.id==="dinIn"){ $("xSave").textContent="入力中…"; clearTimeout(xTimer); xTimer=setTimeout(()=>{ xTimer=null; saveThanks(); saveDinner(); },900); return; }
@@ -3555,7 +3595,7 @@ function checkList(){
   const dn=dinnerOf(t); add("dinner","今日の夕飯メモ",dn&&dn.text?0:1,"ふたりで共有されます");
   const rf=state.reflect.find(x=>x.id===t); add("reflect","今日の内省",rf&&(rf.good||rf.bad||rf.learn||rf.mood)?0:1,"気分だけでも");
   add("qa","今日の質問に答える",qaAns(t,myRole())?0:1,qaQ(t));
-  add("habit","今日まだの毎日の習慣",state.habits.filter(h=>tgtCode(h)==="7"&&!habitLog(h)[t]).length,"");
+  add("habit","今日まだの毎日の習慣",state.habits.filter(h=>tgtCode(h)==="7"&&!habitLog(h)[t]&&!hMiss(h,t)).length,"");
   { const due=state.habits.map(h=>({h,D:habitDue(h)})).filter(o=>o.D&&(o.D.status==="soon"||o.D.status==="over")); add("hdue","定期の習慣：期限が近い・過ぎた",due.length,due.slice(0,3).map(o=>`${o.h.text}（${o.D.status==="over"?`${-o.D.left}日超過`:o.D.left===0?"今日まで":`あと${o.D.left}日`}）`).join("、")); }
   const cp=state.cautions.filter(c=>cOngoing(c)&&cRoles(c).includes(me)&&!cLog(c,me)[t]).length; add("cprac","今日の「気をつけること」の実施",cp,"できたら記録");
   let shMe=0,shOt=0; for(let i=0;i<14;i++){ const d=addDays(t,i); if(!shiftOf(me,d)) shMe++; if(!shiftOf(otherRole(),d)) shOt++; }
@@ -5094,12 +5134,63 @@ function bgPhotoApply(){
   let el=document.getElementById("bgPhoto"); const id=prefs.bgPhoto;
   if(!id){ if(el) el.remove(); document.documentElement.classList.remove("has-bgphoto"); return; }
   if(!el){ el=document.createElement("div"); el.id="bgPhoto"; el.setAttribute("aria-hidden","true"); document.body.prepend(el); }
-  let u; try{ u=photoUrl(id); }catch(e){ setTimeout(bgPhotoApply,60); return; } el.style.setProperty("--bgimg",`url("${u}")`); el.style.setProperty("--bgdim",(Number(prefs.bgDim)||45)+"%"); el.classList.toggle("blur",prefs.bgBlur==="1");
+  let u; try{ u=photoUrl(id); }catch(e){ setTimeout(bgPhotoApply,60); return; }
+  if(prefs.bgPhotoLumId!==id&&!bgPhotoApply.busy){ bgPhotoApply.busy=true; bgLumOf(u).then(l=>{ bgPhotoApply.busy=false; if(l==null) return; prefs.bgPhotoLum=String(Math.round(l*1000)/1000); prefs.bgPhotoLumId=id; savePrefs(true); applyPrefs(); }); }
+  el.style.setProperty("--bgimg",`url("${u}")`); el.style.setProperty("--bgdim",(Number(prefs.bgDim)||45)+"%"); el.classList.toggle("blur",prefs.bgBlur==="1");
   document.documentElement.classList.add("has-bgphoto"); }
+/* 写真の平均の明るさ（0〜1）。__blobUrl の仮画像のときは本物に差し替わるまで待つ */
+function bgLumOf(u,tries){ return new Promise(ok=>{ const im=new Image(); im.onload=()=>{ try{ if(im.naturalWidth<4){ if((tries||0)<20) setTimeout(()=>bgLumOf(photoUrl(prefs.bgPhoto),(tries||0)+1).then(ok),500); else ok(null); return; }
+    const c=document.createElement("canvas"); c.width=c.height=24; const g=c.getContext("2d"); g.drawImage(im,0,0,24,24); const d=g.getImageData(0,0,24,24).data; let s=0; for(let i=0;i<d.length;i+=4) s+=(d[i]*.299+d[i+1]*.587+d[i+2]*.114)/255; ok(s/(d.length/4)); }catch(e){ ok(null); } }; im.onerror=()=>ok(null); im.src=u; }); }
 function bgPhotoPick(){ if(!state.assets){ toast("この画面では写真を保存できません"); return; }
   let i=$("bgIn"); if(!i){ i=document.createElement("input"); i.type="file"; i.accept="image/*"; i.id="bgIn"; i.hidden=true; document.body.appendChild(i);
     i.addEventListener("change",async()=>{ const f=i.files&&i.files[0]; if(!f) return; toast("写真を保存しています…"); const id=await savePhoto(f); if(id){ prefs.bgPhoto=id; savePrefs(); applyPrefs(); render(); toast("背景を写真にしました"); } }); }
   i.value=""; i.click(); }
+
+/* ================= 今日の1曲（ふたりの好みからAIが選ぶ。天気の左） ================= */
+const songOf=d=>state.music.find(x=>x.id===d)||null;
+const musicTaste=r=>(((state.kakei||{}).music||{})[r]||"").trim();
+const SVC={apple:["Apple Music",q=>`https://music.apple.com/jp/search?term=${encodeURIComponent(q)}`],spotify:["Spotify",q=>`https://open.spotify.com/search/${encodeURIComponent(q)}`],youtube:["YouTube Music",q=>`https://music.youtube.com/search?q=${encodeURIComponent(q)}`]};
+async function songEnsure(d,force){
+  const x=songOf(d); if(x&&x.title&&!force) return; const ai=aiText(); if(!ai||prefs.music==="off") return;
+  const th=musicTaste("h"), tw=musicTaste("w"); if(!th&&!tw) return;
+  state.songTried=state.songTried||{}; if(!force&&state.songTried[d]) return; state.songTried[d]=1; state.songBusy=true; songRender();
+  const past=state.music.filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).slice(0,25).map(m=>`${m.title}／${m.artist}`);
+  const T=typeof wxToday==="function"?wxToday():null, sh=shiftOf("h",d), sw=shiftOf("w",d), off=offState(d)==="both";
+  const an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).filter(o=>o.a.days<=7).map(o=>`${o.p.text}まであと${o.a.days}日`);
+  try{ const r=await ai.json(`夫婦のアプリで、今日ふたりで聞きたい「今日の1曲」を1曲選んでください。
+- ${nameOf("h")}の好み：${th||"（未登録）"}
+- ${nameOf("w")}の好み：${tw||"（未登録）"}
+- 今日：${d}（${"日月火水木金土"[parse(d).getDay()]}曜）${T?`・天気 ${WXN[wxKind(T.code,1)]||""} 最高${T.max}°`:""}・シフト ${nameOf("h")}${sh||"未入力"}／${nameOf("w")}${sw||"未入力"}${off?"・ふたり休み":""}${an.length?"・"+an.join("、"):""}
+- ふたりの好みの両方に近い、実在する曲を選ぶ（存在が確かな有名曲を優先。架空の曲は不可）
+- 最近選んだ曲は避ける：${past.join(" / ")||"なし"}
+- reason は「〜だから」のような短い一言（40文字以内・日本語）
+JSONだけを返す：{"title":"曲名","artist":"アーティスト名","reason":"選んだ理由"}`,{modelTier:"quick"});
+    const t=String(r&&r.title||"").trim().slice(0,60), a=String(r&&r.artist||"").trim().slice(0,60);
+    if(t&&a){ const doc={title:t,artist:a,reason:String(r.reason||"").slice(0,80),by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur) Object.assign(cur,doc); else state.music.push({id:d,...doc}); dset("music",d,doc); }
+  }catch(e){ state.songErr=String((e&&(e.detail||e.code||e.message))||"").slice(0,80); }
+  state.songBusy=false; songRender(); }
+function songRender(){
+  const el=$("song"); if(!el) return; const t=today(), x=songOf(t), ai=aiText(), taste=musicTaste(myRole())||musicTaste(otherRole());
+  if(prefs.music==="off"||(!x&&!ai)){ el.hidden=true; return; }
+  if(!x&&ai&&taste&&!state.songBusy) setTimeout(()=>songEnsure(t),200);
+  el.hidden=false;
+  el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg><span>${state.songBusy&&!x?"選曲中…":x?esc(x.title):"今日の1曲"}</span>`;
+  let pn=$("songp"); if(!state.songOpen){ if(pn) pn.remove(); return; }
+  if(!pn){ pn=document.createElement("div"); pn.id="songp"; pn.className="wxp songp"; document.body.appendChild(pn); }
+  const q=x?`${x.title} ${x.artist}`:"", svc=prefs.musicSvc||"apple";
+  pn.innerHTML=x?`<div class="wxp-h"><b>今日の1曲</b><span class="who">${short(t)}・ふたりの好みから</span></div>
+      <div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
+      <div class="song-l"><a class="btn primary" href="${esc(SVC[svc][1](q))}" target="_blank" rel="noopener">${SVC[svc][0]}で聞く</a>${Object.keys(SVC).filter(k=>k!==svc).map(k=>`<a class="link" href="${esc(SVC[k][1](q))}" target="_blank" rel="noopener">${SVC[k][0]}</a>`).join("")}</div>
+      <div class="song-f">${ai?`<button class="link" data-act="songRe">別の曲にする</button>`:""}<button class="link" data-act="songPref">好みを変える</button></div>`
+    :`<div class="wxp-h"><b>今日の1曲</b></div><p class="song-r">${taste?(state.songBusy?"ふたりの好みから選んでいます…":`選べませんでした${state.songErr?`（${esc(state.songErr)}）`:""}`):"設定 ›「今日の1曲」に、ふたりそれぞれの好きな音楽を入れると、毎日1曲選びます。"}</p><div class="song-f"><button class="link" data-act="songPref">好みを入れる</button>${taste&&!state.songBusy?`<button class="link" data-act="songRe">もう一度選ぶ</button>`:""}</div>`;
+  const r=el.getBoundingClientRect(), pw=Math.min(340,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; pn.style.top=Math.round(r.bottom+8)+"px";
+  if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px"; }
+$("song").addEventListener("click",e=>{ e.stopPropagation(); state.songOpen=!state.songOpen; if(state.songOpen){ state.wxOpen=false; wxRender(); } haptic("tick"); songRender(); });
+document.addEventListener("click",e=>{ if(state.songOpen&&!e.target.closest("#songp,#song")){ state.songOpen=false; songRender(); } });
+addEventListener("scroll",()=>{ if(state.songOpen){ state.songOpen=false; songRender(); } },{passive:true});
+document.addEventListener("click",e=>{ const b=e.target.closest("#songp [data-act]"); if(!b) return; const a=b.dataset.act;
+  if(a==="songRe"){ state.songTried={}; songEnsure(today(),true); }
+  else if(a==="songPref"){ state.songOpen=false; songRender(); go("settings"); setTimeout(()=>{ const el=$("musicIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },200); } });
 /* ================= タブ・項目の検索（ホームの上） ================= */
 const TAB_KW={home:"ホーム トップ まとめ",talk:"話す 話し合い 議題 会話 今日の質問",task:"やること タスク todo 用事",chore:"家事 掃除 ゴミ 洗濯 分担",shop:"買い物 買うもの 買い出し",trouble:"気になること 困りごと 相談",caution:"注意 ルール 気をつけること",
   cal:"カレンダー シフト 予定 休み 勤務",diary:"日記 写真 アルバム ありがとう 夕飯",future:"将来 記念日 旅行 やりたいこと 欲しいもの 計画",money:"出費 家計 お金 レシート 予算 貯金 支払い",
@@ -5556,7 +5647,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",requestRender); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.view==="settings"){ const c=$("bugCard"); if(c&&!typingInMain()) c.outerHTML=bugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",requestRender); sub("qa",requestRender); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",requestRender); sub("qa",requestRender); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
