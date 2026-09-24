@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#EEF2EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111816" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=98"></script>
+<script src="shim.js?v=101"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1280,6 +1280,27 @@ html.has-bgphoto header :is(h1,#appTitle,.gw){text-shadow:0 1px 8px color-mix(in
 .song-l{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
 .song-l .btn{text-decoration:none;display:inline-flex;align-items:center}
 .song-f{display:flex;gap:14px;margin-top:10px}
+
+/* v99: 定期のもの（次の1回） */
+.rec-row{list-style:none}
+.rec-b{width:100%;display:flex;align-items:center;gap:12px;border:0;background:none;padding:12px 14px;text-align:left;color:var(--ink);cursor:pointer}
+.rec-t{flex:1;min-width:0;display:grid;gap:2px}.rec-t b{font-size:15px;font-weight:600}.rec-t small{font-size:11.5px;color:var(--muted)}
+.rec-b .chev{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;opacity:.6}
+
+/* v100: 長押しメニュー */
+li.item .row{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+li.item.lp-on{transform:scale(.985);transition:transform .15s;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent);border-radius:14px}
+.lpm{position:fixed;z-index:45;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 16px 40px rgba(0,0,0,.25);border:1px solid color-mix(in srgb,#fff 25%,transparent);display:grid;gap:2px;animation:tbIn .16s ease-out}
+.lpm-t{font-size:11.5px;color:var(--muted);padding:4px 8px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lpm button{display:flex;align-items:center;gap:10px;border:0;background:none;padding:9px 8px;border-radius:12px;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+.lpm button:active{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.lpm button:disabled{opacity:.5}
+.lpm .lpm-x{justify-content:center;color:var(--muted);font-size:13px}
+.lpm .ib{width:28px;height:28px}
+
+/* v101: 入力欄のフォントを16px以上に（iPhoneの自動ズーム防止）・ダブルタップ拡大の防止 */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@supports (-webkit-touch-callout:none){ input:not([type=checkbox]):not([type=radio]):not([type=color]),textarea,select{font-size:max(16px,1em)!important} }
 </style>
 <style id="palStyle"></style>
 
@@ -1354,7 +1375,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="98";
+const APP_VERSION="101";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2006,7 +2027,7 @@ function viewTalk(){
   let h=`<div class="dstrip" data-strip="talk"><button class="icon-btn" data-act="tprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="tnext" aria-label="次の日">›</button></div>
     <div class="tools"><span class="who">${tops.length?`話した ${doneN}/${tops.length}`:""}</span>${isT?"":'<button class="pill" data-act="ttoday">今日</button>'}</div>`+talkCard(d)+(isT?agendaHTML():(qaOf(d)?qaCardHTML(d):""));
   h+=`<div class="section-label">話すこと</div>`;
-  h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目の「議題にする」":"この日の記録はありません"}</div>`;
+  h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目を長押し→「議題にする」":"この日の記録はありません"}</div>`;
   h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`;
   if(isT){
     const t=today(), in7=addDays(t,7), me=state.me||"local";
@@ -2015,7 +2036,7 @@ function viewTalk(){
     const sched=[...state.events.filter(x=>x.date&&x.date>=t&&x.date<=in7).map(x=>({c:"events",x,d:x.date})),...state.items.filter(i=>i.due&&!i.done&&i.due<=in7).map(x=>({c:"items",x,d:x.due})),
       ...state.plans.filter(p=>p.cat!=="anniv"&&p.date&&!p.done&&p.date<=in7).map(x=>({c:"plans",x,d:x.date})),
       ...state.plans.filter(p=>p.cat==="anniv"&&p.date&&annivInfo(p).days<=7).map(x=>({c:"plans",x,d:annivInfo(x).occ}))].sort((a,b)=>a.d<b.d?-1:1);
-    const later=state.plans.filter(p=>(planSoon(p)&&p.date>in7)||(p.cat==="anniv"&&p.date&&annivInfo(p).days>7&&annivInfo(p).days<=30));
+    const later=state.plans.filter(p=>planSoon(p)&&p.date>in7&&p.cat!=="anniv");
     const offs=[]; for(let i=0;i<60&&offs.length<3;i++){ const s=addDays(t,i); if(offState(s)==="both") offs.push(s); }
     h+=`<div class="section-label">いっしょに確認</div>`;
     h+=`<div class="subttl">これから7日</div>${week7()}`;
@@ -2023,7 +2044,7 @@ function viewTalk(){
     if(sched.length) h+=`<ul class="list" style="margin-top:8px">${sched.map(o=>o.c==="events"?eventRow(o.x):o.c==="items"?itemRow(o.x,true):planRow(o.x,true)).join("")}</ul>`;
     if(trs.length) h+=`<div class="subttl">困りごと（${trs.length}）</div><ul class="list">${trs.map(troubleRow).join("")}</ul>`;
     if(cas.length) h+=`<div class="subttl">注意（${cas.length}）</div><ul class="list">${cas.map(cautionRow).join("")}</ul>`;
-    if(later.length) h+=`<div class="subttl">30日以内の将来・記念日</div><ul class="list">${later.map(p=>planRow(p,true)).join("")}</ul>`;
+    if(later.length) h+=`<div class="subttl">30日以内の将来</div><ul class="list">${later.map(p=>planRow(p,true)).join("")}</ul>`;
   }
   h+=qaPastHTML();
   return h+`<p class="hint">議題：→で話した・←で削除・タップでメモ／やることにする<br>確認の項目はその場で編集できます・日付の帯←→で過去の話し合い<br>上から↓で議題を追加・←→でタブ切替</p>`;
@@ -2069,7 +2090,7 @@ const weekGoal=h=>{ const c=tgtCode(h); return c==="iv"?7/(Number(h.every)||30):
 const tgtVal=v=>/^\d+$/.test(String(v))?Number(v):v;
 const tgtLabel=h=>tgtCode(h)==="iv"?`${Number(h.every)||30}日ごと`:(TARGETS.find(x=>x[0]===tgtCode(h))||TARGETS[0])[1];
 /* 定期（毎日以外）：期間型（今週／今月などの中で◯回）と間隔型（前回から◯日） */
-const HLEAD={"5":2,"3":2,"1":2,"2w":3,m:7,"2m":10,"3m":10,"6m":14,y:14};
+const HLEAD={"5":2,"3":2,"1":2,"2w":7,m:7,"2m":7,"3m":7,"6m":7,y:7}; /* 定期は期日の1週間前から知らせる（週単位のものは2日前） */
 const dDiff=(a,b)=>Math.round((parse(a)-parse(b))/864e5);
 function hPeriod(code,d){
   const r=parse(d), y=r.getFullYear(), m=r.getMonth();
@@ -2086,7 +2107,7 @@ const PCUR={"週":"今週","2週":"この2週","月":"今月","2か月":"この2
 function habitDue(h){
   const c=tgtCode(h), L=habitLog(h), t=today(); if(c==="7") return null;
   if(hMiss(h,t)) return {kind:c==="iv"?"iv":"per",status:"skip",left:0,text:"今日はできなかった（記録済み）",P:hPeriod(c==="iv"?"1":c,t),need:0,done:0,last:null,next:t};
-  if(c==="iv"){ const ev=Number(h.every)||30, lead=Math.min(7,Math.max(1,Math.round(ev*.2))), ds=Object.keys(L).filter(k=>L[k]&&k<=t).sort(), last=ds[ds.length-1]||null;
+  if(c==="iv"){ const ev=Number(h.every)||30, lead=ev>=8?7:Math.max(1,Math.round(ev*.2)), ds=Object.keys(L).filter(k=>L[k]&&k<=t).sort(), last=ds[ds.length-1]||null;
     const next=last?addDays(last,ev):hSince(h), left=dDiff(next,t);
     const status=!last?"ok":last===t?"done":left<0?"over":left<=lead?"soon":"ok";
     return {kind:"iv",last,next,left,status,lead,ev,text:last?`前回 ${short(last)}・次 ${short(next)}`:"まだ記録なし"}; }
@@ -2228,7 +2249,7 @@ function mySched(days){
   state.cautions.filter(c=>c.date&&c.date>=t&&c.date<=end&&mine(c)).forEach(x=>out.push({c:"cautions",x,d:x.date}));
   return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:((a.x.time||"99")<(b.x.time||"99")?-1:1));
 }
-function schedRow(o){ return o.c==="events"?eventRow(o.x):o.c==="items"?itemRow(o.x,true):o.c==="pitems"?itemRow(o.x,true,"pitems"):o.c==="plans"?planRow(o.x,true):cautionRow(o.x); }
+function schedRow(o){ return o.c==="rec"?recRow(o.x):o.c==="events"?eventRow(o.x):o.c==="items"?itemRow(o.x,true):o.c==="pitems"?itemRow(o.x,true,"pitems"):o.c==="plans"?planRow(o.x,true):cautionRow(o.x); }
 /* ================= じぶんの予定: calendar + timetable (blocks) + list ================= */
 const BCOLORS=[["task","緑"],["cal","青"],["shop","橙"],["diary","紫"],["future","青緑"],["danger","赤"]];
 const REPS=[["none","この日だけ"],["daily","毎日"],["weekday","平日"],["off","自分の休みの日"]];
@@ -2378,7 +2399,7 @@ function mySchedRange(from,to){
   state.items.filter(i=>inR(i.due)&&mine(i)).forEach(x=>out.push({c:"items",x,d:x.due}));
   state.pitems.filter(i=>inR(i.due)).forEach(x=>out.push({c:"pitems",x,d:x.due}));
   state.plans.filter(p=>p.cat!=="anniv"&&inR(p.date)&&mine(p)).forEach(x=>out.push({c:"plans",x,d:x.date}));
-  for(const p of state.plans.filter(p=>p.cat==="anniv"&&p.date)) for(let d=from;d<=to;d=addDays(d,1)) if(d.slice(5)===p.date.slice(5)&&d>=p.date) out.push({c:"plans",x:p,d});
+  for(const o of recurNext(true)) if(inR(o.d)) out.push(o);
   state.cautions.filter(c=>inR(c.date)&&mine(c)).forEach(x=>out.push({c:"cautions",x,d:x.date}));
   state.events.filter(e=>inR(e.date)&&mine(e)).forEach(x=>out.push({c:"events",x,d:x.date}));
   return out;
@@ -2616,7 +2637,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
   let cells=WD.map((w,k)=>`<div class="wd ${k===0?"sun":k===6?"sat":""}">${w}</div>`).join("");
   for(let k=0;k<count;k++){
     const d=new Date(start); d.setDate(start.getDate()+k); const s=ymd(d);
-    const list=byDay[s]||[], cau=list.some(o=>o.c==="cautions"), pl=list.some(o=>o.c==="plans"), evn=list.some(o=>o.c==="events");
+    const list=byDay[s]||[], cau=list.some(o=>o.c==="cautions"), pl=list.some(o=>o.c==="plans"||o.c==="rec"), evn=list.some(o=>o.c==="events");
     const its=list.filter(o=>o.c==="items"||o.c==="pitems").sort((a,b)=>a.x.list<b.x.list?1:-1);
     const dots=(cau?'<span class="mk c"></span>':"")+(pl?'<span class="mk p"></span>':"")+its.slice(0,Math.max(0,2-(cau?1:0)-(pl?1:0))).map(o=>`<span class="mk ${o.x.list==="shop"?"s":""} ${o.x.done?"done":s<t?"over":""}"></span>`).join("")+(diaryDays.has(s)?'<span class="mk d"></span>':"");
     const evs=list.filter(o=>o.c==="events"), rest=list.length-evs.length;
@@ -2645,8 +2666,7 @@ function viewCal(){
   state.cautions.filter(c=>c.date).forEach(c=>add(c.date,{c:"cautions",x:c}));
   state.events.filter(e=>e.date).forEach(e=>add(e.date,{c:"events",x:e})); /* 予定は絞り込みに関係なく必ずカレンダーに出す */
   state.plans.filter(p=>p.date&&p.cat!=="anniv").forEach(p=>add(p.date,{c:"plans",x:p}));
-  { const vis=new Set(); for(let k=0;k<count;k++){ const d=new Date(start); d.setDate(start.getDate()+k); vis.add(ymd(d)); }
-    for(const p of state.plans.filter(p=>p.cat==="anniv"&&p.date)) for(const s of vis) if(s.slice(5)===p.date.slice(5)&&s>=p.date) add(s,{c:"plans",x:p}); }
+  for(const o of recurNext(false)) add(o.d,o);
   const diaryDays=new Set([...state.diary.filter(d=>d.text).map(d=>d.date),...state.priv.filter(d=>d.text).map(d=>d.date)]);
   let cells=calCells(start,count,curMonth,byDay,diaryDays,!P.on);
   
@@ -2679,7 +2699,7 @@ function viewCal(){
   const shSeg=(name,cur)=>`<div class="seg" data-seg="${name}">${SHIFTS.map(([v,n])=>`<button type="button" class="s-${v}" data-sv="${v}" aria-pressed="${cur===v}" aria-label="${n}">${v}</button>`).join("")}<button type="button" data-sv="" aria-label="未入力" aria-pressed="${!cur}">−</button></div>`;
   h+=`<div class="shiftset" style="margin-top:8px"><div class="shs-t">この日のシフト</div>${[["h",sh],["w",sw_]].map(([r,v])=>`<div class="shs-row"><div class="shs-h"><span class="shs-n ${r}">${esc(nameOf(r))}</span><span class="shs-v">${esc(SHIFT_NAME[v]||"未入力")}</span></div>${shSeg("sh_"+r,v)}</div>`).join("")}</div>`;
   h+=`<div class="section-label">予定</div>`;
-  h+=dayList.length?`<ul class="list">${dayList.map(o=>o.c==="items"?itemRow(o.x,true):o.c==="plans"?planRow(o.x,true):o.c==="events"?eventRow(o.x):cautionRow(o.x)).join("")}</ul>`:`<div class="empty">この日の予定はありません<br>カレンダーを↓スワイプで追加</div>`;
+  h+=dayList.length?`<ul class="list">${dayList.map(o=>o.c==="rec"?recRow(o.x):o.c==="items"?itemRow(o.x,true):o.c==="plans"?planRow(o.x,true):o.c==="events"?eventRow(o.x):cautionRow(o.x)).join("")}</ul>`:`<div class="empty">この日の予定はありません<br>カレンダーを↓スワイプで追加</div>`;
   h+=`<div class="section-label"><span>この日の日記</span><button class="link" data-act="godiary">${myD&&myD.text?"日記を開く":"日記を書く"} ›</button></div>`;
   const peeks=[...(myD&&myD.text?[{role:myRole(),text:myD.text}]:[]),...ptD];
   if(peeks.length) h+=`<div class="diary-peek">${peeks.map(d=>`<div><div class="who">${esc(nameOf(d.role||authorRole(d)))}</div><div class="peek">${esc(d.text)}</div></div>`).join("")}</div>`;
@@ -2843,7 +2863,7 @@ function viewSettings(){
     <dt>帯 ← →</dt><dd>「‹ ○○ ›」の帯の中だけは、前後の日・月・カテゴリへ（話す・カレンダー・日記・将来・内省）</dd>
     <dt>上から ↓ 引っぱる</dt><dd>追加（話す＝議題、習慣＝習慣、日記・内省＝今日を書く）</dd><dt>追加欄を ↑</dt><dd>閉じる</dd>
     <dt>項目を →</dt><dd>完了／話した／対応する→解決／確認した／今日できた</dd>
-    <dt>議題にする</dt><dd>どの項目も詳細の「議題にする」で「話す」に載せられる</dd><dt>項目を ←</dt><dd>削除（5秒以内なら元に戻せる）</dd>
+    <dt>議題にする</dt><dd>どの項目も長押しで「話し合いの議題にする」（詳細の「議題にする」でも可）</dd><dt>項目を ←</dt><dd>削除（5秒以内なら元に戻せる）</dd>
     <dt>項目をタップ</dt><dd>編集・詳細・返信</dd><dt>メニューを ↑ ↓</dt><dd>タブを切り替え</dd>
     <dt>カレンダーを ↓ / ↑</dt><dd>選んだ日に追加／週⇄月表示</dd>
     <dt>将来</dt><dd>一覧のカードで開く・「将来」をもう一度タップで一覧へ・候補をタップで追加</dd>
@@ -5191,6 +5211,55 @@ addEventListener("scroll",()=>{ if(state.songOpen){ state.songOpen=false; songRe
 document.addEventListener("click",e=>{ const b=e.target.closest("#songp [data-act]"); if(!b) return; const a=b.dataset.act;
   if(a==="songRe"){ state.songTried={}; songEnsure(today(),true); }
   else if(a==="songPref"){ state.songOpen=false; songRender(); go("settings"); setTimeout(()=>{ const el=$("musicIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },200); } });
+
+/* ================= 定期のもの（記念日・毎月の支払い・家事・定期の習慣）：期日の1週間前から、次の1回だけ出す ================= */
+const REC_LEAD=7;
+function recurNext(withPriv){
+  const t=today(), lim=addDays(t,REC_LEAD), out=[];
+  for(const p of state.plans.filter(p=>p.cat==="anniv"&&p.date)){ const o=annivInfo(p).occ; if(o>=t&&o<=lim) out.push({c:"plans",x:p,d:o}); }
+  for(const r of state.recur||[]){ const ym=t.slice(0,7), dd=String(Math.min(Number(r.day)||1,new Date(Number(ym.slice(0,4)),Number(ym.slice(5,7)),0).getDate())).padStart(2,"0");
+    let d=`${ym}-${dd}`, unpaid=rActive(r,ym)&&!rPaid(r,ym);
+    if(!unpaid||d<t){ const n=new Date(parse(t).getFullYear(),parse(t).getMonth()+1,1), ym2=ymd(n).slice(0,7), d2=String(Math.min(Number(r.day)||1,new Date(n.getFullYear(),n.getMonth()+1,0).getDate())).padStart(2,"0"); if(!rActive(r,ym2)||rPaid(r,ym2)) continue; d=`${ym2}-${d2}`; }
+    if(d<=lim) out.push({c:"rec",d:d<t?t:d,x:{id:"pay_"+r.id,kind:"pay",text:`${r.text}（${yen(r.amount||0)}）`,go:"money",over:d<t,due:d}}); }
+  for(const c of state.chores||[]){ const I=choreInfo(c); if(I.diff<=REC_LEAD&&!(c.log||{})[t]) out.push({c:"rec",d:I.diff<0?t:addDays(t,I.diff),x:{id:"ch_"+c.id,kind:"chore",text:c.text,go:"chore",over:I.diff<0,due:addDays(t,I.diff),who:I.who}}); }
+  if(withPriv) for(const h of state.habits){ const D=habitDue(h); if(!D||D.status==="done"||D.status==="skip") continue; const due=D.kind==="iv"?(D.next||t):addDays(D.P.e,-1); if(due<=lim) out.push({c:"rec",d:due<t?t:due,x:{id:"hb_"+h.id,kind:"habit",text:h.text,go:"habit",over:due<t,due}}); }
+  return out; }
+const REC_LB={pay:["支払い","yen"],chore:["家事","chore"],habit:["定期の習慣","loop"]};
+function recRow(x){ const [lb,icn]=REC_LB[x.kind]||["定期","loop"]; return `<li class="item rec-row"><button class="rec-b" data-go2="${x.go}">${ic(icn)}<span class="rec-t"><b>${esc(x.text)}</b><small>${lb}・${x.over?`${short(x.due)}から期限切れ`:`${short(x.due)}まで`}${x.who&&x.who!=="both"?`・${esc(nameOf(x.who))}`:""}</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></li>`; }
+
+/* ================= 長押しメニュー（どの項目も長押しで「議題にする」） ================= */
+{ let lp=null;
+  const close=()=>{ const m=$("lpm"); if(m) m.remove(); document.querySelectorAll("li.item.lp-on").forEach(x=>x.classList.remove("lp-on")); };
+  const TOPIC_OK=new Set(["items","troubles","cautions","plans","events","chores"]);
+  $("app").addEventListener("pointerdown",e=>{ if(e.button>0||state.editing) return; const li=e.target.closest("li.item[data-c][data-id]"); if(!li||e.target.closest("button:not(.row),input,textarea,a,.check")) return;
+    const c=li.dataset.c; if(c==="topics") return;
+    lp={x:e.clientX,y:e.clientY,li,t:setTimeout(()=>{ if(!lp) return; const L=lp; lp=null; if(typeof sw!=="undefined"&&sw&&sw.on) return; openLp(L.li); },480)}; },true);
+  const cancel=e=>{ if(!lp) return; if(e&&e.type==="pointermove"&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)<8) return; clearTimeout(lp.t); lp=null; };
+  addEventListener("pointermove",cancel,true); addEventListener("pointerup",cancel,true); addEventListener("pointercancel",cancel,true); addEventListener("scroll",()=>{ cancel(); close(); },{passive:true});
+  function openLp(li){
+    const c=li.dataset.c, id=li.dataset.id, x=(state[c]||[]).find(i=>i.id===id); if(!x) return;
+    close(); haptic("arm"); suppressClick=true; setTimeout(()=>suppressClick=false,450); li.classList.add("lp-on");
+    const canTopic=TOPIC_OK.has(c), already=canTopic&&state.topics.some(t=>t.ref&&t.ref.id===id&&t.status!=="done");
+    const m=document.createElement("div"); m.id="lpm"; m.className="lpm"; m.setAttribute("role","menu");
+    m.innerHTML=`<div class="lpm-t">${esc(String(x.text||x.title||"").slice(0,40))}</div>
+      ${canTopic?`<button role="menuitem" data-lp="topic" ${already?"disabled":""}>${ic("spark","--talk")}<span>${already?"すでに議題にあります":"話し合いの議題にする"}</span></button>`:""}
+      <button role="menuitem" data-lp="edit">${ic("task","--accent")}<span>開いて編集</span></button>
+      <button role="menuitem" data-lp="close" class="lpm-x">閉じる</button>`;
+    document.body.appendChild(m);
+    const r=li.getBoundingClientRect(), mh=m.offsetHeight, mw=Math.min(300,innerWidth-24);
+    m.style.width=mw+"px"; m.style.left=Math.max(12,Math.min(r.left+16,innerWidth-mw-12))+"px";
+    m.style.top=(r.bottom+8+mh<innerHeight-20?r.bottom+8:Math.max(12,r.top-mh-8))+"px";
+    m.addEventListener("click",ev=>{ const b=ev.target.closest("[data-lp]"); if(!b) return; ev.stopPropagation(); const a=b.dataset.lp; close();
+      if(a==="topic"){ makeTopicFrom(c,x); haptic("done"); } else if(a==="edit") startEdit(c,id); });
+    const t0=Date.now(); setTimeout(()=>document.addEventListener("click",function h(ev){ if(Date.now()-t0<600){ if(!ev.target.closest("#lpm")){ ev.stopPropagation(); ev.preventDefault(); } return; } if(!ev.target.closest("#lpm")){ close(); document.removeEventListener("click",h,true); } },true),0);
+  } }
+
+/* ================= 勝手に拡大しないように（iPhone：入力欄の自動ズーム・ダブルタップ・ピンチ） ================= */
+{ const vp=document.querySelector('meta[name="viewport"]'); if(vp&&!/maximum-scale/.test(vp.content)) vp.content=vp.content+",maximum-scale=1,user-scalable=no";
+  if(!vp){ const m=document.createElement("meta"); m.name="viewport"; m.content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"; document.head.appendChild(m); }
+  document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
+  document.addEventListener("gesturechange",e=>e.preventDefault(),{passive:false});
+}
 /* ================= タブ・項目の検索（ホームの上） ================= */
 const TAB_KW={home:"ホーム トップ まとめ",talk:"話す 話し合い 議題 会話 今日の質問",task:"やること タスク todo 用事",chore:"家事 掃除 ゴミ 洗濯 分担",shop:"買い物 買うもの 買い出し",trouble:"気になること 困りごと 相談",caution:"注意 ルール 気をつけること",
   cal:"カレンダー シフト 予定 休み 勤務",diary:"日記 写真 アルバム ありがとう 夕飯",future:"将来 記念日 旅行 やりたいこと 欲しいもの 計画",money:"出費 家計 お金 レシート 予算 貯金 支払い",
