@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=63"></script>
+<script src="shim.js?v=65"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,6 +85,7 @@ html,body{height:100%}
 .onb-note{margin:4px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
 .onb-box{background:var(--ground);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px}
 .onb-box input{background:var(--surface)}
+.rolerow{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}.rtag{font-weight:700;font-size:12px;padding:2px 9px;border-radius:999px;color:#fff}.rtag.h{background:var(--who-h)}.rtag.w{background:var(--who-w)}
 .onb-names{display:grid;grid-template-columns:1fr 1fr;gap:10px}.onb-names label{display:flex;flex-direction:column;gap:4px;min-width:0}.onb-names input{width:100%;box-sizing:border-box;min-width:0}
 .onb-big{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--accent)}
 .onb-list{margin:0;padding-left:18px;font-size:14px;line-height:1.75}
@@ -241,9 +242,9 @@ body.rail-left .app{padding-left:84px}
 
 header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);padding-block:10px 8px;z-index:5}
 /* ヘッダーはメニュー列の上まで広げ、右上の空き（メニューの上）に操作ボタンの縦ドックを置く */
-body.rail-right header{margin-right:-74px}
-body.rail-left header{margin-left:-74px}
-@media (min-width:760px){body.rail-right header,body.rail-left header{margin-inline:0}}
+body.rail-right header{margin-right:-84px;padding-right:10px}
+body.rail-left header{margin-left:-84px}
+@media (min-width:760px){body.rail-right header,body.rail-left header{margin-inline:0!important;padding-inline:0!important}}
 .brand{display:grid!important;grid-template-columns:minmax(0,1fr) 64px;align-items:start;gap:10px}
 body.rail-left .brand{grid-template-columns:64px minmax(0,1fr)} body.rail-left .brand .hr{order:-1}
 @media (min-width:760px){.brand{grid-template-columns:minmax(0,1fr) auto}.brand .hr{flex-direction:row!important;width:auto!important;background:none!important;box-shadow:none!important;padding:0!important}}
@@ -677,9 +678,85 @@ main.slide{animation:sl .18s ease}
 @keyframes sl{from{opacity:.4;transform:translateX(var(--sx,0))}to{opacity:1;transform:none}}
 button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* ================= スタイル（クラシック／モダン／グラス／ダイナミック）と全体の操作感 ================= */
+/* 共通：押した手応え・フォーカス・なめらかな色の変化 */
+.opt,.chip,.btn,.hbtn,.pill,.rtab,.rhome,.seg button,.lsw button,.stile,.hl,.hlist button,.icon-btn,.tt-bar button{transition:transform .12s ease,background-color .18s,color .18s,box-shadow .18s}
+.opt:active,.chip:active,.btn:active,.hbtn:active,.pill:active,.rtab:active,.rhome:active,.seg button:active,.lsw button:active,.stile:active,.hl:active,.icon-btn:active,.tt-bar button:active{transform:scale(.95)}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:10px}
+.opt{min-height:40px}
+.onb-names{display:grid;grid-template-columns:1fr 1fr;gap:10px}.onb-names label{display:flex;flex-direction:column;gap:4px;min-width:0}.onb-names input{width:100%;box-sizing:border-box;min-width:0}
+/* スタイル選択タイル */
+.stiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1.5px solid var(--line);background:var(--ground);border-radius:16px;padding:10px;cursor:pointer;color:var(--ink)}
+.stile[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.stile b{font-size:14px}.stile small{font-size:11px;color:var(--muted);line-height:1.35}
+.stpv{position:relative;width:100%;height:46px;border-radius:10px;overflow:hidden;background:var(--surface);margin-bottom:4px}
+.stpv i{position:absolute;border-radius:8px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.stpv i:nth-child(1){left:8px;top:8px;width:45%;height:12px}.stpv i:nth-child(2){left:8px;top:26px;width:70%;height:12px}.stpv i:nth-child(3){right:8px;top:8px;width:14px;height:30px;border-radius:7px}
+.st-classic .stpv{background:var(--ground)}.st-classic .stpv i{border-radius:4px;box-shadow:none;border:1px solid var(--line)}
+.st-modern .stpv{background:linear-gradient(180deg,var(--ground),color-mix(in srgb,var(--accent) 6%,var(--ground)))}.st-modern .stpv i{border-radius:9px;box-shadow:0 4px 10px rgba(0,0,0,.10)}
+.st-glass .stpv,.st-dynamic .stpv{background:radial-gradient(circle at 20% 20%,color-mix(in srgb,var(--accent) 55%,transparent),transparent 60%),radial-gradient(circle at 85% 80%,color-mix(in srgb,var(--diary) 55%,transparent),transparent 60%),var(--ground)}
+.st-glass .stpv i,.st-dynamic .stpv i{background:color-mix(in srgb,var(--surface) 55%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid color-mix(in srgb,#fff 40%,transparent)}
+.st-dynamic .stpv{background-size:160% 160%;animation:stpv 5s ease-in-out infinite alternate}
+@keyframes stpv{to{background-position:100% 100%}}
+/* 背景のにじみ（グラス／ダイナミック） */
+.fx-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;display:none}
+.fx-bg i{position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(60px);opacity:.38}
+.fx-bg i:nth-child(1){left:-25vmax;top:-20vmax;background:var(--accent)}
+.fx-bg i:nth-child(2){right:-30vmax;top:20vh;background:var(--diary)}
+.fx-bg i:nth-child(3){left:-10vmax;bottom:-35vmax;background:var(--cal)}
+:root[data-style="glass"] .fx-bg,:root[data-style="dynamic"] .fx-bg{display:block}
+:root[data-style="dynamic"] .fx-bg i:nth-child(1){animation:blob1 22s ease-in-out infinite alternate}
+:root[data-style="dynamic"] .fx-bg i:nth-child(2){animation:blob2 26s ease-in-out infinite alternate}
+:root[data-style="dynamic"] .fx-bg i:nth-child(3){animation:blob3 30s ease-in-out infinite alternate}
+@keyframes blob1{to{transform:translate(30vw,25vh) scale(1.15)}}@keyframes blob2{to{transform:translate(-35vw,20vh) scale(.9)}}@keyframes blob3{to{transform:translate(25vw,-30vh) scale(1.1)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fx-bg i{opacity:.28}}
+:root[data-theme="dark"] .fx-bg i{opacity:.28}
+/* モダン：やわらかい影・大きめの角丸・余白 */
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]){--elev:0 1px 2px rgba(20,30,40,.05),0 6px 20px rgba(20,30,40,.07)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt){border-radius:20px;box-shadow:var(--elev)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .hcard{padding:14px 16px;margin-top:12px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .card{padding:16px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) :is(.opt,.chip,.pill){border-radius:999px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .seg{border-radius:999px;padding:3px;box-shadow:0 0 0 1px var(--line) inset}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .seg button{border-radius:999px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .section-label{letter-spacing:.04em;font-weight:700}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) h1{letter-spacing:-.01em}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .rail{border-radius:26px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .rtab[aria-selected="true"]{box-shadow:0 6px 16px color-mix(in srgb,var(--tabc,var(--accent)) 35%,transparent)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) input:not([type=checkbox]):not([type=color]):not([type=radio]),:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) textarea{border-radius:12px}
+/* グラス／ダイナミック：すりガラス */
+:root:is([data-style="glass"],[data-style="dynamic"]) body{background:var(--ground)}
+:root:is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.rail,.brand .hr,.tt-bar,.toast,.sheet){background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid color-mix(in srgb,#fff 35%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) .toast{background:color-mix(in srgb,var(--ink) 82%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) header{background:color-mix(in srgb,var(--ground) 60%,transparent)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+:root:is([data-style="glass"],[data-style="dynamic"]) .sa-top{background:color-mix(in srgb,var(--ground) 60%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+:root:is([data-style="glass"],[data-style="dynamic"]) ul.list li.item .row{background:transparent}
+:root:is([data-style="glass"],[data-style="dynamic"]) .swipe-bg{border-radius:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.rail,.brand .hr,.tt-bar,.sheet){border-color:color-mix(in srgb,#fff 10%,transparent)}}
+/* ダイナミック：画面の入れ替わりと項目の登場 */
+:root[data-style="dynamic"] #main.enter>*{animation:rise .42s cubic-bezier(.2,.8,.2,1) both}
+:root[data-style="dynamic"] #main.enter>*:nth-child(2){animation-delay:.04s}:root[data-style="dynamic"] #main.enter>*:nth-child(3){animation-delay:.08s}:root[data-style="dynamic"] #main.enter>*:nth-child(4){animation-delay:.12s}:root[data-style="dynamic"] #main.enter>*:nth-child(5){animation-delay:.16s}:root[data-style="dynamic"] #main.enter>*:nth-child(n+6){animation-delay:.2s}
+:root[data-style="dynamic"] #main.enter ul.list>li{animation:rise .4s cubic-bezier(.2,.8,.2,1) both}
+:root[data-style="dynamic"] #main.enter ul.list>li:nth-child(2){animation-delay:.05s}:root[data-style="dynamic"] #main.enter ul.list>li:nth-child(3){animation-delay:.1s}:root[data-style="dynamic"] #main.enter ul.list>li:nth-child(4){animation-delay:.15s}:root[data-style="dynamic"] #main.enter ul.list>li:nth-child(n+5){animation-delay:.2s}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.985)}}
+:root[data-style="dynamic"] .check.on{animation:pop .32s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{40%{transform:scale(1.25)}}
+:root[data-style="dynamic"] .rtab[aria-selected="true"] svg{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+:root[data-style="dynamic"] .brand .hbtn.plus{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--diary)))}
+.rfade.b{border-radius:0 0 20px 20px}.rfade.t{border-radius:20px 20px 0 0}
+:root:is([data-style="glass"],[data-style="dynamic"]) .rfade.t{background:linear-gradient(color-mix(in srgb,var(--surface) 80%,transparent),transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) .rfade.b{background:linear-gradient(transparent,color-mix(in srgb,var(--surface) 80%,transparent))}
+/* ヘッダーを画面の左端まで広げる（すりガラスの切れ目をなくす） */
+header{margin-left:-16px;padding-left:16px}
+body.rail-left header{margin-left:-84px!important;padding-left:10px}
+@media (min-width:760px){header{margin-left:0!important;padding-left:0}}
+@media (prefers-reduced-motion:reduce){.fx-bg i{animation:none!important}#main.enter>*,#main.enter li{animation:none!important}}
 </style>
 <style id="palStyle"></style>
 
+<div class="fx-bg" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="app" id="app">
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
@@ -750,7 +827,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="63";
+const APP_VERSION="65";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -815,6 +892,8 @@ const FONTS={
   yomogi:{name:"ゆるい手書き（よもぎ）",body:'"Yomogi","Hiragino Maru Gothic ProN",sans-serif',disp:'"Yomogi","Hiragino Maru Gothic ProN",sans-serif',url:"Yomogi"}
 };
 const PRESETS={
+  modern:{pal:"mori",mode:"auto",pattern:"none",font:"kaku",shape:"round",icon:"line",density:"normal",style:"modern"},
+  dyn:{pal:"lavender",mode:"auto",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"normal",style:"dynamic"},
   calm:{pal:"mori",mode:"auto",pattern:"none",font:"kaku",shape:"round",icon:"line",density:"normal",celebrate:"confetti"},
   pop:{pal:"sakura",mode:"light",pattern:"dot",font:"maru",shape:"circle",icon:"fill",density:"cozy",celebrate:"heart"},
   wa:{pal:"yuu",mode:"auto",pattern:"seigaiha",font:"mincho",shape:"square",icon:"line",density:"normal",celebrate:"confetti"},
@@ -824,7 +903,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",tipDone:"0",style:"modern",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -841,7 +920,7 @@ function applyPrefs(){
   css+=`html:root:root:root:root{${own.join(";")}}`;
   $("palStyle").textContent=css;
   if(F.url&&!document.getElementById("font-"+prefs.font)){ const l=document.createElement("link"); l.rel="stylesheet"; l.id="font-"+prefs.font; l.href=`https://fonts.googleapis.com/css2?family=${F.url}&display=swap`; document.head.appendChild(l); }
-  const r=document.documentElement; r.dataset.shape=prefs.shape; r.dataset.icon=prefs.icon; r.dataset.fs=prefs.fs; r.dataset.density=prefs.density; r.dataset.rlabel=prefs.rlabel;
+  const r=document.documentElement; r.dataset.shape=prefs.shape; r.dataset.style=prefs.style||"modern"; r.dataset.icon=prefs.icon; r.dataset.fs=prefs.fs; r.dataset.density=prefs.density; r.dataset.rlabel=prefs.rlabel;
   if(prefs.pattern&&prefs.pattern!=="none") r.dataset.pattern=prefs.pattern; else delete r.dataset.pattern;
 }
 applyPrefs();
@@ -2100,7 +2179,7 @@ function viewSettings(){
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   return `<div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
   <section class="card"><h2>ふたりの名前</h2>
-    <div class="edit-row"><span class="who" style="min-width:34px">夫</span><input type="text" id="famH" value="${esc(state.fam.h)}" maxlength="12" style="width:120px"><span class="who" style="min-width:34px">妻</span><input type="text" id="famW" value="${esc(state.fam.w)}" maxlength="12" style="width:120px"></div>
+    <div class="onb-names"><label><span class="who">夫</span><input type="text" id="famH" value="${esc(state.fam.h)}" maxlength="12"></label><label><span class="who">妻</span><input type="text" id="famW" value="${esc(state.fam.w)}" maxlength="12"></label></div>
     ${roleCardHTML()}
     <p>「だれが」の選択肢（ふたり／${esc(state.fam.h)}／${esc(state.fam.w)}）とシフトの表示に使われます。名前はふたりで共有されます。</p></section>
   <section class="card"><h2>はじめての方へ</h2><p>操作のおさらいや、最初の設定のやり直しができます。</p>
@@ -2108,6 +2187,9 @@ function viewSettings(){
   <section class="card"><h2>あなた好みに（${esc(nameOf(myRole()))}の画面だけに反映）</h2>
     <p>色・形・文字・模様・動きを自由に組み合わせて、愛着のわく見た目にできます。設定はアカウントに保存され、相手の画面は変わりません。</p>
     <div class="opts"><button class="opt" data-preset="calm">おすすめ：落ち着き</button><button class="opt" data-preset="pop">おすすめ：にぎやか</button><button class="opt" data-preset="wa">おすすめ：和</button><button class="opt" data-preset="night">おすすめ：夜</button><button class="opt" data-act="prefReset">初期設定に戻す</button></div></section>
+  <section class="card"><h2>スタイル</h2>
+    <div class="stiles">${[["classic","クラシック","これまでの見た目"],["modern","モダン","やわらかい影・大きめの角丸"],["glass","グラス","すりガラスと色のにじみ"],["dynamic","ダイナミック","ゆっくり動く背景と動きのある画面"]].map(([k,l,d])=>`<button class="stile st-${k}" data-pref="style" data-val="${k}" aria-pressed="${(prefs.style||"modern")===k}"><span class="stpv"><i></i><i></i><i></i></span><b>${l}</b><small>${d}</small></button>`).join("")}</div>
+    <div class="opts"><button class="opt" data-preset="modern">おすすめ：モダン</button><button class="opt" data-preset="dyn">おすすめ：ダイナミック</button></div></section>
   <section class="card"><h2>テーマカラー</h2><div class="swatches">${sw}</div>
     <div class="colorrow"><input type="color" id="accentPick" value="${esc(prefs.accent||PALETTES[prefs.pal].light.task)}" aria-label="メインカラー"><span style="font-size:13px">メインカラーを自由に選ぶ</span>${prefs.accent?'<button class="link" data-act="accentReset">元に戻す</button>':""}</div>
     <h2>表示モード</h2><div class="opts">${opt("mode","auto","iPhoneに合わせる")}${opt("mode","light","いつも明るく")}${opt("mode","dark","いつも暗く")}</div>
@@ -2245,6 +2327,7 @@ function render(anim){
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(layerOf(v)==="me"||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
+  if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
   if(anim){ const m=$("main"); m.style.setProperty("--sx",anim+"px"); m.classList.remove("slide"); void m.offsetWidth; m.classList.add("slide"); }
   lastView=v;
   if(state.editing){ const e=$("editText"); if(e&&document.activeElement!==e&&!editFocused){ editFocused=true; e.focus(); try{e.setSelectionRange(e.value.length,e.value.length)}catch(_){} } }
@@ -2265,6 +2348,11 @@ function go(v,anim){
 }
 function roleCardHTML(){
   const R=state.roles||{};
+  if(window.__FUTARI_PWA){ const me=myRole(), ot=otherRole();
+    return `<div class="onb-box"><div class="who">アカウント</div>
+      <div class="rolerow"><span class="rtag ${me}">${esc(nameOf(me))}（${me==="h"?"夫":"妻"}）</span><span>${esc((window.__futariEmail&&window.__futariEmail())||"")} でログイン中</span></div>
+      <div class="rolerow"><span class="rtag ${ot}">${esc(nameOf(ot))}（${ot==="h"?"夫":"妻"}）</span><span>${R[ot]?"登録済み":"まだログインしていません"}</span></div>
+      <p class="onb-note">夫・妻はログインしたメールアドレスで自動的に決まります。合言葉は不要です。</p></div>`; }
   if(state.acctRole==="h") return `<p>このアカウントは<b>ページの持ち主</b>なので<b>${esc(nameOf("h"))}（夫）</b>に確定しています。</p>
     <div class="onb-box"><div class="who">${esc(nameOf("w"))}（妻）のアカウント</div>
       <div><b>${R.w?"登録済み":"未登録"}</b>${R.w&&R.wAt?`（${new Date(R.wAt).toLocaleDateString("ja-JP")}）`:""}</div>
@@ -3945,6 +4033,17 @@ function placeRail(anim){
   railEl.classList.toggle("snap",!!anim);
   railEl.style.top=top+"px";
   railEl.style.left=prefs.railSide==="left"?`calc(10px + env(safe-area-inset-left,0px))`:`calc(100% - ${railEl.offsetWidth+10}px - env(safe-area-inset-right,0px))`;
+  requestAnimationFrame(alignDock); clearTimeout(placeRail.t); placeRail.t=setTimeout(alignDock,380);
+}
+/* 右上のボタン列（ドック）を、下のメニューと縦の線がぴったりそろうように合わせる（文字サイズの拡大にも対応） */
+function alignDock(){
+  const dock=document.querySelector(".brand .hr"); if(!dock) return;
+  dock.style.transform=""; dock.style.width="";
+  if(innerWidth>=760||getComputedStyle(dock).flexDirection!=="column") return;
+  const z=parseFloat(getComputedStyle($("app")).zoom)||1, r1=railEl.getBoundingClientRect(), r2=dock.getBoundingClientRect();
+  dock.style.width=(r1.width/z)+"px";
+  const r3=dock.getBoundingClientRect(), dx=(prefs.railSide==="left"?r1.left-r3.left:r1.right-r3.right)/z;
+  if(Math.abs(dx)>0.5) dock.style.transform=`translateX(${dx}px)`;
 }
 const railDrag={on:false,moved:false};
 railEl.addEventListener("click",e=>{ const b=e.target.closest(".rtab"); if(!b||railDrag.moved) return;
