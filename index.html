@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=57"></script>
+<script src="shim.js?v=58"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -164,6 +164,23 @@ li.dragging{opacity:.45}
 .tt-rs::after{content:"";position:absolute;left:50%;bottom:3px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--bc);opacity:.5}
 .tt-b{touch-action:pan-y;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 .tt-b.dragging{opacity:.4}
+.tt-b.sel{outline:2px solid var(--bc);outline-offset:1px;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:4;touch-action:none;background:color-mix(in srgb,var(--bc) 30%,var(--surface))}
+.tt-b.sel .tt-rs{height:20px;left:0;background:transparent}
+.tt-b.sel .tt-rs::after{width:34px;height:6px;margin-left:-17px;bottom:4px;opacity:1;border-radius:4px;box-shadow:0 0 0 2px var(--surface)}
+.tt-rs.top{top:0;bottom:auto}.tt-b.sel .tt-rs.top::after{top:4px;bottom:auto}
+.tt.has-sel .tt-b:not(.sel){opacity:.55}
+.day-nav{display:flex;align-items:center;gap:6px;margin:10px 0 4px}.day-nav .day-title{margin:0;flex:0 1 auto}.day-nav .icon-btn{flex:none}.day-nav .pill{margin-left:auto}
+#tt{will-change:transform}
+.tt-bar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:60;max-width:520px;margin:0 auto;background:var(--raised);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:10px 12px;display:grid;gap:8px;animation:tbIn .18s ease-out}
+@keyframes tbIn{from{transform:translateY(20px);opacity:0}}
+.tt-bar .tb-h{display:flex;align-items:center;gap:8px;min-width:0}.tt-bar .tb-h b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tt-bar .tb-h span{flex:1;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tt-bar .tb-x{flex:none;border:0;background:var(--ground);width:32px;height:32px;border-radius:50%;font-size:14px;color:var(--ink)}
+.tt-bar .tb-g{display:flex;align-items:center;gap:6px}.tt-bar .tb-l{font-size:12px;color:var(--muted);width:30px;flex:none}
+.tt-bar .tb-g button{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;height:38px;font-weight:700;font-size:13px;white-space:nowrap;padding:0 4px}
+.tt-bar .tb-g button:active{background:var(--ground)}.tt-bar .tb-g button:disabled{opacity:.4}
+.tt-bar .tb-e{background:var(--accent)!important;color:var(--on-accent)!important;border-color:var(--accent)!important}
+.tt-bar .tb-tip{font-size:11px;color:var(--muted);text-align:center}
+body:has(.tt-bar) #toast{bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:61}
 .tt-drop{position:absolute;left:52px;right:4px;border-radius:8px;border:2px dashed var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);z-index:3;font-size:11px;font-weight:700;color:var(--accent);padding:2px 6px;box-sizing:border-box;pointer-events:none}
 .tt-ghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;background:var(--ink);color:var(--ground);border-radius:12px;padding:6px 10px;font-size:13px;display:flex;flex-direction:column;box-shadow:var(--shadow);max-width:200px}
 .tt-ghost b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tt-ghost span{font-size:11px;opacity:.8;font-variant-numeric:tabular-nums}
@@ -688,7 +705,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="57";
+const APP_VERSION="58";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1555,15 +1572,38 @@ function dayEntries(date){
   for(const o of out){ o.lanes=1+Math.max(...out.filter(p=>p.s<o.e&&p.e>o.s).map(p=>p.lane)); }
   return out;
 }
+
+/* ---- タイムテーブル：選んだ予定を直感的に調整（ドラッグ・両端ハンドル・ボタンで±15分） ---- */
+function ttSelEntry(date){ const k=state.ttSel; if(!k) return null; const [c,id]=k.split("|");
+  return dayEntries(date).find(o=>c==="g"?(o.kind==="g"&&o.x.id===id):(o.c===c&&o.x.id===id))||null; }
+function ttBarHTML(date){
+  const o=ttSelEntry(date); if(!o){ return ""; }
+  const len=o.e-o.s;
+  return `<div class="tt-bar" role="toolbar" aria-label="選んだ予定の調整">
+    <div class="tb-h"><b>${esc(o.t)}</b><span>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}（${len}分）</span><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>
+    <div class="tb-g"><span class="tb-l">時間</span><button data-act="ttmv" data-d="-60">−1時間</button><button data-act="ttmv" data-d="-15">−15分</button><button data-act="ttmv" data-d="15">＋15分</button><button data-act="ttmv" data-d="60">＋1時間</button></div>
+    <div class="tb-g"><span class="tb-l">長さ</span><button data-act="ttln" data-d="-15" ${len<=15?"disabled":""}>短く</button><button data-act="ttln" data-d="15">長く</button><button class="tb-e" data-act="ttedit">詳しく編集</button></div>
+    <div class="tb-tip">ドラッグで移動・上下の端で開始／終了を変更</div></div>`;
+}
+async function ttApply(o,s,e,msg){
+  const date=state.sel; s=Math.max(0,Math.min(s,1440-15)); e=Math.max(s+15,Math.min(e,1440));
+  if(o.kind==="g"){ await gMove(date,o.x.id,s,e); return; }
+  const c=o.c, x=state[c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(c,x.id);
+  if(c==="blocks"||c==="events") dupd(c,x.id,{start:hhmm(s),end:hhmm(e%1440),...(x.auto?{touched:true}:{})});
+  else dupd(c,x.id,timeCh(x,hhmm(s),e-s));
+  haptic("tick"); toast(msg||`${hhmm(s)}–${hhmm(e%1440)}${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); render();
+}
+function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
 function timetable(date){
   const S=Number(prefs.ttStart||4), E=24, H=46, ents=dayEntries(date), top=m=>(m/60-S)*H;
-  let h=`<div class="tt ${state.ttPick?"picking":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
+  let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
   for(let k=S;k<E;k++) h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`;
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
   for(const o of ents){ const y=Math.max(0,top(o.s)), ht=Math.max(22,top(Math.min(o.e,E*60))-y-2);
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${ht<40?"short":""}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${o.kind==="b"||o.kind==="e"?esc(o.x.start)+"–"+esc(o.x.end||hhmm(o.e)):hhmm(o.s)+(o.kind==="g"?"–"+hhmm(o.e):"–"+hhmm(o.e%1440))}</span>${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}<i class="tt-rs" aria-label="下端をドラッグで長さを変える"></i></button>`;
+    const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
+    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${ht<40?"short":""} ${sel?"sel":""}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${o.kind==="b"||o.kind==="e"?esc(o.x.start)+"–"+esc(o.x.end||hhmm(o.e)):hhmm(o.s)+(o.kind==="g"?"–"+hhmm(o.e):"–"+hhmm(o.e%1440))}</span>${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="上端をドラッグで開始時刻を変える"></i>`:""}<i class="tt-rs" aria-label="下端をドラッグで終了時刻を変える"></i></button>`;
   }
   return h+`</div>`;
 }
@@ -1617,7 +1657,7 @@ function viewPsched(){
       <span class="grp"><button class="pill ${prefs.gShow==="1"?"on":""}" data-act="gshow">Googleの予定${prefs.gShow==="1"?"を隠す":"も表示"}</button>${state.mcp?`<button class="pill" data-act="gsync" ${state.gsBusy?"disabled":""}>${state.gsBusy?"同期中…":"⟳ 今すぐ同期"}</button>`:""}</span></div>
     <div class="grid" id="grid">${cells}</div>`;
   const d=state.sel, sm=shiftOf(me,d), so=shiftOf(ot,d), off=offState(d);
-  h+=`<div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div>
+  h+=`<div class="day-nav"><button class="icon-btn" data-act="ttday" data-n="-1" aria-label="前の日">‹</button><div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="ttday" data-n="1" aria-label="次の日">›</button>${d!==t?`<button class="pill" data-act="ttday" data-n="0">今日</button>`:""}</div>
     <div class="edit-row" style="gap:14px;margin:0 4px 8px"><span class="who">${esc(nameOf(me))} ${shiftBadge(sm,me)} ${esc(SHIFT_NAME[sm]||"未入力")}</span><span class="who">${esc(nameOf(ot))} ${shiftBadge(so,ot)} ${esc(SHIFT_NAME[so]||"未入力")}</span>${off==="both"?'<b style="color:var(--s-off);font-size:12px">ふたり休み</b>':""}</div>`;
   if(prefs.gShow==="1"&&state.gErr) h+=`<div class="notice" style="margin:0 0 8px">${esc(state.gErr)}</div>`;
   const un=ttUntimed(d), others=ttOthers(d), timed=ttTimed(d);
@@ -1630,7 +1670,7 @@ function viewPsched(){
   h+=`<div class="subttl"><span>タイムテーブル</span><span style="display:flex;gap:12px;white-space:nowrap">${prefs.gShow==="1"&&state.mcp?'<button class="link" data-act="addgev">＋ Google</button>':""}<button class="link" data-act="addblock">＋ 予定</button></span></div>`;
   const bAll=blocksFor(d).filter(b=>b.allDay||!b.start);
   if(gAll.length||bAll.length) h+=`<div class="gall">${bAll.map(b=>`<button class="gchip mine" data-tb="blocks" data-tid="${esc(b.id)}">終日｜${esc(b.text)}</button>`).join("")}${gAll.map(g=>`<button class="gchip" data-gid="${esc(g.id)}">終日｜${esc(g.t)}</button>`).join("")}</div>`;
-  h+=timetable(d)+gEditHTML(d);
+  h+=timetable(d)+ttBarHTML(d)+gEditHTML(d);
   if(evTimed.length) h+=`<div class="section-label">ふたりの予定（${evTimed.length}）</div><ul class="list">${evTimed.map(o=>eventRow(o.x)).join("")}</ul>`;
   if(timed.length) h+=`<div class="section-label">時間に入れたタスク（${timed.length}）</div><ul class="list">${timed.map(o=>itemRow(o.x,true,o.c)).join("")}</ul>`;
   const dayItems=(byDay[d]||[]).filter(o=>!(o.x&&myT(o.x))&&o.c!=="items"&&o.c!=="pitems"&&!(o.c==="events"&&o.x.start));
@@ -2299,10 +2339,14 @@ $("main").addEventListener("click",e=>{
     else { editSeg[name]=v; if(name==="htarget"&&$("hEveryRow")) $("hEveryRow").hidden=v!=="iv"; }
     return; }
   const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); rightAction(c,id); render(); return; }
+  const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
+    if(state.ttSel!==k){ state.ttSel=k; state.gEdit=null; haptic("tick"); render(); return; }
+    state.ttSel=null; if(ttb.dataset.gid){ state.gEdit={date:$("tt").dataset.ttdate,id:ttb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; } }
   const tb=e.target.closest("[data-tb]"); if(tb){ startEdit(tb.dataset.tb,tb.dataset.tid); setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },50); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
+  if(tt&&state.ttSel){ state.ttSel=null; render(); return; }
   if(tt){ const r=tt.getBoundingClientRect(), S0=Number(prefs.ttStart||4), m=Math.round(((e.clientY-r.top)/46+S0)*2)/2*60; state.pendTime=hhmm(Math.min(Math.max(m,S0*60),1410)); openSheet("block"); return; }
   const bg=e.target.closest("[data-bug]"); if(bg){ dupd("bugs",bg.dataset.bug,{status:bg.dataset.bst,decidedAt:Date.now()}); toast(bg.dataset.bst==="approved"?"承認しました。次の確認で自動修正されます":"見送りにしました"); return; }
   const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday); return; }
@@ -2418,6 +2462,10 @@ $("main").addEventListener("click",e=>{
   else if(a==="railRight"||a==="railLeft"){ prefs.railSide=a==="railRight"?"right":"left"; prefs.railY=-1; savePrefs(true); renderChrome(); placeRail(true); }
   else if(a==="backup") exportBackup();
   else if(a==="exportMove") exportMove();
+  else if(a==="ttday") ttShiftDay(Number(b.dataset.n));
+  else if(a==="ttx"){ state.ttSel=null; render(); }
+  else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
+  else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else { startEdit(o.c,o.x.id); setTimeout(()=>{ const el2=document.querySelector(".edit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },50); } }
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
@@ -2876,6 +2924,9 @@ function tdMove(e,fromLoop){
   if(!tdrag.active) return;
   if(!fromLoop) tdScroll=e.clientY<90?-10:e.clientY>innerHeight-90?10:0;
   const S=ttS(), p=tdrag.prev, g=tdrag.ghost;
+  if(tdrag.mode==="resizeTop"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let st=Math.round(((e.clientY-r.top)/TT_H*60+S*60)/15)*15; st=Math.min(tdrag.e-15,Math.max(st,S*60));
+    tdrag.newStart=st; if(tdrag.el){ tdrag.el.style.top=((st/60-S)*TT_H)+"px"; tdrag.el.style.height=((tdrag.e-st)/60*TT_H-2)+"px"; } g.querySelector("span").textContent=`${hhmm(st)}–${hhmm(tdrag.e%1440)}（${tdrag.e-st}分）`;
+    g.style.transform=`translate(${e.clientX+14}px,${e.clientY-20}px)`; if(st!==tdrag.lastTick){ tdrag.lastTick=st; haptic("nav"); } return; }
   if(tdrag.mode==="resize"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let end=Math.round(((e.clientY-r.top)/TT_H*60+S*60)/15)*15; end=Math.max(tdrag.s+15,Math.min(end,24*60));
     tdrag.newEnd=end; if(tdrag.el) tdrag.el.style.height=((end-tdrag.s)/60*TT_H-2)+"px"; g.querySelector("span").textContent=`${hhmm(tdrag.s)}–${hhmm(end%1440)}（${end-tdrag.s}分）`;
     g.style.transform=`translate(${e.clientX+14}px,${e.clientY-20}px)`; if(end!==tdrag.lastTick){ tdrag.lastTick=end; haptic("nav"); } return; }
@@ -2893,6 +2944,10 @@ function tdEnd(e){
   suppressClick=true; setTimeout(()=>suppressClick=false,80);
   d.ghost&&d.ghost.remove(); d.prev&&d.prev.remove(); state.busy=false;
   const date=$("tt")?$("tt").dataset.ttdate:state.sel;
+  if(d.mode==="resizeTop"&&d.newStart!=null){ if(d.c==="g"){ gMove(date,d.id,d.newStart,d.e); render(); return; }
+    const x=state[d.c].find(i=>i.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id);
+    if(d.c==="blocks"||d.c==="events") dupd(d.c,d.id,{start:hhmm(d.newStart),...(x.auto?{touched:true}:{})}); else dupd(d.c,d.id,timeCh(x,hhmm(d.newStart),d.e-d.newStart));
+    haptic("done"); toast(`${hhmm(d.newStart)} 開始に（${d.e-d.newStart}分）`,u,"done"); render(); return; }
   if(d.mode==="resize"&&d.newEnd&&d.c==="g"){ gMove(date,d.id,d.s,d.newEnd); render(); return; }
   if(d.mode==="resize"&&d.newEnd){ const x=state[d.c].find(i=>i.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id);
     if(d.c==="blocks"||d.c==="events") dupd(d.c,d.id,{end:hhmm(d.newEnd%1440),...(x.auto?{touched:true}:{})}); else { const ti=myT(x); dupd(d.c,d.id,timeCh(x,ti,d.newEnd-d.s)); }
@@ -2911,19 +2966,19 @@ function tdStart(e,src){
     tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },260); return; }
   const b=src.closest(".tt-b"); if(!b) return;
   if(b.dataset.gid){ const date=$("tt").dataset.ttdate, g=gFind(date,b.dataset.gid); if(!g) return; const r0=b.getBoundingClientRect();
-    tdrag={from:"tt",mode:src.classList.contains("tt-rs")?"resize":"move",c:"g",id:g.id,text:g.t,s:g.s,dur:Math.max(15,g.e-g.s),grab:e.clientY-r0.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId};
-    if(tdrag.mode==="resize"){ e.preventDefault(); tdBegin(); return; } tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },320); return; }
+    tdrag={from:"tt",mode:src.classList.contains("tt-rs")?(src.classList.contains("top")?"resizeTop":"resize"):"move",c:"g",id:g.id,text:g.t,s:g.s,dur:Math.max(15,g.e-g.s),e:g.e,grab:e.clientY-r0.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId,sel:b.classList.contains("sel")};
+    if(tdrag.mode!=="move"){ e.preventDefault(); tdBegin(); return; } tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },250); return; }
   if(!b.dataset.tb) return; const c=b.dataset.tb, id=b.dataset.tid, x=state[c].find(i=>i.id===id); if(!x) return;
   const isB=c==="blocks"||c==="events";
   const s=isB?tmin(x.start):tmin(myT(x)), en=isB?((x.end&&tmin(x.end)<s)?1440:Math.max(tmin(x.end)||s+60,s+15)):s+(myD(x)||30);
   const r=b.getBoundingClientRect();
-  tdrag={from:"tt",mode:src.classList.contains("tt-rs")?"resize":"move",c,id,text:x.text,s,dur:en-s,grab:e.clientY-r.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId};
-  if(tdrag.mode==="resize"){ e.preventDefault(); tdBegin(); return; }
-  tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },320);
+  tdrag={from:"tt",mode:src.classList.contains("tt-rs")?(src.classList.contains("top")?"resizeTop":"resize"):"move",c,id,text:x.text,s,dur:en-s,e:en,grab:e.clientY-r.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId,sel:b.classList.contains("sel")};
+  if(tdrag.mode!=="move"){ e.preventDefault(); tdBegin(); return; }
+  tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },250);
 }
 document.addEventListener("pointerdown",e=>{ if(state.view!=="psched"||state.editing) return; const src=e.target.closest(".dgrip,.tt-rs,.tt-b[data-tb],.tt-b[data-gid]"); if(!src||e.target.closest(".tt-ck")) return; tdStart(e,src); },true);
 document.addEventListener("pointermove",e=>{ if(!tdrag||e.pointerId!==tdrag.pid) return; tdrag.last={clientX:e.clientX,clientY:e.clientY};
-  if(!tdrag.active){ const mv=Math.hypot(e.clientX-tdrag.x0,e.clientY-tdrag.y0); if(mv>8){ if(tdrag.from==="list"){ clearTimeout(tdrag.timer); tdBegin(); } else { clearTimeout(tdrag.timer); tdrag=null; return; } } else return; }
+  if(!tdrag.active){ const mv=Math.hypot(e.clientX-tdrag.x0,e.clientY-tdrag.y0); if(mv>(tdrag.sel?4:8)){ if(tdrag.from==="list"||(tdrag.sel&&Math.abs(e.clientY-tdrag.y0)>=Math.abs(e.clientX-tdrag.x0))){ clearTimeout(tdrag.timer); tdBegin(); } else { clearTimeout(tdrag.timer); tdrag=null; return; } } else return; }
   tdMove(e); },true);
 document.addEventListener("pointerup",e=>{ if(tdrag&&e.pointerId===tdrag.pid) tdEnd(e); },true);
 document.addEventListener("pointercancel",e=>{ if(tdrag&&e.pointerId===tdrag.pid){ if(tdrag.active){ tdrag.m=null; tdrag.tray=false; tdrag.newEnd=null; } tdEnd(e); } },true);
@@ -3587,9 +3642,10 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
-  if(e.target.closest(".tt-b,.dgrip")) return;
+  if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar")) return;
   if(grid&&state.paint.on){ startPaint(e); return; }
-  sw={x:e.clientX,y:e.clientY,row,grid,strip,li:row&&row.closest("li"),dx:0,dy:0,on:false,axis:null,pid:e.pointerId};
+  const ttEl=state.view==="psched"?e.target.closest("#tt,.day-nav"):null;
+  sw={x:e.clientX,y:e.clientY,row,grid,strip,tt:ttEl?$("tt"):null,li:row&&row.closest("li"),dx:0,dy:0,on:false,axis:null,pid:e.pointerId};
 });
 $("app").addEventListener("pointermove",e=>{
   if(paintSt){ movePaint(e); return; }
@@ -3606,6 +3662,7 @@ $("app").addEventListener("pointermove",e=>{
     const th=Math.min(80,sw.row.offsetWidth*.25), armed=Math.abs(dx)>th&&(sw.li.classList.contains("sw-right")||dx<0);
     if(armed!==!!sw.armed){ sw.armed=armed; sw.li.classList.toggle("sw-armed",armed); if(armed) haptic(dx<0?"warn":"arm"); } }
   if(sw.axis==="y"&&sw.grid) setPull(dy>0?dy:0);
+  if(sw.axis==="x"&&sw.tt){ if(tdrag&&!tdrag.active){ clearTimeout(tdrag.timer); tdrag=null; } sw.tt.style.transition="none"; sw.tt.style.transform=`translateX(${dx*.5}px)`; sw.tt.style.opacity=String(Math.max(.5,1-Math.abs(dx)/500)); }
 });
 function endSwipe(){
   if(paintSt){ endPaint(); return; }
@@ -3623,6 +3680,8 @@ function endSwipe(){
   }
   state.busy=false; setPull(0);
   if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER) openSheet(); else if(s.dy<-30) setWeek(!state.calWeek); else if(state.dirty) render(); return; }
+  if(s.tt){ s.tt.style.transition="transform .18s,opacity .18s"; s.tt.style.transform=""; s.tt.style.opacity=""; }
+  if(s.axis==="x"&&s.tt){ if(Math.abs(s.dx)>55) ttShiftDay(s.dx<0?1:-1); else if(state.dirty) render(); return; }
   if(s.axis==="x"&&Math.abs(s.dx)>55){
     const n=s.dx<0?1:-1;
     if(s.grid||(s.strip&&s.strip.dataset.strip==="cal")) shiftCal(n);
