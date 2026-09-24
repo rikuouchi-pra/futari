@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=87"></script>
+<script src="shim.js?v=90"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1087,6 +1087,82 @@ body.nav-railf.rail-left .fbar{left:calc(10px + env(safe-area-inset-left,0px))}
 body.nav-railf .fkey{width:54px;height:54px}
 body.nav-railf .fkey.add svg{padding:11px}
 @media (min-width:760px){body.nav-railf .fbar{bottom:auto;top:50%;transform:translateY(-50%)}}
+
+/* v89: アプリ名（ロゴ）… グラデーション文字をやめ、単色・詰めた字間・小さな幾何学マークのフラットなワードマークに */
+#appTitle.big{font-family:"Zen Kaku Gothic New",var(--font-body)!important;font-weight:700!important;letter-spacing:-.035em!important;color:var(--ink)!important;background:none!important;display:inline-flex;align-items:center;gap:.38em;overflow:visible!important;line-height:1}
+#appTitle.big::before{content:"";flex:none;width:1.05em;height:1.05em;border-radius:.3em;background:
+  radial-gradient(circle at 36% 50%,var(--ground) 0 23%,transparent 24%),
+  radial-gradient(circle at 64% 50%,color-mix(in srgb,var(--ground) 70%,transparent) 0 23%,transparent 24%),
+  var(--ink);box-shadow:none}
+:root:is([data-style="glass"],[data-style="dynamic"]) #appTitle.big::before{background:
+  radial-gradient(circle at 36% 50%,#fff 0 23%,transparent 24%),
+  radial-gradient(circle at 64% 50%,rgba(255,255,255,.62) 0 23%,transparent 24%),
+  var(--accent)}
+/* v88: 天気（見出しの右） */
+.trow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.trow h1{min-width:0}
+.wx{flex:none;display:inline-flex;align-items:center;gap:6px;border:0;cursor:pointer;padding:5px 12px 5px 8px;border-radius:16px;background:color-mix(in srgb,var(--surface) 72%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent) inset;color:var(--ink);margin-top:4px}
+.wx[hidden]{display:none}
+.wx[aria-expanded="true"]{box-shadow:0 0 0 1.5px var(--accent) inset}
+.wxs{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.wxs.sun,.wxs.sunc{color:#E0A021}.wxs.rain,.wxs.storm{color:var(--cal)}.wxs.snow{color:#7FA7C9}.wxs.moon,.wxs.moonc{color:var(--reflect,#6a5acd)}.wxs.cloud,.wxs.fog{color:var(--muted)}
+.wx-t{display:grid;line-height:1.1;text-align:left}
+.wx-t b{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+.wx-t small{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wx-t small i{font-style:normal;opacity:.5}
+.wx-p{color:var(--cal);font-weight:700}
+.wxp{position:fixed;z-index:35;box-sizing:border-box;padding:12px 14px;border-radius:20px;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);box-shadow:0 14px 40px rgba(0,0,0,.2);border:1px solid color-mix(in srgb,#fff 25%,transparent);animation:tbIn .18s ease-out}
+.wxp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.wxp-hr{display:flex;gap:2px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.wxh{flex:none;width:44px;display:grid;justify-items:center;gap:2px;font-variant-numeric:tabular-nums}
+.wxh small{font-size:10.5px;color:var(--muted)}
+.wxh .wxs{width:22px;height:22px}
+.wxh b{font-size:13px}
+.wxh-p{font-size:10px;color:var(--cal);font-weight:700;height:12px}
+.wxp-d{display:grid;gap:4px;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);padding-top:8px}
+.wxd{display:grid;grid-template-columns:56px 24px 1fr auto 34px 30px;align-items:center;gap:6px;font-size:13px;font-variant-numeric:tabular-nums}
+.wxd .wxs{width:22px;height:22px}
+.wxd-n{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wxd-p{color:var(--cal);font-size:12px;font-weight:700}
+.wxd b{text-align:right}.wxd small{color:var(--muted);text-align:right}
+.wxp-f{margin-top:8px;font-size:10.5px}
+
+/* v90: アイコンを選べるように（名前の左のマーク） */
+#appTitle.big::before{background:var(--logo) center/cover no-repeat!important}
+.logos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:6px}
+.logo-o{border:0;background:none;display:grid;justify-items:center;gap:4px;cursor:pointer;padding:6px 0;border-radius:12px;color:var(--ink)}
+.logo-o[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.logo-pv{width:40px;height:40px;border-radius:11px;display:block;background-size:cover;background-position:center;box-shadow:0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent)}
+.logo-o[aria-pressed="true"] .logo-pv{box-shadow:0 0 0 2px var(--accent)}
+.logo-o small{font-size:10px;color:var(--muted)}
+/* v90: 検索 */
+.srch{position:relative;margin-top:12px;display:flex;align-items:center}
+.srch>svg{position:absolute;left:14px;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;pointer-events:none}
+.srch input{flex:1;min-width:0;height:44px;border-radius:14px;padding:0 40px 0 40px;font-size:16px;-webkit-appearance:none;appearance:none}
+.srch input::-webkit-search-cancel-button{display:none}
+.srch-x{position:absolute;right:8px;width:28px;height:28px;border:0;border-radius:50%;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);font-size:16px;line-height:1;cursor:pointer}
+.srch-res:empty{display:none}
+.srch-res{margin-top:8px;padding:10px 12px;border-radius:18px;background:var(--surface);display:grid;gap:6px}
+.srch-g{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+.srch-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.srch-tab{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:12px;height:36px;padding:0 12px 0 8px;background:color-mix(in srgb,var(--tabc,var(--accent)) 12%,transparent);color:var(--ink);font-weight:700;font-size:13px;cursor:pointer}
+.srch-tab svg{width:18px;height:18px;fill:none;stroke:var(--tabc,var(--accent));stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.srch-tab .ib{width:22px;height:22px}
+.srch-l{list-style:none;margin:0;padding:0}
+.srch-l button{width:100%;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left;border:0;background:none;padding:8px 2px;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent);cursor:pointer;color:var(--ink)}
+.srch-l button.dn .srch-t{text-decoration:line-through;color:var(--muted)}
+.srch-k{font-size:10.5px;font-weight:700;color:var(--muted);background:color-mix(in srgb,var(--ink) 7%,transparent);border-radius:6px;padding:2px 6px;white-space:nowrap}
+.srch-t{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srch-l small{grid-column:2;font-size:11px;color:var(--muted)}
+.srch-none{font-size:13px;color:var(--muted);text-align:center;padding:6px}
+li.item.flash{animation:flash 1.5s ease}
+@keyframes flash{0%,60%{background:color-mix(in srgb,var(--accent) 18%,transparent)}100%{background:transparent}}
+:root:is([data-style="glass"],[data-style="dynamic"]) .srch-res{background:var(--glass)!important;backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:var(--glassb)}
+/* v90: 縦フリックにふたり／じぶんの切り替え */
+.flayers{display:grid;gap:3px;padding:2px 0 4px}
+.flayers button{border:0;border-radius:10px;height:26px;font-size:10px;font-weight:700;color:var(--muted);background:var(--ground);cursor:pointer;padding:0}
+.flayers button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+body.layer-me .flayers button[data-flayer="me"][aria-pressed="true"]{background:var(--reflect,#6a5acd);color:#fff}
 </style>
 <style id="palStyle"></style>
 
@@ -1096,7 +1172,7 @@ body.nav-railf .fkey.add svg{padding:11px}
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
     <div class="brand">
-      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><h1 id="title">やること</h1><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
+      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><button class="wx" id="wx" hidden aria-label="天気予報"></button></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
       <div class="hr">
         <button class="hbtn plus" id="plus" aria-label="追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="hbtn" id="chkBtn" aria-label="未入力・未確認" style="position:relative"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg><span class="badge" id="b-chk" hidden></span></button>
@@ -1161,7 +1237,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="87";
+const APP_VERSION="90";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1237,7 +1313,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right"};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2567,6 +2643,10 @@ function viewSettings(){
     <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
     ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
     <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
+  <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
+    <p>見出しの右に今の天気と気温、今日の最高・最低・降水確率を出します。タップで12時間と3日間の予報。雨が降りそうな日は「今日のまとめ」にも出ます。</p>
+    <div class="opts"><button class="opt" data-act="wxHere">現在地にする</button><button class="opt" data-act="wxDef" aria-pressed="${!prefs.wxLat}">刈谷（既定）</button></div>
+    <p class="who">いまの場所：${esc(wxLoc().name)}（Open-Meteo の無料予報を使います。送るのはおおよその位置だけです）</p></section>
   <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div>
     <p>AIを使うのは次の機能です：レシートの読み取り／勤務表の写真からシフト読み取り／会社カレンダーの画像・デンソー年度カレンダーの取り込み。</p>
     <p>${window.__FUTARI_PWA?"送り先：Google Gemini（Apps Script経由）。無料枠では、送った写真や文章がGoogleのサービス改善に使われることがあります。":"送り先：Claude（Anthropic）。"}「使わない」にすると、上の機能は手入力になり、写真や文章は外部に送られません。${esc(nameOf(myRole()))}の画面だけの設定です。</p>
@@ -2581,7 +2661,13 @@ function viewSettings(){
     <p style="font-size:12px;margin:4px 0 10px;opacity:.75">スワイプが決まる瞬間・完了・削除・元に戻す・タブ移動で端末が軽く震えます（iPhoneは iOS 18 以降、本体の「システムの触覚」がオンのとき）。</p>
     <h2>完了したときの演出</h2><div class="opts">${opt("celebrate","confetti","紙吹雪")}${opt("celebrate","heart","ハート")}${opt("celebrate","none","なし")}</div>
     <h2>あいさつ</h2><div class="opts">${opt("greet","1","表示する")}${opt("greet","0","表示しない")}</div><p>「おはよう、${esc(nameOf(myRole()))}・結婚記念日まであと○日」のように上部に表示します。</p>
-    <h2>アプリの名前</h2><div class="edit-row"><input type="text" id="appNameIn" value="${esc(prefs.appName)}" maxlength="16" placeholder="ふたりのリスト（例：大内家）" style="flex:1"></div></section>
+    <h2>アプリの名前</h2><div class="edit-row"><input type="text" id="appNameIn" value="${esc(prefs.appName)}" maxlength="16" placeholder="ふたりのリスト（例：大内家）" style="flex:1"></div>
+    <div class="chips" style="margin-top:6px">${["ふたりごと","futari","ふたり日和","Pairly"].map(x=>`<button class="chip" data-act="appNm" data-v="${x}" aria-pressed="${prefs.appName===x}">${x}</button>`).join("")}</div>
+    <h2>アプリのアイコン</h2><div class="logos">${Object.keys(LOGOS).map(k=>`<button class="logo-o" data-act="logoSet" data-v="${k}" aria-pressed="${(prefs.logo||"rings")===k}" aria-label="${LOGOS[k].n}"><span class="logo-pv" style="${logoStyle(k)}"></span><small>${LOGOS[k].n}</small></button>`).join("")}
+      <button class="logo-o" data-act="logoTxt" aria-pressed="${prefs.logo==="txt"}"><span class="logo-pv" style="${logoStyle("txt")}"></span><small>文字</small></button>
+      <button class="logo-o" data-act="logoImg" aria-pressed="${prefs.logo==="img"}"><span class="logo-pv" style="${logoStyle("img")}"></span><small>写真</small></button></div>
+    <div class="colorrow"><input type="color" id="logoBgPick" value="${esc(prefs.logoBg||"#1f2a24")}" aria-label="アイコンの背景色"><span style="font-size:13px">アイコンの色</span>${prefs.logoBg?'<button class="link" data-act="logoBgReset">テーマに合わせる</button>':""}</div>
+    <p>名前の左のマークと、ホーム画面に追加するときのアイコンに使われます。すでにホーム画面にあるアイコンは、いったん削除して「ホーム画面に追加」し直すと変わります。</p></section>
   <section class="card"><h2>表示するタブ</h2><p>使わないタブは隠せます（いつでも戻せます）。</p>
     <div class="opts">${[...LAYER_TABS.us,...LAYER_TABS.me].map(k=>{ const hid=hiddenTabs().has(k); return `<button class="opt" data-tabtoggle="${k}" aria-pressed="${!hid}">${esc(TITLES[k])}</button>`; }).join("")}</div>
     <h2>タイムテーブルの開始時刻</h2><div class="opts">${["3","4","5","6","7","8"].map(v=>opt("ttStart",v,v+":00から")).join("")}</div>
@@ -2682,7 +2768,7 @@ function renderChrome(){
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
-  renderFlick(layer,n); fitTitle();
+  renderFlick(layer,n); fitTitle(); wxRender(); logoApply();
 }
 function render(anim){
   state.dirty=false;
@@ -2883,6 +2969,7 @@ $("main").addEventListener("click",e=>{
   const pk=e.target.closest("[data-ppk]"); if(pk&&state.prep&&state.prep.items){ state.prep.items[+pk.dataset.ppk].on=pk.checked; const bt=document.querySelector('[data-act="prepAdd"]'); if(bt) bt.textContent=`やることに追加（${state.prep.items.filter(i=>i.on).length}件）`; return; }
   const qk=e.target.closest("[data-qk]"); if(qk&&state.quick&&state.quick.r){ const r=state.quick.r; r.text=(($("qText")||{}).value||r.text); r.date=($("qDate")||{}).value||""; r.time=($("qTime")||{}).value||""; r.kind=qk.dataset.qk; render(); return; }
   const wk=e.target.closest("[data-wcwk]"); if(wk){ const r=state.paint.who||myRole(), C=wcCfg(r), i=wk.dataset.wcwk, nx=C.wk.includes(i)?C.wk.replace(i,""):C.wk+i; wcSave(r,{wk:nx.split("").sort().join("")}); state.wcDay=null; if(r===myRole()&&C.on) wcRun(r,true); render(); return; }
+  const sgo=e.target.closest("[data-sgo]"); if(sgo){ searchGo(sgo.dataset.sgo,sgo.dataset.sid); return; }
   const so=e.target.closest("[data-sho]"); if(so&&state.shOcr&&state.shOcr.days){ const L=[...SHIFTS.map(x=>x[0]),""], cur=state.shOcr.days[so.dataset.sho]||"", nx=L[(L.indexOf(cur)+1)%L.length]; if(nx) state.shOcr.days[so.dataset.sho]=nx; else delete state.shOcr.days[so.dataset.sho]; haptic("tick"); render(); return; }
   const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday); return; }
   const cd=e.target.closest("[data-cday]"); if(cd){ toggleCautionDay(cd.dataset.cid,cd.dataset.cday); return; }
@@ -2958,6 +3045,14 @@ $("main").addEventListener("click",e=>{
   else if(a==="qaTopic"){ const d=b.dataset.qd; addTopicText(`今日の質問「${qaQ(d)}」の答えについて`); }
   else if(a==="agTopic") addTopicText(b.dataset.t);
   else if(a==="dcalNow") dcalCheck(true);
+  else if(a==="logoSet"){ prefs.logo=b.dataset.v; savePrefs(); render(); }
+  else if(a==="logoTxt"){ const t=prompt("アイコンに入れる文字（1〜3文字）",prefs.logoTxt||"ふ"); if(t!=null&&t.trim()){ prefs.logoTxt=t.trim().slice(0,3); prefs.logo="txt"; savePrefs(); render(); } }
+  else if(a==="logoImg") logoPickImg();
+  else if(a==="logoBgReset"){ prefs.logoBg=""; savePrefs(); render(); }
+  else if(a==="srchClr"){ state.srchQ=""; render(); setTimeout(()=>{ const i=$("srchIn"); if(i) i.focus(); },30); }
+  else if(a==="appNm"){ prefs.appName=b.dataset.v; savePrefs(); render(); toast(`アプリの名前を「${b.dataset.v}」にしました`); }
+  else if(a==="wxHere") wxLocate();
+  else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
   else if(a==="futBack"){ state.fut=null; render(-40); }
   else if(a==="mvItem"&&c&&id){ const x=state[c].find(i=>i.id===id); if(x){ const toP=c==="items", now=Date.now();
       const keep=["list","text","due","time","memo","budget","done","doneAt","createdAt","link","actual"], o={};
@@ -3060,6 +3155,7 @@ $("main").addEventListener("input",e=>{
   if(e.target.id==="rfLearn"&&$("learnHabit")) $("learnHabit").innerHTML=learnChips(e.target.value);
   if(["rfGood","rfBad","rfLearn"].includes(e.target.id)){ $("refSave").textContent="入力中…"; clearTimeout(refTimer); refTimer=setTimeout(()=>saveReflect(),900); return; }
   if(e.target.id==="colorH"||e.target.id==="colorW"){ prefs[e.target.id]=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
+  if(e.target.id==="logoBgPick"){ prefs.logoBg=e.target.value; logoApply(); document.querySelectorAll(".logo-o").forEach(b=>{ const k=b.dataset.v||(b.dataset.act==="logoTxt"?"txt":"img"); const pv=b.querySelector(".logo-pv"); if(pv) pv.setAttribute("style",logoStyle(k)); }); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="bgPick"){ prefs.bg=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="accentPick"){ prefs.accent=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); } });
 $("main").addEventListener("keydown",e=>{
@@ -4057,7 +4153,7 @@ function viewHome(){
   let h=`<div class="hhero"><div class="hdate">${jpDate(t)}</div>
     <div class="hshift"><span>${esc(nameOf(me))} ${shiftBadge(sm,me)} ${esc(SHIFT_NAME[sm]||"未入力")}</span><span>${esc(nameOf(ot))} ${shiftBadge(so,ot)} ${esc(SHIFT_NAME[so]||"未入力")}</span>${off==="both"?'<b class="hoff">ふたり休み</b>':""}</div></div>`;
   /* ふたり／じぶん：大きな入口 */
-  h+=quickHTML()+briefHTML();
+  h+=searchHTML()+briefHTML();
   const usN=n.task+n.shop+n.trouble+n.caution+n.talk, meN=(n.ptask||0)+(n.habit||0);
   h+=`<div class="hlayers">
     <button class="hl us" data-layer2="us"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M12.5 14.4c.9-.3 1.9-.4 3-.4 3 0 5.5 2 5.5 5"/></svg></span><b>ふたり</b><small>${usN?`${usN}件の未完了・未確認`:"すっきり"}</small><span class="hl-go">›</span></button>
@@ -4666,9 +4762,9 @@ addEventListener("resize",()=>placeRail(false));
 /* アプリ名を、下のあいさつと同じ幅になるよう文字数に合わせて拡大・縮小（11〜24px） */
 function fitTitle(){
   const t=$("appTitle"); if(!t) return; const g=document.querySelector("#greet:not([hidden]) .gw");
-  t.style.fontSize="11px"; const w0=t.scrollWidth; if(!w0) return;
-  const target=g?g.offsetWidth:150, fs=Math.max(11,Math.min(24,Math.floor(11*target/w0*10)/10));
-  t.style.fontSize=fs+"px"; t.classList.toggle("big",fs>=14);
+  t.classList.add("big"); t.style.fontSize="11px"; const w0=t.scrollWidth; if(!w0) return;
+  const target=g?Math.max(g.offsetWidth,120):150, fs=Math.max(13,Math.min(22,Math.floor(11*target/w0*10)/10));
+  t.style.fontSize=fs+"px"; t.classList.add("big");
 }
 addEventListener("resize",()=>fitTitle());
 /* 下のメニュー：下にスクロールすると隠れ、上に戻すと出る */
@@ -4703,7 +4799,8 @@ function renderFlick(layer,n){
   const hs=hiddenTabs(), v=state.view==="caution"?"trouble":state.view, F=freshByView(), ok=t=>t&&(t[0]==="@"||!hs.has(t)||t===v);
   const KS=prefs.nav==="railf"?FLICK_V[layer].map(k=>{ const o={}; for(const [d,t] of Object.entries(k)) o[d==="x"?(prefs.hand==="left"?"r":"l"):d]=t; return o; }):FLICK[layer];
   fKeys=KS.map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
-  bar.innerHTML=fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
+  const lsw=prefs.nav==="railf"?`<div class="flayers" role="group" aria-label="ふたり／じぶん"><button data-flayer="us" aria-pressed="${layer==="us"}">ふたり</button><button data-flayer="me" aria-pressed="${layer==="me"}">じぶん</button></div>`:"";
+  bar.innerHTML=lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
     const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:t==="check"?pendingChecks().length:(n[t]||0)),0), fresh=all.some(t=>F[t]);
     return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>k[d]).map(d=>`<i class="fh ${d}"></i>`).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
 }
@@ -4722,7 +4819,7 @@ function fGo(t){ if(t==="@add"){ openSheet(); return; } if(t==="@me"||t==="@us")
     if(d!==fs.d){ fs.d=d; sel(d); haptic("tick"); } });
   const end=(e,go)=>{ if(!fs||(e&&e.pointerId!==fs.id)) return; const t=fs.k[fs.d]; fs.b.classList.remove("down"); fs=null; gd.hidden=true; gd.innerHTML=""; if(go&&t){ bar.dataset.skip="1"; setTimeout(()=>delete bar.dataset.skip,400); fGo(t); } };
   bar.addEventListener("pointerup",e=>end(e,true)); bar.addEventListener("pointercancel",e=>end(e,false));
-  bar.addEventListener("click",e=>{ if(bar.dataset.skip) return; const b=e.target.closest(".fkey"); if(b&&fKeys[+b.dataset.fk]) fGo(fKeys[+b.dataset.fk].c); });
+  bar.addEventListener("click",e=>{ const fl=e.target.closest("[data-flayer]"); if(fl){ haptic("tick"); switchLayer(fl.dataset.flayer); return; } if(bar.dataset.skip) return; const b=e.target.closest(".fkey"); if(b&&fKeys[+b.dataset.fk]) fGo(fKeys[+b.dataset.fk].c); });
   bar.addEventListener("contextmenu",e=>e.preventDefault());
 }
 
@@ -4770,12 +4867,128 @@ const ICP={cal:'<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="
   bag:'<rect x="4" y="7.5" width="16" height="12" rx="2.5"/><path d="M9 7.5V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2M4 12.5h16M10.5 12.5v2M13.5 12.5v2"/>',
   alert:'<path d="M12 4.5l8.5 15H3.5z"/><path d="M12 10v4M12 16.8v.1"/>',
   lock:'<rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8.5a3.5 3.5 0 0 1 7 0V11"/>',
+  rain:'<path d="M7 14.5h10.5a3.8 3.8 0 0 0 .4-7.6 5.3 5.3 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14.5z"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>',
   plus:'<path d="M12 5.5v13M5.5 12h13"/>'};
-const ICC={cal:"--cal",task:"--task",chore:"--future",moon:"--reflect",yen:"--habit",loop:"--talk",spark:"--talk",bag:"--future",alert:"--danger",lock:"--reflect"};
+const ICC={rain:"--cal",cal:"--cal",task:"--task",chore:"--future",moon:"--reflect",yen:"--habit",loop:"--talk",spark:"--talk",bag:"--future",alert:"--danger",lock:"--reflect"};
 const ic=(k,c)=>`<span class="ib" style="--ic:var(${c||ICC[k]||"--accent"})" aria-hidden="true"><svg viewBox="0 0 24 24">${ICP[k]||""}</svg></span>`;
 const LKI=`<svg class="lk-i" viewBox="0 0 24 24" aria-hidden="true">${ICP.lock}</svg>`;
+
+/* ================= アプリのアイコン（名前の左のマーク・ホーム画面のアイコン） ================= */
+const LOGOS={
+  rings:{n:"ふたつの輪",s:'<circle cx="9.3" cy="12" r="4.6" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="14.7" cy="12" r="4.6" fill="none" stroke="#fff" stroke-width="2.2" opacity=".75"/>'},
+  dots:{n:"ふたつの丸",s:'<circle cx="9" cy="12" r="4.2" fill="#fff"/><circle cx="15" cy="12" r="4.2" fill="#fff" opacity=".62"/>'},
+  heart:{n:"ハート",s:'<path d="M12 19s-6.5-4.1-6.5-8.6A3.6 3.6 0 0 1 12 8.3a3.6 3.6 0 0 1 6.5 2.1C18.5 14.9 12 19 12 19z" fill="#fff"/>'},
+  home:{n:"おうち",s:'<path d="M5.5 11.2L12 5.8l6.5 5.4V18.5h-4.3v-4h-4.4v4H5.5z" fill="#fff"/>'},
+  leaf:{n:"葉っぱ",s:'<path d="M18.5 5.5C10 5.5 5.5 9.5 5.5 15.5c0 1.2.3 2.2.7 3 1-3.8 3.8-6.4 7.8-7.8-3.2 1.9-5.2 4.3-6.2 7.3.8.3 1.7.5 2.7.5 6 0 8-6 8-13z" fill="#fff"/>'},
+  star:{n:"星",s:'<path d="M12 4.8l2.2 4.6 5 .6-3.7 3.4 1 5-4.5-2.5-4.5 2.5 1-5L4.8 10l5-.6z" fill="#fff"/>'},
+  sun:{n:"おひさま",s:'<circle cx="12" cy="12" r="3.6" fill="#fff"/><path d="M12 4.5v2M12 17.5v2M19.5 12h-2M6.5 12h-2M17.3 6.7l-1.4 1.4M8.1 15.9l-1.4 1.4M17.3 17.3l-1.4-1.4M8.1 8.1L6.7 6.7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>'},
+  cup:{n:"マグ",s:'<path d="M6 8.5h9.5v5.5a4 4 0 0 1-4 4h-1.5a4 4 0 0 1-4-4z" fill="#fff"/><path d="M15.5 10h1.2a2.2 2.2 0 0 1 0 4.4h-1.2" fill="none" stroke="#fff" stroke-width="1.8"/>'}};
+function logoBgColor(){ if(hexOk(prefs.logoBg)) return prefs.logoBg; const cs=getComputedStyle(document.documentElement), st=document.documentElement.dataset.style; return (cs.getPropertyValue(st==="glass"||st==="dynamic"?"--accent":"--ink")||"#1f2a24").trim(); }
+function logoSvg(k,bg,forIcon){ const r=forIcon?0:5.5;
+  let inner=LOGOS[k]?LOGOS[k].s:"";
+  if(k==="txt"){ const t=(prefs.logoTxt||"ふ").slice(0,3); const fs=t.length>=3?7.5:t.length===2?9.5:13; inner=`<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-weight="700" font-size="${fs}" fill="#fff">${esc(t)}</text>`; }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="${r}" fill="${bg}"/>${forIcon?`<g transform="translate(12 12) scale(.82) translate(-12 -12)">${inner}</g>`:inner}</svg>`; }
+const svgUrl=x=>`url("data:image/svg+xml,${encodeURIComponent(x).replace(/'/g,"%27")}")`;
+function logoStyle(k){ if(k==="img") return prefs.logoImg?`background-image:url(${prefs.logoImg});background-size:cover`:`background-image:${svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="5.5" fill="${logoBgColor()}"/><path d="M6 9h2.2l1.3-1.8h5l1.3 1.8H18v8H6z" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12.8" r="2.4" fill="none" stroke="#fff" stroke-width="1.5"/></svg>`).replace(/"/g,"'")}`; return `background-image:${svgUrl(logoSvg(k,logoBgColor())).replace(/"/g,"'")}`; }
+function logoApply(){
+  const k=prefs.logo||"rings", el=$("appTitle"); if(!el) return;
+  const bg=k==="img"&&prefs.logoImg?`url(${prefs.logoImg})`:svgUrl(logoSvg(k,logoBgColor()));
+  el.style.setProperty("--logo",bg);
+  clearTimeout(logoApply.t); logoApply.t=setTimeout(logoIcon,400); }
+/* ホーム画面用のアイコン（180px）を作って apple-touch-icon に入れる */
+function logoIcon(){
+  const k=prefs.logo||"rings", key=[k,prefs.logoTxt,prefs.logoBg,prefs.logoImg&&prefs.logoImg.length,logoBgColor()].join("|"); if(logoIcon.k===key) return; logoIcon.k=key;
+  const c=document.createElement("canvas"); c.width=c.height=180; const g=c.getContext("2d"), im=new Image();
+  im.onload=()=>{ try{ g.drawImage(im,0,0,180,180); const u=c.toDataURL("image/png");
+      for(const rel of ["apple-touch-icon","icon"]){ let l=document.querySelector(`link[rel="${rel}"]`); if(!l){ l=document.createElement("link"); l.rel=rel; document.head.appendChild(l); } l.href=u; } }catch(e){} };
+  im.src=k==="img"&&prefs.logoImg?prefs.logoImg:"data:image/svg+xml,"+encodeURIComponent(logoSvg(k,logoBgColor(),true)); }
+function logoPickImg(){ let i=$("logoIn"); if(!i){ i=document.createElement("input"); i.type="file"; i.accept="image/*"; i.id="logoIn"; i.hidden=true; document.body.appendChild(i);
+    i.addEventListener("change",async()=>{ const f=i.files&&i.files[0]; if(!f) return; try{ const bm=await createImageBitmap(f), n=192, c=document.createElement("canvas"); c.width=c.height=n; const sc=Math.max(n/bm.width,n/bm.height), w=bm.width*sc, h=bm.height*sc;
+        c.getContext("2d").drawImage(bm,(n-w)/2,(n-h)/2,w,h); prefs.logoImg=c.toDataURL("image/jpeg",.85); prefs.logo="img"; savePrefs(); render(); toast("アイコンを写真にしました"); }catch(e){ toast("この写真は使えませんでした"); } }); }
+  i.value=""; i.click(); }
+
+/* ================= タブ・項目の検索（ホームの上） ================= */
+const TAB_KW={home:"ホーム トップ まとめ",talk:"話す 話し合い 議題 会話 今日の質問",task:"やること タスク todo 用事",chore:"家事 掃除 ゴミ 洗濯 分担",shop:"買い物 買うもの 買い出し",trouble:"気になること 困りごと 相談",caution:"注意 ルール 気をつけること",
+  cal:"カレンダー シフト 予定 休み 勤務",diary:"日記 写真 アルバム ありがとう 夕飯",future:"将来 記念日 旅行 やりたいこと 欲しいもの 計画",money:"出費 家計 お金 レシート 予算 貯金 支払い",
+  psched:"じぶんの予定 タイムテーブル 時間割",habit:"習慣 ルーティン",reflect:"内省 気分 ふりかえり",settings:"設定 カスタマイズ 天気 AI 名前 アイコン 色 メニュー",check:"未確認 未入力 要対応",log:"更新ログ 履歴 変更"};
+const kfold=x=>String(x||"").toLowerCase().replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).replace(/\s+/g,"");
+function searchHTML(){ return `<div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="srchIn" placeholder="タブや項目をさがす（例：家事、牛乳、旅行）" enterkeyhint="search" autocomplete="off" value="${esc(state.srchQ||"")}">${state.srchQ?'<button class="srch-x" data-act="srchClr" aria-label="消す">×</button>':""}</div><div id="srchRes" class="srch-res">${state.srchQ?searchResults(state.srchQ):""}</div>`; }
+function searchResults(q){
+  const f=kfold(q); if(!f) return "";
+  const hs=hiddenTabs(), tabs=Object.keys(TAB_KW).filter(v=>!hs.has(v)&&kfold((TITLES[v]||"")+" "+TAB_KW[v]).includes(f)).slice(0,6);
+  const it=[], add=(c,x,v,kind,text,sub)=>{ if(kfold(text+" "+(sub||"")).includes(f)) it.push({c,x,v,kind,text,sub}); };
+  for(const x of state.items) add("items",x,x.list==="shop"?"shop":"task",x.list==="shop"?"買い物":"やること",x.text,x.memo);
+  for(const x of state.pitems) add("pitems",x,x.list==="shop"?"shop":x.list==="wish"?"pwish":"task",x.list==="wish"?"じぶんのやりたい":"じぶん",x.text,x.memo);
+  for(const x of state.events) add("events",x,"cal","予定",x.text,x.date?short(x.date):"");
+  for(const x of state.topics) add("topics",x,"talk","話すこと",x.text,x.note);
+  for(const x of state.troubles) add("troubles",x,"trouble","困りごと",x.text,x.detail);
+  for(const x of state.cautions) add("cautions",x,"caution","注意",x.text,"");
+  for(const x of state.plans) add("plans",x,"future","将来",x.text,x.date?short(x.date):"");
+  for(const x of state.chores||[]) add("chores",x,"chore","家事",x.text,"");
+  for(const x of state.habits) add("habits",x,"habit","習慣",x.text,"");
+  const open=it.filter(o=>!o.x.done&&o.x.status!=="done"), rest=it.filter(o=>o.x.done||o.x.status==="done"), L=[...open,...rest].slice(0,20);
+  if(!tabs.length&&!L.length) return `<div class="srch-none">見つかりませんでした</div>`;
+  return (tabs.length?`<div class="srch-g">タブ</div><div class="srch-tabs">${tabs.map(v=>`<button class="srch-tab v-${v}" data-sgo="${v}">${fIcon(v)||ic("spark")}<span>${esc(TITLES[v])}</span></button>`).join("")}</div>`:"")
+    +(L.length?`<div class="srch-g">項目（${it.length}${it.length>20?"件中20":""}件）</div><ul class="srch-l">${L.map(o=>`<li><button data-sgo="${o.v}" data-sid="${esc(o.x.id)}" class="${o.x.done||o.x.status==="done"?"dn":""}"><span class="srch-k">${esc(o.kind)}</span><span class="srch-t">${esc(o.text)}</span>${o.sub?`<small>${esc(String(o.sub).slice(0,30))}</small>`:""}</button></li>`).join("")}</ul>`:"");
+}
+document.addEventListener("input",e=>{ if(e.target&&e.target.id==="srchIn"){ state.srchQ=e.target.value; const r=$("srchRes"); if(r) r.innerHTML=searchResults(state.srchQ); } });
+function searchGo(v,id){ state.srchQ=""; if(v==="pwish"){ state.fut="_mine"; v="future"; } go(v); if(!id) return;
+  setTimeout(()=>{ const el=document.querySelector(`[data-id="${CSS.escape(id)}"]`); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1600); } },160); }
 /* ================= AIのテキスト問い合わせ（オフなら null） ================= */
 const aiText=()=>aiOn()?(state._smt||null):null;
+
+
+/* ================= 天気予報（Open-Meteo・無料・キー不要）：見出しの右の余白に表示 ================= */
+const WX_DEF={lat:34.9888,lon:137.0022,name:"刈谷"};
+const wxLoc=()=>prefs.wxLat&&prefs.wxLon?{lat:Number(prefs.wxLat),lon:Number(prefs.wxLon),name:prefs.wxName||"現在地"}:WX_DEF;
+function wxKind(c,day){ c=Number(c); if(c===0) return day===0?"moon":"sun"; if(c<=2) return day===0?"moonc":"sunc"; if(c===3) return "cloud"; if(c===45||c===48) return "fog";
+  if((c>=71&&c<=77)||c===85||c===86) return "snow"; if(c>=95) return "storm"; if(c>=51) return "rain"; return "cloud"; }
+const WXN={sun:"晴れ",moon:"晴れ",sunc:"晴れ時々くもり",moonc:"晴れ時々くもり",cloud:"くもり",fog:"霧",rain:"雨",snow:"雪",storm:"雷雨"};
+const WXI={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9L5.3 5.3"/>',
+  moon:'<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>',
+  sunc:'<path d="M8.5 5.5v1.3M3.8 10.2h1.3M5.2 6.9l.9.9M12.2 6.9l-.9.9"/><path d="M11.4 11a3.2 3.2 0 1 0-5.6 1.9"/><path d="M8 19.5h9.5a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.6 1.2A3 3 0 0 0 8 19.5z"/>',
+  moonc:'<path d="M12 7.5A4 4 0 0 1 7 4a4.5 4.5 0 1 0 4.8 6"/><path d="M8 19.5h9.5a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.6 1.2A3 3 0 0 0 8 19.5z"/>',
+  cloud:'<path d="M7 18.5h10.5a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 18.5z"/>',
+  fog:'<path d="M7 13.5h10.5a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.6 1.2A3 3 0 0 0 7 13.5zM5 17h14M7 20.5h10"/>',
+  rain:'<path d="M7 14.5h10.5a3.8 3.8 0 0 0 .4-7.6 5.3 5.3 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14.5z"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>',
+  snow:'<path d="M7 14.5h10.5a3.8 3.8 0 0 0 .4-7.6 5.3 5.3 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14.5z"/><path d="M8.5 18v.1M12 19.5v.1M15.5 18v.1M10 21v.1M14 21v.1"/>',
+  storm:'<path d="M7 14h10.5a3.8 3.8 0 0 0 .4-7.6 5.3 5.3 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14z"/><path d="M12.5 15l-2 3.5h3l-2 3.5"/>'};
+const wxSvg=k=>`<svg class="wxs ${k}" viewBox="0 0 24 24" aria-hidden="true">${WXI[k]||WXI.cloud}</svg>`;
+async function wxLoad(force){
+  if(prefs.wx==="off") return; const L=wxLoc(), key=`futari.wx.${L.lat.toFixed(2)},${L.lon.toFixed(2)}`;
+  try{ const c=JSON.parse(localStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
+  if(state.wxBusy) return; state.wxBusy=true;
+  try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=3`;
+    const r=await fetch(u); if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); }
+  catch(e){ state.wxErr=true; }
+  state.wxBusy=false; }
+function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=today(), i=W.daily.time.indexOf(t); if(i<0) return null;
+  const hrs=(W.hourly&&W.hourly.time||[]).map((h,k)=>({h,k})).filter(o=>o.h.slice(0,10)===t&&Number(o.h.slice(11,13))>=new Date().getHours());
+  const rainAt=hrs.find(o=>(W.hourly.precipitation_probability[o.k]||0)>=50);
+  return {max:Math.round(W.daily.temperature_2m_max[i]),min:Math.round(W.daily.temperature_2m_min[i]),pop:W.daily.precipitation_probability_max[i]||0,code:W.daily.weather_code[i],rainAt:rainAt?Number(rainAt.h.slice(11,13)):null}; }
+function wxRender(){
+  const el=$("wx"); if(!el) return; const W=state.wx, T=wxToday();
+  if(prefs.wx==="off"||!W||!W.current||!T){ el.hidden=true; return; }
+  const k=wxKind(W.current.weather_code,W.current.is_day);
+  el.hidden=false; el.setAttribute("aria-expanded",String(!!state.wxOpen));
+  el.innerHTML=`${wxSvg(k)}<span class="wx-t"><b>${Math.round(W.current.temperature_2m)}°</b><small>${T.max}°/${T.min}°${T.pop?`<i>・</i><span class="wx-p">${T.pop}%</span>`:""}</small></span>`;
+  let pn=$("wxp"); if(!state.wxOpen){ if(pn) pn.remove(); return; }
+  if(!pn){ pn=document.createElement("div"); pn.id="wxp"; pn.className="wxp"; document.body.appendChild(pn); }
+  const now=new Date(), hs=[]; for(let k2=0;k2<W.hourly.time.length&&hs.length<12;k2++){ const d=new Date(W.hourly.time[k2]); if(d>=new Date(now.getTime()-3600e3)) hs.push(k2); }
+  const L=wxLoc(), dn=["今日","明日","あさって"];
+  pn.innerHTML=`<div class="wxp-h"><b>${esc(L.name)}の天気</b><span class="who">${esc(WXN[k])}・今 ${Math.round(W.current.temperature_2m)}°</span></div>
+    <div class="wxp-hr">${hs.map(i=>{ const p=W.hourly.precipitation_probability[i]||0; return `<div class="wxh"><small>${Number(W.hourly.time[i].slice(11,13))}時</small>${wxSvg(wxKind(W.hourly.weather_code[i],W.hourly.is_day[i]))}<b>${Math.round(W.hourly.temperature_2m[i])}°</b><span class="wxh-p" style="--p:${p}%">${p?p+"%":""}</span></div>`; }).join("")}</div>
+    <div class="wxp-d">${W.daily.time.map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>`).join("")}</div>
+    <div class="who wxp-f">Open-Meteo の予報・30分ごとに更新・場所は 設定 › 天気</div>`;
+  const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px";
+}
+$("wx").addEventListener("click",e=>{ e.stopPropagation(); state.wxOpen=!state.wxOpen; haptic("tick"); wxRender(); });
+document.addEventListener("click",e=>{ if(state.wxOpen&&!e.target.closest("#wxp,#wx")){ state.wxOpen=false; wxRender(); } });
+addEventListener("scroll",()=>{ if(state.wxOpen){ state.wxOpen=false; wxRender(); } },{passive:true});
+setInterval(()=>wxLoad(),30*60e3); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) wxLoad(); });
+setTimeout(()=>wxLoad(),600);
+function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在地を使えません"); return; }
+  navigator.geolocation.getCurrentPosition(p=>{ prefs.wxLat=String(p.coords.latitude.toFixed(3)); prefs.wxLon=String(p.coords.longitude.toFixed(3)); prefs.wxName="現在地"; savePrefs(); state.wx=null; wxLoad(true); toast("現在地の天気にしました"); },()=>toast("現在地を取得できませんでした（位置情報の許可を確認）"),{timeout:10000,maximumAge:3600e3}); }
 
 /* ================= E：なんでも一行で追加 ================= */
 const QK={task:["やること","--task"],shop:["買い物","--shop"],event:["予定","--cal"],ptask:["じぶんのタスク","--task"],pshop:["じぶんの買い物","--shop"],topic:["話すこと","--talk"],trouble:["困りごと","--trouble"],caution:["注意","--caution"]};
@@ -4853,6 +5066,7 @@ function briefHTML(){
     L.push(["task",`今日までのやること ${due.length+mineP.length}件${ov?`（期限切れ ${ov}）`:""}`,[["h",by("h")],["w",by("w")],["both",by("both")]].filter(([,n])=>n).map(([r,n])=>`${r==="both"?"ふたり":nameOf(r)} ${n}件`).concat(mineP.length?[`じぶん ${mineP.length}件`]:[]).join("・"),"task"]); }
   const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]; });
   if(ch.length) L.push(["chore",`今日の家事 ${ch.length}件`,`${ch.slice(0,3).map(c=>{ const I=choreInfo(c); return `${c.text}${I.who&&I.who!=="both"?`（${nameOf(I.who)}）`:""}`; }).join("、")}${ch.length>3?` ほか${ch.length-3}`:""}`,"chore"]);
+  { const T=wxToday(); if(T&&prefs.wx!=="off"&&(T.pop>=50||T.rainAt!=null)) L.push(["rain",`雨の予報（最大${T.pop}%）`,T.rainAt!=null?`${T.rainAt}時ごろから降りそう・洗濯物や傘に注意`:"今日は傘があると安心","home"]); }
   const sh=shiftOf("h",addDays(t,1)), sw=shiftOf("w",addDays(t,1));
   if(sh||sw) L.push(["moon","明日のシフト",`${nameOf("h")} ${SHIFT_NAME[sh]||"未入力"}・${nameOf("w")} ${SHIFT_NAME[sw]||"未入力"}`,"cal"]);
   /* 重なりの注意（7日以内）：夜勤入りの日の夕方以降・夜勤明けの日の午前の予定 */
