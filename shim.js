@@ -178,7 +178,15 @@
     if(name === "downloads") return DL;
     if(name === "assets") return ASSETS;
     if(name === "sample") return SAMPLE;
-    if(name === "mcp") return null;           // Googleカレンダー連携は次の段階で対応
+    if(name === "mcp"){ var G = (window.FUTARI_GAS_URLS || {})[(me.email || "").toLowerCase()] || window.FUTARI_GAS_URL; if(!G) return null;
+      return { callTool: async function(server, tool, args){
+        var tok = await me.getIdToken(), r;
+        try{ r = await fetch(G, { method: "POST", body: JSON.stringify({ idToken: tok, tool: tool, args: args || {} }) }); }
+        catch(e){ var x = new Error("offline"); x.code = "server_unavailable"; throw x; }
+        var j; try{ j = await r.json(); }catch(e){ var y = new Error("bad response"); y.code = "server_unavailable"; throw y; }
+        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; throw z; }
+        return { payload: j.payload };
+      } }; }
     return null;
   } };
   window.__futariSignOut = function(){ return USER.signOut(); };

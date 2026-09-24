@@ -10,3 +10,8 @@ window.FUTARI_FIREBASE_CONFIG = {
 /* 使えるのはこの2人だけ（1人目が夫＝持ち主） */
 window.FUTARI_OWNER_EMAIL = "rikurussel14@gmail.com";
 window.FUTARI_ALLOWED_EMAILS = ["rikurussel14@gmail.com", "a1lic3h2dak1@gmail.com"];
+/* Googleカレンダー連携：それぞれが自分のGoogleアカウントで Apps Script をデプロイしたURL（…/exec）を入れる。空ならその人は連携なし */
+window.FUTARI_GAS_URLS = {
+  "rikurussel14@gmail.com": "",
+  "a1lic3h2dak1@gmail.com": ""
+};

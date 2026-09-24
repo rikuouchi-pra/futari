@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=53"></script>
+<script src="shim.js?v=56"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,6 +85,7 @@ html,body{height:100%}
 .onb-note{margin:4px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
 .onb-box{background:var(--ground);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px}
 .onb-box input{background:var(--surface)}
+.onb-names{display:grid;grid-template-columns:1fr 1fr;gap:10px}.onb-names label{display:flex;flex-direction:column;gap:4px;min-width:0}.onb-names input{width:100%;box-sizing:border-box;min-width:0}
 .onb-big{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--accent)}
 .onb-list{margin:0;padding-left:18px;font-size:14px;line-height:1.75}
 .onb-list li{margin-bottom:2px}
@@ -687,7 +688,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="53";
+const APP_VERSION="56";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -761,7 +762,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -1596,8 +1597,8 @@ async function loadGoogleDay(date,force){
   if(state.view==="psched") requestRender();
 }
 function gErrText(e){ const c=e&&e.code;
-  return c==="server_not_connected"?"Googleカレンダー連携は単独アプリ版では準備中です"
-   : c==="needs_reauth"?"Googleカレンダー連携は単独アプリ版では準備中です"
+  return c==="server_not_connected"?"Googleカレンダー連携が未設定です（config.js の FUTARI_GAS_URL）"
+   : c==="needs_reauth"?"Googleカレンダー連携の認証に失敗しました。いったんログアウトしてログインし直してください"
    : c==="not_in_manifest"||c==="not_granted"?"このページでのGoogleカレンダー利用が許可されていません"
    : c==="server_unavailable"?"Googleカレンダーに一時的につながりません。少し待ってからもう一度"
    : "Googleカレンダーとの通信に失敗しました（"+(c||"不明")+"）"; }
@@ -1613,7 +1614,7 @@ function viewPsched(){
   let cells=calCells(start,count,curMonth,byDay,new Set(),true)+`<div class="grip-line" aria-hidden="true"></div>`;
   h+=`<div class="dstrip" data-strip="cal"><button class="icon-btn" data-act="cprev" aria-label="前へ">‹</button><div class="ttl">${title}</div><button class="icon-btn" data-act="cnext" aria-label="次へ">›</button></div>
     <div class="tools"><div class="grp">${seg("calmode",state.calWeek?"week":"month",[["month","月"],["week","週"]])}<button class="pill" data-act="ctoday">今日</button></div>
-      <button class="pill ${prefs.gShow==="1"?"on":""}" data-act="gshow">Googleの予定${prefs.gShow==="1"?"を隠す":"も表示"}</button></div>
+      <span class="grp"><button class="pill ${prefs.gShow==="1"?"on":""}" data-act="gshow">Googleの予定${prefs.gShow==="1"?"を隠す":"も表示"}</button>${state.mcp?`<button class="pill" data-act="gsync" ${state.gsBusy?"disabled":""}>${state.gsBusy?"同期中…":"⟳ 今すぐ同期"}</button>`:""}</span></div>
     <div class="grid" id="grid">${cells}</div>`;
   const d=state.sel, sm=shiftOf(me,d), so=shiftOf(ot,d), off=offState(d);
   h+=`<div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div>
@@ -1669,6 +1670,7 @@ function gsyncCard(){
   const opt=(k,l)=>`<button class="opt" data-pref="${k}" data-val="${on(k)?"0":"1"}" aria-pressed="${on(k)}">${l}</button>`;
   return `<div class="section-label">Googleカレンダーに同期</div><section class="card">
     <p>${esc(nameOf(myRole()))}のGoogleカレンダー（このアカウントで接続したもの）へ、下で選んだ予定を書き込みます。変更・完了・削除も次の同期で反映されます。相手のカレンダーには書き込みません。</p>
+    ${window.__FUTARI_PWA?`<div class="opts">${opt("gAuto","アプリを開いている間は自動で同期（5分ごと）")}</div>`:""}
     <div class="opts">${opt("gsItems","共有の担当分")}${opt("gsPitems","じぶんのタスク等")}${opt("gsBlocks","時間の予定")}${opt("gsAnniv","記念日")}${opt("gsShift","自分のシフト")}</div>
     <div class="edit-row" style="justify-content:space-between"><span class="who" id="gsState">${state.gsBusy?state.gsBusy:prefs.gLast?`最終同期 ${esc(prefs.gLast)}`:"まだ同期していません"}</span><button class="btn primary" data-act="gsync" ${state.gsBusy?"disabled":""}>今すぐ同期</button></div>
     ${state.gsMsg?`<p>${esc(state.gsMsg)}</p>`:""}</section>`;
@@ -1688,9 +1690,17 @@ function desiredEvents(){
   if(prefs.gsShift==="1") for(let d=t;d<=to;d=addDays(d,1)){ const s=shiftOf(me,d); if(s) ev(`s:${d}`,`［シフト］${SHIFT_NAME[s]}`,d); }
   return out;
 }
+
+/* 単独アプリ版：開いている間は自動でGoogleカレンダーへ同期（変更がなければ通信は一覧の比較だけ） */
+let gAutoAt=0;
+function gAutoKick(delay){ if(!window.__FUTARI_PWA) return; clearTimeout(gAutoKick.t); gAutoKick.t=setTimeout(()=>{
+  if(prefs.gAuto!=="1"||!state.mcp||state.gsBusy||document.hidden||!state.me||!state.blocksLoaded||!state.gsyncLoaded) return;
+  if(Date.now()-gAutoAt<15e3){ gAutoKick(15e3); return; } gAutoAt=Date.now(); gsyncRun().catch(()=>{}); },delay??1500); }
+setInterval(()=>gAutoKick(0),5*60e3);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) gAutoKick(3000); });
 const gKey=k=>k.replace(/[^A-Za-z0-9_\-.~:@+]/g,"_");
 async function gsyncRun(){
-  if(!state.mcp){ state.gsMsg="Googleカレンダー連携は単独アプリ版では準備中です（CSV書き出しは使えます）"; requestRender(); return; }
+  if(!state.mcp){ state.gsMsg="Googleカレンダー連携が未設定です（config.js の FUTARI_GAS_URL にApps ScriptのURLを入れてください）"; requestRender(); return; }
   if(state.gsBusy) return;
   const want=desiredEvents(), have=new Map(state.gsync.map(g=>[g.id,g])), wantKeys=new Set(want.map(w=>gKey(w.key)));
   const t=today(), jobs=[];
@@ -1712,7 +1722,7 @@ async function gsyncRun(){
   }
   state.gsBusy=""; state.gsMsg=ng?`${ok}件を反映、${ng}件は失敗：${gErrText(lastErr)}`:`${ok}件をGoogleカレンダーに反映しました。`;
   prefs.gLast=new Date().toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}); savePrefs(true);
-  state.gEvents={}; requestRender();
+  state.gEvents={}; requestRender(); if(state.view==="psched") loadGoogleDay(state.sel,true);
 }
 
 /* ================= bug reports (approve → Claude applies the fix) ================= */
@@ -1741,7 +1751,7 @@ function onbSteps(){
     {k:"hello",title:"ようこそ",body:`<p class="onb-lead">ふたりの毎日と将来を、ひとつにまとめるアプリです。最初に少しだけ設定しましょう（あとから設定でいつでも変えられます）。</p>
       ${onbWhoBox()}
       <div class="onb-box"><div class="who">ふたりの名前（ふたりで共有）</div>
-        <div class="edit-row"><span class="who">夫</span><input type="text" id="onbH" value="${esc(state.fam.h)}" maxlength="12" style="width:110px"><span class="who">妻</span><input type="text" id="onbW" value="${esc(state.fam.w)}" maxlength="12" style="width:110px"></div>
+        <div class="onb-names"><label><span class="who">夫</span><input type="text" id="onbH" value="${esc(state.fam.h)}" maxlength="12"></label><label><span class="who">妻</span><input type="text" id="onbW" value="${esc(state.fam.w)}" maxlength="12"></label></div>
         <div class="who" style="margin-top:8px">あいさつで呼ぶ名前（任意）</div><input type="text" id="onbNick" value="${esc(prefs.nick)}" maxlength="12" placeholder="${esc(nm)}" style="width:100%;box-sizing:border-box"></div>`},
     {k:"look",title:"見た目をえらぶ",body:`<p class="onb-lead">好きな雰囲気をタップ。すぐに反映されます（${esc(nm)}の画面だけ）。</p>
       <div class="onb-presets">${[["calm","落ち着き","森の色・すっきり"],["pop","にぎやか","桜色・水玉・丸"],["wa","和","夕焼け・青海波・明朝"],["night","夜","夜空・いつも暗く"]].map(([k,l,d])=>`<button class="onb-pre" data-onbpre="${k}" aria-pressed="${prefs.onbPreset===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>
@@ -1774,7 +1784,7 @@ function onbSteps(){
       <div class="onb-checks">
         <button class="onb-ck" data-onbgo="cal"><b>シフトを入れる</b><span>カレンダー ›「シフト入力」で、なぞってまとめて入力</span></button>
         <button class="onb-ck" data-onbgo="invite"><b>パートナーを招待</b><span>このページの共有メニューで相手のメールを「編集可」で招待</span></button>
-        <button class="onb-ck" data-onbgo="psched"><b>Googleカレンダーをつなぐ</b><span>じぶん › 予定 ›「今すぐ同期」（単独アプリ版では準備中）</span></button>
+        <button class="onb-ck" data-onbgo="psched"><b>Googleカレンダーをつなぐ</b><span>じぶん › 予定 ›「今すぐ同期」（Apps Scriptの連携を設定）</span></button>
         <button class="onb-ck" data-onbgo="home"><b>ホーム画面に追加</b><span>Safariで開き、共有 ›「ホーム画面に追加」</span></button>
       </div>`};
   return ONB.mode==="tour"?tour:[...setup,...tour,ready];
@@ -2069,7 +2079,7 @@ function viewSettings(){
     <p><b>いますぐ：</b>日付のある項目をタップ →「Googleカレンダーに追加」で1件ずつ登録。</p>
     <p><b>まとめて：</b>下のCSVをパソコン版Googleカレンダーの「設定 → インポート」で読み込み。</p>
     <div class="opts"><button class="opt" data-act="csv">Googleカレンダー用CSVを保存</button></div>
-    <p><b>自動同期（今後）：</b>各項目に更新日時を記録しているので、単独アプリ版では今後対応予定です。</p></section>
+    <p><b>自動同期（今後）：</b>各項目に更新日時を記録しているので、じぶん › 予定 の「Googleカレンダーに同期」で、アプリを開いている間5分ごとに自動同期します。</p></section>
   <section class="card"><h2>ホーム画面に追加</h2><ol class="steps">
     <li>このアプリのURLをSafariで開く</li><li>共有ボタン →「ホーム画面に追加」</li><li>名前を「ふたりのリスト」にして追加</li></ol>
     <p>ホーム画面から開くと、アドレスバーのない専用アプリとして動きます。</p></section>
@@ -3802,7 +3812,7 @@ setTimeout(()=>{ if(!prefsDoc) maybeOnb(); },2500);
   if(!db){ const at=cacheLoad(); if(at){ render(); off(`オフライン：${new Date(at).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})} 時点の控えを表示しています（変更は保存されません）`); return; } off("共有データに接続できません。claude.aiに招待されたアカウントでログインしているか確認してください（招待は「編集可」）。"); return; }
   claude.use("assets").then(a=>{ state.assets=a||null; if(a) loadAssetUsage(); requestRender(); }).catch(()=>{});
   claude.use("sample").then(async sm=>{ if(sm){ state.sampleTxt=sm; requestRender(); } if(!sm){ state.sampleWhy="この表示環境ではClaudeへの問い合わせ機能そのものが提供されていません"; state.sampleNote="この画面ではClaudeの自動読み取りが使えません。写真を見ながら入力してください"; requestRender(); return; } try{ const L=await sm.limits(); if(!L||!L.images){ state.sampleWhy="Claudeへの問い合わせはできますが、この表示環境は写真の送信に対応していません"; state.sampleNote="この画面では写真の自動読み取りに対応していません。写真を見ながら入力してください"; requestRender(); } if(L&&L.images){ state.sample=sm; state.sampleImg=L.images; const inp=$("rcptIn"); if(inp&&L.images.mediaTypes) inp.accept=L.images.mediaTypes.join(","); requestRender(); } }catch(e){} }).catch(()=>{});
-  claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="psched") requestRender(); }).catch(()=>{});
+  claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="psched") requestRender(); if(m) gAutoKick(8000); }).catch(()=>{});
   histDoc=db.doc("meta/history");
   if(state.me){ try{ prefsDoc=db.doc(`data/users/${state.me}/prefs`); privBase=db.doc(`data/users/${state.me}/private`); privCol=privBase.collection("diary"); }catch(e){ prefsDoc=null; privCol=null; privBase=null; } }
   famDoc=db.doc("meta/family");
@@ -3818,10 +3828,11 @@ setTimeout(()=>{ if(!prefsDoc) maybeOnb(); },2500);
   }
   rolesDoc.onSnapshot(s=>{ state.roles=s.exists?s.data():{}; state.rolesLoaded=true; resolveRole(); requestRender(); if(!$("onb").hidden) renderOnb(); },()=>{ state.rolesLoaded=true; });
   famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
-  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); if(c==="blocks"){ state.blocksLoaded=true; autoCook(); } requestRender(); },()=>{});
+  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(c!=="gsync") gAutoKick(4000); if(c==="blocks"){ state.blocksLoaded=true; autoCook(); } requestRender(); },()=>{});
   const live=()=>{ $("sync").classList.add("live"); $("syncText").textContent="共有中"; };
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); },lost);
+  const GK=new Set(["items","events","plans","shifts"]);
+  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",requestRender); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.view==="settings"){ const c=$("bugCard"); if(c&&!typingInMain()) c.outerHTML=bugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; requestRender(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
