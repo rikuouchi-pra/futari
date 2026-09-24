@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=91"></script>
+<script src="shim.js?v=92"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1173,6 +1173,9 @@ body.layer-me .flayers button[data-flayer="me"][aria-pressed="true"]{background:
 .today-p{min-width:64px}
 #grid:not(.painting){touch-action:pan-y!important}
 .logo-ai{margin-top:8px;display:grid;gap:6px}
+
+/* v92: メニューの並びを逆に（縦メニューはタブの上下を入れ替え） */
+body.nav-rev .rinner{flex-direction:column-reverse}
 </style>
 <style id="palStyle"></style>
 
@@ -1247,7 +1250,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="91";
+const APP_VERSION="92";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1323,7 +1326,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2650,6 +2653,7 @@ function viewSettings(){
     <h2>アイコン</h2><div class="opts">${opt("icon","line","線")}${opt("icon","fill","塗り")}</div>
     <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
     <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
+    <h2>並び順</h2><div class="opts">${opt("navRev","0",prefs.nav==="flick"?"ふつう（左から）":"ふつう（上から）")}${opt("navRev","1",prefs.nav==="flick"?"逆（右から）":"逆（下から）")}</div>
     ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
     <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
@@ -2757,7 +2761,7 @@ function renderChrome(){
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
   const NV=prefs.nav, side=NV==="railf"?(prefs.hand==="left"?"left":"right"):prefs.railSide;
-  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}`;
+  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""}`;
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
@@ -4754,7 +4758,7 @@ railEl.addEventListener("pointerdown",e=>{ if(e.target.closest(".grip")) return;
 railEl.addEventListener("pointerup",e=>{ if(!rs) return; const dy=e.clientY-rs.y, dt=Date.now()-rs.t; rs=null;
   if(rMax()>0){ if(!(dt<400&&Math.abs(dy)>28)) return; if(rsc) setROff(rsc.o,true); }
   else if(Math.abs(dy)<=36) return;
-  railDrag.moved=true; goRel(dy>0?1:-1); setTimeout(()=>{ railDrag.moved=false; railShowActive(); },60); });
+  railDrag.moved=true; goRel((dy>0?1:-1)*(prefs.navRev==="1"?-1:1)); setTimeout(()=>{ railDrag.moved=false; railShowActive(); },60); });
 $("grip").addEventListener("pointerdown",e=>{
   railDrag.on=true; railDrag.moved=false; railDrag.sx=e.clientX; railDrag.sy=e.clientY;
   const r=railEl.getBoundingClientRect(); railDrag.ox=e.clientX-r.left; railDrag.oy=e.clientY-r.top;
@@ -4817,6 +4821,7 @@ function renderFlick(layer,n){
   const hs=hiddenTabs(), v=state.view==="caution"?"trouble":state.view, F=freshByView(), ok=t=>t&&(t[0]==="@"||!hs.has(t)||t===v);
   const KS=prefs.nav==="railf"?FLICK_V[layer].map(k=>{ const o={}; for(const [d,t] of Object.entries(k)) o[d==="x"?(prefs.hand==="left"?"r":"l"):d]=t; return o; }):FLICK[layer];
   fKeys=KS.map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
+  if(prefs.navRev==="1") fKeys.reverse();
   const lsw=prefs.nav==="railf"?`<div class="flayers" role="group" aria-label="ふたり／じぶん"><button data-flayer="us" aria-pressed="${layer==="us"}">ふたり</button><button data-flayer="me" aria-pressed="${layer==="me"}">じぶん</button></div>`:"";
   bar.innerHTML=lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
     const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:t==="check"?pendingChecks().length:(n[t]||0)),0), fresh=all.some(t=>F[t]);
