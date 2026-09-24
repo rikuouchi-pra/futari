@@ -76,8 +76,8 @@
 
   /* ---------- db（Claude の db 互換） ---------- */
   function segs(path){ return String(path).split("/").filter(Boolean); }
-  function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), size: qs.size, empty: qs.empty }; }
-  function docSnap(s){ return { id: s.id, exists: s.exists(), data: function(){ return s.data(); } }; }
+  function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), size: qs.size, empty: qs.empty, metadata: { fromCache: !!(qs.metadata && qs.metadata.fromCache) } }; }
+  function docSnap(s){ return { id: s.id, exists: s.exists(), fromCache: !!(s.metadata && s.metadata.fromCache), data: function(){ return s.data(); } }; }
   function DocRef(path){ this.path = path; this.ref = M.doc.apply(null, [fs].concat(segs(path))); }
   DocRef.prototype.set = function(d){ return M.setDoc(this.ref, clean(d)); };
   DocRef.prototype.update = function(ch){ return M.setDoc(this.ref, clean(ch), { merge: true }); };   // 1段目のオブジェクトは中身をマージ（Claude 版と同じ）

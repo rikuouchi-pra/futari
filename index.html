@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=56"></script>
+<script src="shim.js?v=57"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -688,7 +688,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="56";
+const APP_VERSION="57";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -762,7 +762,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",tipDone:"0",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -3781,7 +3781,7 @@ $("grip").addEventListener("pointerup",endRail); $("grip").addEventListener("poi
 addEventListener("resize",()=>placeRail(false));
 let tipEl=null;
 function showTip(){
-  if(store.get("futari.tipDone")) return;
+  if(store.get("futari.tipDone")||prefs.tipDone==="1"||prefs.onboarded!=="1") return;
   tipEl=document.createElement("div"); tipEl.className="rail-tip";
   tipEl.textContent="上の「ふたり／じぶん」でレイヤー切替。左右スワイプでタブ移動、上から下に引っぱると追加";
   document.body.appendChild(tipEl);
@@ -3789,12 +3789,12 @@ function showTip(){
   if(prefs.railSide==="right") tipEl.style.right=(innerWidth-r.left+8)+"px"; else tipEl.style.left=(r.right+8)+"px";
   setTimeout(hideTip,6000);
 }
-function hideTip(){ if(tipEl){tipEl.remove();tipEl=null;store.set("futari.tipDone","1");} }
+function hideTip(){ if(tipEl){tipEl.remove();tipEl=null;store.set("futari.tipDone","1"); if(prefs.tipDone!=="1"){ prefs.tipDone="1"; savePrefs(true); } } }
 
 initOnb();
-function maybeOnb(){ if(prefs.onboarded!=="1"&&!state.onbShown){ state.onbShown=true; openOnb("setup"); } }
+function maybeOnb(){ if(prefs.onboarded!=="1"&&!state.onbShown){ state.onbShown=true; state.onbAuto=true; openOnb("setup"); } }
 render(); requestAnimationFrame(()=>{placeRail(false); if(prefs.onboarded==="1") showTip();});
-setTimeout(()=>{ if(!prefsDoc) maybeOnb(); },2500);
+setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
 
 /* ================= connect ================= */
 (async()=>{
@@ -3839,7 +3839,7 @@ setTimeout(()=>{ if(!prefsDoc) maybeOnb(); },2500);
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
   histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
-  if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
+  if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
     for(const k of Object.keys(DEFAULT_PREFS)) if(typeof p[k]===typeof DEFAULT_PREFS[k]) next[k]=p[k];
     if(next.autoRules!==prefs.autoRules) AR=null;
     const first=firstPrefs; firstPrefs=false;
@@ -3847,7 +3847,7 @@ setTimeout(()=>{ if(!prefsDoc) maybeOnb(); },2500);
     if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
       if(first&&TITLES[prefs.view]&&prefs.view!=="settings"&&state.view!==prefs.view&&!state.editing&&!state.sheet.open) state.view=prefs.view;
       render(); placeRail(false); }
-    if(first) maybeOnb(); },()=>{});
+    if(first){ if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
 })();
 </script>
 
