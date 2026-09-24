@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=110"></script>
+<script src="shim.js?v=113"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1335,11 +1335,11 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adju
 
 /* v110 flick badges */
 .fkey .fh.n{width:auto;height:15px;min-width:15px;padding:0 4px 0 3px;box-sizing:border-box;border-radius:8px;background:color-mix(in srgb,var(--danger) 22%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 55%,transparent);display:flex;align-items:center;gap:1px;white-space:nowrap;opacity:.95!important;font-size:9px;line-height:15px;font-weight:800;font-style:normal;text-align:center;box-shadow:0 0 0 1.5px var(--surface);z-index:1}
-.fkey .fh.n s{text-decoration:none;font-size:8px;opacity:.85}
+.fkey .fh.n svg{width:10px!important;height:10px!important;stroke-width:2.4;flex:none;margin-right:1px}.fkey .fh.n b{font-weight:800}.fkey .fh.n{height:16px;padding:0 5px 0 4px;gap:2px}
 .fkey .fh.n.u{top:-3px;left:-2px;transform:none} .fkey .fh.n.d{bottom:-3px;top:auto;left:-2px;transform:none}
 .fkey .fh.n.l{left:-4px;top:50%;transform:translateY(-50%)} .fkey .fh.n.r{right:-4px;top:50%;transform:translateY(-50%)}
 .fkey .badge{z-index:2}
-.fg{overflow:visible}.fg .badge{top:-6px;right:-6px;min-width:18px;height:18px;line-height:18px;font-size:10.5px;box-shadow:0 0 0 2px var(--raised)}
+.badge{text-align:center}.fkey .fh.on{background:var(--danger);opacity:1!important;width:7px;height:7px;border-radius:4px}.fkey .fh.on.u{top:2px;left:calc(50% - 3.5px)}.fkey .fh.on.l{left:2px;top:calc(50% - 3.5px)}.fkey .fh.on.r{right:2px;top:calc(50% - 3.5px)}.fg{overflow:visible}.fg .badge{display:flex;align-items:center;justify-content:center;padding:0 5px;top:-6px;right:-6px;min-width:18px;height:18px;line-height:18px;font-size:10.5px;box-shadow:0 0 0 2px var(--raised)}
 </style>
 <style id="palStyle"></style>
 
@@ -1418,7 +1418,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="110";
+const APP_VERSION="113";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5106,7 +5106,7 @@ function renderFlick(layer,n){
   bar.innerHTML=`<button class="fgrip" aria-label="メニューの位置を移動（ドラッグ）"><span></span></button>`+lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
     fN=n; fL=layer; const hd=hit?hit[0]:"c", pos={...k}; if(hd!=="c"){ pos[hd]=k.c; } /* 表紙＝show。隠れている項目は、その方向の端に小さな数字 */
     const badge=fCnt(show), fresh=all.some(t=>F[t]&&t!==show)||(!hit&&F[show]);
-    return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>pos[d]).map(d=>{ const c2=fCnt(pos[d]); return c2?`<i class="fh ${d} n" aria-hidden="true"><s>${{u:"↑",d:"↓",l:"←",r:"→"}[d]}</s>${c2>99?"99+":c2}</i>`:`<i class="fh ${d}"></i>`; }).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
+    return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>pos[d]).map(d=>{ const c2=fCnt(pos[d]); if(pos[d]==="check") return `<i class="fh ${d} ${c2?"on":""}"></i>`; /* 未確認は他タブのまとめ→数字は出さず点だけ（合計がずれないように） */ return c2?`<i class="fh ${d} n" aria-hidden="true">${fIcon(pos[d])}<b>${c2>99?"99+":c2}</b></i>`:`<i class="fh ${d}"></i>`; }).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
 }
 function fGo(t){ if(t==="@add"){ openSheet(); return; } if(t==="@me"||t==="@us") switchLayer(t.slice(1)); else if(t!==state.view) go(t); else if(t==="future"&&state.fut){ state.fut=null; render(-40); } }
 { const bar=$("fbar"), gd=$("fguide"); let fs=null;
