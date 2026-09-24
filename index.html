@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=60"></script>
+<script src="shim.js?v=61"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -165,12 +165,15 @@ li.dragging{opacity:.45}
 .tt-b{touch-action:pan-y;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 .tt-b.dragging{opacity:.4}
 .tt-b.sel{outline:2px solid var(--bc);outline-offset:1px;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:4;touch-action:none;background:color-mix(in srgb,var(--bc) 30%,var(--surface))}
-.tt-b.sel .tt-rs{height:20px;left:0;background:transparent}
-.tt-b.sel .tt-rs::after{width:34px;height:6px;margin-left:-17px;bottom:4px;opacity:1;border-radius:4px;box-shadow:0 0 0 2px var(--surface)}
-.tt-rs.top{top:0;bottom:auto}.tt-b.sel .tt-rs.top::after{top:4px;bottom:auto}
+.tt-b.sel{overflow:visible;cursor:grab}
+.tt-b.sel .tt-rs{left:50%;right:auto;width:72px;margin-left:-36px;height:26px;bottom:-26px;z-index:6;background:transparent;display:flex;justify-content:center;align-items:flex-start}
+.tt-b.sel .tt-rs::after{position:static;margin:0;width:40px;height:11px;border-radius:6px;background:var(--surface);border:2.5px solid var(--bc);opacity:1;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.25);transform:translateY(-5px)}
+.tt-b.sel .tt-rs.top{top:-26px;bottom:auto;align-items:flex-end}.tt-b.sel .tt-rs.top::after{transform:translateY(5px)}
+.tt-b.sel.dragging{opacity:.35}
+.tt{overflow:visible}.tt-h:first-child{border-top-left-radius:14px;border-top-right-radius:14px}
+.sa-top{position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--ground);z-index:40;pointer-events:none}
 .tt.has-sel .tt-b:not(.sel){opacity:.55}
 .day-nav{display:flex;align-items:center;gap:6px;margin:10px 0 4px}.day-nav .day-title{margin:0;flex:0 1 auto}.day-nav .icon-btn{flex:none}.day-nav .pill{margin-left:auto}
-#tt{will-change:transform}
 .tt-bar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:60;max-width:520px;margin:0 auto;background:var(--raised);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:10px 12px;display:grid;gap:8px;animation:tbIn .18s ease-out}
 @keyframes tbIn{from{transform:translateY(20px);opacity:0}}
 .tt-bar .tb-h{display:flex;align-items:center;gap:8px;min-width:0}.tt-bar .tb-h b{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tt-bar .tb-h span{flex:1;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -691,7 +694,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 <div class="onb" id="onb" hidden role="dialog" aria-modal="true" aria-label="はじめての設定"><div class="onb-card" id="onbCard"></div></div>
 <input type="file" id="rcptIn" accept="image/*" multiple hidden>
 <input type="file" id="dphIn" accept="image/*" multiple hidden>
-<div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
+<div class="sa-top" aria-hidden="true"></div><div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
 
 
 <script>
@@ -706,7 +709,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="60";
+const APP_VERSION="61";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -885,7 +888,7 @@ function dayLabel(s){ const diff=Math.round((parse(s)-parse(today()))/864e5); if
 addEventListener("error",e=>{ state.lastErr=String(e.message||"").slice(0,200)+" @"+(e.lineno||""); });
 function typingInMain(){ const a=document.activeElement; return a&&a.closest&&a.closest("#main")&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&a.type==="text")); }
 document.addEventListener("focusout",()=>setTimeout(()=>{ if(state.dirty&&!typingInMain()&&!state.busy&&!state.editing) render(); },120));
-function requestRender(){ if(state.busy||state.editing||state.view==="settings"||typingInMain()){state.dirty=true; if(!state.busy) renderChrome(); return;} render(); }
+function requestRender(){ if(state.view==="psched"&&state.ttSel&&!state.busy&&!state.editing&&$("tt")){ state.dirty=true; renderTT(); return; } if(state.busy||state.editing||state.view==="settings"||typingInMain()){state.dirty=true; if(!state.busy) renderChrome(); return;} render(); }
 async function resolveNames(){
   if(!user||!user.profiles) return;
   const ids=new Set(); for(const c of ["items","troubles","cautions","diary"]) state[c].forEach(x=>{if(x.by&&x.by!==state.me) ids.add(x.by);});
@@ -1575,6 +1578,17 @@ function dayEntries(date){
 }
 
 /* ---- タイムテーブル：選んだ予定を直感的に調整（ドラッグ・両端ハンドル・ボタンで±15分） ---- */
+
+function applyLocal(c,id,ch){ const x=(state[c]||[]).find(i=>i.id===id); if(!x) return; for(const k in ch){ const v=ch[k]; if(v&&typeof v==="object"&&!Array.isArray(v)) x[k]={...(x[k]||{}),...v}; else x[k]=v; } }
+/* タイムテーブルと調整バーだけを描き直す（全体の再描画より速い） */
+function renderTT(){ const tt=$("tt"); if(!tt||state.view!=="psched") return false; const d=tt.dataset.ttdate;
+  const w=document.createElement("div"); w.innerHTML=timetable(d); const nt=w.firstElementChild; tt.replaceWith(nt);
+  const html=ttBarHTML(d), old=document.querySelector(".tt-bar");
+  if(!html){ if(old) old.remove(); return true; }
+  const w2=document.createElement("div"); w2.innerHTML=html; const nb=w2.firstElementChild;
+  if(old){ old.innerHTML=nb.innerHTML; } else nt.after(nb);
+  return true; }
+function ttDeselect(){ state.ttSel=null; state.ttDelArm=false; if(state.dirty){ state.dirty=false; render(); } else renderTT(); }
 function ttSelEntry(date){ const k=state.ttSel; if(!k) return null; const [c,id]=k.split("|");
   return dayEntries(date).find(o=>c==="g"?(o.kind==="g"&&o.x.id===id):(o.c===c&&o.x.id===id))||null; }
 function ttBarHTML(date){
@@ -1585,15 +1599,15 @@ function ttBarHTML(date){
     <div class="tb-g"><span class="tb-l">時間</span><button data-act="ttmv" data-d="-60">−1時間</button><button data-act="ttmv" data-d="-15">−15分</button><button data-act="ttmv" data-d="15">＋15分</button><button data-act="ttmv" data-d="60">＋1時間</button></div>
     <div class="tb-g"><span class="tb-l">長さ</span><button data-act="ttln" data-d="-15" ${len<=15?"disabled":""}>短く</button><button data-act="ttln" data-d="15">長く</button><button class="tb-e" data-act="ttedit">詳しく編集</button></div>
     <div class="tb-g"><span class="tb-l"></span>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button></div>
-    <div class="tb-tip">ドラッグで移動・上下の端で開始／終了を変更</div></div>`;
+    <div class="tb-tip">予定をつかんで移動・上下のつまみで開始／終了を変更</div></div>`;
 }
 async function ttApply(o,s,e,msg){
   const date=state.sel; s=Math.max(0,Math.min(s,1440-15)); e=Math.max(s+15,Math.min(e,1440));
   if(o.kind==="g"){ await gMove(date,o.x.id,s,e); return; }
   const c=o.c, x=state[c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(c,x.id);
-  if(c==="blocks"||c==="events") dupd(c,x.id,{start:hhmm(s),end:hhmm(e%1440),...(x.auto?{touched:true}:{})});
-  else dupd(c,x.id,timeCh(x,hhmm(s),e-s));
-  haptic("tick"); toast(msg||`${hhmm(s)}–${hhmm(e%1440)}${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); render();
+  const ch=(c==="blocks"||c==="events")?{start:hhmm(s),end:hhmm(e%1440),...(x.auto?{touched:true}:{})}:timeCh(x,hhmm(s),e-s);
+  applyLocal(c,x.id,ch); renderTT(); dupd(c,x.id,{...ch});
+  haptic("tick"); toast(msg||`${hhmm(s)}–${hhmm(e%1440)}${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done");
 }
 function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
 function timetable(date){
@@ -1605,7 +1619,7 @@ function timetable(date){
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
     const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${ht<40?"short":""} ${sel?"sel":""}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${o.kind==="b"||o.kind==="e"?esc(o.x.start)+"–"+esc(o.x.end||hhmm(o.e)):hhmm(o.s)+(o.kind==="g"?"–"+hhmm(o.e):"–"+hhmm(o.e%1440))}</span>${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="上端をドラッグで開始時刻を変える"></i>`:""}<i class="tt-rs" aria-label="下端をドラッグで終了時刻を変える"></i></button>`;
+    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${ht<40?"short":""} ${sel?"sel":""}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${o.kind==="b"||o.kind==="e"?esc(o.x.start)+"–"+esc(o.x.end||hhmm(o.e)):hhmm(o.s)+(o.kind==="g"?"–"+hhmm(o.e):"–"+hhmm(o.e%1440))}</span>${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
   }
   return h+`</div>`;
 }
@@ -2342,13 +2356,13 @@ $("main").addEventListener("click",e=>{
     return; }
   const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); rightAction(c,id); render(); return; }
   const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
-    if(state.ttSel!==k){ state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); render(); return; }
+    if(state.ttSel!==k){ const hadEdit=!!state.gEdit; state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); if(hadEdit) render(); else renderTT(); return; }
     state.ttSel=null; if(ttb.dataset.gid){ state.gEdit={date:$("tt").dataset.ttdate,id:ttb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; } }
   const tb=e.target.closest("[data-tb]"); if(tb){ startEdit(tb.dataset.tb,tb.dataset.tid); setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },50); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
-  if(tt&&state.ttSel){ state.ttSel=null; render(); return; }
+  if(tt&&state.ttSel){ ttDeselect(); return; }
   if(tt){ const r=tt.getBoundingClientRect(), S0=Number(prefs.ttStart||4), m=Math.round(((e.clientY-r.top)/46+S0)*2)/2*60; state.pendTime=hhmm(Math.min(Math.max(m,S0*60),1410)); openSheet("block"); return; }
   const bg=e.target.closest("[data-bug]"); if(bg){ dupd("bugs",bg.dataset.bug,{status:bg.dataset.bst,decidedAt:Date.now()}); toast(bg.dataset.bst==="approved"?"承認しました。次の確認で自動修正されます":"見送りにしました"); return; }
   const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday); return; }
@@ -2465,7 +2479,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="backup") exportBackup();
   else if(a==="exportMove") exportMove();
   else if(a==="ttday") ttShiftDay(Number(b.dataset.n));
-  else if(a==="ttx"){ state.ttSel=null; state.ttDelArm=false; render(); }
+  else if(a==="ttx") ttDeselect();
   else if(a==="ttun"){ const o=ttSelEntry(state.sel); if(!o) return; const x=state[o.c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(o.c,x.id); dupd(o.c,x.id,timeCh(x,null,null)); state.ttSel=null; haptic("tick"); toast(`「${(x.text||"").slice(0,14)}」の時間を外しました`,u,"done"); render(); }
   else if(a==="ttdel"){ const o=ttSelEntry(state.sel); if(!o) return;
     if(o.kind==="g"&&!state.ttDelArm){ state.ttDelArm=true; haptic("warn"); render(); clearTimeout(state.ttDelT); state.ttDelT=setTimeout(()=>{ if(state.ttDelArm){ state.ttDelArm=false; if(state.view==="psched") render(); } },4000); return; }
@@ -2933,10 +2947,10 @@ function tdMove(e,fromLoop){
   if(!tdrag.active) return;
   if(!fromLoop) tdScroll=e.clientY<90?-10:e.clientY>innerHeight-90?10:0;
   const S=ttS(), p=tdrag.prev, g=tdrag.ghost;
-  if(tdrag.mode==="resizeTop"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let st=Math.round(((e.clientY-r.top)/TT_H*60+S*60)/15)*15; st=Math.min(tdrag.e-15,Math.max(st,S*60));
+  if(tdrag.mode==="resizeTop"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let st=tdrag.s+Math.round((e.clientY-tdrag.y0)/TT_H*60/15)*15; st=Math.min(tdrag.e-15,Math.max(st,S*60));
     tdrag.newStart=st; if(tdrag.el){ tdrag.el.style.top=((st/60-S)*TT_H)+"px"; tdrag.el.style.height=((tdrag.e-st)/60*TT_H-2)+"px"; } g.querySelector("span").textContent=`${hhmm(st)}–${hhmm(tdrag.e%1440)}（${tdrag.e-st}分）`;
     g.style.transform=`translate(${e.clientX+14}px,${e.clientY-20}px)`; if(st!==tdrag.lastTick){ tdrag.lastTick=st; haptic("nav"); } return; }
-  if(tdrag.mode==="resize"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let end=Math.round(((e.clientY-r.top)/TT_H*60+S*60)/15)*15; end=Math.max(tdrag.s+15,Math.min(end,24*60));
+  if(tdrag.mode==="resize"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let end=(tdrag.e||tdrag.s+tdrag.dur)+Math.round((e.clientY-tdrag.y0)/TT_H*60/15)*15; end=Math.max(tdrag.s+15,Math.min(end,24*60));
     tdrag.newEnd=end; if(tdrag.el) tdrag.el.style.height=((end-tdrag.s)/60*TT_H-2)+"px"; g.querySelector("span").textContent=`${hhmm(tdrag.s)}–${hhmm(end%1440)}（${end-tdrag.s}分）`;
     g.style.transform=`translate(${e.clientX+14}px,${e.clientY-20}px)`; if(end!==tdrag.lastTick){ tdrag.lastTick=end; haptic("nav"); } return; }
   g.style.transform=`translate(${e.clientX-40}px,${e.clientY-tdrag.grab-6}px)`;
@@ -2955,17 +2969,21 @@ function tdEnd(e){
   const date=$("tt")?$("tt").dataset.ttdate:state.sel;
   if(d.mode==="resizeTop"&&d.newStart!=null){ if(d.c==="g"){ gMove(date,d.id,d.newStart,d.e); render(); return; }
     const x=state[d.c].find(i=>i.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id);
-    if(d.c==="blocks"||d.c==="events") dupd(d.c,d.id,{start:hhmm(d.newStart),...(x.auto?{touched:true}:{})}); else dupd(d.c,d.id,timeCh(x,hhmm(d.newStart),d.e-d.newStart));
-    haptic("done"); toast(`${hhmm(d.newStart)} 開始に（${d.e-d.newStart}分）`,u,"done"); render(); return; }
+    const ch=(d.c==="blocks"||d.c==="events")?{start:hhmm(d.newStart),...(x.auto?{touched:true}:{})}:timeCh(x,hhmm(d.newStart),d.e-d.newStart);
+    applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch});
+    haptic("done"); toast(`${hhmm(d.newStart)} 開始に（${d.e-d.newStart}分）`,u,"done"); return; }
   if(d.mode==="resize"&&d.newEnd&&d.c==="g"){ gMove(date,d.id,d.s,d.newEnd); render(); return; }
   if(d.mode==="resize"&&d.newEnd){ const x=state[d.c].find(i=>i.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id);
-    if(d.c==="blocks"||d.c==="events") dupd(d.c,d.id,{end:hhmm(d.newEnd%1440),...(x.auto?{touched:true}:{})}); else { const ti=myT(x); dupd(d.c,d.id,timeCh(x,ti,d.newEnd-d.s)); }
-    haptic("done"); toast(`長さを${d.newEnd-d.s}分に${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); render(); return; }
+    const ch=(d.c==="blocks"||d.c==="events")?{end:hhmm(d.newEnd%1440),...(x.auto?{touched:true}:{})}:timeCh(x,myT(x),d.newEnd-d.s);
+    applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch});
+    haptic("done"); toast(`長さを${d.newEnd-d.s}分に${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); return; }
   if(d.tray){ const x=state[d.c].find(i=>i.id===d.id); const u=snapUndo(d.c,d.id); dupd(d.c,d.id,timeCh(x,null,null)); haptic("tick"); toast(`「${(x&&x.text||"").slice(0,14)}」の時間を外しました`,u,"done"); render(); return; }
-  if(d.m==null){ render(); return; }
+  if(d.m==null){ if(!(d.from==="tt"&&renderTT())) render(); return; }
   if(d.c==="g"){ gMove(date,d.id,d.m,d.m+d.dur); render(); return; }
   if(d.c==="blocks"||d.c==="events"){ const x=state[d.c].find(b=>b.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id), len=d.dur;
-    dupd(d.c,d.id,{start:hhmm(d.m),end:hhmm((d.m+len)%1440),...(x.auto?{touched:true}:{}),...(d.c==="events"?{date}:{})}); haptic("done"); toast(`${hhmm(d.m)} に移動${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); render(); return; }
+    const ch={start:hhmm(d.m),end:hhmm((d.m+len)%1440),...(x.auto?{touched:true}:{}),...(d.c==="events"?{date}:{})};
+    applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch}); haptic("done"); toast(`${hhmm(d.m)} に移動${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); return; }
+  if(d.from==="tt"){ const x=state[d.c].find(i=>i.id===d.id); if(x){ const u=snapUndo(d.c,d.id), ch={due:date,...timeCh(x,hhmm(d.m),null)}; applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch}); haptic("done"); toast(`${hhmm(d.m)} に移動`,u,"done"); return; } }
   ttPlace(d.c,d.id,date,hhmm(d.m),null);
 }
 function tdStart(e,src){
