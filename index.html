@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=61"></script>
+<script src="shim.js?v=62"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -183,6 +183,20 @@ li.dragging{opacity:.45}
 .tt-bar .tb-g button:active{background:var(--ground)}.tt-bar .tb-g button:disabled{opacity:.4}
 .tt-bar .tb-e{background:var(--accent)!important;color:var(--on-accent)!important;border-color:var(--accent)!important}
 .tt-bar .tb-del{color:var(--danger)!important;border-color:color-mix(in srgb,var(--danger) 40%,var(--line))!important}.tt-bar .tb-del.arm{background:var(--danger)!important;color:#fff!important;border-color:var(--danger)!important}
+li.item.fresh>.row{box-shadow:inset 4px 0 0 var(--frc,var(--accent));background:color-mix(in srgb,var(--frc,var(--accent)) 8%,var(--surface))}
+.freshb{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--frc,var(--accent));margin-bottom:2px}.freshb i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:fpulse 1.6s ease-in-out 3}
+@keyframes fpulse{50%{transform:scale(1.6);opacity:.5}}
+.rtab{position:relative}.fdot{position:absolute;top:6px;left:8px;width:9px;height:9px;border-radius:50%;background:var(--frc,var(--accent));box-shadow:0 0 0 2px var(--surface)}
+.rtab[aria-selected="true"] .fdot{display:none}
+#lsw [data-layer].has-fresh::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--danger);margin-left:5px;vertical-align:2px}
+.hmore{text-align:right;margin-top:6px}
+.alog{list-style:none;margin:0;padding:0}.alog .aday{font-size:12px;font-weight:700;color:var(--muted);margin:14px 4px 4px}
+.alog .arow button{width:100%;display:flex;align-items:flex-start;gap:8px;text-align:left;border:0;background:var(--surface);color:var(--ink);padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px;line-height:1.45}
+.alog .arow:first-of-type button{border-radius:12px 12px 0 0}.alog .arow.new button{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.alog .at{flex:none;width:40px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.alog .adot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:7px}.alog .adot.h{background:var(--who-h)}.alog .adot.w{background:var(--who-w)}
+.alog .atx{flex:1;min-width:0}.aw.h{color:var(--who-h)}.aw.w{color:var(--who-w)}
+.alog .anew{flex:none;font-size:10px;font-weight:800;color:#fff;background:var(--danger);border-radius:6px;padding:1px 5px;margin-top:2px}
 .tt-bar .tb-tip{font-size:11px;color:var(--muted);text-align:center}
 body:has(.tt-bar) #toast{bottom:calc(262px + env(safe-area-inset-bottom,0px));z-index:61}
 .tt-drop{position:absolute;left:52px;right:4px;border-radius:8px;border:2px dashed var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);z-index:3;font-size:11px;font-weight:700;color:var(--accent);padding:2px 6px;box-sizing:border-box;pointer-events:none}
@@ -701,7 +715,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 /* ================= constants & utils ================= */
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
-const TITLES={talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"困りごと",caution:"注意",diary:"日記",future:"将来",
+const TITLES={log:"更新ログ",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"困りごと",caution:"注意",diary:"日記",future:"将来",
   habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 const LAYER_TABS={us:["talk","task","shop","trouble","caution","cal","diary","future","money"],me:["psched","habit","ptask","pshop","pwish","reflect"]};
@@ -709,7 +723,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="61";
+const APP_VERSION="62";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -783,7 +797,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",tipDone:"0",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -807,7 +821,7 @@ applyPrefs();
 
 /* ================= state ================= */
 const state={view:"home",items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
-  fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
+  fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],activity:[],diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
   paint:{on:false,val:"休",who:""},refFilter:"all",psFilter:"mine",
   busy:false,dirty:false,editing:null,sel:today(),calMonth:(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1)})(),calWeek:false,
   diaryDate:today(),diaryTab:"me",sheet:{open:false,kind:"task",date:"",time:"",tlevel:"mid",clevel:"warn",pcat:"wish",pkind:"do",phz:"someday",budget:""}};
@@ -949,9 +963,9 @@ function err(e){
   $("offline").hidden=false;
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
-async function dset(c,id,data){ if(guestBlock(c)) return; const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
-async function dupd(c,id,ch){ if(guestBlock(c)) return; ch.updatedAt=Date.now(); const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
-async function ddel(c,id){ if(guestBlock(c)) return; const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
+async function dset(c,id,data){ if(guestBlock(c)) return; if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
+async function dupd(c,id,ch){ if(guestBlock(c)) return; ch.updatedAt=Date.now(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
+async function ddel(c,id){ if(guestBlock(c)) return; if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
 function removeWithUndo(c,ids,msg){
   if(c==="blocks"){ const ks=ids.map(id=>id.match(/^auto_(.+)_(\d{4}-\d{2}-\d{2})$/)).filter(Boolean).map(m=>`${m[1]}:${m[2]}`); if(ks.length){ const sk=arSkip(); ks.forEach(k=>sk.add(k)); prefs.autoSkip=[...sk].filter(k=>k.slice(-10)>=addDays(today(),-7)).join(","); savePrefs(true); } }
   const saved=ids.map(id=>state[c].find(i=>i.id===id)).filter(Boolean);
@@ -1071,6 +1085,7 @@ function gcalUrl(i){
 const isEditing=(c,id)=>state.editing&&state.editing.c===c&&state.editing.id===id;
 function seg(name,cur,opts){ return `<div class="seg" data-seg="${name}">${opts.map(([v,l])=>`<button type="button" data-sv="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</div>`; }
 function wrapRow(c,x,cls,lead,body,noEdit){
+  const fb=freshBadge(c,x); if(fb){ cls+=" fresh"; body=fb+body; }
   return `<li class="item ${cls}" data-c="${c}" data-id="${esc(x.id)}">
     <div class="swipe-bg"><span class="l">${rightLabel(c,x)}</span><span class="r">削除</span></div>
     <div class="row">${lead}<div class="body" ${noEdit?"":'data-act="edit"'}>${body}</div></div></li>`;
@@ -2167,13 +2182,13 @@ function renderChrome(){
   $("appTitle").textContent=prefs.appName||"ふたりのリスト";
   { const off=$("offline"); if(state.guest){ off.textContent="このアカウントは登録されていません（設定 › ふたりの名前 を確認）"; off.hidden=false; } else if(state.needCode){ off.innerHTML=`合言葉の確認が必要です。<button class="link" data-act="openBind">入力する</button>`; off.hidden=false; } else if(state.connIssue){ off.textContent=state.connIssue; off.hidden=false; } }
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
-  const layer=(v==="settings"||v==="check"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
+  const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
   document.body.className=`v-${v} rail-${prefs.railSide} layer-${layer}`;
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
   document.querySelectorAll("#layers [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer)));
-  $("lock").hidden=layer!=="me"||v==="settings"||v==="check"||v==="home";
+  $("lock").hidden=layer!=="me"||v==="settings"||v==="check"||v==="log"||v==="home";
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
   { const pc=pendingChecks().length, bc=$("b-chk"); bc.hidden=!pc; bc.textContent=pc; $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
@@ -2183,7 +2198,10 @@ function renderChrome(){
   $("dots").hidden=!ORDER.includes(v);
   document.querySelectorAll(".rtab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v)));
   for(const k of ["task","shop","trouble","caution","diary","future","talk","habit","ptask","pshop","psched"]){ const b=$("b-"+k); b.hidden=!n[k]; b.textContent=n[k]; }
-  $("plus").hidden=(v==="settings"||v==="check");
+  document.documentElement.style.setProperty("--frc",`var(--who-${otherRole()})`);
+  { const F=freshByView(); document.querySelectorAll("#rail .rtab[data-v]").forEach(t=>{ let d=t.querySelector(".fdot"); if(!d){ d=document.createElement("i"); d.className="fdot"; d.setAttribute("aria-hidden","true"); t.appendChild(d); } d.hidden=!F[t.dataset.v]; t.title=F[t.dataset.v]?`${nameOf(otherRole())}の更新 ${F[t.dataset.v]}件`:""; });
+    const fu=Object.values(F).reduce((a,b)=>a+b,0), lb=document.querySelector('#lsw [data-layer="us"]'); if(lb) lb.classList.toggle("has-fresh",fu>0); }
+  $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
 }
@@ -2196,7 +2214,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(layerOf(v)==="me"||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -2211,10 +2229,10 @@ function go(v,anim){
   if(v==="settings"&&state.view==="settings") v=prefs.view||"talk";
   if(v==="check"&&state.view==="check") v=prefs.view||"talk";
   if(state.view==="diary") flushExtras();
-  state.view=v;
+  state.view=v; actEnter(v);
   if(v!=="cal") state.paint.on=false;
   if(v!=="psched") state.ttPick=null;
-  if(v!=="settings"&&v!=="check"&&v!=="home"){ const L=layerOf(v), key=L==="us"?"lastUs":"lastMe"; if(prefs.view!==v||prefs[key]!==v){ prefs.view=v; prefs[key]=v; savePrefs(true); } }
+  if(v!=="settings"&&v!=="check"&&v!=="log"&&v!=="home"){ const L=layerOf(v), key=L==="us"?"lastUs":"lastMe"; if(prefs.view!==v||prefs[key]!==v){ prefs.view=v; prefs[key]=v; savePrefs(true); } }
   if(v==="diary") markCommentsSeen();
   window.scrollTo(0,0); render(anim);
 }
@@ -2259,7 +2277,7 @@ function diagHTML(){
     <p>「書き込み権限：なし」や保存エラーがある場合は、ページの共有メニューで相手を<b>「編集可」</b>で招待し直し、<b>リンク共有をオフ</b>にしてください。</p>`;
 }
 function hiddenTabs(){ return new Set((prefs.hideTabs||"").split(",").filter(Boolean)); }
-function switchLayer(l){ const v=l==="me"?(LAYER_TABS.me.includes(prefs.lastMe)?prefs.lastMe:"habit"):(LAYER_TABS.us.includes(prefs.lastUs)?prefs.lastUs:"talk"); if(layerOf(state.view)!==l||["settings","home","check"].includes(state.view)) go(v,l==="me"?40:-40); }
+function switchLayer(l){ const v=l==="me"?(LAYER_TABS.me.includes(prefs.lastMe)?prefs.lastMe:"habit"):(LAYER_TABS.us.includes(prefs.lastUs)?prefs.lastUs:"talk"); if(layerOf(state.view)!==l||["settings","home","check","log"].includes(state.view)) go(v,l==="me"?40:-40); }
 $("layers").addEventListener("click",e=>{ const b=e.target.closest("[data-layer]"); if(b) switchLayer(b.dataset.layer); });
 function markCommentsSeen(){ if(counts().diary){ prefs.seenC=Date.now(); savePrefs(true); } }
 $("dots").addEventListener("click",e=>{ const b=e.target.closest("[data-go]"); if(b){ const i=ORDER.indexOf(state.view), j=ORDER.indexOf(b.dataset.go); go(b.dataset.go,j>i?40:-40); } });
@@ -2350,6 +2368,7 @@ $("main").addEventListener("click",e=>{
     else if(name==="psf"){ state.psFilter=v; render(); }
     else if(name==="psmode"){ state.psMode=v; render(); }
     else if(name==="sh_h"||name==="sh_w"){ writeShifts(name.slice(3),{[state.sel]:v}); render(); }
+    else if(name==="logf"){ state.logF=v; render(); }
     else if(name==="dtab"){ flushDiary(); state.diaryTab=v; render(); }
     else if(name==="dpriv"){ diaryPrivNow=v==="1"; diaryPending=true; flushDiary(); }
     else { editSeg[name]=v; if(name==="htarget"&&$("hEveryRow")) $("hEveryRow").hidden=v!=="iv"; }
@@ -2478,6 +2497,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="railRight"||a==="railLeft"){ prefs.railSide=a==="railRight"?"right":"left"; prefs.railY=-1; savePrefs(true); renderChrome(); placeRail(true); }
   else if(a==="backup") exportBackup();
   else if(a==="exportMove") exportMove();
+  else if(a==="openLog"){ state.logSince=prefs.actSeen||0; prefs.actSeen=Date.now(); savePrefs(true); go("log"); }
   else if(a==="ttday") ttShiftDay(Number(b.dataset.n));
   else if(a==="ttx") ttDeselect();
   else if(a==="ttun"){ const o=ttSelEntry(state.sel); if(!o) return; const x=state[o.c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(o.c,x.id); dupd(o.c,x.id,timeCh(x,null,null)); state.ttSel=null; haptic("tick"); toast(`「${(x.text||"").slice(0,14)}」の時間を外しました`,u,"done"); render(); }
@@ -2808,6 +2828,65 @@ function goCheck(k){
 }
 
 
+
+/* ================= 更新ログ：誰が・いつ・何をしたか／相手の更新をひと目で ================= */
+const ACT_LABEL={items:x=>x.list==="shop"?"買い物":x.list==="wish"?"ほしい物":"やること",troubles:()=>"困りごと",cautions:()=>"注意",events:()=>"予定",shifts:()=>"シフト",
+  plans:x=>(PCATS[x.cat]||{label:"将来"}).label,topics:()=>"議題",talks:()=>"話し合い",diary:()=>"日記",comments:()=>"コメント",thanks:()=>"ありがとう",dinner:()=>"夕飯メモ",spend:()=>"出費",recur:()=>"毎月の支払い",goals:()=>"貯金目標"};
+const ACT_VIEW={items:x=>x.list==="shop"?"shop":x.list==="wish"?"future":"task",troubles:()=>"trouble",cautions:()=>"caution",events:()=>"cal",shifts:()=>"cal",plans:()=>"future",
+  topics:()=>"talk",talks:()=>"talk",diary:()=>"diary",comments:()=>"diary",thanks:()=>"diary",dinner:()=>"diary",spend:()=>"money",recur:()=>"money",goals:()=>"money"};
+const FIELD_JA={text:"内容",due:"日付",date:"日付",time:"時間",start:"時間",end:"時間",dur:"長さ",amount:"金額",price:"金額",budget:"予算",actual:"実績",status:"状態",who:"担当",level:"重要度",memo:"メモ",detail:"詳細",mcat:"分類",cat:"分類",target:"目標額",day:"日付",list:"種類",checks:"チェック項目",replies:"返信"};
+const OP_JA={add:"追加",edit:"変更",del:"削除",done:"完了",undone:"未完了に戻す",ack:"確認",paid:"振込確認",reply:"返信"};
+const actTracked=c=>!!ACT_LABEL[c]&&!PRIVATE.has(c)&&!state.noLog;
+function actOpOf(ch){
+  const dk=Object.keys(ch).find(k=>k==="done"||/^done_(h|w)$/.test(k));
+  if(dk){ const v=ch["done_"+myRole()]??ch.done; return v?"done":"undone"; }
+  if(ch.status==="done") return "done"; if(ch.ack) return "ack"; if(ch.paid) return "paid"; if(ch.replies) return "reply"; return "edit"; }
+let lastAct=null;
+function logAct(op,c,id,x,ch){
+  if(!db) return; const col=colRef("activity"); if(!col) return;
+  const now=Date.now(), key=op+"|"+c+"|"+id;
+  const aid=(lastAct&&lastAct.key===key&&now-lastAct.at<180000)?lastAct.id:newId(); lastAct={key,at:now,id:aid};
+  const fields=ch?[...new Set(Object.keys(ch).map(k=>FIELD_JA[k.replace(/_(h|w)$/,"")]).filter(Boolean))]:[];
+  const text=String((x&&(x.text||x.title))||(c==="shifts"?"":"")||"").slice(0,40);
+  col.doc(aid).set({at:now,role:myRole(),by:state.me||null,op,c,id,text,kind:ACT_LABEL[c](x||{}),view:ACT_VIEW[c](x||{}),fields}).catch(()=>{});
+}
+function seenMap(){ try{ return JSON.parse(prefs.seenTabs||"{}")||{}; }catch(e){ return {}; } }
+function actEnter(v){
+  if(!state.visitSeen) state.visitSeen={};
+  const M=seenMap(); state.visitSeen={[v]:M[v]||prefs.actSeen||0};
+  if(Object.values(ACT_VIEW).some(f=>f({})===v)||v==="shop"||v==="future"){ M[v]=Date.now(); prefs.seenTabs=JSON.stringify(M); clearTimeout(actEnter.t); actEnter.t=setTimeout(()=>savePrefs(true),800); }
+}
+function isFresh(c,x,useVisit){
+  if(!x||x.updBy!==otherRole()||!ACT_VIEW[c]) return false; const v=ACT_VIEW[c](x), t=x.updAt||0;
+  const base=useVisit&&state.visitSeen&&v in state.visitSeen?state.visitSeen[v]:(seenMap()[v]||prefs.actSeen||0);
+  return t>base; }
+function freshByView(){ const out={}; for(const c of Object.keys(ACT_VIEW)) for(const x of state[c]||[]) if(isFresh(c,x,false)){ const v=ACT_VIEW[c](x); if(v!==state.view) out[v]=(out[v]||0)+1; } return out; }
+function freshBadge(c,x){ return isFresh(c,x,true)?`<div class="freshb"><i></i>${esc(nameOf(otherRole()))}が更新・${esc(ago(x.updAt))}</div>`:""; }
+function actLine(a,withWho=true){
+  const who=nameOf(a.role), f=a.op==="edit"&&a.fields&&a.fields.length?`（${a.fields.join("・")}）`:"";
+  return `${withWho?`<b class="aw ${a.role}">${esc(who)}</b>が`:""}${esc(a.kind)}${a.text?`「${esc(a.text)}」`:""}を${OP_JA[a.op]||"変更"}${esc(f)}`; }
+function actNewCount(){ const since=prefs.actSeen||0, ot=otherRole(); return (state.activity||[]).filter(a=>a.role===ot&&a.at>since).length; }
+function actCardHTML(){
+  const since=prefs.actSeen||0, ot=otherRole(), list=(state.activity||[]).filter(a=>a.role===ot&&a.at>since).sort((a,b)=>b.at-a.at);
+  const body=list.length?`<ul class="hlist">${list.slice(0,5).map(a=>`<li><button data-hgo="${esc(a.view||"home")}"><span class="ht">${esc(ago(a.at))}</span><span class="hdot" style="--bc:var(--who-${a.role})"></span><span>${actLine(a,false)}</span></button></li>`).join("")}</ul>`
+    :`<div class="hempty">新しい更新はありません</div>`;
+  return homeCard(`${esc(nameOf(ot))}の更新 ${list.length?`<span class="hn">${list.length}</span>`:""}`,body+`<div class="hmore"><button class="link" data-act="openLog">更新ログをすべて見る ›</button></div>`,null);
+}
+function viewLog(){
+  const f=state.logF||"all", ot=otherRole(), since=state.logSince??(prefs.actSeen||0);
+  const all=(state.activity||[]).filter(a=>f==="all"||(f==="ot"?a.role===ot:a.role===myRole())).sort((a,b)=>b.at-a.at).slice(0,300);
+  let h=`<div class="tools">${seg("logf",f,[["all","ふたり"],["ot",esc(nameOf(ot))],["me",esc(nameOf(myRole()))]])}</div>`;
+  if(!all.length) return h+`<div class="empty">まだ記録がありません<br>これからの追加・変更・完了・削除がここに残ります</div>`;
+  let day="";
+  h+=`<ul class="alog">`;
+  for(const a of all){ const d=ymd(new Date(a.at));
+    if(d!==day){ day=d; h+=`<li class="aday">${esc(dayLabel(d))}・${parse(d).getMonth()+1}/${parse(d).getDate()}</li>`; }
+    const tm=new Date(a.at).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+    h+=`<li class="arow ${a.role===ot&&a.at>since?"new":""}"><button data-hgo="${esc(a.view||"home")}"><span class="at">${tm}</span><span class="adot ${a.role}"></span><span class="atx">${actLine(a)}</span>${a.role===ot&&a.at>since?'<span class="anew">NEW</span>':""}</button></li>`; }
+  return h+`</ul>`+hint("ふたりの追加・変更・完了・削除を60日分残します（じぶんの項目は記録しません）<br>タップでその画面へ");
+}
+function actPrune(){ const lim=Date.now()-60*864e5, old=(state.activity||[]).filter(a=>a.at<lim).slice(0,40); const col=colRef("activity"); if(col) old.forEach(a=>col.doc(a.id).delete().catch(()=>{})); }
+
 /* ================= 引っ越し（Claude版 → 単独アプリ版） ================= */
 const MOVE_SHARED=["items","troubles","cautions","shifts","events","plans","topics","talks","bugs","comments","spend","photos","recur","goals","thanks","dinner","diary"];
 const blobToB64=b=>new Promise((ok,ng)=>{ const r=new FileReader(); r.onload=()=>ok(String(r.result).split(",")[1]||""); r.onerror=ng; r.readAsDataURL(b); });
@@ -2831,7 +2910,7 @@ async function importMove(file){
   const same=o.role===myRole();
   let raw=JSON.stringify({shared:o.shared||{},mine:o.mine||{},meta:o.meta||{},prefs:o.prefs||{}});
   if(o.me&&state.me&&o.me!==state.me) raw=raw.split(JSON.stringify(o.me)).join(JSON.stringify(state.me));   // 旧アカウントID → 新アカウントID
-  const D=JSON.parse(raw); let n=0, ph=0; const jobs=[];
+  const D=JSON.parse(raw); let n=0, ph=0; const jobs=[]; state.noLog=true; setTimeout(()=>{ state.noLog=false; },4000);
   const put=(c,x)=>{ if(!x||!x.id) return; const {id,...rest}=x; if((state[c]||[]).some(y=>y.id===id)) return; jobs.push(dset(c,id,rest)); n++; };
   for(const c of MOVE_SHARED) for(const x of (D.shared[c]||[])) put(c,x);
   if(same){
@@ -3297,9 +3376,11 @@ function viewHome(){
   h+=`<div class="hlayers">
     <button class="hl us" data-layer2="us"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M12.5 14.4c.9-.3 1.9-.4 3-.4 3 0 5.5 2 5.5 5"/></svg></span><b>ふたり</b><small>${usN?`${usN}件の未完了・未確認`:"すっきり"}</small><span class="hl-go">›</span></button>
     <button class="hl me" data-layer2="me"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><b>じぶん</b><small>${meN?`${meN}件`:"すっきり"}・${esc(nameOf(me))}だけ</small><span class="hl-go">›</span></button></div>`;
+  if(actNewCount()) h+=actCardHTML();
   /* 要対応 */
   const pc=pendingChecks();
   h+=homeCard(`要対応 <span class="hn">${pc.length}</span>`,pc.length?`<ul class="hlist">${pc.slice(0,5).map(x=>`<li><button data-chk="${x.key}"><span class="chkn">${x.num}</span><span>${esc(x.title)}</span><i>›</i></button></li>`).join("")}</ul>${pc.length>5?`<button class="link" data-go2="check">ほか${pc.length-5}件 ›</button>`:""}`:`<div class="hempty">すべて入力・確認済みです ✓</div>`,"check");
+  if(!actNewCount()) h+=actCardHTML();
   /* 今日の予定 */
   const rows=[...upcoming.map(o=>`<li><button ${o.kind==="g"?"":`data-hgo="psched"`}><span class="ht">${hhmm(o.s%1440)}</span><span class="hdot" style="--bc:var(--${o.col})"></span><span>${esc(o.t)}</span></button></li>`),
     ...evAll.map(x=>`<li><button data-hgo="cal"><span class="ht">終日</span><span class="hdot" style="--bc:var(--cal)"></span><span>${esc(x.text)}</span></button></li>`),
@@ -3927,6 +4008,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; requestRender(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
+  { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
   histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
   if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
