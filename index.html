@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=95"></script>
+<script src="shim.js?v=97"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1230,6 +1230,34 @@ html.has-bgphoto{background:var(--ground)}
 .logo-ai .edit-row{flex-wrap:nowrap!important;min-width:0}
 .logo-ai input{min-width:0!important;width:auto!important;flex:1 1 auto}
 .logo-ai .btn{flex:none;white-space:nowrap}
+
+/* v96: 上部の部品ごとの大きさ */
+.brand .appname>*{zoom:var(--z-brand,1)}
+.brand .greet>*{zoom:var(--z-greet,1)}
+.brand .trow{zoom:var(--z-title,1)}
+.brand .hsub,.brand #lock{zoom:var(--z-layer,1)}
+.hord li{display:grid!important;grid-template-columns:1fr auto auto;grid-template-areas:"n u d" "z z v";gap:6px 6px!important;align-items:center;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.hord li:first-child{border-top:0}
+.hord-n{display:contents}
+.hord-n>.hsz{grid-area:z}
+.hord li .icon-btn[data-d="-1"]{grid-area:u}.hord li .icon-btn[data-d="1"]{grid-area:d}
+.hord li>.opt,.hord li>.hord-s{grid-area:v;justify-self:end}
+.hord-t{grid-area:n;font-size:14px;font-weight:700}
+.hsz{display:inline-flex;gap:3px;padding:2px;border-radius:10px;background:color-mix(in srgb,var(--ink) 7%,transparent);width:max-content}
+.hsz button{border:0;background:transparent;border-radius:8px;height:26px;min-width:34px;padding:0 6px;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.hsz button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+
+/* v97: アプリのアイコン（名前の左）の大きさ */
+body.lsz-s #appTitle.big::before{width:.85em;height:.85em}
+body.lsz-l #appTitle.big::before{width:1.35em;height:1.35em;border-radius:.34em}
+body.lsz-xl #appTitle.big::before{width:1.7em;height:1.7em;border-radius:.4em}
+/* v97: メニューのアイコンの大きさ・色 */
+body.mic-s :is(.rtab,.rhome,.fkey:not(.add)) svg{width:18px!important;height:18px!important}
+body.mic-l :is(.rtab,.rhome,.fkey:not(.add)) svg{width:26px!important;height:26px!important}
+body.mic-xl :is(.rtab,.rhome,.fkey:not(.add)) svg{width:30px!important;height:30px!important}
+body.mic-xl .rtab{height:56px}
+body.micc-tab :is(.rtab,.fkey):not([aria-selected="true"]):not([aria-current="true"]) svg{color:var(--tabc,var(--muted))}
+body.micc-accent :is(.rtab,.rhome,.fkey:not(.add)):not([aria-selected="true"]):not([aria-current="true"]) svg{color:var(--accent)}
 </style>
 <style id="palStyle"></style>
 
@@ -1304,7 +1332,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="95";
+const APP_VERSION="97";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1380,7 +1408,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2711,6 +2739,8 @@ function viewSettings(){
   <section class="card"><h2>ボタンとアイコン</h2><div class="opts">
     ${opt("shape","circle","丸",'<span class="pv" style="border-radius:50%"></span>')}${opt("shape","round","角丸",'<span class="pv" style="border-radius:7px"></span>')}${opt("shape","square","四角",'<span class="pv" style="border-radius:2px"></span>')}</div>
     <h2>アイコン</h2><div class="opts">${opt("icon","line","線")}${opt("icon","fill","塗り")}</div>
+    <h2>メニューのアイコンの大きさ</h2><div class="opts">${opt("micSz","s","小")}${opt("micSz","m","中")}${opt("micSz","l","大")}${opt("micSz","xl","特大")}</div>
+    <h2>メニューのアイコンの色</h2><div class="opts">${opt("micCol","mono","グレー（選択中だけ色）")}${opt("micCol","tab","タブごとの色")}${opt("micCol","accent","テーマカラー")}</div>
     <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
     <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
     <h2>メニューの位置</h2><p class="who">${prefs.nav==="flick"||prefs.nav==="railf"?"メニューの上の短い線（つまみ）を押したまま動かすと、好きな場所に置けます。":"メニューの上の2本線（つまみ）を押したまま動かすと、上下・左右に移動できます。"}</p><div class="opts"><button class="opt" data-act="navPosReset">位置を元に戻す</button></div>
@@ -2722,7 +2752,8 @@ function viewSettings(){
     <h2>大きさ</h2><div class="opts">${opt("hdrSize","s","小さめ")}${opt("hdrSize","m","ふつう")}${opt("hdrSize","l","大きめ")}</div>
     <h2>たたむ</h2><div class="opts">${opt("hdrFold","0","広げる")}${opt("hdrFold","1","たたむ（見出しの行だけ）")}</div><p class="who">見出しの右の「︿」でもたためます。</p>
     <h2>並びと表示</h2><ul class="hord">${(prefs.hdrOrder||"brand,greet,title,layer").split(",").map((k,i,a)=>{ const hid=(prefs.hdrHide||"").split(",").includes(k), L={brand:"アプリ名",greet:"あいさつ・記念日",title:"見出し・天気",layer:"ふたり／じぶん"}[k];
-      return `<li><span class="hord-n">${L}</span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
+      const zs=hdrZ(k);
+      return `<li><span class="hord-n"><span class="hord-t">${L}</span><span class="hsz">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>`<button type="button" data-act="hsz" data-k="${k}" data-v="${v}" aria-pressed="${zs===v}">${l}</button>`).join("")}</span></span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
     <div class="opts"><button class="opt" data-act="hreset">初期に戻す</button></div></section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
     <p>見出しの右に今の天気と気温、今日の最高・最低・降水確率を出します。タップで12時間と3日間の予報。雨が降りそうな日は「今日のまとめ」にも出ます。</p>
@@ -2750,6 +2781,8 @@ function viewSettings(){
       ${prefs.logoSvg?`<button class="logo-o" data-act="logoSet" data-v="ai" aria-pressed="${prefs.logo==="ai"}"><span class="logo-pv" style="${logoStyle("ai")}"></span><small>AIで作った</small></button>`:""}</div>
     ${logoAiHTML()}
     <div class="colorrow"><input type="color" id="logoBgPick" value="${esc(prefs.logoBg||"#1f2a24")}" aria-label="アイコンの背景色"><span style="font-size:13px">アイコンの色</span>${prefs.logoBg?'<button class="link" data-act="logoBgReset">テーマに合わせる</button>':""}</div>
+    <div class="colorrow"><input type="color" id="logoFgPick" value="${esc(prefs.logoFg||"#ffffff")}" aria-label="マークの色"><span style="font-size:13px">マーク（絵・文字）の色</span>${prefs.logoFg?'<button class="link" data-act="logoFgReset">白に戻す</button>':""}</div>
+    <h2>アイコンの大きさ（名前の左）</h2><div class="opts">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>opt("logoSz",v,l)).join("")}</div>
     <p>名前の左のマークと、ホーム画面に追加するときのアイコンに使われます。すでにホーム画面にあるアイコンは、いったん削除して「ホーム画面に追加」し直すと変わります。</p></section>
   <section class="card"><h2>表示するタブ</h2><p>使わないタブは隠せます（いつでも戻せます）。</p>
     <div class="opts">${[...LAYER_TABS.us,...LAYER_TABS.me].map(k=>{ const hid=hiddenTabs().has(k); return `<button class="opt" data-tabtoggle="${k}" aria-pressed="${!hid}">${esc(TITLES[k])}</button>`; }).join("")}</div>
@@ -2829,8 +2862,8 @@ function renderChrome(){
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
   const NV=prefs.nav, side=NV==="railf"?(prefs.hand==="left"?"left":"right"):prefs.railSide;
-  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""} hdr-${prefs.hdrPos||"top"} hs-${prefs.hdrSize||"m"}${prefs.hdrFold==="1"?" hdr-fold":""}${(prefs.hdrHide||"").split(",").filter(Boolean).map(k=>" hh-"+k).join("")}`;
-  { const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), bd=document.querySelector(".brand>div:not(.hr)"); if(bd) ["brand","greet","title","layer"].forEach(k=>bd.style.setProperty("--o-"+k,String(Math.max(0,O.indexOf(k))))); }
+  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""} mic-${prefs.micSz||"m"} micc-${prefs.micCol||"mono"} lsz-${prefs.logoSz||"m"} hdr-${prefs.hdrPos||"top"} hs-${prefs.hdrSize||"m"}${prefs.hdrFold==="1"?" hdr-fold":""}${(prefs.hdrHide||"").split(",").filter(Boolean).map(k=>" hh-"+k).join("")}`;
+  { const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), bd=document.querySelector(".brand>div:not(.hr)"); if(bd) ["brand","greet","title","layer"].forEach(k=>{ bd.style.setProperty("--o-"+k,String(Math.max(0,O.indexOf(k)))); bd.style.setProperty("--z-"+k,String(HZ[hdrZ(k)]||1)); }); }
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
@@ -3135,15 +3168,17 @@ $("main").addEventListener("click",e=>{
   else if(a==="logoImg") logoPickImg();
   else if(a==="logoAi") logoAiMake();
   else if(a==="logoAiPick"){ const o=(state.logoAi&&state.logoAi.opts||[])[+b.dataset.i]; if(o){ prefs.logoSvg=o; prefs.logo="ai"; savePrefs(); haptic("done"); toast("AIで作ったアイコンにしました"); render(); } }
+  else if(a==="logoFgReset"){ prefs.logoFg=""; savePrefs(); render(); }
   else if(a==="logoBgReset"){ prefs.logoBg=""; savePrefs(); render(); }
   else if(a==="srchClr"){ state.srchQ=""; render(); setTimeout(()=>{ const i=$("srchIn"); if(i) i.focus(); },30); }
   else if(a==="appNm"){ prefs.appName=b.dataset.v; savePrefs(); render(); toast(`アプリの名前を「${b.dataset.v}」にしました`); }
   else if(a==="bgPhotoPick") bgPhotoPick();
   else if(a==="bgPhotoClr"){ prefs.bgPhoto=""; savePrefs(); applyPrefs(); render(); }
   else if(a==="navPosReset"){ if(prefs.nav==="railf"){ prefs.fvL=""; prefs.fvT=""; } else if(prefs.nav==="flick"){ prefs.fbL=""; prefs.fbT=""; } else { prefs.railY=-1; prefs.railSide="right"; } savePrefs(); render(); toast("メニューの位置を元に戻しました"); }
+  else if(a==="hsz"){ const m=Object.fromEntries((prefs.hdrSz||"").split(",").filter(Boolean).map(x=>x.split(":"))); m[b.dataset.k]=b.dataset.v; prefs.hdrSz=Object.entries(m).map(([k,v])=>k+":"+v).join(","); savePrefs(); render(); }
   else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
   else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
-  else if(a==="hreset"){ prefs.hdrOrder="brand,greet,title,layer"; prefs.hdrHide=""; prefs.hdrPos="top"; prefs.hdrSize="m"; prefs.hdrFold="0"; savePrefs(); render(); }
+  else if(a==="hreset"){ prefs.hdrOrder="brand,greet,title,layer"; prefs.hdrHide=""; prefs.hdrSz=""; prefs.hdrPos="top"; prefs.hdrSize="m"; prefs.hdrFold="0"; savePrefs(); render(); }
   else if(a==="wxHere") wxLocate();
   else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
   else if(a==="cmode"){ const w=b.dataset.v==="week"; if(w!==state.calWeek){ haptic("tick"); setWeek(w); } }
@@ -3249,6 +3284,7 @@ $("main").addEventListener("input",e=>{
   if(e.target.id==="rfLearn"&&$("learnHabit")) $("learnHabit").innerHTML=learnChips(e.target.value);
   if(["rfGood","rfBad","rfLearn"].includes(e.target.id)){ $("refSave").textContent="入力中…"; clearTimeout(refTimer); refTimer=setTimeout(()=>saveReflect(),900); return; }
   if(e.target.id==="colorH"||e.target.id==="colorW"){ prefs[e.target.id]=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
+  if(e.target.id==="logoFgPick"){ prefs.logoFg=e.target.value; logoApply(); document.querySelectorAll(".logo-o").forEach(b=>{ const k=b.dataset.v||(b.dataset.act==="logoTxt"?"txt":"img"); const pv=b.querySelector(".logo-pv"); if(pv&&b.dataset.act!=="logoAiPick") pv.setAttribute("style",logoStyle(k)); }); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="logoBgPick"){ prefs.logoBg=e.target.value; logoApply(); document.querySelectorAll(".logo-o").forEach(b=>{ const k=b.dataset.v||(b.dataset.act==="logoTxt"?"txt":"img"); const pv=b.querySelector(".logo-pv"); if(pv) pv.setAttribute("style",logoStyle(k)); }); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="bgPick"){ prefs.bg=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="accentPick"){ prefs.accent=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); } });
@@ -4987,6 +5023,7 @@ function logoBgColor(){ if(hexOk(prefs.logoBg)) return prefs.logoBg; const cs=ge
 function logoSvg(k,bg,forIcon){ const r=forIcon?0:5.5;
   let inner=LOGOS[k]?LOGOS[k].s:k==="ai"?(prefs.logoSvg||""):k&&k.startsWith("<")?k:"";
   if(k==="txt"){ const t=(prefs.logoTxt||"ふ").slice(0,3); const fs=t.length>=3?7.5:t.length===2?9.5:13; inner=`<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-weight="700" font-size="${fs}" fill="#fff">${esc(t)}</text>`; }
+  const fg=hexOk(prefs.logoFg)?prefs.logoFg:"#ffffff"; inner=inner.replace(/#fff(fff)?\b/gi,fg).replace(/stroke="white"|fill="white"/g,m=>m.replace("white",fg));
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="${r}" fill="${bg}"/>${forIcon?`<g transform="translate(12 12) scale(.82) translate(-12 -12)">${inner}</g>`:inner}</svg>`; }
 const svgUrl=x=>`url("data:image/svg+xml,${encodeURIComponent(x).replace(/'/g,"%27")}")`;
 function logoStyle(k){ if(k==="img") return prefs.logoImg?`background-image:url(${prefs.logoImg});background-size:cover`:`background-image:${svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="5.5" fill="${logoBgColor()}"/><path d="M6 9h2.2l1.3-1.8h5l1.3 1.8H18v8H6z" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12.8" r="2.4" fill="none" stroke="#fff" stroke-width="1.5"/></svg>`).replace(/"/g,"'")}`; return `background-image:${svgUrl(logoSvg(k,logoBgColor())).replace(/"/g,"'")}`; }
@@ -4997,7 +5034,7 @@ function logoApply(){
   clearTimeout(logoApply.t); logoApply.t=setTimeout(logoIcon,400); }
 /* ホーム画面用のアイコン（180px）を作って apple-touch-icon に入れる */
 function logoIcon(){
-  const k=prefs.logo||"rings", key=[k,prefs.logoTxt,prefs.logoBg,prefs.logoImg&&prefs.logoImg.length,logoBgColor()].join("|"); if(logoIcon.k===key) return; logoIcon.k=key;
+  const k=prefs.logo||"rings", key=[k,prefs.logoTxt,prefs.logoBg,prefs.logoFg,prefs.logoImg&&prefs.logoImg.length,logoBgColor()].join("|"); if(logoIcon.k===key) return; logoIcon.k=key;
   const c=document.createElement("canvas"); c.width=c.height=180; const g=c.getContext("2d"), im=new Image();
   im.onload=()=>{ try{ g.drawImage(im,0,0,180,180); const u=c.toDataURL("image/png");
       for(const rel of ["apple-touch-icon","icon"]){ let l=document.querySelector(`link[rel="${rel}"]`); if(!l){ l=document.createElement("link"); l.rel=rel; document.head.appendChild(l); } l.href=u; } }catch(e){} };
@@ -5033,6 +5070,9 @@ JSONだけを返す：{"icons":[{"svg":"<path d=\\"…\\" fill=\\"#fff\\"/>"}]}`
   catch(e){ state.logoAi={q,err:`作れませんでした（${(e&&(e.detail||e.code||e.message))||"不明"}）`}; }
   render(); }
 
+/* 上部の部品ごとの大きさ（小・中・大・特大） */
+const HZ={s:.85,m:1,l:1.2,xl:1.45};
+function hdrZ(k){ const m=Object.fromEntries((prefs.hdrSz||"").split(",").filter(Boolean).map(x=>x.split(":"))); return HZ[m[k]]?m[k]:"m"; }
 /* ================= フリックのメニューを好きな位置へ（上のつまみをドラッグ） ================= */
 function fbPos(){ return prefs.nav==="railf"?{l:prefs.fvL,t:prefs.fvT}:{l:prefs.fbL,t:prefs.fbT}; }
 function fbPlace(){ const bar=$("fbar"); if(!bar) return; const P=fbPos(), on=prefs.nav==="flick"||prefs.nav==="railf";
