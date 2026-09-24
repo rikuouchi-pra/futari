@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=103"></script>
+<script src="shim.js?v=104"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1406,7 +1406,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="103";
+const APP_VERSION="104";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2678,7 +2678,7 @@ function viewList(list,c="items"){
   return h+PULL_HINT;
 }
 /* 気になること：困りごと（相談・対応）と注意（ルール・お知らせ）を1つの入口に */
-function careSeg(cur){ const n=counts(); return `<div class="care-seg">${seg("care",cur,[["trouble",`困りごと${n.trouble?` ${n.trouble}`:""}`],["caution",`注意・ルール${n.caution?` ${n.caution}`:""}`]])}</div>`; }
+function careSeg(cur){ const n=counts(); return `<div class="care-seg">${seg("care",cur,[["trouble",`困りごと${n.troubleAll?` ${n.troubleAll}`:""}`],["caution",`注意・ルール${n.caution?` ${n.caution}`:""}`]])}</div>`; }
 function viewTrouble(){
   const by=s=>byWho(state.troubles).filter(t=>t.status===s).sort((a,b)=>((TLEVEL[a.level]||TLEVEL.mid).o-(TLEVEL[b.level]||TLEVEL.mid).o)||(b.createdAt-a.createdAt));
   const open=by("open"),doing=by("doing"),done=by("done").sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
@@ -2968,21 +2968,22 @@ function viewSettings(){
 
 let lastView=null,lastDiaryKey=null;
 /* v103: メニューバーの数字は「今日のぶん」だけ。やること・買い物＝期限が今日（と過ぎたもの）、日記・内省＝17時以降にまだなら */
+const forMe=x=>{ const w=getWho(x); return w==="both"||w===myRole(); }; /* v104: 相手の名前だけのものはメニューの数字に入れない */
 const EVE_H=17, isEve=()=>new Date().getHours()>=EVE_H, dueNow=i=>!!i.due&&i.due<=today();
 const myDiaryDone=t=>state.diary.some(x=>x.date===t&&isMine(x)&&x.text)||state.priv.some(x=>x.id===t&&x.text);
 const myReflectDone=t=>{ const rf=state.reflect.find(x=>x.id===t); return !!(rf&&(rf.good||rf.bad||rf.learn||rf.mood)); };
 function counts(){
   const me=state.me||"local", t=today(), eve=isEve();
   const diaryC=state.me?state.comments.filter(c=>((c.ownerRole&&c.ownerRole===myRole())||(c.owner&&c.owner===state.me))&&authorRole(c)!==myRole()&&c.at>(prefs.seenC||0)).length:0;
-  return {chore:choreDueCount(),task:state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length, shop:state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
+  return {chore:choreDueCount(),task:state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)).length, shop:state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)&&forMe(i)).length,
     taskAll:state.items.filter(i=>i.list==="task"&&!i.done).length, shopAll:state.items.filter(i=>i.list==="shop"&&!i.done).length,
     ptaskAll:state.pitems.filter(i=>i.list==="task"&&!i.done).length, pshopAll:state.pitems.filter(i=>i.list==="shop"&&!i.done).length,
     diaryC, reflect:eve&&!myReflectDone(t)?1:0,
-    trouble:state.troubles.filter(t=>t.status!=="done").length,
+    trouble:state.troubles.filter(t=>t.status!=="done"&&forMe(t)).length, troubleAll:state.troubles.filter(t=>t.status!=="done").length,
     caution:state.cautions.filter(c=>!isMine(c)&&cNeedAck(c)&&(!c.date||c.date>=today())&&!(c.ack&&c.ack[me])).length,
     diary:diaryC+(eve&&!myDiaryDone(t)?1:0),
     future:state.plans.filter(p=>(p.cat==="anniv"&&p.date&&annivInfo(p).days<=14&&!planDone(p))||(p.cat==="bousai"&&planSoon(p))).length,
-    talk:state.topics.filter(t=>t.status!=="done").length,
+    talk:state.topics.filter(t=>t.status!=="done"&&forMe(t)).length, talkAll:state.topics.filter(t=>t.status!=="done").length,
     habit:state.habits.filter(hFollow).length,
     ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
     psched:mySched(0).filter(o=>o.d<=today()).length};
@@ -3013,7 +3014,7 @@ function renderChrome(){
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
   { const pc=pendingChecks().length, bc=$("b-chk"); bc.hidden=!pc; bc.textContent=pc; $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
-  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.trouble: v==="talk"?n.talk: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
+  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?n.talkAll: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
   $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
@@ -4447,7 +4448,7 @@ function viewHome(){
   /* 話し合い */
   const ts=talkState(t);
   h+=homeCard("今日の話し合い",ts==="done"?`<div class="hrow ok">✓ 話しました</div>`:ts==="off"?`<div class="hrow">☾ お休みの日（${esc(nameOf("w"))}さん「${esc(shiftOf("w",t))}」）</div>`:ts==="skip"?`<div class="hrow">見送り</div>`
-    :`<div class="hrow"><span>まだ話していません${n.talk?`・議題${n.talk}件`:""}</span><button class="btn primary" data-act="homeTalk">話した</button></div>`,"talk");
+    :`<div class="hrow"><span>まだ話していません${n.talkAll?`・議題${n.talkAll}件`:""}</span><button class="btn primary" data-act="homeTalk">話した</button></div>`,"talk");
   /* 習慣 */
   if(hTodayList().length) h+=homeCard("今日の習慣",hTodayHTML(true).replace('<div class="chart htoday-card">','<div class="htoday-card home">'),"habit");
   if(false) h+=homeCard("習慣",`${daily.length?`<div class="hrow"><span>毎日の習慣 ${dd}/${daily.length}</span><span class="prog" style="flex:1;max-width:140px"><i style="width:${Math.round(dd/daily.length*100)}%;background:var(--habit)"></i></span></div>`:""}${due.length?`<div class="who" style="margin-top:6px">そろそろ：${due.slice(0,3).map(o=>esc(o.x.text)).join("、")}</div>`:""}`,"habit");
