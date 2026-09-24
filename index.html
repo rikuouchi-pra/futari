@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=65"></script>
+<script src="shim.js?v=66"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -728,8 +728,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 :root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) input:not([type=checkbox]):not([type=color]):not([type=radio]),:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) textarea{border-radius:12px}
 /* グラス／ダイナミック：すりガラス */
 :root:is([data-style="glass"],[data-style="dynamic"]) body{background:var(--ground)}
-:root:is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.rail,.brand .hr,.tt-bar,.toast,.sheet){background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid color-mix(in srgb,#fff 35%,transparent)}
-:root:is([data-style="glass"],[data-style="dynamic"]) .toast{background:color-mix(in srgb,var(--ink) 82%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.rail,.brand .hr,.tt-bar,.sheet){background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid color-mix(in srgb,#fff 35%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) #toast.toast{background:color-mix(in srgb,var(--ink) 88%,transparent);color:var(--ground);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid color-mix(in srgb,#fff 18%,transparent)}
 :root:is([data-style="glass"],[data-style="dynamic"]) header{background:color-mix(in srgb,var(--ground) 60%,transparent)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 :root:is([data-style="glass"],[data-style="dynamic"]) .sa-top{background:color-mix(in srgb,var(--ground) 60%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 :root:is([data-style="glass"],[data-style="dynamic"]) ul.list li.item .row{background:transparent}
@@ -827,7 +827,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="65";
+const APP_VERSION="66";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
