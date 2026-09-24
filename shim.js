@@ -167,11 +167,42 @@
       : /(ガソリン|レギュラー|ENEOS|出光|駐車|高速)/.test(all) ? "car" : "other";
     return { store: store, date: date, total: total, items: items, category: cat };
   }
-  var SAMPLE = { limits: function(){ return {}; }, json: async function(prompt){ return parseReceipt(prompt); }, local: true };
+  /* AI：Apps Script 経由で Gemini に問い合わせる。写真と長い文章は一時的に Firestore（aitmp）に置き、スクリプトが読みに行く */
+  function gasUrl(){ var U = window.FUTARI_GAS_URLS || {}, mine = me && U[(me.email || "").toLowerCase()];
+    if(mine) return mine; for(var k in U) if(U[k]) return U[k]; return window.FUTARI_GAS_URL || ""; }
+  async function aiShrink(blob){
+    var src = await createImageBitmap(blob), max = 2000, q = 0.82, out = null;
+    for(var i = 0; i < 6; i++){
+      var k = Math.min(1, max / Math.max(src.width, src.height)), c = document.createElement("canvas"); c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+      c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); out = await new Promise(function(r){ c.toBlob(r, "image/jpeg", q); });
+      if(out.size <= MAX_ONE) return out; max = Math.round(max * 0.82); q = Math.max(0.55, q - 0.06); }
+    var e = new Error("too large"); e.code = "写真が大きすぎます"; throw e;
+  }
+  async function aiAsk(prompt, o){
+    var G = gasUrl(); if(!G){ var e0 = new Error("no_gas"); e0.code = "no_gas"; throw e0; }
+    var imgs = o && o.images ? (Array.isArray(o.images) ? o.images : [o.images]) : [], id = "ai" + rid(), doc = { prompt: String(prompt).slice(0, 20000), at: Date.now(), by: me.uid };
+    if(imgs[0]){ var b = await aiShrink(imgs[0]); doc.img = M.Bytes.fromUint8Array(new Uint8Array(await b.arrayBuffer())); doc.mime = "image/jpeg"; }
+    await M.setDoc(M.doc(fs, "aitmp", id), doc);
+    try{
+      var tok = await me.getIdToken();
+      var j = await jsonp_(G, { idToken: tok, tool: "ai", args: { doc: id } }, 90000);
+      if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
+      return j.payload;
+    } finally { M.deleteDoc(M.doc(fs, "aitmp", id)).catch(function(){}); }
+  }
+  var SAMPLE = {
+    limits: function(){ return gasUrl() ? { images: { mediaTypes: ["image/*"] }, ai: "gemini" } : {}; },
+    json: async function(prompt, o){
+      if(!gasUrl()){ if(o && o.images){ var e = new Error("no_ai"); e.code = "no_ai"; throw e; } return parseReceipt(prompt); }
+      try{ return await aiAsk(prompt, o); }
+      catch(x){ if(!(o && o.images) && /レシート/.test(String(prompt))) return parseReceipt(prompt); throw x; }
+    },
+    get local(){ return !gasUrl(); }
+  };
 
   /* ---------- Apps Script 呼び出し（JSONP：スクリプトタグで読むので、ブラウザの通信制限を受けない） ---------- */
   var jpN = 0;
-  function jsonp_(url, req){
+  function jsonp_(url, req, ms){
     return new Promise(function(ok, ng){
       var cb = "__fjp" + Date.now().toString(36) + (jpN++), sc = document.createElement("script"), done = false;
       var fail = function(code){ if(done) return; done = true; cleanup(); var e = new Error(code); e.code = code; ng(e); };
@@ -181,7 +212,7 @@
       if(q.length > 7000){ fail("送る内容が長すぎます"); return; }
       sc.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "cb=" + cb + "&q=" + q;
       sc.onerror = function(){ fail(navigator.onLine === false ? "server_unavailable" : "Apps Scriptに接続できません（URLと公開設定を確認）"); };
-      var t = setTimeout(function(){ fail("Apps Scriptから返事がありません。Safariで …/exec?diag=1 を開いて結果を確認してください"); }, 30000);
+      var t = setTimeout(function(){ fail("Apps Scriptから返事がありません。Safariで …/exec?diag=1 を開いて結果を確認してください"); }, ms || 30000);
       document.head.appendChild(sc);
     });
   }
@@ -199,12 +230,13 @@
       return { callTool: async function(server, tool, args){
         if(/googleusercontent\.com\/macros\/echo/.test(G) || !/\/exec(\?|$)/.test(G)){ var q = new Error("bad url"); q.code = "config.js のURLが違います。Apps Scriptの「デプロイを管理」に表示される https://script.google.com/macros/s/…/exec の形のURLを入れてください"; throw q; }
         var tok = await me.getIdToken();
-        var j = await jsonp_(G, { idToken: tok, tool: tool, args: args || {} });
+        var j = await jsonp_(G, { idToken: tok, tool: tool, args: args || {} }, tool === "workcal" ? 150000 : 30000);
         if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
         return { payload: j.payload };
       } }; }
     return null;
   } };
+  window.__futariParseReceipt = parseReceipt;
   window.__futariSignOut = function(){ return USER.signOut(); };
   window.__futariEmail = function(){ return me && me.email; };
 })();
