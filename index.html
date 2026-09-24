@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=82"></script>
+<script src="shim.js?v=87"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1021,6 +1021,72 @@ html body.nav-flick .brand .hr .hbtn.plus{background:var(--accent)}
 .tag.lk{background:color-mix(in srgb,var(--reflect,#6a5acd) 12%,transparent);color:var(--reflect,#6a5acd)}
 :root:is([data-style="glass"],[data-style="dynamic"]) :is(.brief,.qprev){background:var(--glass)!important;backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:var(--glassb)}
 :root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .brief{box-shadow:var(--elev)}
+
+/* v83: 絵文字をやめて線のアイコンに統一 */
+.ib{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--ic) 13%,transparent);color:var(--ic)}
+.ib svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lk-i{width:1em;height:1em;vertical-align:-.12em;margin-right:2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.br-l{align-items:center!important;gap:12px!important;padding:9px 0!important}
+.br-t{flex:1;min-width:0;display:grid;gap:1px}
+.br-t small{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.br-t b{font-size:14px;font-weight:600;line-height:1.45}
+.br-l .chev{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.br-w{display:flex;align-items:center;gap:10px}
+.br-w .ib{width:26px;height:26px;border-radius:8px;background:transparent}
+.pp-t{display:flex;align-items:center;gap:10px}
+.pp-t .ib{width:26px;height:26px;border-radius:8px}
+.ag-go{align-items:center!important;gap:12px!important}
+.ag-ic{display:none}
+.ag-l li.warn .ag-b b{color:var(--ink)}
+.ag-add{width:32px;height:32px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;flex:none}
+.ag-add svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.qa-wait{margin:6px 0 0;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.qa-wait .lk-i{width:14px;height:14px}
+.qa-a.wait{background:color-mix(in srgb,var(--who-w) 5%,transparent);border:1.5px dashed color-mix(in srgb,var(--line) 90%,transparent)}
+.qa-a.h.wait{background:color-mix(in srgb,var(--who-h) 5%,transparent)}
+.lk-note{margin:8px 4px 0;display:flex;align-items:center;gap:4px}
+.tag.lk{display:inline-flex;align-items:center;gap:2px}
+
+/* v84: 横メニュー（フリック）時の見直し */
+html body.nav-flick .brand .hr{display:none!important}
+body.nav-flick .brand{grid-template-columns:minmax(0,1fr)!important}
+body.nav-flick .fbar{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));padding:6px 8px;border-radius:30px;align-items:center}
+body.nav-flick.fbar-hide .fbar{transform:translateY(calc(100% + 28px));opacity:.2}
+.fkey.add span{display:none}
+.fkey.add{height:54px}
+.fkey.add svg{width:24px;height:24px;stroke-width:2.2;padding:13px;border-radius:50%;background:var(--accent);color:var(--on-accent);box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 40%,transparent);box-sizing:content-box}
+.fkey.add.down svg{transform:scale(.92)}
+.fkey.add.down{background:transparent}
+.fkey .fh{opacity:.28}
+.fkey[aria-current="true"] .fh{opacity:.55}
+
+/* v86: 片手で届く範囲に寄せる（反対側の端は空ける） */
+@media (max-width:759px){
+html body.nav-flick.hand-r .fbar{left:auto;right:max(10px,env(safe-area-inset-right,0px));width:min(80vw,440px);margin:0}
+html body.nav-flick.hand-l .fbar{right:auto;left:max(10px,env(safe-area-inset-left,0px));width:min(80vw,440px);margin:0}
+}
+
+/* v87: 縦メニュー（たくさん表示）… タブを低く・小さくして、スクロールなしで多く見せる */
+html body.nav-railc .rtab{height:40px;gap:1px;font-size:9px}
+html body.nav-railc .rtab svg{width:20px;height:20px}
+html body.nav-railc .rhome{height:34px;font-size:9px}
+html body.nav-railc .rhome svg{width:19px;height:19px}
+html body.nav-railc .layers{padding:0 0 2px}
+html body.nav-railc .layers button{height:22px;font-size:9px}
+html body.nav-railc .grip{height:14px}
+html body.nav-railc .rtab .badge{top:-2px;right:1px;min-width:15px;height:15px;line-height:15px;font-size:9px;padding:0 3px}
+html body.nav-railc .rail .sep{margin:1px 0}
+/* v87: 縦メニュー（フリック）… 親指の近く（下寄せ）に縦に並べる */
+body.nav-railf #rail{display:none!important}
+html body.nav-railf .brand .hr{display:none!important}
+body.nav-railf .brand{grid-template-columns:minmax(0,1fr)!important}
+body.nav-railf .fbar{display:grid;position:fixed;z-index:9;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:64px;box-sizing:border-box;grid-auto-flow:row;gap:4px;padding:5px;background:var(--raised);border-radius:26px;box-shadow:var(--shadow);touch-action:none;user-select:none;-webkit-user-select:none}
+body.nav-railf.rail-right .fbar{right:calc(10px + env(safe-area-inset-right,0px))}
+body.nav-railf.rail-left .fbar{left:calc(10px + env(safe-area-inset-left,0px))}
+:root:is([data-style="glass"],[data-style="dynamic"]) body.nav-railf .fbar{background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid color-mix(in srgb,#fff 30%,transparent)}
+body.nav-railf .fkey{width:54px;height:54px}
+body.nav-railf .fkey.add svg{padding:11px}
+@media (min-width:760px){body.nav-railf .fbar{bottom:auto;top:50%;transform:translateY(-50%)}}
 </style>
 <style id="palStyle"></style>
 
@@ -1095,7 +1161,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="82";
+const APP_VERSION="87";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1171,7 +1237,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on"};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -1503,13 +1569,13 @@ function itemRow(i,showKind,c="items"){
       ${moneyFields(i)}
       ${shared&&sharedBoth(i)&&i.due?`<div class="who">時刻は${esc(nameOf(myRole()))}の時間です（${esc(nameOf(otherRole()))}：${esc(otT(i)||"未定")}）。ふたりのタスクはそれぞれ自分の時間を決められます</div>`:""}
       <textarea id="editMemo" rows="2" maxlength="600" placeholder="メモ">${esc(i.memo||"")}</textarea>
-      ${i.list!=="wish"?`<div class="edit-row"><button type="button" class="btn" data-act="mvItem">${shared?"🔒 じぶんだけの項目にする":"ふたりの項目にする（相手にも見える）"}</button></div>`:""}
+      ${i.list!=="wish"?`<div class="edit-row"><button type="button" class="btn" data-act="mvItem">${shared?"じぶんだけの項目にする":"ふたりの項目にする（相手にも見える）"}</button></div>`:""}
       ${editActions(c,i,i.due?`<a class="glink" href="${esc(gcalUrl(i))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
   const col=i.list==="shop"?"var(--shop)":i.list==="wish"?"var(--future)":"var(--task)";
   const bt=shared&&bothTask(i), md=myDone(i), half=bt&&!i.done&&(doneOf(i,"h")||doneOf(i,"w"));
   return wrapRow(c,i,i.done?"done":"",
     `<button class="check ${i.done||md?"on":half?"half":""}" style="--c:${col}" data-act="right" aria-label="${md?"自分の分を未完了に戻す":"完了にする"}">${CHECK}</button>`,
-    `<div class="text">${esc(i.text)}</div><div class="meta">${shared?whoTag(i):showKind?"":`<span class="tag lk">🔒 ${esc(nameOf(myRole()))}だけ</span>`}${showKind?`<span class="tag ${i.list==="task"?"tc-task":i.list==="wish"?"":"tc-shop"}" ${i.list==="wish"?'style="--tc:var(--future)"':""}>${shared?"":"じぶん・"}${i.list==="task"?(shared?"やること":"タスク"):i.list==="wish"?"やりたい":"買い物"}</span>`:""}${bt&&!i.done?`<span class="bdone">${["h","w"].map(r=>`${esc(nameOf(r))}${doneOf(i,r)?"✓済":"・未"}`).join("　")}</span>`:""}${dueLabel(i)}${shared&&sharedBoth(i)&&i.due&&!i.done&&otT(i)&&otT(i)!==myT(i)?`<span>${esc(nameOf(otherRole()))} ${esc(otT(i))}</span>`:""}${moneyTag(i)}</div>${i.memo?`<div class="meta">${esc(i.memo.slice(0,60))}${i.memo.length>60?"…":""}</div>`:""}`);
+    `<div class="text">${esc(i.text)}</div><div class="meta">${shared?whoTag(i):showKind?"":`<span class="tag lk">${LKI}${esc(nameOf(myRole()))}だけ</span>`}${showKind?`<span class="tag ${i.list==="task"?"tc-task":i.list==="wish"?"":"tc-shop"}" ${i.list==="wish"?'style="--tc:var(--future)"':""}>${shared?"":"じぶん・"}${i.list==="task"?(shared?"やること":"タスク"):i.list==="wish"?"やりたい":"買い物"}</span>`:""}${bt&&!i.done?`<span class="bdone">${["h","w"].map(r=>`${esc(nameOf(r))}${doneOf(i,r)?"✓済":"・未"}`).join("　")}</span>`:""}${dueLabel(i)}${shared&&sharedBoth(i)&&i.due&&!i.done&&otT(i)&&otT(i)!==myT(i)?`<span>${esc(nameOf(otherRole()))} ${esc(otT(i))}</span>`:""}${moneyTag(i)}</div>${i.memo?`<div class="meta">${esc(i.memo.slice(0,60))}${i.memo.length>60?"…":""}</div>`:""}`);
 }
 function troubleRow(t){
   const L=TLEVEL[t.level]||TLEVEL.mid;
@@ -1639,7 +1705,7 @@ function viewFutHome(){
     h+=`</div>`;
   }
   { const W=state.pitems.filter(i=>i.list==="wish"), o=W.filter(i=>!i.done).length;
-    h+=`<div class="section-label">🔒 じぶんだけ</div><div class="cards"><button class="card2" data-fc="_mine"><span class="nm">じぶんのやりたいこと</span><span class="big">${o}<small>件</small></span><span class="sub">${esc(nameOf(myRole()))}だけに見えます</span></button></div>`; }
+    h+=`<div class="section-label">${LKI} じぶんだけ</div><div class="cards"><button class="card2" data-fc="_mine"><span class="nm">じぶんのやりたいこと</span><span class="big">${o}<small>件</small></span><span class="sub">${esc(nameOf(myRole()))}だけに見えます</span></button></div>`; }
   return h+hint("カードをタップで開く・もう一度「将来」をタップで一覧へ");
 }
 function viewFutCat(k){
@@ -2310,7 +2376,7 @@ function viewList(list,c="items"){
   h+=`<div class="section-label">${LB[0]}</div>`;
   h+=open.length?`<ul class="list">${open.map(i=>itemRow(i,false,cOf(i))).join("")}</ul>`:`<div class="empty">${LB[1]}<br>下に引っぱって追加</div>`;
   if(done.length) h+=`<div class="section-label"><span>${LB[2]}（${done.length}）</span><button class="link" data-act="clear" data-c="${c}">完了分を片付ける</button></div><ul class="list">${done.map(i=>itemRow(i,false,cOf(i))).join("")}</ul>`;
-  if(shared&&(list==="task"||list==="shop")) h+=`<p class="who" style="margin:8px 4px 0">🔒 のついた項目は${esc(nameOf(myRole()))}だけに見えます（追加するとき「だれが」で「🔒じぶん」を選ぶ）</p>`;
+  if(shared&&(list==="task"||list==="shop")) h+=`<p class="who lk-note">${LKI}のついた項目は${esc(nameOf(myRole()))}だけに見えます（追加するとき「だれが」で「じぶん」を選ぶ）</p>`;
   return h+PULL_HINT;
 }
 /* 気になること：困りごと（相談・対応）と注意（ルール・お知らせ）を1つの入口に */
@@ -2498,7 +2564,8 @@ function viewSettings(){
     ${opt("shape","circle","丸",'<span class="pv" style="border-radius:50%"></span>')}${opt("shape","round","角丸",'<span class="pv" style="border-radius:7px"></span>')}${opt("shape","square","四角",'<span class="pv" style="border-radius:2px"></span>')}</div>
     <h2>アイコン</h2><div class="opts">${opt("icon","line","線")}${opt("icon","fill","塗り")}</div>
     <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
-    <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー（右か左）")}${opt("nav","flick","フリック（画面の下）")}</div>
+    <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
+    ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
     <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
   <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div>
     <p>AIを使うのは次の機能です：レシートの読み取り／勤務表の写真からシフト読み取り／会社カレンダーの画像・デンソー年度カレンダーの取り込み。</p>
@@ -2592,7 +2659,8 @@ function renderChrome(){
   { const off=$("offline"); if(state.guest){ off.textContent="このアカウントは登録されていません（設定 › ふたりの名前 を確認）"; off.hidden=false; } else if(state.needCode){ off.innerHTML=`合言葉の確認が必要です。<button class="link" data-act="openBind">入力する</button>`; off.hidden=false; } else if(state.connIssue){ off.textContent=state.connIssue; off.hidden=false; } }
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
-  document.body.className=`v-${v} rail-${prefs.railSide} layer-${layer}${prefs.nav==="flick"?" nav-flick":""}`;
+  const NV=prefs.nav, side=NV==="railf"?(prefs.hand==="left"?"left":"right"):prefs.railSide;
+  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}`;
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
@@ -2899,7 +2967,7 @@ $("main").addEventListener("click",e=>{
       if(toP&&myDone(x)){ o.done=true; o.doneAt=x["doneAt_"+myRole()]||x.doneAt||now; }
       o.updatedAt=now; if(!toP){ o.who="both"; o.by=state.me||null; }
       state.editing=null; const nid=newId(); dset(toP?"pitems":"items",nid,o); ddel(c,id); haptic("done");
-      toast(toP?`「${x.text}」を🔒じぶんだけの項目にしました`:`「${x.text}」をふたりの項目にしました`); render(); } }
+      toast(toP?`「${x.text}」をじぶんだけの項目にしました`:`「${x.text}」をふたりの項目にしました`); render(); } }
   else if(a==="wcOpen"){ state.wcOpen=true; render(); }
   else if(a==="wcClose"){ state.wcOpen=false; state.wcOcr=null; render(); }
   else if(a==="wcNow"){ const r=state.paint.who||myRole(); if(!wcCfg(r).on) wcSave(r,{on:true}); const n=wcRun(r,true); toast(n?`${nameOf(r)}のシフトを${n}日分入れました`:"入れる日はありませんでした（すべて入力済み）"); render(); }
@@ -4269,7 +4337,7 @@ function renderSheet(){
      +(S.pcat!=="anniv"?`<div class="edit-row"><span class="lbl">予算</span><input type="text" inputmode="numeric" id="sBudget" value="${esc(S.budget)}" placeholder="任意（円）" style="width:130px"></div>`:""); }
   const pv=(meL&&S.kind!=="event")||(S.kind==="event"&&S.evPriv);
   const tsk=S.kind==="task"||S.kind==="shop"; if(!tsk&&S.who==="priv") S.who="both";
-  const whoRow=pv?"":`<div class="edit-row"><span class="lbl">だれが</span>${seg("swho",S.who,tsk?[...WHO_OPTS(),["priv","🔒じぶん"]]:WHO_OPTS())}</div>${tsk&&S.who==="priv"?'<div class="who sharenote">🔒 じぶんだけの項目になり、相手には見えません</div>':""}`;
+  const whoRow=pv?"":`<div class="edit-row"><span class="lbl">だれが</span>${seg("swho",S.who,tsk?[...WHO_OPTS(),["priv",LKI+"じぶん"]]:WHO_OPTS())}</div>${tsk&&S.who==="priv"?'<div class="who sharenote">じぶんだけの項目になり、相手には見えません</div>':""}`;
   $("opts").innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${whoRow}${o}${pv?'<div class="lock" style="margin:0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>':""}</div>`;
 }
 $("sheet").addEventListener("click",e=>{
@@ -4511,7 +4579,7 @@ function railFit(){
   const top0=railTop0(), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const other=railEl.offsetHeight-rsc.offsetHeight;
   const cap=Math.max(th*3,innerHeight-top0-bottomPad-16-other);
-  rsc.style.setProperty("--rmax",Math.min(LAYER_TABS.me.length*(th+2)-2,cap)+"px");
+  const nat=($("rinner")||{}).offsetHeight||LAYER_TABS.us.length*(th+2); rsc.style.setProperty("--rmax",Math.min(nat,cap)+"px");
   railShade();
 }
 /* メニューのスクロールは自前で行う（iPhoneで固定位置の中の標準スクロールが描画されない不具合を避ける） */
@@ -4602,32 +4670,47 @@ function fitTitle(){
   const target=g?g.offsetWidth:150, fs=Math.max(11,Math.min(24,Math.floor(11*target/w0*10)/10));
   t.style.fontSize=fs+"px"; t.classList.toggle("big",fs>=14);
 }
-addEventListener("resize",()=>fitTitle()); try{ document.fonts&&document.fonts.ready.then(()=>fitTitle()); }catch(_){}
+addEventListener("resize",()=>fitTitle());
+/* 下のメニュー：下にスクロールすると隠れ、上に戻すと出る */
+{ let ly=0; addEventListener("scroll",()=>{ if(prefs.nav!=="flick") return; const y=scrollY, d=y-ly; if(Math.abs(d)<10) return; document.body.classList.toggle("fbar-hide",d>0&&y>140); ly=y; },{passive:true}); } try{ document.fonts&&document.fonts.ready.then(()=>fitTitle()); }catch(_){}
 /* ================= フリックメニュー（設定 › メニューの形） ================= */
-const FLICK={us:[{c:"home",u:"log"},{c:"talk",u:"trouble"},{c:"task",u:"shop",r:"chore"},{c:"cal",u:"diary"},{c:"money",u:"future"},{c:"@me",u:"psched",l:"habit",r:"reflect"}],
-  me:[{c:"home",u:"log"},{c:"psched"},{c:"habit"},{c:"reflect"},{c:"@us",u:"cal",l:"talk",r:"task"}]};
-const FSHORT={log:"ログ",check:"未確認","@me":"じぶん","@us":"ふたり",home:"ホーム"};
+/* 真ん中は「追加」。右上のボタン（未確認・設定）はホームのキーに入れる（上＝未確認・右＝設定・左＝ログ） */
+/* 利き手（設定 › メニューの形）：右手なら ホーム を右端に、左手なら左端に置く */
+/* 親指の届く範囲だけに並べる（画面の反対側の端は空ける）。よく使うものほど親指の近くに */
+const FLICK_R={us:[{c:"talk",u:"trouble",r:"future",l:"log"},{c:"cal",u:"diary",r:"money"},{c:"task",u:"shop",l:"chore"},{c:"@add"},{c:"home",u:"check",l:"settings"}],
+  me:[{c:"reflect",l:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",u:"check",l:"settings"}]};
+const FLICK_L={us:[{c:"home",u:"check",r:"settings"},{c:"@add"},{c:"task",u:"shop",r:"chore"},{c:"cal",u:"diary",l:"money"},{c:"talk",u:"trouble",l:"future",r:"log"}],
+  me:[{c:"home",u:"check",r:"settings"},{c:"@add"},{c:"habit"},{c:"psched"},{c:"reflect",r:"log"}]};
+/* 縦のフリックメニュー（上から下へ。下ほど親指の近く）。x＝画面の内側へはらう方向 */
+const FLICK_V={us:[{c:"talk",u:"trouble",x:"future",d:"log"},{c:"cal",u:"diary",x:"money"},{c:"task",u:"shop",x:"chore"},{c:"@add"},{c:"home",u:"check",x:"settings"}],
+  me:[{c:"reflect",x:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",u:"check",x:"settings"}]};
+const FLICK=new Proxy({},{get:(_,k)=>(prefs.hand==="left"?FLICK_L:FLICK_R)[k]});
+const FSHORT={log:"ログ",check:"未確認",settings:"設定","@add":"追加","@me":"じぶん","@us":"ふたり",home:"ホーム"};
 const FICON={home:'<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>',
   log:'<svg viewBox="0 0 24 24"><circle class="f" cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><rect class="f" x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg>',
+  settings:'<svg viewBox="0 0 24 24"><circle class="f" cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',
+  "@add":'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
   "@me":'<svg viewBox="0 0 24 24"><rect class="f" x="6" y="10.5" width="12" height="9" rx="2"/><path d="M9 10.5V8a3 3 0 0 1 6 0v2.5"/></svg>',
   "@us":'<svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="9" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14.5 14.6c.5-.1 1-.1 1.5-.1 2.3 0 4 1.3 4.5 4"/></svg>'};
 const fIcon=v=>FICON[v]||((document.querySelector(`#rail .rtab[data-v="${v}"] svg`)||{}).outerHTML||"");
 const fLabel=v=>FSHORT[v]||(()=>{ const b=document.querySelector(`#rail .rtab[data-v="${v}"]`); return b?[...b.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join("").trim():(TITLES[v]||v); })();
-const fCls=v=>v==="@me"?"v-reflect":v==="@us"?"v-talk":v==="home"||v==="log"?"":"v-"+v;
+const fCls=v=>v==="@add"?"add":v==="@me"?"v-reflect":v==="@us"?"v-talk":["home","log","check","settings"].includes(v)?"":"v-"+v;
 let fKeys=[];
 function renderFlick(layer,n){
   const bar=$("fbar"); if(!bar) return;
-  if(prefs.nav!=="flick"){ if(bar.innerHTML) bar.innerHTML=""; return; }
+  if(prefs.nav!=="flick"&&prefs.nav!=="railf"){ if(bar.innerHTML) bar.innerHTML=""; return; }
   const hs=hiddenTabs(), v=state.view==="caution"?"trouble":state.view, F=freshByView(), ok=t=>t&&(t[0]==="@"||!hs.has(t)||t===v);
-  fKeys=FLICK[layer].map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
+  const KS=prefs.nav==="railf"?FLICK_V[layer].map(k=>{ const o={}; for(const [d,t] of Object.entries(k)) o[d==="x"?(prefs.hand==="left"?"r":"l"):d]=t; return o; }):FLICK[layer];
+  fKeys=KS.map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
   bar.innerHTML=fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
-    const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:(n[t]||0)),0), fresh=all.some(t=>F[t]);
+    const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:t==="check"?pendingChecks().length:(n[t]||0)),0), fresh=all.some(t=>F[t]);
     return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>k[d]).map(d=>`<i class="fh ${d}"></i>`).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
 }
-function fGo(t){ if(t==="@me"||t==="@us") switchLayer(t.slice(1)); else if(t!==state.view) go(t); else if(t==="future"&&state.fut){ state.fut=null; render(-40); } }
+function fGo(t){ if(t==="@add"){ openSheet(); return; } if(t==="@me"||t==="@us") switchLayer(t.slice(1)); else if(t!==state.view) go(t); else if(t==="future"&&state.fut){ state.fut=null; render(-40); } }
 { const bar=$("fbar"), gd=$("fguide"); let fs=null;
   const dirOf=(dx,dy)=>Math.hypot(dx,dy)<18?"c":Math.abs(dx)>Math.abs(dy)?(dx<0?"l":"r"):(dy<0?"u":"d");
-  const showG=(k,r)=>{ const W=66,H=58,G=6, cx=Math.min(Math.max(r.left+r.width/2,W*1.5+G+8),innerWidth-W*1.5-G-8), cy=r.top+r.height/2;
+  const showG=(k,r)=>{ const W=66,H=58,G=6, cx=Math.min(Math.max(r.left+r.width/2,(k.l?W*1.5+G:W/2)+8),innerWidth-(k.r?W*1.5+G:W/2)-8), cy=r.top+r.height/2;
     const pos={c:[0,0],u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
     gd.innerHTML=Object.entries(k).map(([d,t])=>`<div class="fg ${fCls(t)}" data-d="${d}" style="left:${cx-W/2+pos[d][0]*(W+G)}px;top:${cy-H/2+pos[d][1]*(H+G)-(k.d?0:H*.35)}px">${fIcon(t)}<span>${esc(fLabel(t))}</span></div>`).join("");
     gd.hidden=false; };
@@ -4657,7 +4740,7 @@ function qaCardHTML(d,cls){
   if(!mine||ed) b+=`<textarea id="qaIn" rows="2" maxlength="300" placeholder="思ったままに一言でも">${esc(mine?mine.t:"")}</textarea>
     <div class="qa-f"><span class="who">${his?`${esc(nameOf(ot))}は回答済み・答えると見られます`:`${esc(nameOf(ot))}はまだです`}</span><button class="btn primary" data-act="qaSave" data-qd="${d}">${mine?"書き直す":"答える"}</button></div>`;
   else b+=`<div class="qa-as"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span><p>${esc(mine.t)}</p><button class="link" data-act="qaEdit" data-qd="${d}">書き直す</button></div>
-    <div class="qa-a ${ot} ${his?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${his?`<p>${esc(his.t)}</p>`:`<p class="who">🔒 ${esc(nameOf(ot))}の答えを待っています</p>`}</div></div>`;
+    <div class="qa-a ${ot} ${his?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${his?`<p>${esc(his.t)}</p>`:`<p class="qa-wait">${LKI}<span>回答待ち</span></p>`}</div></div>`;
   return `<section class="qa ${cls||""}" data-qa="${d}"><div class="qa-h"><span class="qa-k">${isT?"今日の質問":`${short(d)}の質問`}</span>${mine&&his?`<button class="link" data-act="qaTopic" data-qd="${d}">話し合いの議題にする</button>`:""}</div>${b}</section>`;
 }
 async function qaSave(d){
@@ -4671,15 +4754,31 @@ function qaPastHTML(){
   const L=state.qa.filter(x=>x.id<today()&&(x.a_h||x.a_w)).sort((a,b)=>a.id<b.id?1:-1).slice(0,30); if(!L.length) return "";
   const me=myRole(), ot=otherRole();
   return `<details class="qa-past"><summary>これまでの質問（${L.length}）</summary>${L.map(x=>{ const m=qaAns(x.id,me), o=qaAns(x.id,ot);
-    return `<div class="qa-pi"><div class="who">${short(x.id)}・${esc(x.q||qaQ(x.id))}</div><div class="qa-as sm"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span><p>${m?esc(m.t):"—"}</p></div><div class="qa-a ${ot}"><span class="qa-n">${esc(nameOf(ot))}</span><p>${o?(m?esc(o.t):"🔒 自分が答えていない日は見られません"):"—"}</p></div></div></div>`; }).join("")}</details>`;
+    return `<div class="qa-pi"><div class="who">${short(x.id)}・${esc(x.q||qaQ(x.id))}</div><div class="qa-as sm"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span><p>${m?esc(m.t):"—"}</p></div><div class="qa-a ${ot}"><span class="qa-n">${esc(nameOf(ot))}</span><p>${o?(m?esc(o.t):"（自分が答えていない日は見られません）"):"—"}</p></div></div></div>`; }).join("")}</details>`;
 }
 
 
+
+/* ================= 線のアイコン（絵文字の代わり） ================= */
+const ICP={cal:'<rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  task:'<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.3l2.5 2.4 4.9-5.2"/>',
+  chore:'<path d="M6 13h12l-1.2 7.2a1 1 0 0 1-1 .8H8.2a1 1 0 0 1-1-.8z"/><path d="M12 13V3.5M9 13l.5-3h5l.5 3M10 17v2M14 17v2"/>',
+  moon:'<path d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10z"/>',
+  yen:'<circle cx="12" cy="12" r="8.5"/><path d="M8.8 7.5l3.2 4.5 3.2-4.5M12 12v5M9.3 12.3h5.4M9.3 14.8h5.4"/>',
+  loop:'<path d="M4.5 11A7.5 7.5 0 0 1 17.6 7L19.5 9M19.5 4.5V9H15M19.5 13A7.5 7.5 0 0 1 6.4 17L4.5 15M4.5 19.5V15H9"/>',
+  spark:'<path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9-1.9 5.1-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 16v4M16.5 18h4"/>',
+  bag:'<rect x="4" y="7.5" width="16" height="12" rx="2.5"/><path d="M9 7.5V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5v2M4 12.5h16M10.5 12.5v2M13.5 12.5v2"/>',
+  alert:'<path d="M12 4.5l8.5 15H3.5z"/><path d="M12 10v4M12 16.8v.1"/>',
+  lock:'<rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8.5a3.5 3.5 0 0 1 7 0V11"/>',
+  plus:'<path d="M12 5.5v13M5.5 12h13"/>'};
+const ICC={cal:"--cal",task:"--task",chore:"--future",moon:"--reflect",yen:"--habit",loop:"--talk",spark:"--talk",bag:"--future",alert:"--danger",lock:"--reflect"};
+const ic=(k,c)=>`<span class="ib" style="--ic:var(${c||ICC[k]||"--accent"})" aria-hidden="true"><svg viewBox="0 0 24 24">${ICP[k]||""}</svg></span>`;
+const LKI=`<svg class="lk-i" viewBox="0 0 24 24" aria-hidden="true">${ICP.lock}</svg>`;
 /* ================= AIのテキスト問い合わせ（オフなら null） ================= */
 const aiText=()=>aiOn()?(state._smt||null):null;
 
 /* ================= E：なんでも一行で追加 ================= */
-const QK={task:["やること","--task"],shop:["買い物","--shop"],event:["予定","--cal"],ptask:["🔒じぶんのタスク","--task"],pshop:["🔒じぶんの買い物","--shop"],topic:["話すこと","--talk"],trouble:["困りごと","--trouble"],caution:["注意","--caution"]};
+const QK={task:["やること","--task"],shop:["買い物","--shop"],event:["予定","--cal"],ptask:["じぶんのタスク","--task"],pshop:["じぶんの買い物","--shop"],topic:["話すこと","--talk"],trouble:["困りごと","--trouble"],caution:["注意","--caution"]};
 function qNames(){ const o=[]; for(const r of ["h","w"]){ const n=nameOf(r)||""; if(n) o.push([n,r]); if(n.length>=2) o.push([n.slice(0,2),r]); } if(prefs.nick) o.push([prefs.nick,myRole()]); return o.sort((a,b)=>b[0].length-a[0].length); }
 function nextDow(from,dw,week){ const d=parse(from); let k=(dw-d.getDay()+7)%7; if(week==="next"){ k=(dw-d.getDay()+7)%7+7; if(d.getDay()===0) k-=7; } else if(!k) k=7; return addDays(from,k); }
 function quickRule(src){
@@ -4725,7 +4824,7 @@ function quickHTML(){
     h+=`<div class="qprev"><div class="qp-k">${Object.entries(QK).map(([k,[l,c]])=>`<button type="button" class="qk ${r.kind===k?"on":""}" data-qk="${k}" style="--kc:var(${c})">${l}</button>`).join("")}</div>
       <input type="text" id="qText" value="${esc(r.text)}" maxlength="80">
       <div class="qp-r"><input type="date" id="qDate" value="${esc(r.date)}"><input type="time" id="qTime" value="${esc(r.time)}">${r.kind==="event"?`<span class="who">〜</span><input type="time" id="qEnd" value="${esc(r.end)}">`:""}</div>
-      ${r.kind==="ptask"||r.kind==="pshop"?`<div class="who">🔒 ${esc(nameOf(myRole()))}だけに見えます</div>`:`<div class="qp-r">${seg("qwho",r.who,WHO_OPTS())}</div>`}
+      ${r.kind==="ptask"||r.kind==="pshop"?`<div class="who">${esc(nameOf(myRole()))}だけに見えます</div>`:`<div class="qp-r">${seg("qwho",r.who,WHO_OPTS())}</div>`}
       <div class="sho-act"><button class="btn primary" data-act="qGo">この内容で追加</button><button class="link" data-act="qCancel">やめる</button><span class="who">${r.by==="ai"?"AIで仕分け":"かんたん判定"}</span></div></div>`; }
   return h; }
 function quickCommit(){
@@ -4748,22 +4847,22 @@ document.addEventListener("submit",async e=>{ if(e.target&&e.target.id==="qForm"
 function briefHTML(){
   const t=today(), me=myRole(), L=[], wn=[];
   const evs=state.events.filter(x=>x.date===t).sort((a,b)=>(a.start||"99")<(b.start||"99")?-1:1);
-  if(evs.length) L.push(["📅",`今日の予定 ${evs.length}件：${evs.slice(0,3).map(x=>`${x.start?x.start+" ":""}${x.text}${x.who&&x.who!=="both"?`（${nameOf(x.who)}）`:""}`).join("、")}`,"cal"]);
+  if(evs.length) L.push(["cal",`今日の予定 ${evs.length}件`,`${evs.slice(0,3).map(x=>`${x.start?x.start+" ":""}${x.text}${x.who&&x.who!=="both"?`（${nameOf(x.who)}）`:""}`).join("、")}`,"cal"]);
   const due=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t), mineP=state.pitems.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t);
   if(due.length||mineP.length){ const by=r=>due.filter(i=>getWho(i)===r).length, ov=[...due,...mineP].filter(i=>i.due<t).length;
-    L.push(["✅",`今日までのやること ${due.length+mineP.length}件（${nameOf("h")}${by("h")}・${nameOf("w")}${by("w")}・ふたり${by("both")}${mineP.length?`・🔒${mineP.length}`:""}）${ov?`・うち期限切れ${ov}`:""}`,"task"]); }
+    L.push(["task",`今日までのやること ${due.length+mineP.length}件${ov?`（期限切れ ${ov}）`:""}`,[["h",by("h")],["w",by("w")],["both",by("both")]].filter(([,n])=>n).map(([r,n])=>`${r==="both"?"ふたり":nameOf(r)} ${n}件`).concat(mineP.length?[`じぶん ${mineP.length}件`]:[]).join("・"),"task"]); }
   const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]; });
-  if(ch.length) L.push(["🧹",`今日の家事：${ch.slice(0,3).map(c=>{ const I=choreInfo(c); return `${c.text}${I.who&&I.who!=="both"?`（${nameOf(I.who)}）`:""}`; }).join("、")}${ch.length>3?` ほか${ch.length-3}`:""}`,"chore"]);
+  if(ch.length) L.push(["chore",`今日の家事 ${ch.length}件`,`${ch.slice(0,3).map(c=>{ const I=choreInfo(c); return `${c.text}${I.who&&I.who!=="both"?`（${nameOf(I.who)}）`:""}`; }).join("、")}${ch.length>3?` ほか${ch.length-3}`:""}`,"chore"]);
   const sh=shiftOf("h",addDays(t,1)), sw=shiftOf("w",addDays(t,1));
-  if(sh||sw) L.push(["🌙",`明日：${nameOf("h")} ${SHIFT_NAME[sh]||"未入力"}・${nameOf("w")} ${SHIFT_NAME[sw]||"未入力"}`,"cal"]);
+  if(sh||sw) L.push(["moon","明日のシフト",`${nameOf("h")} ${SHIFT_NAME[sh]||"未入力"}・${nameOf("w")} ${SHIFT_NAME[sw]||"未入力"}`,"cal"]);
   /* 重なりの注意（7日以内）：夜勤入りの日の夕方以降・夜勤明けの日の午前の予定 */
   for(let i=0;i<7;i++){ const d=addDays(t,i); for(const x of state.events.filter(e=>e.date===d&&e.start)){ const rs=x.who==="h"||x.who==="w"?[x.who]:["h","w"];
       for(const r of rs){ const s=shiftOf(r,d), m=tmin(x.start); if(s==="入"&&m>=15*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤入りと重なりそう`); else if(s==="明"&&m<12*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤明け（休息中）`); } } }
   const prep=prepCands();
   if(!L.length&&!wn.length&&!prep.length) return "";
   return `<section class="brief"><div class="br-h"><b>今日のまとめ</b><span class="who">${jpDate(t)}</span></div>
-    ${L.map(([ic,tx,go])=>`<button class="br-l" data-go2="${go}"><span aria-hidden="true">${ic}</span><span>${esc(tx)}</span></button>`).join("")}
-    ${wn.slice(0,3).map(x=>`<div class="br-w">⚠ ${esc(x)}</div>`).join("")}
+    ${L.map(([k,lb,tx,go])=>`<button class="br-l" data-go2="${go}">${ic(k)}<span class="br-t"><small>${esc(lb)}</small><b>${esc(tx)}</b></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>`).join("")}
+    ${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}
     ${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`;
 }
 
@@ -4784,7 +4883,7 @@ function prepCands(){ const t=today(), out=[];
   for(const o of src){ if(o.x.prep) continue; if(!PREP_TPL.some(([re])=>re.test(o.x.text||""))&&!(aiText()&&/(準備|予定|イベント)/.test(o.x.text||""))) continue; out.push(o); }
   return out.sort((a,b)=>a.d<b.d?-1:1); }
 function prepOfferHTML(o){ const P=state.prep&&state.prep.id===o.x.id?state.prep:null, left=dDiff(o.d,today());
-  let h=`<div class="prep"><div class="pp-h"><span>🧳 「${esc(o.x.text)}」まであと${left}日</span>`;
+  let h=`<div class="prep"><div class="pp-h"><span class="pp-t">${ic("bag")}<span>「${esc(o.x.text)}」まであと${left}日</span></span>`;
   if(!P) return h+`<span class="sho-act"><button class="btn" data-act="prepMake" data-pc="${o.c}" data-pid="${esc(o.x.id)}">準備リストを作る</button><button class="link" data-act="prepSkip" data-pc="${o.c}" data-pid="${esc(o.x.id)}">不要</button></span></div></div>`;
   if(P.busy) return h+`</div><div class="sho-st"><span class="spin"></span>準備することを考えています…</div></div>`;
   return h+`</div><ul class="pp-l">${P.items.map((it,k)=>{ const due=addDays(o.d,-it.days), past=due<today(); return `<li><label><input type="checkbox" data-ppk="${k}" ${it.on?"checked":""}><span>${esc(it.text)}</span><small>${past?"すぐ":short(due)+"まで"}</small></label></li>`; }).join("")}</ul>
@@ -4824,28 +4923,28 @@ function agendaHTML(){
   const ev=contribEvents().filter(e=>e.d>=W&&e.d<=t), H=ev.filter(e=>e.r==="h").reduce((a,e)=>a+e.p,0), Wp=ev.filter(e=>e.r==="w").reduce((a,e)=>a+e.p,0), T=H+Wp;
   const over=(state.chores||[]).filter(c=>choreInfo(c).diff<0);
   const skew=T>=4&&Math.max(H,Wp)/T>=.65, heavy=H>Wp?"h":"w";
-  add("🧹","今週の家事・やることの分担",[`${nameOf("h")} ${H}pt・${nameOf("w")} ${Wp}pt`,skew?`${nameOf(heavy)}に偏り気味（${Math.round(Math.max(H,Wp)/T*100)}%）`:"",over.length?`期限切れの家事 ${over.length}件：${over.slice(0,2).map(c=>c.text).join("、")}`:""].filter(Boolean).join("・"),"chore",skew?"家事の分担を見直す":over.length?`期限切れの家事（${over.slice(0,2).map(c=>c.text).join("、")}）をどうするか`:"",skew||over.length);
+  add("chore","今週の家事・やることの分担",[`${nameOf("h")} ${H}pt・${nameOf("w")} ${Wp}pt`,skew?`${nameOf(heavy)}に偏り気味（${Math.round(Math.max(H,Wp)/T*100)}%）`:"",over.length?`期限切れの家事 ${over.length}件：${over.slice(0,2).map(c=>c.text).join("、")}`:""].filter(Boolean).join("・"),"chore",skew?"家事の分担を見直す":over.length?`期限切れの家事（${over.slice(0,2).map(c=>c.text).join("、")}）をどうするか`:"",skew||over.length);
   /* やること */
   const tasks=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t);
-  if(tasks.length) add("✅",`期限切れ・今日までのやること ${tasks.length}件`,tasks.slice(0,3).map(i=>i.text).join("、"),"task","",true);
+  if(tasks.length) add("task",`期限切れ・今日までのやること ${tasks.length}件`,tasks.slice(0,3).map(i=>i.text).join("、"),"task","",true);
   /* 相手の更新 */
   const since=Date.now()-36*3600e3, act=(state.activity||[]).filter(a=>a.role&&a.role!==me&&a.at>since);
-  if(act.length) add("🆕",`${nameOf(otherRole())}の更新（1日半） ${act.length}件`,[...new Set(act.map(a=>a.kind).filter(Boolean))].slice(0,4).join("・"),"log","");
+  if(act.length) add("spark",`${nameOf(otherRole())}の更新（1日半） ${act.length}件`,[...new Set(act.map(a=>a.kind).filter(Boolean))].slice(0,4).join("・"),"log","");
   /* シフトとふたり休み */
   const tm=addDays(t,1), sh=shiftOf("h",tm), sw=shiftOf("w",tm); let off=""; for(let i=1;i<45;i++){ const d=addDays(t,i); if(offState(d)==="both"){ off=d; break; } }
-  add("📅",`明日のシフト　${nameOf("h")} ${sh||"未入力"}・${nameOf("w")} ${sw||"未入力"}`,off?`次のふたり休み ${short(off)}（${"日月火水木金土"[parse(off).getDay()]}）`:"45日以内にふたり休みがありません","cal",off?`${short(off)}のふたり休みにすること`:"");
+  add("cal",`明日のシフト　${nameOf("h")} ${sh||"未入力"}・${nameOf("w")} ${sw||"未入力"}`,off?`次のふたり休み ${short(off)}（${"日月火水木金土"[parse(off).getDay()]}）`:"45日以内にふたり休みがありません","cal",off?`${short(off)}のふたり休みにすること`:"");
   /* お金 */
   { const ym=t.slice(0,7), [y,m]=ym.split("-").map(Number), D=new Date(y,m,0).getDate(), dd=Number(t.slice(8));
     const sp=moneyEntries().filter(e=>e.actual&&!e.save&&e.aDate&&e.aDate.slice(0,7)===ym).reduce((q,e)=>q+e.actual,0), L=Number((state.kakei||{}).limit||0);
-    if(L){ const pace=Math.round(L*dd/D), bad=sp>L, fast=sp>pace; add("💴",`今月の支出 ${yen(sp)} / ${yen(L)}`,bad?"上限を超えています":fast?`ペースより ${yen(sp-pace)} 多め`:"ペース内です","money",bad||fast?"今月の出費の使い方":"",bad||fast); }
-    else if(sp) add("💴",`今月の支出 ${yen(sp)}`,"上限を決めるとペースも確認できます","money",""); }
+    if(L){ const pace=Math.round(L*dd/D), bad=sp>L, fast=sp>pace; add("yen",`今月の支出 ${yen(sp)} / ${yen(L)}`,bad?"上限を超えています":fast?`ペースより ${yen(sp-pace)} 多め`:"ペース内です","money",bad||fast?"今月の出費の使い方":"",bad||fast); }
+    else if(sp) add("yen",`今月の支出 ${yen(sp)}`,"上限を決めるとペースも確認できます","money",""); }
   /* 週のふりかえり（その週の最初の話し合いの日） */
   let first=true; for(let d=W; d<t; d=addDays(d,1)) if(!talkOff(d)){ first=false; break; }
   if(first){ const pw=addDays(W,-7), pe=contribEvents().filter(e=>e.d>=pw&&e.d<W), pH=pe.filter(e=>e.r==="h").reduce((a,e)=>a+e.p,0), pW=pe.filter(e=>e.r==="w").reduce((a,e)=>a+e.p,0);
     const tk=[...Array(7)].map((_,i)=>talkState(addDays(pw,i))), tn=tk.filter(v=>v!=="off"&&v!=="before").length, td=tk.filter(v=>v==="done").length;
-    add("🔁","先週のふりかえり",`話し合い ${td}/${tn}回・家事 ${nameOf("h")} ${pH}pt / ${nameOf("w")} ${pW}pt`,"","先週のふりかえり：よかったこと・困ったこと・今週変えること"); }
+    add("loop","先週のふりかえり",`話し合い ${td}/${tn}回・家事 ${nameOf("h")} ${pH}pt / ${nameOf("w")} ${pW}pt`,"","先週のふりかえり：よかったこと・困ったこと・今週変えること"); }
   return `<section class="agenda"><div class="ag-h"><b>今日の議題（自動）</b><span class="who">アプリの記録から</span></div>${qaCardHTML(t,"in-ag")}
-    <ul class="ag-l">${rows.map(r=>`<li class="${r.warn?"warn":""}"><button class="ag-go" ${r.go?`data-go2="${r.go}"`:"disabled"}><span class="ag-ic" aria-hidden="true">${r.ic}</span><span class="ag-b"><b>${esc(r.title)}</b>${r.sub?`<small>${esc(r.sub)}</small>`:""}</span></button>${r.topic?`<button class="ag-add" data-act="agTopic" data-t="${esc(r.topic)}" aria-label="議題に追加">＋議題</button>`:""}</li>`).join("")}</ul></section>`;
+    <ul class="ag-l">${rows.map(r=>`<li class="${r.warn?"warn":""}"><button class="ag-go" ${r.go?`data-go2="${r.go}"`:"disabled"}>${ic(r.ic,r.warn?"--danger":undefined)}<span class="ag-b"><b>${esc(r.title)}</b>${r.sub?`<small>${esc(r.sub)}</small>`:""}</span></button>${r.topic?`<button class="ag-add" data-act="agTopic" data-t="${esc(r.topic)}" aria-label="「${esc(r.topic)}」を議題に追加" title="議題に追加"><svg viewBox="0 0 24 24">${ICP.plus}</svg></button>`:""}</li>`).join("")}</ul></section>`;
 }
 function addTopicText(text){ if(state.topics.some(t=>t.text===text&&t.status!=="done")){ toast("すでに議題にあります"); return; }
   const now=Date.now(); dset("topics",newId(),{text,who:"both",status:"open",note:"",by:state.me||null,createdAt:now,updatedAt:now}); haptic("done"); toast("議題に追加しました"); }
