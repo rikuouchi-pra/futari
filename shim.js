@@ -45,7 +45,7 @@
     var val = function(){ var e = em.value.trim().toLowerCase(); if(ALLOWED.length && ALLOWED.indexOf(e) < 0){ msg("このアプリに登録されたメールアドレスではありません"); return null; } try{ localStorage.setItem("futari.lastEmail", e); }catch(x){} return e; };
     g.querySelector("#fbIn").onclick = async function(){ var e = val(); if(!e) return; msg("ログイン中…", true); try{ await M.signInWithEmailAndPassword(auth, e, pw.value); }catch(x){ msg(jaErr(x)); } };
     g.querySelector("#fbUp").onclick = async function(){ var e = val(); if(!e) return; if(pw.value.length < 6){ msg("パスワードは6文字以上にしてください"); return; }
-      msg("登録中…", true); try{ var c = await M.createUserWithEmailAndPassword(auth, e, pw.value); await M.sendEmailVerification(c.user); }catch(x){ msg(jaErr(x)); } };
+      msg("登録中…", true); try{ await M.createUserWithEmailAndPassword(auth, e, pw.value); }catch(x){ msg(jaErr(x)); } };
     g.querySelector("#fbReset").onclick = async function(){ var e = val(); if(!e) return; try{ await M.sendPasswordResetEmail(auth, e); msg("パスワード再設定のメールを送りました", true); }catch(x){ msg(jaErr(x)); } };
     pw.addEventListener("keydown", function(ev){ if(ev.key === "Enter") g.querySelector("#fbIn").click(); });
   }
@@ -66,7 +66,6 @@
     try{ fs = M.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: M.persistentLocalCache({ tabManager: M.persistentMultipleTabManager() }) }); }
     catch(e){ fs = M.getFirestore(app); }
     me = await new Promise(function(ok){ var un = M.onAuthStateChanged(auth, function(u){ if(u && ALLOWED.length && ALLOWED.indexOf((u.email || "").toLowerCase()) < 0){ gate("denied", u.email); return; }
-      if(u && !u.emailVerified){ gate("verify", u.email); return; }
       if(u){ un(); ok(u); } else gate("login"); }); });
     gate("none");
     var nm = me.displayName || (me.email || "").split("@")[0];
