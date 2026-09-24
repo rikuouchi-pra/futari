@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=67"></script>
+<script src="shim.js?v=71"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -749,9 +749,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 :root:is([data-style="glass"],[data-style="dynamic"]) .rfade.t{background:linear-gradient(color-mix(in srgb,var(--surface) 80%,transparent),transparent)}
 :root:is([data-style="glass"],[data-style="dynamic"]) .rfade.b{background:linear-gradient(transparent,color-mix(in srgb,var(--surface) 80%,transparent))}
 /* ヘッダーを画面の左端まで広げる（すりガラスの切れ目をなくす） */
-header{margin-left:-16px;padding-left:16px}
 body.rail-left header{margin-left:-84px!important;padding-left:10px}
-@media (min-width:760px){header{margin-left:0!important;padding-left:0}}
 @media (prefers-reduced-motion:reduce){.fx-bg i{animation:none!important}#main.enter>*,#main.enter li{animation:none!important}}
 
 /* ================= 見える化・家事・アルバム ================= */
@@ -802,10 +800,63 @@ li.item.ch-over>.row{box-shadow:inset 4px 0 0 var(--danger)}li.item.ch-today>.ro
 .aph span{position:absolute;left:4px;bottom:4px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.45);padding:1px 6px;border-radius:999px;backdrop-filter:blur(4px)}
 .day{position:relative}.cthumb{position:absolute;right:2px;bottom:2px;width:38%;max-width:22px;aspect-ratio:1;object-fit:cover;border-radius:5px;box-shadow:0 0 0 1.5px var(--surface);pointer-events:none;z-index:0}
 .hc-rings .rings svg{width:112px;height:112px}
+
+/* ================= ヘッダーの背景は画面幅いっぱいの別レイヤーで描く（縦横のラインをそろえる） ================= */
+html:root:root:root header,html:root:root:root body header{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.hdr-bg{position:fixed;left:0;right:0;top:0;height:var(--hdrh,0px);background:var(--ground);z-index:4;pointer-events:none;transition:background .2s}
+:root[data-pattern] .hdr-bg{background:color-mix(in srgb,var(--ground) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+body.layer-me:not(.v-home) .hdr-bg{background:linear-gradient(color-mix(in srgb,#6a5acd 9%,var(--ground)),var(--ground))}
+:root:is([data-style="glass"],[data-style="dynamic"]) .hdr-bg{background:color-mix(in srgb,var(--ground) 62%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) body.layer-me:not(.v-home) .hdr-bg{background:linear-gradient(color-mix(in srgb,#6a5acd 12%,color-mix(in srgb,var(--ground) 62%,transparent)),color-mix(in srgb,var(--ground) 62%,transparent))}
+.sa-top{display:none}
+:root[data-bgsolid] .fx-bg{display:none!important}
+.bgsw{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.bgc{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:transparent;padding:0;cursor:pointer;color:var(--ink)}
+.bgc i{width:44px;height:44px;border-radius:14px;background:var(--bgc);box-shadow:inset 0 0 0 1px var(--line);display:block}
+.bgc.auto i{background:linear-gradient(135deg,var(--ground) 50%,var(--surface) 50%)}
+.bgc[aria-pressed="true"] i{box-shadow:0 0 0 3px var(--accent)}
+.bgc span{font-size:11px;color:var(--muted)}
+
+/* カレンダー：記号の見方（たたむ）・シフト入力の整理 */
+.calkey{margin-top:8px}.calkey summary{list-style:none;cursor:pointer;font-size:12px;color:var(--muted);text-align:right;padding:4px 2px}
+.calkey summary::-webkit-details-marker{display:none}.calkey summary::before{content:"ⓘ ";}
+.calkey[open] summary{color:var(--ink)}
+.legend.lg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;justify-content:stretch;text-align:left;background:var(--surface);border-radius:14px;padding:10px 12px;margin-top:4px}
+.legend.lg2+.legend.lg2{margin-top:6px}.legend.lg2 span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.shiftset{gap:10px!important}
+.shs-t{font-size:12px;font-weight:700;color:var(--muted)}
+.shs-row{display:grid;gap:6px}
+.shs-h{display:flex;align-items:baseline;gap:8px}.shs-n{font-weight:800;font-size:14px}.shs-n.h{color:var(--who-h)}.shs-n.w{color:var(--who-w)}.shs-v{font-size:12px;color:var(--muted)}
+.shiftset .seg{display:grid!important;grid-template-columns:repeat(6,1fr);width:100%;box-sizing:border-box;gap:2px}
+.shiftset .seg button{padding:8px 0!important;min-width:0;font-weight:800;font-size:15px}
+
+/* 切り替えボタン（seg）は折り返さない：幅が足りなければ等分・小さめ文字、最後は横スクロール */
+.seg{flex-wrap:nowrap!important;max-width:100%;box-sizing:border-box;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{white-space:nowrap;flex:0 0 auto}
+.dtabs .seg{display:grid!important;grid-auto-flow:column;grid-auto-columns:1fr;grid-template-columns:none!important;width:100%}
+.mcharts>.seg,.seg[data-seg="rfilter"]{display:grid!important;grid-auto-flow:column;grid-auto-columns:1fr;width:100%;margin:2px 0 8px}
+.mcharts>.seg button,.dtabs .seg button,.seg[data-seg="rfilter"] button{padding:8px 4px;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+.scp{font-style:normal;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex:none;white-space:nowrap}
+.scp.us{background:color-mix(in srgb,var(--task) 14%,var(--surface));color:var(--task)}
+.scp.me{background:color-mix(in srgb,#6a5acd 14%,var(--surface));color:#5b4fb8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .scp.me{color:#B3A9F0}}
+:root[data-theme="dark"] .scp.me{color:#B3A9F0}
+
+.rings{gap:10px!important}.rings svg,.hc-rings .rings svg{width:100px!important;height:100px!important}
+.rleg{display:grid!important;grid-template-columns:9px minmax(0,1fr) auto auto;gap:6px!important;padding:4px 0!important;font-size:12.5px!important;align-items:center}
+.rleg i{width:9px!important;height:9px!important}
+.rleg b{font-size:14px!important;text-align:right;min-width:34px}
+.scp{font-size:9.5px!important;padding:1px 5px!important}
+
+.rleg{grid-template-columns:9px minmax(0,1fr) auto!important}
+.rgrp{margin:2px 0 -2px}.rgrp:not(:first-child){margin-top:6px}
 </style>
 <style id="palStyle"></style>
 
 <div class="fx-bg" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="hdr-bg" id="hdrBg" aria-hidden="true"></div>
 <div class="app" id="app">
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
@@ -877,7 +928,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="67";
+const APP_VERSION="71";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -953,7 +1004,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -968,9 +1019,13 @@ function applyPrefs(){
   const own=[]; if(hexOk(prefs.accent)) own.push(`--task:${prefs.accent}`); if(hexOk(prefs.colorH)) own.push(`--who-h:${prefs.colorH}`); if(hexOk(prefs.colorW)) own.push(`--who-w:${prefs.colorW}`);
   const F=FONTS[prefs.font]||FONTS.kaku; own.push(`--font-body:${F.body}`,`--font-display:${F.disp}`);
   css+=`html:root:root:root:root{${own.join(";")}}`;
+  if(hexOk(prefs.bg)){ const h=prefs.bg, lum=(parseInt(h.slice(1,3),16)*.299+parseInt(h.slice(3,5),16)*.587+parseInt(h.slice(5,7),16)*.114)/255;
+    const sel=lum<.45?`html:root:root:root:root[data-theme="dark"],html:root:root:root:root:not([data-theme="light"]):where(.x),`:"";
+    if(lum>=.45) css+= prefs.mode==="dark"?"":prefs.mode==="light"?`html:root:root:root:root{--ground:${h}}`:`@media (prefers-color-scheme: light){html:root:root:root:root{--ground:${h}}}html:root:root:root:root[data-theme="light"]{--ground:${h}}`;
+    else css+= prefs.mode==="light"?"":prefs.mode==="dark"?`html:root:root:root:root{--ground:${h}}`:`@media (prefers-color-scheme: dark){html:root:root:root:root{--ground:${h}}}html:root:root:root:root[data-theme="dark"]{--ground:${h}}`; }
   $("palStyle").textContent=css;
   if(F.url&&!document.getElementById("font-"+prefs.font)){ const l=document.createElement("link"); l.rel="stylesheet"; l.id="font-"+prefs.font; l.href=`https://fonts.googleapis.com/css2?family=${F.url}&display=swap`; document.head.appendChild(l); }
-  const r=document.documentElement; r.dataset.shape=prefs.shape; r.dataset.style=prefs.style||"modern"; r.dataset.icon=prefs.icon; r.dataset.fs=prefs.fs; r.dataset.density=prefs.density; r.dataset.rlabel=prefs.rlabel;
+  const r=document.documentElement; r.dataset.shape=prefs.shape; r.dataset.style=prefs.style||"modern"; if(hexOk(prefs.bg)) r.dataset.bgsolid="1"; else delete r.dataset.bgsolid; r.dataset.icon=prefs.icon; r.dataset.fs=prefs.fs; r.dataset.density=prefs.density; r.dataset.rlabel=prefs.rlabel;
   if(prefs.pattern&&prefs.pattern!=="none") r.dataset.pattern=prefs.pattern; else delete r.dataset.pattern;
 }
 applyPrefs();
@@ -1701,7 +1756,7 @@ function viewReflect(){
   const rec=state.reflect.filter(q=>q.mood&&q.id>=days[0]), good=rec.filter(q=>q.mood>=4).length;
   h+=`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）　記録${rec.length}日・よい日${good}日</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="直近30日の気分。記録${rec.length}日、よい日${good}日">${grid}<path d="${path}" fill="none" stroke="var(--reflect)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots.join("")}${xl}</svg></div>`;
   const list=state.reflect.filter(q=>q.good||q.bad||q.learn).filter(q=>state.refFilter==="good"?q.good:state.refFilter==="bad"?q.bad:state.refFilter==="learn"?q.learn:true).sort((a,b)=>a.id<b.id?1:-1).slice(0,60);
-  h+=`<div class="section-label">見返す</div><div class="tools" style="margin-top:0;margin-bottom:8px">${seg("rfilter",state.refFilter,[["all","すべて"],["good","良かったこと"],["bad","うまくいかなかった"],["learn","学び・明日やること"]])}</div>`;
+  h+=`<div class="section-label">見返す</div><div class="tools" style="margin-top:0;margin-bottom:8px">${seg("rfilter",state.refFilter,[["all","すべて"],["good","良かった"],["bad","うまくいかず"],["learn","学び"]])}</div>`;
   h+=list.length?`<div class="tl">${list.map(q=>`<button class="tl-day" data-rdate="${q.id}"><div class="dt">${jpDate(q.id)}${q.mood?`<span class="mchip" style="--m:${q.mood}">${q.mood}</span>`:""}</div>
       ${q.good&&(state.refFilter==="all"||state.refFilter==="good")?`<div class="peek" style="border-color:var(--s-off)"><div class="who">良かったこと</div>${esc(q.good)}</div>`:""}
       ${q.bad&&(state.refFilter==="all"||state.refFilter==="bad")?`<div class="peek" style="border-color:var(--danger);margin-top:6px"><div class="who">うまくいかなかったこと</div>${esc(q.bad)}</div>`:""}
@@ -2159,8 +2214,8 @@ function viewCal(){
     h+=`<div class="off2"><span class="lbl">次のふたり休み</span>${offs.map(s=>`<button class="offchip" data-day="${s}">${dayLabel(s)}</button>`).join("")}</div>`;
   }
   h+=`<div class="grid ${P.on?"painting":""}" id="grid">${cells}</div>
-    <div class="legend"><span><i class="sb s-休" style="width:10px;height:10px"></i>四角＝${esc(nameOf("h"))}</span><span><i class="sb s-休 pt" style="width:10px;height:10px"></i>丸＝${esc(nameOf("w"))}</span><span><i class="mk" style="background:color-mix(in srgb,var(--s-off) 26%,var(--surface));width:12px;height:12px;border-radius:3px"></i>ふたり休み</span><span><i class="mk" style="background:color-mix(in srgb,var(--s-off) 10%,var(--surface));width:12px;height:12px;border-radius:3px;outline:1px solid var(--line)"></i>片方休み</span></div>
-    <div class="legend"><span><i class="mk"></i>やること</span><span><i class="mk s"></i>買い物</span><span><i class="mk e"></i>予定</span><span><i class="mk c"></i>注意</span><span><i class="mk p"></i>将来・記念日</span><span><i class="mk over"></i>期限切れ</span><span><i class="mk d"></i>日記</span></div>`;
+    <details class="calkey" ${state.calKey?"open":""}><summary>記号の見方</summary><div class="legend lg2"><span><i class="sb s-休" style="width:10px;height:10px"></i>四角＝${esc(nameOf("h"))}</span><span><i class="sb s-休 pt" style="width:10px;height:10px"></i>丸＝${esc(nameOf("w"))}</span><span><i class="mk" style="background:color-mix(in srgb,var(--s-off) 26%,var(--surface));width:12px;height:12px;border-radius:3px"></i>ふたり休み</span><span><i class="mk" style="background:color-mix(in srgb,var(--s-off) 10%,var(--surface));width:12px;height:12px;border-radius:3px;outline:1px solid var(--line)"></i>片方休み</span></div>
+    <div class="legend lg2"><span><i class="mk"></i>やること</span><span><i class="mk s"></i>買い物</span><span><i class="mk e"></i>予定</span><span><i class="mk c"></i>注意</span><span><i class="mk p"></i>将来・記念日</span><span><i class="mk over"></i>期限切れ</span><span><i class="mk d"></i>日記</span></div></details>`;
   if(P.on) return h+`<p class="hint">入力中は←→・↓の操作はお休み。‹ › で月を移動</p>`;
 
   /* selected day */
@@ -2172,7 +2227,7 @@ function viewCal(){
   if(off==="both") h+=`<div class="banner">ふたりとも休みの日です</div>`;
   else if(off==="one") h+=`<div class="banner" style="background:color-mix(in srgb,var(--s-off) 10%,var(--surface))">${esc(nameOf(sh==="休"?"h":"w"))}が休み</div>`;
   const shSeg=(name,cur)=>`<div class="seg" data-seg="${name}">${SHIFTS.map(([v,n])=>`<button type="button" class="s-${v}" data-sv="${v}" aria-pressed="${cur===v}" aria-label="${n}">${v}</button>`).join("")}<button type="button" data-sv="" aria-label="未入力" aria-pressed="${!cur}">−</button></div>`;
-  h+=`<div class="shiftset" style="margin-top:8px">${[["h",sh],["w",sw_]].map(([r,v])=>`<div class="edit-row"><span class="who">${esc(nameOf(r))} ${esc(SHIFT_NAME[v]||"")}</span>${shSeg("sh_"+r,v)}</div>`).join("")}</div>`;
+  h+=`<div class="shiftset" style="margin-top:8px"><div class="shs-t">この日のシフト</div>${[["h",sh],["w",sw_]].map(([r,v])=>`<div class="shs-row"><div class="shs-h"><span class="shs-n ${r}">${esc(nameOf(r))}</span><span class="shs-v">${esc(SHIFT_NAME[v]||"未入力")}</span></div>${shSeg("sh_"+r,v)}</div>`).join("")}</div>`;
   h+=`<div class="section-label">予定</div>`;
   h+=dayList.length?`<ul class="list">${dayList.map(o=>o.c==="items"?itemRow(o.x,true):o.c==="plans"?planRow(o.x,true):o.c==="events"?eventRow(o.x):cautionRow(o.x)).join("")}</ul>`:`<div class="empty">この日の予定はありません<br>カレンダーを↓スワイプで追加</div>`;
   h+=`<div class="section-label"><span>この日の日記</span><button class="link" data-act="godiary">${myD&&myD.text?"日記を開く":"日記を書く"} ›</button></div>`;
@@ -2245,6 +2300,10 @@ function viewSettings(){
   <section class="card"><h2>スタイル</h2>
     <div class="stiles">${[["classic","クラシック","これまでの見た目"],["modern","モダン","やわらかい影・大きめの角丸"],["glass","グラス","すりガラスと色のにじみ"],["dynamic","ダイナミック","ゆっくり動く背景と動きのある画面"]].map(([k,l,d])=>`<button class="stile st-${k}" data-pref="style" data-val="${k}" aria-pressed="${(prefs.style||"modern")===k}"><span class="stpv"><i></i><i></i><i></i></span><b>${l}</b><small>${d}</small></button>`).join("")}</div>
     <div class="opts"><button class="opt" data-preset="modern">おすすめ：モダン</button><button class="opt" data-preset="dyn">おすすめ：ダイナミック</button></div></section>
+  <section class="card"><h2>背景の色</h2>
+    <div class="bgsw">${[["","テーマ"],["#FFFFFF","白"],["#F6F1E7","生成り"],["#EEF0F2","グレー"],["#EAF4EF","ミント"],["#EAF1F8","空"],["#F0EDF7","ラベンダー"],["#F8EEF1","桜"],["#FFF6E5","クリーム"],["#121212","墨"],["#0F1420","夜"]].map(([c,l])=>`<button class="bgc ${c?"":"auto"}" data-pref="bg" data-val="${c}" aria-pressed="${(prefs.bg||"")===c}" style="${c?`--bgc:${c}`:""}"><i></i><span>${l}</span></button>`).join("")}</div>
+    <div class="colorrow"><input type="color" id="bgPick" value="${esc(prefs.bg||"#EEF2EF")}" aria-label="背景の色"><span style="font-size:13px">好きな色を選ぶ</span></div>
+    <p>明るい色は明るいモード、暗い色は暗いモードのときに使われます。色を選ぶと背景は単色になり、グラス／ダイナミックの色のにじみは消えます。</p></section>
   <section class="card"><h2>テーマカラー</h2><div class="swatches">${sw}</div>
     <div class="colorrow"><input type="color" id="accentPick" value="${esc(prefs.accent||PALETTES[prefs.pal].light.task)}" aria-label="メインカラー"><span style="font-size:13px">メインカラーを自由に選ぶ</span>${prefs.accent?'<button class="link" data-act="accentReset">元に戻す</button>':""}</div>
     <h2>表示モード</h2><div class="opts">${opt("mode","auto","iPhoneに合わせる")}${opt("mode","light","いつも明るく")}${opt("mode","dark","いつも暗く")}</div>
@@ -2694,6 +2753,7 @@ $("main").addEventListener("input",e=>{
   if(e.target.id==="rfLearn"&&$("learnHabit")) $("learnHabit").innerHTML=learnChips(e.target.value);
   if(["rfGood","rfBad","rfLearn"].includes(e.target.id)){ $("refSave").textContent="入力中…"; clearTimeout(refTimer); refTimer=setTimeout(()=>saveReflect(),900); return; }
   if(e.target.id==="colorH"||e.target.id==="colorW"){ prefs[e.target.id]=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
+  if(e.target.id==="bgPick"){ prefs.bg=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); return; }
   if(e.target.id==="accentPick"){ prefs.accent=e.target.value; applyPrefs(); clearTimeout(prefTimer); prefTimer=setTimeout(()=>savePrefs(true),600); } });
 $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.dataset&&(e.target.dataset.ramt||e.target.dataset.gdep)){ e.preventDefault(); e.target.blur(); if(e.target.dataset.gdep){ const bb=document.querySelector(`[data-act=gdep][data-g="${CSS.escape(e.target.dataset.gdep)}"]`); bb&&bb.click(); } return; }
@@ -2707,6 +2767,7 @@ $("main").addEventListener("keydown",e=>{
 });
 $("gear").onclick=()=>go("settings");
 $("chkBtn").onclick=()=>go("check");
+document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("calkey")) state.calKey=e.target.open; },true);
 document.addEventListener("change",e=>{ if(e.target.id==="mvIn"&&e.target.files&&e.target.files[0]){ importMove(e.target.files[0]); e.target.value=""; return; } if(e.target.id==="rcKeep"){ prefs.keepPhoto=e.target.checked?"1":"0"; savePrefs(true); } });
 $("dphIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) diaryAddPhotos(fs); });
 $("rcptIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) rcptOpen(fs); });
@@ -3077,18 +3138,19 @@ function weekRingsData(){
   const tk=W.days.map(d=>talkState(d)), tkN=tk.filter(v=>v!=="off").length, tkD=tk.filter(v=>v==="done").length;
   const dy=W.days.filter(d=>{ const a=myPriv(d), b=myShared(d); return (a&&a.text)||(b&&b.text); }).length;
   return [
-    {k:"task",l:"やること",v:tDone,n:tDone+tOpen,c:"var(--task)",go:"task"},
-    {k:"habit",l:"毎日の習慣",v:hD,n:daily.length*W.days.length,c:"var(--habit)",go:"habit"},
-    {k:"talk",l:"話し合い",v:tkD,n:tkN,c:"var(--talk)",go:"talk"},
-    {k:"diary",l:"日記",v:dy,n:W.days.length,c:"var(--diary)",go:"diary"}];
+    {k:"task",l:"やること",sc:"us",v:tDone,n:tDone+tOpen,c:"var(--task)",go:"task"},
+    {k:"talk",l:"話し合い",sc:"us",v:tkD,n:tkN,c:"var(--talk)",go:"talk"},
+    {k:"habit",l:"毎日の習慣",sc:"me",v:hD,n:daily.length*W.days.length,c:"var(--habit)",go:"habit"},
+    {k:"diary",l:"日記",sc:"me",v:dy,n:W.days.length,c:"var(--diary)",go:"diary"}];
 }
 function ringsHTML(){
   const D=weekRingsData(), R=[50,39,28,17], C=60;
   const arcs=D.map((m,i)=>{ const r=R[i], L=2*Math.PI*r, f=m.n?Math.min(1,m.v/m.n):0;
     return `<circle cx="${C}" cy="${C}" r="${r}" fill="none" stroke="${m.c}" stroke-opacity=".16" stroke-width="9"/>`+
       (f>0?`<circle class="ring-arc" cx="${C}" cy="${C}" r="${r}" fill="none" stroke="${m.c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(L*f).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 ${C} ${C})" style="--len:${L.toFixed(1)}"/>`:""); }).join("");
-  const leg=D.map(m=>{ const pct=m.n?Math.round(m.v/m.n*100):null;
-    return `<button class="rleg" data-hgo="${m.go}" aria-label="${esc(m.l)} ${m.v}/${m.n}${pct!=null?`（${pct}%）`:""}"><i style="background:${m.c}"></i><span>${esc(m.l)}</span><b>${m.n?`${m.v}<small>/${m.n}</small>`:"—"}</b></button>`; }).join("");
+  const legRow=m=>{ const pct=m.n?Math.round(m.v/m.n*100):null;
+    return `<button class="rleg" data-hgo="${m.go}" aria-label="${esc(m.l)} ${m.v}/${m.n}${pct!=null?`（${pct}%）`:""}"><i style="background:${m.c}"></i><span>${esc(m.l)}</span><b>${m.n?`${m.v}<small>/${m.n}</small>`:"—"}</b></button>`; };
+  const leg=`<div class="rgrp"><em class="scp us">ふたり</em></div>${D.filter(m=>m.sc==="us").map(legRow).join("")}<div class="rgrp"><em class="scp me">じぶん</em></div>${D.filter(m=>m.sc==="me").map(legRow).join("")}`;
   return `<div class="rings"><svg ${svgNS} viewBox="0 0 120 120" role="img" aria-label="今週の達成リング">${arcs}</svg><div class="rlegs">${leg}</div></div>`;
 }
 /* 家事・貢献：だれがどれだけ（家事ポイント＋完了したやること） */
@@ -3691,7 +3753,7 @@ function viewHome(){
     <button class="hl us" data-layer2="us"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M12.5 14.4c.9-.3 1.9-.4 3-.4 3 0 5.5 2 5.5 5"/></svg></span><b>ふたり</b><small>${usN?`${usN}件の未完了・未確認`:"すっきり"}</small><span class="hl-go">›</span></button>
     <button class="hl me" data-layer2="me"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><b>じぶん</b><small>${meN?`${meN}件`:"すっきり"}・${esc(nameOf(me))}だけ</small><span class="hl-go">›</span></button></div>`;
   if(actNewCount()) h+=actCardHTML();
-  h+=homeCard("今週のふたり",ringsHTML(),null,"hc-rings");
+  h+=homeCard("今週の達成",ringsHTML()+`<div class="cap" style="text-align:left;margin-top:6px">「じぶん」は${esc(nameOf(myRole()))}だけの記録で、相手には見えません</div>`,null,"hc-rings");
   /* 要対応 */
   const pc=pendingChecks();
   h+=homeCard(`要対応 <span class="hn">${pc.length}</span>`,pc.length?`<ul class="hlist">${pc.slice(0,5).map(x=>`<li><button data-chk="${x.key}"><span class="chkn">${x.num}</span><span>${esc(x.title)}</span><i>›</i></button></li>`).join("")}</ul>${pc.length>5?`<button class="link" data-go2="check">ほか${pc.length-5}件 ›</button>`:""}`:`<div class="hempty">すべて入力・確認済みです ✓</div>`,"check");
@@ -3898,7 +3960,7 @@ function moneyChartsHTML(){
     const vals=ms.map(m=>all.filter(e=>e.cat===k&&e.aDate.slice(0,7)===m).reduce((q,e)=>q+e.actual,0));
     body=`<div class="chips mc-cats">${Object.entries(MCATS).filter(([c])=>c!=="save"&&(all.some(e=>e.cat===c)||G[c])).map(([c,oo])=>`<button class="chip mini" data-mcc="${c}" aria-pressed="${c===k}"><i class="dotc" style="background:${oo.c}"></i>${esc(oo.l)}</button>`).join("")}</div>`
       +moneyTrendSVG(vals,ms.map(m=>`${Number(m.slice(5))}月`),Number(G[k]||0),()=>o.c)+`<div class="who">${esc(o.l)}の月ごとの支出${G[k]?`・点線は毎月の目標 ${yen(G[k])}`:"・「目標」タブで目標を決めると点線で表示"}</div>`; }
-  return `<section class="chart mcharts"><div class="hc-head"><h3>グラフ</h3></div>${seg("mchart",mode,[["trend","月ごとの推移"],["share","分類の割合"],["cat","分類別の推移"]])}<div class="mc-body">${body}</div><div class="who tiphint">棒や円をタップすると金額が出ます</div></section>`;
+  return `<section class="chart mcharts"><div class="hc-head"><h3>グラフ</h3></div>${seg("mchart",mode,[["trend","月ごと"],["share","分類の割合"],["cat","分類別"]])}<div class="mc-body">${body}</div><div class="who tiphint">棒や円をタップすると金額が出ます</div></section>`;
 }
 
 /* ================= add sheet (pull down) ================= */
@@ -4238,6 +4300,7 @@ function placeRail(anim){
 }
 /* 右上のボタン列（ドック）を、下のメニューと縦の線がぴったりそろうように合わせる（文字サイズの拡大にも対応） */
 function alignDock(){
+  const hd=document.querySelector("header"); if(hd) document.documentElement.style.setProperty("--hdrh",Math.ceil(hd.getBoundingClientRect().bottom)+"px");
   const dock=document.querySelector(".brand .hr"); if(!dock) return;
   dock.style.transform=""; dock.style.width="";
   if(innerWidth>=760||getComputedStyle(dock).flexDirection!=="column") return;
