@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=107"></script>
+<script src="shim.js?v=110"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -317,7 +317,7 @@ li.done .text{color:var(--muted);text-decoration:line-through}
 .due.over{color:var(--danger);font-weight:700}
 .due.today{color:var(--accent);font-weight:700}
 .tag{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:700;background:color-mix(in srgb,var(--tc,var(--muted)) 18%,var(--surface));color:var(--tc,var(--muted))}
-.tc-task{--tc:var(--task)} .tc-shop{--tc:var(--shop)} .tc-danger{--tc:var(--danger)} .tc-amber{--tc:var(--caution)} .tc-blue{--tc:var(--cal)} .tc-muted{--tc:var(--muted)} .tc-trouble{--tc:var(--trouble)}
+.tc-talk{--tc:var(--talk)} .tc-task{--tc:var(--task)} .tc-shop{--tc:var(--shop)} .tc-danger{--tc:var(--danger)} .tc-amber{--tc:var(--caution)} .tc-blue{--tc:var(--cal)} .tc-muted{--tc:var(--muted)} .tc-trouble{--tc:var(--trouble)}
 .edit{display:flex;flex-direction:column;gap:10px;padding:12px;background:var(--accent-soft)}
 .edit-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .edit .actions{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}
@@ -1329,9 +1329,17 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adju
 .item.htoday{box-shadow:inset 3px 0 0 var(--habit)}
 .htoday-card.home .htd-list{margin-top:8px}
 #lsw [data-layer].has-hb{position:relative}
-#lsw [data-layer].has-hb::after{content:attr(data-hb);position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:var(--danger);color:#fff;font-size:10px;line-height:16px;font-weight:700;text-align:center}
+#lsw [data-layer].has-hb::before{content:attr(data-hb);position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:var(--danger);color:#fff;font-size:10px;line-height:16px;font-weight:700;text-align:center}
 .flayers button{position:relative}
 .flayers .badge.hb{top:-6px;right:-6px}
+
+/* v110 flick badges */
+.fkey .fh.n{width:auto;height:15px;min-width:15px;padding:0 4px 0 3px;box-sizing:border-box;border-radius:8px;background:color-mix(in srgb,var(--danger) 22%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 55%,transparent);display:flex;align-items:center;gap:1px;white-space:nowrap;opacity:.95!important;font-size:9px;line-height:15px;font-weight:800;font-style:normal;text-align:center;box-shadow:0 0 0 1.5px var(--surface);z-index:1}
+.fkey .fh.n s{text-decoration:none;font-size:8px;opacity:.85}
+.fkey .fh.n.u{top:-3px;left:-2px;transform:none} .fkey .fh.n.d{bottom:-3px;top:auto;left:-2px;transform:none}
+.fkey .fh.n.l{left:-4px;top:50%;transform:translateY(-50%)} .fkey .fh.n.r{right:-4px;top:50%;transform:translateY(-50%)}
+.fkey .badge{z-index:2}
+.fg{overflow:visible}.fg .badge{top:-6px;right:-6px;min-width:18px;height:18px;line-height:18px;font-size:10.5px;box-shadow:0 0 0 2px var(--raised)}
 </style>
 <style id="palStyle"></style>
 
@@ -1399,6 +1407,10 @@ const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレッ�
 const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
   habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
+/* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
+const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
+let fN={}, fL="us"; const fCnt=t=>!t?0:t==="check"?pendingChecks().length:t==="@me"?(fL!=="me"?layerN("me",fN):0):t==="@us"?(fL==="me"?layerN("us",fN):0):tabN(t,fN);
+const layerN=(L,n)=>LAYER_TABS[L].reduce((q,t)=>q+tabN(t,n),0);
 const LAYER_TABS={us:["talk","task","chore","shop","trouble","cal","diary","future","money"],me:["psched","habit","reflect"]};
 /* 統合した画面（v82）：じぶんのタスク・買い物 → やること・買い物（🔒）、やりたい → 将来、注意 → 気になること */
 const VIEW_ALIAS={ptask:"task",pshop:"shop"};
@@ -1406,7 +1418,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="107";
+const APP_VERSION="110";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1996,19 +2008,24 @@ function topicRow(t){
   if(isEditing("topics",t.id)) return `<li class="item" data-c="topics" data-id="${esc(t.id)}"><div class="edit">
       <input type="text" id="editText" value="${esc(t.text)}" maxlength="120" enterkeyhint="done" aria-label="議題">
       ${editWho(t)}
+      <div class="edit-row"><span class="who">話す日</span><input type="date" id="editOn" value="${esc(t.on||"")}" aria-label="話す日"><button type="button" class="chip" data-ton="${talkNext0()}">次の話し合い</button><button type="button" class="chip" data-ton="">指定なし</button></div>
       <textarea id="editNote" rows="3" maxlength="800" placeholder="決まったこと・メモ">${esc(t.note||"")}</textarea>
       <div class="edit-row">${t.ref?'<button type="button" class="btn" data-act="openref">元の項目を開く</button>':""}<button type="button" class="btn" data-act="totask">やることにする</button></div>
       ${editActions("topics",t)}</div></li>`;
-  const carried=!done&&t.createdAt&&ymd(new Date(t.createdAt))<today();
+  const td=today(), carried=!done&&(t.on?t.on<td:(t.createdAt&&ymd(new Date(t.createdAt))<td)), fut=!done&&t.on&&t.on>td;
   return wrapRow("topics",t,done?"done":"",
     `<button class="check ${done?"on":""}" style="--c:var(--talk)" data-act="right" aria-label="${rightLabel("topics",t)}">${CHECK}</button>`,
-    `<div class="text">${esc(t.text)}</div><div class="meta">${whoTag(t)}${t.ref?`<span class="tag tc-muted">${REF_LABEL[t.ref.c]||"項目"}から</span>`:""}${carried?`<span>${short(ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:""}`);
+    `<div class="text">${esc(t.text)}</div><div class="meta">${whoTag(t)}${t.ref?`<span class="tag tc-muted">${REF_LABEL[t.ref.c]||"項目"}から</span>`:""}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:""}`);
 }
 function week7(){
   const days=[...Array(7)].map((_,i)=>addDays(today(),i));
   return `<div class="week7" role="table" aria-label="これから7日のシフト"><span></span>${days.map(d=>{const x=parse(d);return `<span class="h ${offState(d)==="both"?"both":""}">${WD[x.getDay()]}<br>${x.getDate()}</span>`;}).join("")}
     ${["h","w"].map(r=>`<span class="nm">${esc(nameOf(r))}</span>${days.map(d=>`<span class="c">${shiftBadge(shiftOf(r,d),r)}</span>`).join("")}`).join("")}</div>`;
 }
+/* v108: 議題の「話す日」。指定あり→その日から、指定なし→話し合いの日（お休みの日以外）に数える */
+const talkNow=t=>{ const d=today(); return t.status!=="done"&&(t.on?t.on<=d:true); };
+const talkBadge=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&(t.on?t.on<=d:!off)).length; };
+const talkNext0=()=>{ const d=today(); return talkOff(d)?(nextTalkDay(d)||addDays(d,1)):d; };
 /* 毎日の話し合い：妻の夜勤入り（入）の日以外は毎日実施 */
 const talkOf=d=>state.talks.find(x=>x.id===d)||null;
 const TALK_OFF_DEF=["入"];
@@ -2053,12 +2070,14 @@ function talkCard(d){
 }
 function viewTalk(){
   const d=state.talkDate, isT=d===today();
-  const tops=state.topics.filter(t=>isT?(t.status!=="done"||t.doneDate===d):(t.doneDate===d)).sort((a,b)=>((a.status==="done")-(b.status==="done"))||(a.createdAt-b.createdAt));
+  const futT=isT?state.topics.filter(t=>t.status!=="done"&&t.on&&t.on>d).sort((a,b)=>a.on<b.on?-1:1):[];
+  const tops=state.topics.filter(t=>isT?((t.status!=="done"&&!(t.on&&t.on>d))||t.doneDate===d):(t.doneDate===d)).sort((a,b)=>((a.status==="done")-(b.status==="done"))||(a.createdAt-b.createdAt));
   const doneN=tops.filter(t=>t.status==="done").length, note=(state.talks.find(x=>x.id===d)||{}).notes||"";
   let h=`<div class="dstrip" data-strip="talk"><button class="icon-btn" data-act="tprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="tnext" aria-label="次の日">›</button></div>
     <div class="tools"><span class="who">${tops.length?`話した ${doneN}/${tops.length}`:""}</span>${isT?"":'<button class="pill" data-act="ttoday">今日</button>'}</div>`+talkCard(d)+(isT?agendaHTML():(qaOf(d)?qaCardHTML(d):""));
   h+=`<div class="section-label">話すこと</div>`;
   h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目を長押し→「議題にする」":"この日の記録はありません"}</div>`;
+  if(futT.length) h+=`<div class="section-label">これからの議題（話す日を指定）</div><ul class="list">${futT.map(topicRow).join("")}</ul>`;
   h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`;
   if(isT){
     const t=today(), in7=addDays(t,7), me=state.me||"local";
@@ -2248,6 +2267,7 @@ function habitRow(h){
     `<div class="text">${esc(h.text)}</div><div class="meta">${dueTag(h)}${tgtCode(h)==="7"?`<span>連続${st.streak}日</span>`:`<span>30日で${st.count}回</span>`}<span>達成率 ${st.rate}%</span><span>目標 ${tg}</span></div>
      <div class="hwk">${days.map(d=>`<button class="hd ${L[d]?"on":hMiss(h,d)?"miss":""} ${d===t?"today":""}" data-hday="${d}" data-hid="${esc(h.id)}" aria-label="${short(d)} ${L[d]?"できた":hMiss(h,d)?"できなかった":"未"}">${parse(d).getDate()}</button>`).join("")}${!L[t]?`<button class="hmissb ${mT?"on":""}" data-act="hmiss" aria-pressed="${mT}">${mT?"できなかった ✓":"できなかった"}</button>`:""}</div>`);
 }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-ton]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const i=$("editOn"); if(i) i.value=b.dataset.ton; haptic("tick"); },true);
 function sHNextTxt(){ const S=state.sheet||{}; const h={target:S.htarget,wd:S.hwd,nth:S.hnth,createdAt:Date.now()}; const nx=hNextOn(h,today()); return `${tgtLabel(h)}・最初は ${nx?dW(nx)+(nx===today()?"＝今日":""):"—"}`; }
 document.addEventListener("click",e=>{
   const w=e.target.closest("[data-wdt]"); if(w){ e.preventDefault(); e.stopPropagation(); const g=w.parentElement, on=w.getAttribute("aria-pressed")==="true";
@@ -2983,7 +3003,7 @@ function counts(){
     caution:state.cautions.filter(c=>!isMine(c)&&cNeedAck(c)&&(!c.date||c.date>=today())&&!(c.ack&&c.ack[me])).length,
     diary:diaryC+(eve&&!myDiaryDone(t)?1:0),
     future:state.plans.filter(p=>(p.cat==="anniv"&&p.date&&annivInfo(p).days<=14&&!planDone(p))||(p.cat==="bousai"&&planSoon(p))).length,
-    talk:state.topics.filter(t=>t.status!=="done"&&forMe(t)).length, talkAll:state.topics.filter(t=>t.status!=="done").length,
+    talk:talkBadge(), talkAll:state.topics.filter(t=>t.status!=="done").length,
     habit:state.habits.filter(hFollow).length,
     ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
     psched:mySched(0).filter(o=>o.d<=today()).length};
@@ -3014,7 +3034,7 @@ function renderChrome(){
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
   { const pc=pendingChecks().length, bc=$("b-chk"); bc.hidden=!pc; bc.textContent=pc; $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
-  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?n.talkAll: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
+  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?n.talk: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
   $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
@@ -3024,7 +3044,7 @@ function renderChrome(){
   document.documentElement.style.setProperty("--frc",`var(--who-${otherRole()})`);
   { const F=freshByView(); if(F.caution) F.trouble=(F.trouble||0)+F.caution; document.querySelectorAll("#rail .rtab[data-v]").forEach(t=>{ let d=t.querySelector(".fdot"); if(!d){ d=document.createElement("i"); d.className="fdot"; d.setAttribute("aria-hidden","true"); t.appendChild(d); } d.hidden=!F[t.dataset.v]; t.title=F[t.dataset.v]?`${nameOf(otherRole())}の更新 ${F[t.dataset.v]}件`:""; });
     const fu=Object.values(F).reduce((a,b)=>a+b,0), lb=document.querySelector('#lsw [data-layer="us"]'); if(lb) lb.classList.toggle("has-fresh",fu>0);
-    const hb=n.habit||0, mb=document.querySelector('#lsw [data-layer="me"]'); if(mb){ mb.classList.toggle("has-hb",hb>0&&layer!=="me"); mb.dataset.hb=hb; } }
+    for(const L of ["us","me"]){ const x=layerN(L,n), b=document.querySelector(`#lsw [data-layer="${L}"]`); if(b){ b.classList.toggle("has-hb",x>0&&layer!==L&&state.view!=="home"); b.dataset.hb=x; } } }
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
@@ -3133,7 +3153,7 @@ function saveEdit(){
     if(!t){ removeWithUndo(c,[id],"削除しました"); }
     else { const ch={}; if(t!==x.text) ch.text=t;
       if(editSeg.ewho&&editSeg.ewho!==getWho(x)) ch.who=editSeg.ewho;
-      if(c==="topics"){ const n=$("editNote").value.trim(); if(n!==(x.note||"")) ch.note=n; }
+      if(c==="topics"){ const n=$("editNote").value.trim(); if(n!==(x.note||"")) ch.note=n; const on=$("editOn")?($("editOn").value||null):undefined; if(on!==undefined&&on!==(x.on||null)) ch.on=on; }
       if(c==="blocks"){ const a=$("bStart").value, b=$("bEnd").value, d=$("bDate").value; if(a&&a!==x.start){ ch.start=a; if(x.allDay) ch.allDay=false; } if(b!==(x.end||"")) ch.end=b; if(d&&d!==x.date) ch.date=d;
         if(editSeg.brep&&editSeg.brep!==(x.rep||"none")){ ch.rep=editSeg.brep; ch.from=editSeg.brep==="none"?null:(d||x.date); } if(editSeg.bcol) ch.color=editSeg.bcol; }
       if(c==="habits"){ if(editSeg.htarget) ch.target=tgtVal(editSeg.htarget); { const tc=String(editSeg.htarget||tgtCode(x)); if(tc==="wd"||tc==="mn"){ const w=wdRead("hWd"); if(w.length) ch.wd=w; if(tc==="mn"){ const n=wdRead("hNth"); if(n.length) ch.nth=n; } } } const ev=$("hEvery")?Number($("hEvery").value)||30:null; if(ev&&(editSeg.htarget||tgtCode(x))==="iv"&&ev!==Number(x.every)) ch.every=ev; }
@@ -4673,7 +4693,9 @@ function renderSheet(){
     <div class="edit-row"><span class="lbl"></span><input type="date" id="sDate" value="${esc(S.date)}" aria-label="日付">${S.kind==="caution"?"":`<input type="time" id="sTime" value="${esc(S.time)}" aria-label="時刻">`}${S.date?'<button type="button" class="link" data-sx="clear">日付なし</button>':""}</div>`;
   let o="";
   const budRow=`<div class="edit-row"><span class="lbl">予算</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="任意（円）" style="width:130px"></div>`;
-  if(S.kind==="topic") o="";
+  if(S.kind==="topic"){ const tn=talkNext0(), tq=[["次の話し合い",tn],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]].filter((x,i,a)=>i===0||x[1]!==tn);
+    o=`<div class="edit-row"><span class="lbl">話す日</span><div class="chips">${tq.map(([l,s2])=>`<button type="button" class="chip" data-qd="${s2}" aria-pressed="${S.date===s2}">${l}${l==="次の話し合い"?`（${s2===t?"今日":short(s2)}）`:""}</button>`).join("")}</div></div>
+    <div class="edit-row"><span class="lbl"></span><input type="date" id="sDate" value="${esc(S.date)}" aria-label="話す日">${S.date?'<button type="button" class="link" data-sx="clear">指定なし</button>':'<span class="who">指定なし＝次の話し合いで</span>'}</div>`; }
   else if(S.kind==="gevent"){ const st=S.time||"09:00", en=S.end||hhmm(Math.min(tmin(st)+60,1439));
     o=`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||state.sel)}" aria-label="日付"></div>
       <div class="edit-row"><span class="lbl">時間</span><input type="time" id="sTime" value="${esc(st)}" aria-label="開始"><span class="lbl">〜</span><input type="time" id="sEnd" value="${esc(en)}" aria-label="終了"></div>
@@ -4756,7 +4778,7 @@ $("form").addEventListener("submit",e=>{
     if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); $("input").focus({preventScroll:true}); return; }
     dset("blocks",newId(),{text:t,date:d,from:S.brep==="none"?null:d,start:st,end:en,rep:S.brep,color:S.bcol,createdAt:now,updatedAt:now}); }
   else if(S.kind==="habit"){ const hv={text:t,target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; dset("habits",newId(),hv); }
-  else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,by:state.me||null,createdAt:now,updatedAt:now});
+  else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,...(S.date?{on:S.date}:{}),by:state.me||null,createdAt:now,updatedAt:now});
   else if(S.kind==="trouble") dset("troubles",newId(),{text:t,detail:"",level:S.tlevel,status:"open",assignee:null,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,replies:[]});
   else if(S.kind==="caution"){ const c={text:t,level:S.clevel,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,ack:{}}; if(S.date) c.date=S.date; dset("cautions",newId(),c); }
   else { if(S.pcat==="anniv"&&!S.date){ toast("記念日の日付を入れてください"); $("sDate")&&$("sDate").focus(); return; }
@@ -5080,17 +5102,18 @@ function renderFlick(layer,n){
   const KS=prefs.nav==="railf"?FLICK_V[layer].map(k=>{ const o={}; for(const [d,t] of Object.entries(k)) o[d==="x"?(prefs.hand==="left"?"r":"l"):d]=t; return o; }):FLICK[layer];
   fKeys=KS.map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
   if(prefs.navRev==="1") fKeys.reverse();
-  const lsw=prefs.nav==="railf"?`<div class="flayers" role="group" aria-label="ふたり／じぶん"><button data-flayer="us" aria-pressed="${layer==="us"}">ふたり</button><button data-flayer="me" aria-pressed="${layer==="me"}">じぶん${layer!=="me"&&n.habit?`<b class="badge hb">${n.habit}</b>`:""}</button></div>`:"";
+  const lsw=prefs.nav==="railf"?`<div class="flayers" role="group" aria-label="ふたり／じぶん"><button data-flayer="us" aria-pressed="${layer==="us"}">ふたり${layer!=="us"&&layerN("us",n)?`<b class="badge hb">${layerN("us",n)}</b>`:""}</button><button data-flayer="me" aria-pressed="${layer==="me"}">じぶん${layer!=="me"&&layerN("me",n)?`<b class="badge hb">${layerN("me",n)}</b>`:""}</button></div>`:"";
   bar.innerHTML=`<button class="fgrip" aria-label="メニューの位置を移動（ドラッグ）"><span></span></button>`+lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
-    const badge=all.reduce((q,t)=>q+(t==="@me"&&layer!=="me"?(n.habit||0):t[0]==="@"?0:t==="check"?pendingChecks().length:(n[t]||0)),0), fresh=all.some(t=>F[t]);
-    return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>k[d]).map(d=>`<i class="fh ${d}"></i>`).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
+    fN=n; fL=layer; const hd=hit?hit[0]:"c", pos={...k}; if(hd!=="c"){ pos[hd]=k.c; } /* 表紙＝show。隠れている項目は、その方向の端に小さな数字 */
+    const badge=fCnt(show), fresh=all.some(t=>F[t]&&t!==show)||(!hit&&F[show]);
+    return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>pos[d]).map(d=>{ const c2=fCnt(pos[d]); return c2?`<i class="fh ${d} n" aria-hidden="true"><s>${{u:"↑",d:"↓",l:"←",r:"→"}[d]}</s>${c2>99?"99+":c2}</i>`:`<i class="fh ${d}"></i>`; }).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
 }
 function fGo(t){ if(t==="@add"){ openSheet(); return; } if(t==="@me"||t==="@us") switchLayer(t.slice(1)); else if(t!==state.view) go(t); else if(t==="future"&&state.fut){ state.fut=null; render(-40); } }
 { const bar=$("fbar"), gd=$("fguide"); let fs=null;
   const dirOf=(dx,dy)=>Math.hypot(dx,dy)<18?"c":Math.abs(dx)>Math.abs(dy)?(dx<0?"l":"r"):(dy<0?"u":"d");
   const showG=(k,r)=>{ const W=66,H=58,G=6, cx=Math.min(Math.max(r.left+r.width/2,(k.l?W*1.5+G:W/2)+8),innerWidth-(k.r?W*1.5+G:W/2)-8), cy=r.top+r.height/2;
     const pos={c:[0,0],u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
-    gd.innerHTML=Object.entries(k).map(([d,t])=>`<div class="fg ${fCls(t)}" data-d="${d}" style="left:${cx-W/2+pos[d][0]*(W+G)}px;top:${cy-H/2+pos[d][1]*(H+G)-(k.d?0:H*.35)}px">${fIcon(t)}<span>${esc(fLabel(t))}</span></div>`).join("");
+    gd.innerHTML=Object.entries(k).map(([d,t])=>`<div class="fg ${fCls(t)}" data-d="${d}" style="left:${cx-W/2+pos[d][0]*(W+G)}px;top:${cy-H/2+pos[d][1]*(H+G)-(k.d?0:H*.35)}px">${fIcon(t)}<span>${esc(fLabel(t))}</span>${fCnt(t)?`<b class="badge">${fCnt(t)}</b>`:""}</div>`).join("");
     gd.hidden=false; };
   const sel=d=>{ gd.querySelectorAll(".fg").forEach(x=>x.classList.toggle("on",x.dataset.d===d)); };
   bar.addEventListener("pointerdown",e=>{ const b=e.target.closest(".fkey"); if(!b) return; e.preventDefault(); const k=fKeys[+b.dataset.fk]; if(!k) return;
