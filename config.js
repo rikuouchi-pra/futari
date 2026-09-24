@@ -12,6 +12,6 @@ window.FUTARI_OWNER_EMAIL = "rikurussel14@gmail.com";
 window.FUTARI_ALLOWED_EMAILS = ["rikurussel14@gmail.com", "a1lic3h2dak1@gmail.com"];
 /* Googleカレンダー連携：それぞれが自分のGoogleアカウントで Apps Script をデプロイしたURL（…/exec）を入れる。空ならその人は連携なし */
 window.FUTARI_GAS_URLS = {
-  "rikurussel14@gmail.com": "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnResgIlCNREINNYo5wkEblJCfQKIfXyRvDGyBajdIJopTVY8lxAJgv4ZgRF9aL9JF7XWEvMxsVOoPLEerkmVn6Hb3OJVlnLjrslIwxu7AV_OSNekgMk0ScBRP-YJ-n7NIPKWXMcd3ea0UQNUVjMoL9lRl2oiaRgLZPEQjoxSEIBPMeV3MsDs-6V5PNDhq1zOF67YfBa_XoPlZ4hLIx4vNcYjnOFKCSmx1r818t6NGFvpcUVov1pgiK0QngrZstQKS7-nOBlAEA3WxVf2ba2FBXR7asT6Q&lib=M9bMT0AG7HORQy52EYUjQz0mlWQrMnQWP",
+  "rikurussel14@gmail.com": "https://script.google.com/macros/library/d/1Zl8_i1eLEiqKUVol8ea1au8TxBi7rGFhR46splNbZNrjgJp1nSl0Gxye/1",
   "a1lic3h2dak1@gmail.com": ""
 };
