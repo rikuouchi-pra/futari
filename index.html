@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=71"></script>
+<script src="shim.js?v=74"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -852,6 +852,79 @@ body.layer-me:not(.v-home) .hdr-bg{background:linear-gradient(color-mix(in srgb,
 
 .rleg{grid-template-columns:9px minmax(0,1fr) auto!important}
 .rgrp{margin:2px 0 -2px}.rgrp:not(:first-child){margin-top:6px}
+
+/* v72: 枠の塗りをタブ共通の半透明に統一 */
+:root:is([data-style="glass"],[data-style="dynamic"]){--glass:color-mix(in srgb,var(--surface) 70%,transparent);--glass2:color-mix(in srgb,var(--surface) 58%,transparent);--glassb:1px solid color-mix(in srgb,#fff 32%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary-peek,.paper,.tl-day,.dstrip,.shiftset,.entry,.week7,.card2,.legend.lg2,.calkey,.album,.cguide,.rcbtn){background:var(--glass)!important;backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:var(--glassb)}
+:root:is([data-style="glass"],[data-style="dynamic"]) :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary-peek,.paper,.tl-day,.dstrip,.shiftset,.entry,.week7,.card2,.legend.lg2,.calkey,.album) :is(.card,.chart,.paper,.empty,.arc,.card2,.entry,.shiftset,.legend.lg2){backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--glass2)!important}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main :is(.seg,.today-btn,.btn:not(.primary):not(.danger),.pill,.icon-btn,.arc){background:var(--glass)}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main :is(.card,.chart,.paper,.dstrip,.shiftset,.grid,.hcard,.tt) :is(.seg,.icon-btn,.today-btn){background:color-mix(in srgb,var(--ground) 55%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main .argroup{background:color-mix(in srgb,var(--ground) 45%,transparent)}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main ul.list li.item{background:transparent}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main .ardesc{background:var(--glass2)}
+:root:is([data-style="glass"],[data-style="dynamic"]) #main .rcbtn>svg,:root:is([data-style="glass"],[data-style="dynamic"]) #main .rcbtn .ico{color:var(--accent)}
+
+
+/* v73: ドックとメニューの幅・形をそろえる */
+@media (max-width:759px){
+.brand .hr{padding:5px!important;gap:4px!important;border-radius:calc(var(--r-btn) + 6px)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .brand .hr{border-radius:26px}
+:root[data-shape="circle"] .brand .hr{border-radius:32px}
+.brand .hr .hbtn{width:54px!important;height:44px!important;border-radius:var(--r-btn)!important}
+.brand .hr .hbtn.plus{height:50px!important}
+.brand .hr .hbtn svg{width:22px;height:22px}
+}
+/* v73: フリックメニュー */
+.fbar{display:none}
+body.nav-flick #rail{display:none!important}
+body.nav-flick .fbar{display:grid;position:fixed;z-index:9;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 8px);max-width:536px;margin:0 auto;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;padding:5px;background:var(--raised);border-radius:26px;box-shadow:var(--shadow);touch-action:none;user-select:none;-webkit-user-select:none}
+:root:is([data-style="glass"],[data-style="dynamic"]) body.nav-flick .fbar{background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid color-mix(in srgb,#fff 30%,transparent)}
+body.nav-flick:has(.tt-bar) .fbar,body.nav-flick:has(.sheet.open) .fbar{display:none}
+.fkey{position:relative;border:0;background:transparent;border-radius:var(--r-btn);height:54px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:700;color:var(--muted);padding:0;cursor:pointer;touch-action:none;-webkit-touch-callout:none;letter-spacing:-.02em;transition:transform .12s,background .15s}
+.fkey span{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.fkey svg,.fg svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+:root[data-icon="fill"] :is(.fkey,.fg) svg .f{fill:currentColor;fill-opacity:.22}
+:root[data-rlabel="0"] .fkey span{display:none}
+.fkey[aria-current="true"]{background:var(--tabc,var(--ink));color:var(--on-accent)}
+.fkey[aria-current="true"]:not([class*="v-"]){background:var(--ink);color:var(--ground)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .fkey[aria-current="true"]{box-shadow:0 6px 16px color-mix(in srgb,var(--tabc,var(--accent)) 35%,transparent)}
+.fkey.down{transform:scale(.94);background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.fkey[aria-current="true"].down{background:var(--tabc,var(--ink))}
+.fkey .fh{position:absolute;width:4px;height:4px;border-radius:2px;background:currentColor;opacity:.35}
+.fkey .fh.u{top:3px;left:calc(50% - 2px)} .fkey .fh.d{bottom:3px;left:calc(50% - 2px)} .fkey .fh.l{left:3px;top:calc(50% - 2px)} .fkey .fh.r{right:3px;top:calc(50% - 2px)}
+.fkey .badge{top:2px;right:4px}
+.fkey .fdot{top:5px;left:7px}
+.fguide{position:fixed;inset:0;z-index:40;pointer-events:none}
+.fg{position:absolute;width:66px;height:58px;box-sizing:border-box;border-radius:16px;background:var(--raised);box-shadow:0 8px 24px rgba(0,0,0,.18);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;font-weight:700;color:var(--ink);transition:transform .1s,background .1s}
+.fg[data-d="c"]{opacity:.92}
+.fg.on{background:var(--tabc,var(--ink));color:var(--on-accent);transform:scale(1.1);border-color:transparent;opacity:1}
+.fg.on:not([class*="v-"]){background:var(--ink);color:var(--ground)}
+body.nav-flick .app{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+body.nav-flick #toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body.nav-flick:has(.tt-bar) #toast{bottom:calc(262px + env(safe-area-inset-bottom,0px))}
+/* フリック時はヘッダーを全幅にし、ボタンは横並び */
+body.nav-flick.rail-right .app,body.nav-flick.rail-left .app{padding-inline:16px}
+html body.nav-flick.rail-right header,html body.nav-flick.rail-left header{margin-inline:0!important;padding-inline:0!important}
+body.nav-flick .brand,body.nav-flick.rail-left .brand{grid-template-columns:minmax(0,1fr) auto}
+body.nav-flick.rail-left .brand .hr{order:0}
+html body.nav-flick .brand .hr{flex-direction:row!important;width:auto!important;background:none!important;box-shadow:none!important;border:0!important;padding:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important;gap:6px!important}
+html body.nav-flick .brand .hr .hbtn{width:42px!important;height:42px!important;background:color-mix(in srgb,var(--surface) 70%,transparent)}
+html body.nav-flick .brand .hr .hbtn.plus{background:var(--accent)}
+
+:is(.fkey,.fg).v-cal{--tabc:var(--cal)}:is(.fkey,.fg).v-caution{--tabc:var(--caution)}:is(.fkey,.fg).v-chore{--tabc:var(--future)}:is(.fkey,.fg).v-diary{--tabc:var(--diary)}:is(.fkey,.fg).v-future{--tabc:var(--future)}:is(.fkey,.fg).v-habit{--tabc:var(--habit)}:is(.fkey,.fg).v-money{--tabc:var(--habit)}:is(.fkey,.fg).v-psched{--tabc:var(--cal)}:is(.fkey,.fg).v-pshop{--tabc:var(--shop)}:is(.fkey,.fg).v-ptask{--tabc:var(--task)}:is(.fkey,.fg).v-pwish{--tabc:var(--future)}:is(.fkey,.fg).v-reflect{--tabc:var(--reflect)}:is(.fkey,.fg).v-shop{--tabc:var(--shop)}:is(.fkey,.fg).v-talk{--tabc:var(--talk)}:is(.fkey,.fg).v-task{--tabc:var(--task)}:is(.fkey,.fg).v-trouble{--tabc:var(--trouble)}
+@media (max-width:759px){body.rail-right:not(.nav-flick) header #offline{margin-right:74px}body.rail-left:not(.nav-flick) header #offline{margin-left:74px}}
+
+/* v74: 見出しの2行（アプリ名・あいさつ）を2列の表にして、右の丸いラベルの左端をそろえる */
+.brand>div:not(.hr){display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:6px;align-items:center;min-width:0}
+.brand>div:not(.hr)>:not(.appname):not(.greet){grid-column:1/-1}
+.brand .appname,.brand .greet{display:contents!important}
+.brand .greet[hidden]{display:none!important}
+.brand .greet[hidden]~h1{margin-top:0}
+#appTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.brand .greet .gw{white-space:nowrap;font-size:12.5px}
+.gchips{display:flex;flex-wrap:wrap;gap:4px 6px;min-width:0}
+.brand .appname .sync{justify-self:start;height:22px;box-sizing:border-box;padding:0 9px 0 7px;box-shadow:0 0 0 1px var(--line) inset}
+.gchips .hchip{height:22px;box-sizing:border-box;padding:0 9px}
 </style>
 <style id="palStyle"></style>
 
@@ -913,7 +986,7 @@ body.layer-me:not(.v-home) .hdr-bg{background:linear-gradient(color-mix(in srgb,
 <div class="onb" id="onb" hidden role="dialog" aria-modal="true" aria-label="はじめての設定"><div class="onb-card" id="onbCard"></div></div>
 <input type="file" id="rcptIn" accept="image/*" multiple hidden>
 <input type="file" id="dphIn" accept="image/*" multiple hidden>
-<div class="sa-top" aria-hidden="true"></div><div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
+<nav class="fbar" id="fbar" aria-label="メニュー（フリック）"></nav><div class="fguide" id="fguide" hidden aria-hidden="true"></div><div class="sa-top" aria-hidden="true"></div><div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
 
 
 <script>
@@ -928,7 +1001,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="71";
+const APP_VERSION="74";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1004,7 +1077,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1"};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail"};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2317,7 +2390,9 @@ function viewSettings(){
   <section class="card"><h2>ボタンとアイコン</h2><div class="opts">
     ${opt("shape","circle","丸",'<span class="pv" style="border-radius:50%"></span>')}${opt("shape","round","角丸",'<span class="pv" style="border-radius:7px"></span>')}${opt("shape","square","四角",'<span class="pv" style="border-radius:2px"></span>')}</div>
     <h2>アイコン</h2><div class="opts">${opt("icon","line","線")}${opt("icon","fill","塗り")}</div>
-    <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div></section>
+    <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
+    <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー（右か左）")}${opt("nav","flick","フリック（画面の下）")}</div>
+    <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
   <section class="card"><h2>楽しさ</h2>
     <h2>操作の感触（触覚フィードバック）</h2><div class="opts">${opt("haptic","on","しっかり")}${opt("haptic","light","軽め")}${opt("haptic","off","なし")}</div><div class="card" style="margin-top:8px;padding:10px;display:grid;gap:8px">
   <div style="font-weight:700;font-size:13px">振動テスト（どれでコツッと来るか確認）</div>
@@ -2398,7 +2473,7 @@ function greetLine(){
   const an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).sort((a,b)=>a.a.days-b.a.days)[0];
   const cd=an&&an.a.days<=60?`<span class="hchip ann">${esc(an.p.text)}${an.a.days===0?" 今日！":` あと<b>${an.a.days}</b>日`}</span>`:"";
   const off=offState(today())==="both"?`<span class="hchip off">今日はふたり休み</span>`:"";
-  return `<span class="gw">${w}、${esc(prefs.nick||nameOf(myRole()))}</span>${off}${cd}`;
+  return `<span class="gw">${w}、${esc(prefs.nick||nameOf(myRole()))}</span>${off||cd?`<span class="gchips">${off}${cd}</span>`:""}`;
 }
 function renderChrome(){
   const v=state.view, n=counts();
@@ -2406,7 +2481,7 @@ function renderChrome(){
   { const off=$("offline"); if(state.guest){ off.textContent="このアカウントは登録されていません（設定 › ふたりの名前 を確認）"; off.hidden=false; } else if(state.needCode){ off.innerHTML=`合言葉の確認が必要です。<button class="link" data-act="openBind">入力する</button>`; off.hidden=false; } else if(state.connIssue){ off.textContent=state.connIssue; off.hidden=false; } }
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
-  document.body.className=`v-${v} rail-${prefs.railSide} layer-${layer}`;
+  document.body.className=`v-${v} rail-${prefs.railSide} layer-${layer}${prefs.nav==="flick"?" nav-flick":""}`;
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
@@ -2427,6 +2502,7 @@ function renderChrome(){
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
+  renderFlick(layer,n);
 }
 function render(anim){
   state.dirty=false;
@@ -4263,7 +4339,7 @@ const railEl=$("rail");
 function railFit(){
   const rsc=$("rscroll"); if(!rsc) return;
   const tab=[...rsc.querySelectorAll(".rtab")].find(b=>!b.hidden); const th=tab?tab.offsetHeight:50;
-  const hd=document.querySelector("header"), top0=Math.max(12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0),(hd&&innerWidth<760?hd.getBoundingClientRect().bottom+8:0)), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
+  const top0=railTop0(), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const other=railEl.offsetHeight-rsc.offsetHeight;
   const cap=Math.max(th*3,innerHeight-top0-bottomPad-16-other);
   rsc.style.setProperty("--rmax",Math.min(LAYER_TABS.me.length*(th+2)-2,cap)+"px");
@@ -4288,15 +4364,23 @@ $("rscroll").addEventListener("wheel",e=>{ if(rMax()<=0) return; e.preventDefaul
 addEventListener("resize",()=>{ railFit(); placeRail(false); });
 function placeRail(anim){
   railFit();
-  const hd=document.querySelector("header"), h=railEl.offsetHeight, top0=Math.max(12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0),(hd&&innerWidth<760?hd.getBoundingClientRect().bottom+8:0));
+  const h=railEl.offsetHeight, top0=railTop0();
   const bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const maxTop=Math.max(top0,innerHeight-bottomPad-16-h);
   let top=prefs.railY<0?maxTop:Math.round(prefs.railY*innerHeight);
+  if(top-top0<56) top=top0; /* ドックの近くならドックの真下にくっつける */
   top=Math.min(Math.max(top,top0),maxTop);
   railEl.classList.toggle("snap",!!anim);
   railEl.style.top=top+"px";
   railEl.style.left=prefs.railSide==="left"?`calc(10px + env(safe-area-inset-left,0px))`:`calc(100% - ${railEl.offsetWidth+10}px - env(safe-area-inset-right,0px))`;
   requestAnimationFrame(alignDock); clearTimeout(placeRail.t); placeRail.t=setTimeout(alignDock,380);
+}
+/* メニューを置ける一番上：縦ドックがある時はドックのすぐ下（すき間はメニュー内と同じ8px）、ない時はヘッダーの下 */
+function railTop0(){
+  const safe=12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0); if(innerWidth>=760) return safe;
+  const dock=document.querySelector(".brand .hr");
+  if(dock&&getComputedStyle(dock).flexDirection==="column") return Math.max(safe,Math.round(dock.getBoundingClientRect().bottom)+8);
+  const hd=document.querySelector("header"); return Math.max(safe,hd?hd.getBoundingClientRect().bottom+8:0);
 }
 /* 右上のボタン列（ドック）を、下のメニューと縦の線がぴったりそろうように合わせる（文字サイズの拡大にも対応） */
 function alignDock(){
@@ -4340,8 +4424,49 @@ function endRail(){
 }
 $("grip").addEventListener("pointerup",endRail); $("grip").addEventListener("pointercancel",endRail);
 addEventListener("resize",()=>placeRail(false));
+
+/* ================= フリックメニュー（設定 › メニューの形） ================= */
+const FLICK={us:[{c:"home",u:"log"},{c:"talk",u:"trouble",r:"caution"},{c:"task",u:"shop",r:"chore"},{c:"cal",u:"diary"},{c:"money",u:"future"},{c:"@me",u:"psched",l:"habit",r:"ptask"}],
+  me:[{c:"home",u:"log"},{c:"psched",u:"habit"},{c:"ptask",u:"pshop"},{c:"pwish",u:"reflect"},{c:"@us",u:"cal",l:"talk",r:"task"}]};
+const FSHORT={log:"ログ",check:"未確認","@me":"じぶん","@us":"ふたり",home:"ホーム"};
+const FICON={home:'<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>',
+  log:'<svg viewBox="0 0 24 24"><circle class="f" cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  "@me":'<svg viewBox="0 0 24 24"><rect class="f" x="6" y="10.5" width="12" height="9" rx="2"/><path d="M9 10.5V8a3 3 0 0 1 6 0v2.5"/></svg>',
+  "@us":'<svg viewBox="0 0 24 24"><circle class="f" cx="9" cy="9" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14.5 14.6c.5-.1 1-.1 1.5-.1 2.3 0 4 1.3 4.5 4"/></svg>'};
+const fIcon=v=>FICON[v]||((document.querySelector(`#rail .rtab[data-v="${v}"] svg`)||{}).outerHTML||"");
+const fLabel=v=>FSHORT[v]||(()=>{ const b=document.querySelector(`#rail .rtab[data-v="${v}"]`); return b?[...b.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join("").trim():(TITLES[v]||v); })();
+const fCls=v=>v==="@me"?"v-reflect":v==="@us"?"v-talk":v==="home"||v==="log"?"":"v-"+v;
+let fKeys=[];
+function renderFlick(layer,n){
+  const bar=$("fbar"); if(!bar) return;
+  if(prefs.nav!=="flick"){ if(bar.innerHTML) bar.innerHTML=""; return; }
+  const hs=hiddenTabs(), v=state.view, F=freshByView(), ok=t=>t&&(t[0]==="@"||!hs.has(t)||t===v);
+  fKeys=FLICK[layer].map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
+  bar.innerHTML=fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
+    const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:(n[t]||0)),0), fresh=all.some(t=>F[t]);
+    return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>k[d]).map(d=>`<i class="fh ${d}"></i>`).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
+}
+function fGo(t){ if(t==="@me"||t==="@us") switchLayer(t.slice(1)); else if(t!==state.view) go(t); else if(t==="future"&&state.fut){ state.fut=null; render(-40); } }
+{ const bar=$("fbar"), gd=$("fguide"); let fs=null;
+  const dirOf=(dx,dy)=>Math.hypot(dx,dy)<18?"c":Math.abs(dx)>Math.abs(dy)?(dx<0?"l":"r"):(dy<0?"u":"d");
+  const showG=(k,r)=>{ const W=66,H=58,G=6, cx=Math.min(Math.max(r.left+r.width/2,W*1.5+G+8),innerWidth-W*1.5-G-8), cy=r.top+r.height/2;
+    const pos={c:[0,0],u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+    gd.innerHTML=Object.entries(k).map(([d,t])=>`<div class="fg ${fCls(t)}" data-d="${d}" style="left:${cx-W/2+pos[d][0]*(W+G)}px;top:${cy-H/2+pos[d][1]*(H+G)-(k.d?0:H*.35)}px">${fIcon(t)}<span>${esc(fLabel(t))}</span></div>`).join("");
+    gd.hidden=false; };
+  const sel=d=>{ gd.querySelectorAll(".fg").forEach(x=>x.classList.toggle("on",x.dataset.d===d)); };
+  bar.addEventListener("pointerdown",e=>{ const b=e.target.closest(".fkey"); if(!b) return; e.preventDefault(); const k=fKeys[+b.dataset.fk]; if(!k) return;
+    fs={k,x:e.clientX,y:e.clientY,d:"c",id:e.pointerId,b}; try{ b.setPointerCapture(e.pointerId); }catch(_){} b.classList.add("down");
+    if(Object.keys(k).length>1){ showG(k,b.getBoundingClientRect()); sel("c"); } haptic("tick"); });
+  bar.addEventListener("pointermove",e=>{ if(!fs||e.pointerId!==fs.id) return; let d=dirOf(e.clientX-fs.x,e.clientY-fs.y); if(!fs.k[d]) d=Math.hypot(e.clientX-fs.x,e.clientY-fs.y)<18?"c":fs.d==="c"?"c":fs.d;
+    if(d!==fs.d){ fs.d=d; sel(d); haptic("tick"); } });
+  const end=(e,go)=>{ if(!fs||(e&&e.pointerId!==fs.id)) return; const t=fs.k[fs.d]; fs.b.classList.remove("down"); fs=null; gd.hidden=true; gd.innerHTML=""; if(go&&t){ bar.dataset.skip="1"; setTimeout(()=>delete bar.dataset.skip,400); fGo(t); } };
+  bar.addEventListener("pointerup",e=>end(e,true)); bar.addEventListener("pointercancel",e=>end(e,false));
+  bar.addEventListener("click",e=>{ if(bar.dataset.skip) return; const b=e.target.closest(".fkey"); if(b&&fKeys[+b.dataset.fk]) fGo(fKeys[+b.dataset.fk].c); });
+  bar.addEventListener("contextmenu",e=>e.preventDefault());
+}
 let tipEl=null;
 function showTip(){
+  if(prefs.nav==="flick") return;
   if(store.get("futari.tipDone")||prefs.tipDone==="1"||prefs.onboarded!=="1") return;
   tipEl=document.createElement("div"); tipEl.className="rail-tip";
   tipEl.textContent="上の「ふたり／じぶん」でレイヤー切替。左右スワイプでタブ移動、上から下に引っぱると追加";
