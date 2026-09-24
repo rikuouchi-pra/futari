@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=115"></script>
+<script src="shim.js?v=116"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1356,6 +1356,8 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .hmore>summary::-webkit-details-marker{display:none}.hmore>summary::after{content:" ▾"}.hmore[open]>summary::after{content:" ▴"}
 .hmore>section{margin-top:12px}
 .brief .br-chk{margin:4px 0 6px}.brief .br-more{display:block;margin:0 0 6px auto}
+
+.hsrow{display:flex;align-items:center;gap:14px;margin:6px 0}.hsprev{width:64px;height:64px;border-radius:15px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex:none;background:var(--line);object-fit:cover}
 </style>
 <style id="palStyle"></style>
 
@@ -1434,7 +1436,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="115";
+const APP_VERSION="116";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1507,7 +1509,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -2975,7 +2977,12 @@ function viewSettings(){
     <div class="colorrow"><input type="color" id="logoBgPick" value="${esc(prefs.logoBg||"#1f2a24")}" aria-label="アイコンの背景色"><span style="font-size:13px">アイコンの色</span>${prefs.logoBg?'<button class="link" data-act="logoBgReset">テーマに合わせる</button>':""}</div>
     <div class="colorrow"><input type="color" id="logoFgPick" value="${esc(prefs.logoFg||"#ffffff")}" aria-label="マークの色"><span style="font-size:13px">マーク（絵・文字）の色</span>${prefs.logoFg?'<button class="link" data-act="logoFgReset">白に戻す</button>':""}</div>
     <h2>アイコンの大きさ（名前の左）</h2><div class="opts">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>opt("logoSz",v,l)).join("")}</div>
-    <p>名前の左のマークと、ホーム画面に追加するときのアイコンに使われます。すでにホーム画面にあるアイコンは、いったん削除して「ホーム画面に追加」し直すと変わります。</p></section>
+    <p>名前の左のマークに使われます。</p>
+    <h2>ホーム画面のアイコン</h2>
+    <div class="hsrow"><img id="hsPrev" class="hsprev" alt="ホーム画面のアイコンの見本" src="${esc((document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"")}"><div class="hsopts"><div class="opts"><button class="opt" data-act="hsSet" data-v="same" aria-pressed="${!prefs.hsLogo||prefs.hsLogo==="same"}">アプリ内と同じ</button><button class="opt" data-act="hsSet" data-v="pick" aria-pressed="${!!prefs.hsLogo&&prefs.hsLogo!=="same"}">別のアイコンにする</button></div></div></div>
+    ${prefs.hsLogo&&prefs.hsLogo!=="same"?`<div class="logos">${[...Object.keys(LOGOS),"txt",...(prefs.logoImg?["img"]:[]),...(prefs.logoSvg?["ai"]:[])].map(k=>`<button class="logo-o" data-act="hsSet" data-v="${k}" aria-pressed="${prefs.hsLogo===k}"><span class="logo-pv" style="${logoStyle(k)}"></span><small>${esc((LOGOS[k]||{}).n||({txt:"文字",img:"写真",ai:"AIで作った"})[k])}</small></button>`).join("")}</div>`:""}
+    <div class="opts"><button class="opt" data-act="hsSave">アイコン画像を保存</button></div>
+    <ol class="steps"><li>Safariでこのアプリを開き、共有ボタン →「ホーム画面に追加」</li><li>すでに追加してあるときは、いまのアイコンを長押し →「Appを削除」（ホーム画面から取り除くだけでデータは消えません）してから追加し直す</li><li>うまく変わらないとき：「アイコン画像を保存」→ ショートカットApp で「URLを開く」を作り、ホーム画面に追加するときにこの画像を選ぶ</li></ol></section>
   <section class="card"><h2>表示するタブ</h2><p>使わないタブは隠せます（いつでも戻せます）。</p>
     <div class="opts">${[...LAYER_TABS.us,...LAYER_TABS.me].map(k=>{ const hid=hiddenTabs().has(k); return `<button class="opt" data-tabtoggle="${k}" aria-pressed="${!hid}">${esc(TITLES[k])}</button>`; }).join("")}</div>
     <h2>タイムテーブルの開始時刻</h2><div class="opts">${["3","4","5","6","7","8"].map(v=>opt("ttStart",v,v+":00から")).join("")}</div>
@@ -3371,6 +3378,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="qaTopic"){ const d=b.dataset.qd; addTopicText(`今日の質問「${qaQ(d)}」の答えについて`); }
   else if(a==="agTopic") addTopicText(b.dataset.t);
   else if(a==="dcalNow") dcalCheck(true);
+  else if(a==="hsSet"){ prefs.hsLogo=b.dataset.v; savePrefs(); logoIcon.k=null; logoIcon(); render(); }
+  else if(a==="hsSave"){ hsSave(); }
   else if(a==="logoSet"){ prefs.logo=b.dataset.v; savePrefs(); render(); }
   else if(a==="logoTxt"){ const t=prompt("アイコンに入れる文字（1〜3文字）",prefs.logoTxt||"ふ"); if(t!=null&&t.trim()){ prefs.logoTxt=t.trim().slice(0,3); prefs.logo="txt"; savePrefs(); render(); } }
   else if(a==="logoImg") logoPickImg();
@@ -5248,12 +5257,21 @@ function logoApply(){
   el.style.setProperty("--logo",bg);
   clearTimeout(logoApply.t); logoApply.t=setTimeout(logoIcon,400); }
 /* ホーム画面用のアイコン（180px）を作って apple-touch-icon に入れる */
+const hsKey=()=>{ const k=prefs.hsLogo; return k&&(LOGOS[k]||k==="txt"||(k==="img"&&prefs.logoImg)||(k==="ai"&&prefs.logoSvg))?k:(prefs.logo||"rings"); };
+function hsDraw(size,cb){ const k=hsKey(), c=document.createElement("canvas"); c.width=c.height=size; const g=c.getContext("2d"), im=new Image();
+  im.onload=()=>{ try{ g.drawImage(im,0,0,size,size); cb(c); }catch(e){ cb(null); } }; im.onerror=()=>cb(null);
+  im.src=k==="img"&&prefs.logoImg?prefs.logoImg:"data:image/svg+xml,"+encodeURIComponent(logoSvg(k,logoBgColor(),true)); }
 function logoIcon(){
-  const k=prefs.logo||"rings", key=[k,prefs.logoTxt,prefs.logoBg,prefs.logoFg,prefs.logoImg&&prefs.logoImg.length,logoBgColor()].join("|"); if(logoIcon.k===key) return; logoIcon.k=key;
+  const k=hsKey(), key=[k,prefs.logoTxt,prefs.logoBg,prefs.logoFg,prefs.logoImg&&prefs.logoImg.length,logoBgColor()].join("|"); if(logoIcon.k===key) return; logoIcon.k=key;
   const c=document.createElement("canvas"); c.width=c.height=180; const g=c.getContext("2d"), im=new Image();
   im.onload=()=>{ try{ g.drawImage(im,0,0,180,180); const u=c.toDataURL("image/png");
-      for(const rel of ["apple-touch-icon","icon"]){ let l=document.querySelector(`link[rel="${rel}"]`); if(!l){ l=document.createElement("link"); l.rel=rel; document.head.appendChild(l); } l.href=u; } }catch(e){} };
+      for(const rel of ["apple-touch-icon","icon"]){ const ls=[...document.querySelectorAll(`link[rel="${rel}"]`)]; let l=ls[0]; ls.slice(1).forEach(x=>x.remove()); if(!l){ l=document.createElement("link"); l.rel=rel; document.head.appendChild(l); } l.setAttribute("sizes","180x180"); l.href=u; }
+      hsDraw(512,c2=>{ if(!c2) return; try{ const u5=c2.toDataURL("image/png"), m=document.querySelector('link[rel="manifest"]'); if(!m) return;
+        const man={name:prefs.appName||"ふたりのリスト",short_name:(prefs.appName||"ふたりのリスト").slice(0,12),start_url:location.href.split("#")[0],scope:location.href.split("#")[0].replace(/[^/]*$/,""),display:"standalone",background_color:"#111816",theme_color:"#111816",icons:[{src:u,sizes:"180x180",type:"image/png"},{src:u5,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
+        if(logoIcon.mu) URL.revokeObjectURL(logoIcon.mu); logoIcon.mu=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"})); m.href=logoIcon.mu; }catch(_){} });
+      const pv=document.getElementById("hsPrev"); if(pv) pv.src=u; }catch(e){} };
   im.src=k==="img"&&prefs.logoImg?prefs.logoImg:"data:image/svg+xml,"+encodeURIComponent(logoSvg(k,logoBgColor(),true)); }
+function hsSave(){ hsDraw(512,c=>{ if(!c){ toast("アイコン画像を作れませんでした"); return; } c.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`${prefs.appName||"futari"}-icon.png`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },2000); toast("アイコン画像を保存しました"); },"image/png"); }); }
 function logoPickImg(){ let i=$("logoIn"); if(!i){ i=document.createElement("input"); i.type="file"; i.accept="image/*"; i.id="logoIn"; i.hidden=true; document.body.appendChild(i);
     i.addEventListener("change",async()=>{ const f=i.files&&i.files[0]; if(!f) return; try{ const bm=await createImageBitmap(f), n=192, c=document.createElement("canvas"); c.width=c.height=n; const sc=Math.max(n/bm.width,n/bm.height), w=bm.width*sc, h=bm.height*sc;
         c.getContext("2d").drawImage(bm,(n-w)/2,(n-h)/2,w,h); prefs.logoImg=c.toDataURL("image/jpeg",.85); prefs.logo="img"; savePrefs(); render(); toast("アイコンを写真にしました"); }catch(e){ toast("この写真は使えませんでした"); } }); }
