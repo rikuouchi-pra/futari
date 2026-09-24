@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=92"></script>
+<script src="shim.js?v=94"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1176,6 +1176,48 @@ body.layer-me .flayers button[data-flayer="me"][aria-pressed="true"]{background:
 
 /* v92: メニューの並びを逆に（縦メニューはタブの上下を入れ替え） */
 body.nav-rev .rinner{flex-direction:column-reverse}
+
+/* v93: 上部の表示（位置・大きさ・たたむ・並び） */
+.brand .appname>*{order:var(--o-brand,0)}
+.brand .greet>*{order:var(--o-greet,1)}
+.brand .trow{order:var(--o-title,2)}
+.brand .hsub,.brand #lock{order:var(--o-layer,3)}
+html body.hh-brand .brand .appname>*,html body.hh-greet .brand .greet>*,html body.hh-layer .brand .hsub,html body.hh-layer .brand #lock{display:none!important}
+html body.hdr-fold .brand .appname>*,html body.hdr-fold .brand .greet>*,html body.hdr-fold .brand .hsub,html body.hdr-fold .brand #lock{display:none!important}
+.trow-r{display:inline-flex;align-items:center;gap:6px;flex:none}
+.hfold{width:30px;height:30px;border:0;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--muted);cursor:pointer;flex:none;margin-top:4px}
+.hfold svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+body.hdr-fold .hfold svg{transform:rotate(180deg)}
+body.hdr-fold .brand h1{margin-top:0!important}
+body.hs-s .brand>div:not(.hr){zoom:.86}
+body.hs-l .brand>div:not(.hr){zoom:1.14}
+/* スクロールで隠れる */
+html body.hdr-scroll header{position:relative!important;top:auto!important}
+body.hdr-scroll .hdr-bg{display:none!important}
+/* 画面の下 */
+html:root:root:root body.hdr-bottom header{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:0;z-index:8;margin:0!important;padding:10px max(16px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom,0px) + 10px) max(16px,env(safe-area-inset-left))!important;border-radius:22px 22px 0 0;background:color-mix(in srgb,var(--surface) 82%,transparent)!important;backdrop-filter:blur(18px) saturate(1.4)!important;-webkit-backdrop-filter:blur(18px) saturate(1.4)!important;box-shadow:0 -8px 30px rgba(0,0,0,.12);border-top:1px solid color-mix(in srgb,#fff 25%,transparent)}
+body.hdr-bottom .hdr-bg{display:none!important}
+html body.hdr-bottom .brand{grid-template-columns:minmax(0,1fr) auto!important}
+html body.hdr-bottom .brand .hr{flex-direction:row!important;width:auto!important;background:none!important;box-shadow:none!important;border:0!important;padding:0!important;transform:none!important;align-self:center}
+html body.hdr-bottom .brand .hr .hbtn{width:42px!important;height:42px!important}
+body.hdr-bottom .app{padding-bottom:calc(var(--hdrbh,200px) + 24px)!important}
+body.hdr-bottom #main{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
+body.hdr-bottom.nav-flick .fbar,body.hdr-bottom.nav-railf .fbar{bottom:calc(var(--hdrbh,200px) + 10px)}
+body.hdr-bottom #toast{bottom:calc(var(--hdrbh,200px) + 16px)!important}
+body.hdr-bottom.nav-flick #toast{bottom:calc(var(--hdrbh,200px) + 90px)!important}
+.hord{list-style:none;margin:6px 0 8px;padding:0;display:grid;gap:6px}
+.hord li{display:flex;align-items:center;gap:6px}
+.hord-n{flex:1;font-size:14px;font-weight:600}
+.hord .icon-btn{width:34px;height:34px}
+.hord .opt{min-width:64px}
+.hord-s{font-size:11px;color:var(--muted);min-width:64px;text-align:center}
+
+/* v94: フリックのメニューを動かすつまみ */
+.fgrip{position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:48px;height:18px;border:0;background:transparent;padding:0;cursor:grab;touch-action:none;display:grid;place-items:center;z-index:2}
+.fgrip span{width:34px;height:5px;border-radius:3px;background:color-mix(in srgb,var(--ink) 30%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--surface) 70%,transparent)}
+.fbar.dragging{transition:none!important;box-shadow:0 18px 40px rgba(0,0,0,.28);opacity:.95}
+.fbar.dragging .fgrip{cursor:grabbing}
+.fbar.moved{margin:0!important}
 </style>
 <style id="palStyle"></style>
 
@@ -1185,7 +1227,7 @@ body.nav-rev .rinner{flex-direction:column-reverse}
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
     <div class="brand">
-      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><button class="wx" id="wx" hidden aria-label="天気予報"></button></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
+      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
       <div class="hr">
         <button class="hbtn plus" id="plus" aria-label="追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="hbtn" id="chkBtn" aria-label="未入力・未確認" style="position:relative"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg><span class="badge" id="b-chk" hidden></span></button>
@@ -1250,7 +1292,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="92";
+const APP_VERSION="94";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1326,7 +1368,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2653,9 +2695,17 @@ function viewSettings(){
     <h2>アイコン</h2><div class="opts">${opt("icon","line","線")}${opt("icon","fill","塗り")}</div>
     <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
     <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
+    <h2>メニューの位置</h2><p class="who">${prefs.nav==="flick"||prefs.nav==="railf"?"メニューの上の短い線（つまみ）を押したまま動かすと、好きな場所に置けます。":"メニューの上の2本線（つまみ）を押したまま動かすと、上下・左右に移動できます。"}</p><div class="opts"><button class="opt" data-act="navPosReset">位置を元に戻す</button></div>
     <h2>並び順</h2><div class="opts">${opt("navRev","0",prefs.nav==="flick"?"ふつう（左から）":"ふつう（上から）")}${opt("navRev","1",prefs.nav==="flick"?"逆（右から）":"逆（下から）")}</div>
     ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
     <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
+  <section class="card"><h2>上部の表示（アプリ名・あいさつ・見出し・天気・ふたり／じぶん）</h2>
+    <h2>位置</h2><div class="opts">${opt("hdrPos","top","上に固定")}${opt("hdrPos","scroll","上（スクロールで隠れる）")}${opt("hdrPos","bottom","画面の下")}</div>
+    <h2>大きさ</h2><div class="opts">${opt("hdrSize","s","小さめ")}${opt("hdrSize","m","ふつう")}${opt("hdrSize","l","大きめ")}</div>
+    <h2>たたむ</h2><div class="opts">${opt("hdrFold","0","広げる")}${opt("hdrFold","1","たたむ（見出しの行だけ）")}</div><p class="who">見出しの右の「︿」でもたためます。</p>
+    <h2>並びと表示</h2><ul class="hord">${(prefs.hdrOrder||"brand,greet,title,layer").split(",").map((k,i,a)=>{ const hid=(prefs.hdrHide||"").split(",").includes(k), L={brand:"アプリ名",greet:"あいさつ・記念日",title:"見出し・天気",layer:"ふたり／じぶん"}[k];
+      return `<li><span class="hord-n">${L}</span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
+    <div class="opts"><button class="opt" data-act="hreset">初期に戻す</button></div></section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
     <p>見出しの右に今の天気と気温、今日の最高・最低・降水確率を出します。タップで12時間と3日間の予報。雨が降りそうな日は「今日のまとめ」にも出ます。</p>
     <div class="opts"><button class="opt" data-act="wxHere">現在地にする</button><button class="opt" data-act="wxDef" aria-pressed="${!prefs.wxLat}">刈谷（既定）</button></div>
@@ -2761,7 +2811,8 @@ function renderChrome(){
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
   const NV=prefs.nav, side=NV==="railf"?(prefs.hand==="left"?"left":"right"):prefs.railSide;
-  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""}`;
+  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""} hdr-${prefs.hdrPos||"top"} hs-${prefs.hdrSize||"m"}${prefs.hdrFold==="1"?" hdr-fold":""}${(prefs.hdrHide||"").split(",").filter(Boolean).map(k=>" hh-"+k).join("")}`;
+  { const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), bd=document.querySelector(".brand>div:not(.hr)"); if(bd) ["brand","greet","title","layer"].forEach(k=>bd.style.setProperty("--o-"+k,String(Math.max(0,O.indexOf(k))))); }
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
   document.querySelectorAll("#rail [data-l]").forEach(el=>el.hidden=el.dataset.l!==layer||(el.dataset.v&&hs.has(el.dataset.v)&&el.dataset.v!==v));
@@ -2783,7 +2834,7 @@ function renderChrome(){
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
   placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
-  renderFlick(layer,n); fitTitle(); wxRender(); logoApply();
+  renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); logoApply();
 }
 function render(anim){
   state.dirty=false;
@@ -2985,7 +3036,7 @@ $("main").addEventListener("click",e=>{
   const pk=e.target.closest("[data-ppk]"); if(pk&&state.prep&&state.prep.items){ state.prep.items[+pk.dataset.ppk].on=pk.checked; const bt=document.querySelector('[data-act="prepAdd"]'); if(bt) bt.textContent=`やることに追加（${state.prep.items.filter(i=>i.on).length}件）`; return; }
   const qk=e.target.closest("[data-qk]"); if(qk&&state.quick&&state.quick.r){ const r=state.quick.r; r.text=(($("qText")||{}).value||r.text); r.date=($("qDate")||{}).value||""; r.time=($("qTime")||{}).value||""; r.kind=qk.dataset.qk; render(); return; }
   const wk=e.target.closest("[data-wcwk]"); if(wk){ const r=state.paint.who||myRole(), C=wcCfg(r), i=wk.dataset.wcwk, nx=C.wk.includes(i)?C.wk.replace(i,""):C.wk+i; wcSave(r,{wk:nx.split("").sort().join("")}); state.wcDay=null; if(r===myRole()&&C.on) wcRun(r,true); render(); return; }
-  const sgo=e.target.closest("[data-sgo]"); if(sgo){ searchGo(sgo.dataset.sgo,sgo.dataset.sid); return; }
+  const sgo=e.target.closest("[data-sgo]"); if(sgo){ searchGo(sgo.dataset.sgo,sgo.dataset.sid,sgo.dataset.ssub); return; }
   const so=e.target.closest("[data-sho]"); if(so&&state.shOcr&&state.shOcr.days){ const L=[...SHIFTS.map(x=>x[0]),""], cur=state.shOcr.days[so.dataset.sho]||"", nx=L[(L.indexOf(cur)+1)%L.length]; if(nx) state.shOcr.days[so.dataset.sho]=nx; else delete state.shOcr.days[so.dataset.sho]; haptic("tick"); render(); return; }
   const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday); return; }
   const cd=e.target.closest("[data-cday]"); if(cd){ toggleCautionDay(cd.dataset.cid,cd.dataset.cday); return; }
@@ -3069,6 +3120,10 @@ $("main").addEventListener("click",e=>{
   else if(a==="logoBgReset"){ prefs.logoBg=""; savePrefs(); render(); }
   else if(a==="srchClr"){ state.srchQ=""; render(); setTimeout(()=>{ const i=$("srchIn"); if(i) i.focus(); },30); }
   else if(a==="appNm"){ prefs.appName=b.dataset.v; savePrefs(); render(); toast(`アプリの名前を「${b.dataset.v}」にしました`); }
+  else if(a==="navPosReset"){ if(prefs.nav==="railf"){ prefs.fvL=""; prefs.fvT=""; } else if(prefs.nav==="flick"){ prefs.fbL=""; prefs.fbT=""; } else { prefs.railY=-1; prefs.railSide="right"; } savePrefs(); render(); toast("メニューの位置を元に戻しました"); }
+  else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
+  else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
+  else if(a==="hreset"){ prefs.hdrOrder="brand,greet,title,layer"; prefs.hdrHide=""; prefs.hdrPos="top"; prefs.hdrSize="m"; prefs.hdrFold="0"; savePrefs(); render(); }
   else if(a==="wxHere") wxLocate();
   else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
   else if(a==="cmode"){ const w=b.dataset.v==="week"; if(w!==state.calWeek){ haptic("tick"); setWeek(w); } }
@@ -4696,7 +4751,8 @@ function railFit(){
   const tab=[...rsc.querySelectorAll(".rtab")].find(b=>!b.hidden); const th=tab?tab.offsetHeight:50;
   const top0=railTop0(), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const other=railEl.offsetHeight-rsc.offsetHeight;
-  const cap=Math.max(th*3,innerHeight-top0-bottomPad-16-other);
+  const hb=prefs.hdrPos==="bottom"?((document.querySelector("header")||{}).offsetHeight||0):0;
+  const cap=Math.max(th*3,innerHeight-top0-bottomPad-16-other-hb);
   const nat=($("rinner")||{}).offsetHeight||LAYER_TABS.us.length*(th+2); rsc.style.setProperty("--rmax",Math.min(nat,cap)+"px");
   railShade();
 }
@@ -4721,7 +4777,8 @@ function placeRail(anim){
   railFit();
   const h=railEl.offsetHeight, top0=railTop0();
   const bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
-  const maxTop=Math.max(top0,innerHeight-bottomPad-16-h);
+  const hb=prefs.hdrPos==="bottom"?((document.querySelector("header")||{}).offsetHeight||0):0;
+  const maxTop=Math.max(top0,innerHeight-bottomPad-16-h-hb);
   let top=prefs.railY<0?maxTop:Math.round(prefs.railY*innerHeight);
   if(top-top0<56) top=top0; /* ドックの近くならドックの真下にくっつける */
   top=Math.min(Math.max(top,top0),maxTop);
@@ -4732,14 +4789,14 @@ function placeRail(anim){
 }
 /* メニューを置ける一番上：縦ドックがある時はドックのすぐ下（すき間はメニュー内と同じ8px）、ない時はヘッダーの下 */
 function railTop0(){
-  const safe=12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0); if(innerWidth>=760) return safe;
+  const safe=12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0); if(innerWidth>=760||prefs.hdrPos==="bottom") return safe;
   const dock=document.querySelector(".brand .hr");
   if(dock&&getComputedStyle(dock).flexDirection==="column") return Math.max(safe,Math.round(dock.getBoundingClientRect().bottom)+8);
   const hd=document.querySelector("header"); return Math.max(safe,hd?hd.getBoundingClientRect().bottom+8:0);
 }
 /* 右上のボタン列（ドック）を、下のメニューと縦の線がぴったりそろうように合わせる（文字サイズの拡大にも対応） */
 function alignDock(){
-  const hd=document.querySelector("header"); if(hd) document.documentElement.style.setProperty("--hdrh",Math.ceil(hd.getBoundingClientRect().bottom)+"px");
+  const hd=document.querySelector("header"); if(hd){ document.documentElement.style.setProperty("--hdrh",Math.ceil(hd.getBoundingClientRect().bottom)+"px"); document.documentElement.style.setProperty("--hdrbh",Math.ceil(hd.offsetHeight)+"px"); }
   const dock=document.querySelector(".brand .hr"); if(!dock) return;
   dock.style.transform=""; dock.style.width="";
   if(innerWidth>=760||getComputedStyle(dock).flexDirection!=="column") return;
@@ -4790,7 +4847,7 @@ function fitTitle(){
 }
 addEventListener("resize",()=>fitTitle());
 /* 下のメニュー：下にスクロールすると隠れ、上に戻すと出る */
-{ let ly=0; addEventListener("scroll",()=>{ if(prefs.nav!=="flick") return; const y=scrollY, d=y-ly; if(Math.abs(d)<10) return; document.body.classList.toggle("fbar-hide",d>0&&y>140); ly=y; },{passive:true}); } try{ document.fonts&&document.fonts.ready.then(()=>fitTitle()); }catch(_){}
+{ let ly=0; addEventListener("scroll",()=>{ if(prefs.nav!=="flick") return; const y=scrollY, d=y-ly; if(Math.abs(d)<10) return; const fb=$("fbar"); if(fb&&fb.classList.contains("moved")&&fb.getBoundingClientRect().top<innerHeight*.6) return; document.body.classList.toggle("fbar-hide",d>0&&y>140); ly=y; },{passive:true}); } try{ document.fonts&&document.fonts.ready.then(()=>fitTitle()); }catch(_){}
 /* ================= フリックメニュー（設定 › メニューの形） ================= */
 /* 真ん中は「追加」。右上のボタン（未確認・設定）はホームのキーに入れる（上＝未確認・右＝設定・左＝ログ） */
 /* 利き手（設定 › メニューの形）：右手なら ホーム を右端に、左手なら左端に置く */
@@ -4823,7 +4880,7 @@ function renderFlick(layer,n){
   fKeys=KS.map(k=>{ const o={}; for(const d of ["c","u","l","r","d"]) if(ok(k[d])) o[d]=k[d]; if(!o.c){ const d=["u","r","l","d"].find(x=>o[x]); if(!d) return null; o.c=o[d]; delete o[d]; } return o; }).filter(Boolean);
   if(prefs.navRev==="1") fKeys.reverse();
   const lsw=prefs.nav==="railf"?`<div class="flayers" role="group" aria-label="ふたり／じぶん"><button data-flayer="us" aria-pressed="${layer==="us"}">ふたり</button><button data-flayer="me" aria-pressed="${layer==="me"}">じぶん</button></div>`:"";
-  bar.innerHTML=lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
+  bar.innerHTML=`<button class="fgrip" aria-label="メニューの位置を移動（ドラッグ）"><span></span></button>`+lsw+fKeys.map((k,i)=>{ const all=Object.values(k), hit=Object.entries(k).find(([d,t])=>t===v), show=hit?hit[1]:k.c;
     const badge=all.reduce((q,t)=>q+(t[0]==="@"?0:t==="check"?pendingChecks().length:(n[t]||0)),0), fresh=all.some(t=>F[t]);
     return `<button class="fkey ${fCls(show)}" data-fk="${i}" aria-current="${!!hit}" aria-label="${esc(TITLES[show]||fLabel(show))}${all.length>1?"（フリックで "+all.filter(t=>t!==k.c).map(t=>fLabel(t)).join("・")+"）":""}">${fIcon(show)}<span>${esc(fLabel(show))}</span>${["u","l","r","d"].filter(d=>k[d]).map(d=>`<i class="fh ${d}"></i>`).join("")}${badge?`<b class="badge">${badge}</b>`:""}${fresh&&!hit?'<i class="fdot"></i>':""}</button>`; }).join("");
 }
@@ -4955,6 +5012,22 @@ JSONだけを返す：{"icons":[{"svg":"<path d=\\"…\\" fill=\\"#fff\\"/>"}]}`
     state.logoAi={q,opts,err:opts.length?"":"うまく作れませんでした。言葉を変えてもう一度試してください"}; }
   catch(e){ state.logoAi={q,err:`作れませんでした（${(e&&(e.detail||e.code||e.message))||"不明"}）`}; }
   render(); }
+
+/* ================= フリックのメニューを好きな位置へ（上のつまみをドラッグ） ================= */
+function fbPos(){ return prefs.nav==="railf"?{l:prefs.fvL,t:prefs.fvT}:{l:prefs.fbL,t:prefs.fbT}; }
+function fbPlace(){ const bar=$("fbar"); if(!bar) return; const P=fbPos(), on=prefs.nav==="flick"||prefs.nav==="railf";
+  if(!on||P.l===""||P.l==null||P.t===""||P.t==null){ bar.style.left=bar.style.top=bar.style.right=bar.style.bottom=""; bar.classList.remove("moved"); return; }
+  const w=bar.offsetWidth, h=bar.offsetHeight, st=parseFloat(getComputedStyle(document.documentElement).paddingTop)||0;
+  const L=Math.min(Math.max(Number(P.l)*innerWidth,4),innerWidth-w-4), T=Math.min(Math.max(Number(P.t)*innerHeight,st+8),innerHeight-h-4);
+  Object.assign(bar.style,{left:L+"px",top:T+"px",right:"auto",bottom:"auto"}); bar.classList.add("moved"); }
+addEventListener("resize",()=>fbPlace());
+{ let fd=null; const bar=$("fbar");
+  bar.addEventListener("pointerdown",e=>{ const g=e.target.closest(".fgrip"); if(!g) return; e.preventDefault(); e.stopPropagation(); const r=bar.getBoundingClientRect(); fd={x:e.clientX,y:e.clientY,ox:e.clientX-r.left,oy:e.clientY-r.top,moved:false,id:e.pointerId}; try{ g.setPointerCapture(e.pointerId); }catch(_){} bar.classList.add("dragging"); haptic("tick"); },true);
+  bar.addEventListener("pointermove",e=>{ if(!fd||e.pointerId!==fd.id) return; if(Math.abs(e.clientX-fd.x)+Math.abs(e.clientY-fd.y)>4) fd.moved=true; Object.assign(bar.style,{left:(e.clientX-fd.ox)+"px",top:(e.clientY-fd.oy)+"px",right:"auto",bottom:"auto"}); },true);
+  const end=e=>{ if(!fd) return; const m=fd.moved; fd=null; bar.classList.remove("dragging"); if(!m){ fbPlace(); return; } const r=bar.getBoundingClientRect(), st=parseFloat(getComputedStyle(document.documentElement).paddingTop)||0, cl=Math.min(Math.max(r.left,4),innerWidth-r.width-4), ct=Math.min(Math.max(r.top,st+8),innerHeight-r.height-4), l=String(Math.round(cl/innerWidth*1000)/1000), t=String(Math.round(ct/innerHeight*1000)/1000);
+    if(prefs.nav==="railf"){ prefs.fvL=l; prefs.fvT=t; prefs.hand=(r.left+r.width/2)<innerWidth/2?"left":"right"; } else { prefs.fbL=l; prefs.fbT=t; }
+    savePrefs(true); render(); haptic("done"); };
+  bar.addEventListener("pointerup",end,true); bar.addEventListener("pointercancel",end,true); }
 /* ================= タブ・項目の検索（ホームの上） ================= */
 const TAB_KW={home:"ホーム トップ まとめ",talk:"話す 話し合い 議題 会話 今日の質問",task:"やること タスク todo 用事",chore:"家事 掃除 ゴミ 洗濯 分担",shop:"買い物 買うもの 買い出し",trouble:"気になること 困りごと 相談",caution:"注意 ルール 気をつけること",
   cal:"カレンダー シフト 予定 休み 勤務",diary:"日記 写真 アルバム ありがとう 夕飯",future:"将来 記念日 旅行 やりたいこと 欲しいもの 計画",money:"出費 家計 お金 レシート 予算 貯金 支払い",
@@ -4963,7 +5036,12 @@ const kfold=x=>String(x||"").toLowerCase().replace(/[ァ-ヶ]/g,c=>String.fromCh
 function searchHTML(){ return `<div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="srchIn" placeholder="タブや項目をさがす（例：家事、牛乳、旅行）" enterkeyhint="search" autocomplete="off" value="${esc(state.srchQ||"")}">${state.srchQ?'<button class="srch-x" data-act="srchClr" aria-label="消す">×</button>':""}</div><div id="srchRes" class="srch-res">${state.srchQ?searchResults(state.srchQ):""}</div>`; }
 function searchResults(q){
   const f=kfold(q); if(!f) return "";
-  const hs=hiddenTabs(), tabs=Object.keys(TAB_KW).filter(v=>!hs.has(v)&&kfold((TITLES[v]||"")+" "+TAB_KW[v]).includes(f)).slice(0,6);
+  const hs=hiddenTabs(), tabs=Object.keys(TAB_KW).filter(v=>!hs.has(v)&&kfold((TITLES[v]||"")+" "+TAB_KW[v]).includes(f)).map(v=>({v,l:TITLES[v]}));
+  /* 子タブ：将来の分類・じぶんのやりたいこと・出費の中の画面・日記のアルバム */
+  const SUB=[...FCATS.map(k=>({v:"future",sub:k,l:`将来 › ${PCATS[k].label}`,kw:PCATS[k].label+" "+(PCATS[k].tpl||[]).join(" ")})),{v:"future",sub:"_mine",l:"将来 › じぶんのやりたいこと",kw:"じぶん やりたい 自分 夢"},
+    {v:"money",sub:"m:sum",l:"出費 › 集計",kw:"集計 支出 グラフ"},{v:"money",sub:"m:month",l:"出費 › 毎月・振込",kw:"毎月 固定費 振込 引き落とし"},{v:"money",sub:"m:goal",l:"出費 › 目標",kw:"目標 貯金"},{v:"diary",sub:"d:album",l:"日記 › アルバム",kw:"アルバム 写真"}];
+  for(const o of SUB) if(!hs.has(o.v)&&kfold(o.l+" "+o.kw).includes(f)) tabs.push(o);
+  tabs.splice(8);
   const it=[], add=(c,x,v,kind,text,sub)=>{ if(kfold(text+" "+(sub||"")).includes(f)) it.push({c,x,v,kind,text,sub}); };
   for(const x of state.items) add("items",x,x.list==="shop"?"shop":"task",x.list==="shop"?"買い物":"やること",x.text,x.memo);
   for(const x of state.pitems) add("pitems",x,x.list==="shop"?"shop":x.list==="wish"?"pwish":"task",x.list==="wish"?"じぶんのやりたい":"じぶん",x.text,x.memo);
@@ -4976,11 +5054,14 @@ function searchResults(q){
   for(const x of state.habits) add("habits",x,"habit","習慣",x.text,"");
   const open=it.filter(o=>!o.x.done&&o.x.status!=="done"), rest=it.filter(o=>o.x.done||o.x.status==="done"), L=[...open,...rest].slice(0,20);
   if(!tabs.length&&!L.length) return `<div class="srch-none">見つかりませんでした</div>`;
-  return (tabs.length?`<div class="srch-g">タブ</div><div class="srch-tabs">${tabs.map(v=>`<button class="srch-tab v-${v}" data-sgo="${v}">${fIcon(v)||ic("spark")}<span>${esc(TITLES[v])}</span></button>`).join("")}</div>`:"")
+  return (tabs.length?`<div class="srch-g">タブ</div><div class="srch-tabs">${tabs.map(o=>`<button class="srch-tab v-${o.v}" data-sgo="${o.v}" ${o.sub?`data-ssub="${o.sub}"`:""}>${fIcon(o.v)||ic("spark")}<span>${esc(o.l)}</span></button>`).join("")}</div>`:"")
     +(L.length?`<div class="srch-g">項目（${it.length}${it.length>20?"件中20":""}件）</div><ul class="srch-l">${L.map(o=>`<li><button data-sgo="${o.v}" data-sid="${esc(o.x.id)}" class="${o.x.done||o.x.status==="done"?"dn":""}"><span class="srch-k">${esc(o.kind)}</span><span class="srch-t">${esc(o.text)}</span>${o.sub?`<small>${esc(String(o.sub).slice(0,30))}</small>`:""}</button></li>`).join("")}</ul>`:"");
 }
 document.addEventListener("input",e=>{ if(e.target&&e.target.id==="srchIn"){ state.srchQ=e.target.value; const r=$("srchRes"); if(r) r.innerHTML=searchResults(state.srchQ); } });
-function searchGo(v,id){ state.srchQ=""; if(v==="pwish"){ state.fut="_mine"; v="future"; } go(v); if(!id) return;
+function searchGo(v,id,sub){ state.srchQ=""; if(v==="pwish"){ state.fut="_mine"; v="future"; }
+  if(sub){ if(v==="future"){ state.fut=sub; state.futFilter="all"; } else if(sub.startsWith("m:")) state.moneyTab=sub.slice(2); else if(sub==="d:album") state.diaryTab="album"; go(v); return; }
+  if(v==="future"&&id){ const pl=state.plans.find(x=>x.id===id); if(pl){ state.fut=pl.cat; state.futFilter="all"; } }
+  go(v); if(!id) return;
   setTimeout(()=>{ const el=document.querySelector(`[data-id="${CSS.escape(id)}"]`); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1600); } },160); }
 /* ================= AIのテキスト問い合わせ（オフなら null） ================= */
 const aiText=()=>aiOn()?(state._smt||null):null;
@@ -5028,8 +5109,9 @@ function wxRender(){
     <div class="wxp-hr">${hs.map(i=>{ const p=W.hourly.precipitation_probability[i]||0; return `<div class="wxh"><small>${Number(W.hourly.time[i].slice(11,13))}時</small>${wxSvg(wxKind(W.hourly.weather_code[i],W.hourly.is_day[i]))}<b>${Math.round(W.hourly.temperature_2m[i])}°</b><span class="wxh-p" style="--p:${p}%">${p?p+"%":""}</span></div>`; }).join("")}</div>
     <div class="wxp-d">${W.daily.time.map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>`).join("")}</div>
     <div class="who wxp-f">Open-Meteo の予報・30分ごとに更新・場所は 設定 › 天気</div>`;
-  const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px";
+  const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px";
 }
+$("hfold").addEventListener("click",e=>{ e.stopPropagation(); prefs.hdrFold=prefs.hdrFold==="1"?"0":"1"; haptic("tick"); savePrefs(true); render(); });
 $("wx").addEventListener("click",e=>{ e.stopPropagation(); state.wxOpen=!state.wxOpen; haptic("tick"); wxRender(); });
 document.addEventListener("click",e=>{ if(state.wxOpen&&!e.target.closest("#wxp,#wx")){ state.wxOpen=false; wxRender(); } });
 addEventListener("scroll",()=>{ if(state.wxOpen){ state.wxOpen=false; wxRender(); } },{passive:true});
