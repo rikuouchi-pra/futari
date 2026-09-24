@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ふたりのメールアドレス（確認済み）だけが使える
+    function fam() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['rikurussel14@gmail.com', 'a1lic3h2dak1@gmail.com'];
+    }
+    // ふたりで共有する項目（items, cautions, meta/kakei, blobs など）
+    match /{col}/{id} {
+      allow read, write: if fam() && col != 'data';
+    }
+    // じぶんだけの項目：本人しか読めない
+    match /data/users/{uid}/{rest=**} {
+      allow read, write: if fam() && request.auth.uid == uid;
+    }
+  }
+}
