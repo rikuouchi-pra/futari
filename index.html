@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=62"></script>
+<script src="shim.js?v=63"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -239,7 +239,34 @@ body.rail-right .app{padding-right:84px}
 body.rail-left .app{padding-left:84px}
 @media (min-width:760px){body.rail-right .app,body.rail-left .app{padding-inline:16px}}
 
-header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);padding-block:14px 8px;z-index:5}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);padding-block:10px 8px;z-index:5}
+/* ヘッダーはメニュー列の上まで広げ、右上の空き（メニューの上）に操作ボタンの縦ドックを置く */
+body.rail-right header{margin-right:-74px}
+body.rail-left header{margin-left:-74px}
+@media (min-width:760px){body.rail-right header,body.rail-left header{margin-inline:0}}
+.brand{display:grid!important;grid-template-columns:minmax(0,1fr) 64px;align-items:start;gap:10px}
+body.rail-left .brand{grid-template-columns:64px minmax(0,1fr)} body.rail-left .brand .hr{order:-1}
+@media (min-width:760px){.brand{grid-template-columns:minmax(0,1fr) auto}.brand .hr{flex-direction:row!important;width:auto!important;background:none!important;box-shadow:none!important;padding:0!important}}
+.brand .hr{flex-direction:column;gap:6px!important;width:64px;box-sizing:border-box;padding:6px 0;background:var(--raised);border-radius:calc(var(--r-btn) + 6px);box-shadow:var(--shadow)}
+.brand .hr .hbtn{width:46px!important;height:40px!important;border-radius:14px;background:transparent}
+.brand .hr .hbtn.plus{background:var(--accent);height:46px!important;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 40%,transparent)}
+.brand .hr .hbtn[aria-pressed="true"]{background:var(--ink)}.brand .hr .hbtn[aria-pressed="true"] svg{stroke:var(--ground)}
+body.v-settings #gear{background:var(--ink)}body.v-settings #gear svg{stroke:var(--ground)}
+.hbtn .badge{top:-2px;right:-2px}
+.appname{font-size:11px!important;letter-spacing:.08em!important;text-transform:none}
+.appname .sync{padding:2px 8px 2px 6px;border-radius:999px;background:var(--surface);font-size:11px;letter-spacing:0;color:var(--muted)}
+.sync.live{color:var(--task)!important}
+.greet{display:flex!important;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:4px;font-size:12.5px!important}
+.greet[hidden]{display:none!important}
+.greet .gw{color:var(--ink);font-weight:600}
+.hchip{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:999px;background:var(--surface);font-size:11.5px;color:var(--muted);white-space:nowrap;box-shadow:0 0 0 1px var(--line) inset}
+.hchip b{color:var(--accent);font-size:13px}
+.hchip.off{color:var(--task);background:color-mix(in srgb,var(--task) 12%,var(--surface));box-shadow:none}
+.brand h1{margin-top:6px!important;letter-spacing:.01em}
+.hsub{margin-top:8px!important}
+.lsw{position:relative;box-shadow:0 0 0 1px var(--line) inset!important;padding:4px!important}
+.lsw button{padding:7px 16px!important;font-size:13.5px!important;transition:background .18s,color .18s}
+.brand .lock{margin-top:6px;font-size:11px;opacity:.85}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .brand>div:first-child{min-width:0;flex:1}.brand h1,.brand .appname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand h1{font-size:clamp(19px,5.4vw,26px)}.brand .hbtn{width:38px;height:38px}.brand .hr{gap:5px}.brand .lock{white-space:nowrap}
 .appname{font-size:12px;color:var(--muted);letter-spacing:.06em;display:flex;gap:8px;align-items:center}
@@ -723,7 +750,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="62";
+const APP_VERSION="63";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2108,7 +2135,7 @@ function viewSettings(){
     <h2>アプリの名前</h2><div class="edit-row"><input type="text" id="appNameIn" value="${esc(prefs.appName)}" maxlength="16" placeholder="ふたりのリスト（例：大内家）" style="flex:1"></div></section>
   <section class="card"><h2>表示するタブ</h2><p>使わないタブは隠せます（いつでも戻せます）。</p>
     <div class="opts">${[...LAYER_TABS.us,...LAYER_TABS.me].map(k=>{ const hid=hiddenTabs().has(k); return `<button class="opt" data-tabtoggle="${k}" aria-pressed="${!hid}">${esc(TITLES[k])}</button>`; }).join("")}</div>
-    <h2>タイムテーブルの開始時刻</h2><div class="opts">${["4","5","6","7"].map(v=>opt("ttStart",v,v+":00から")).join("")}</div>
+    <h2>タイムテーブルの開始時刻</h2><div class="opts">${["3","4","5","6","7","8"].map(v=>opt("ttStart",v,v+":00から")).join("")}</div>
     <h2>あいさつで呼ぶ名前</h2><div class="edit-row"><input type="text" id="nickIn" value="${esc(prefs.nick)}" maxlength="12" placeholder="${esc(nameOf(myRole()))}" style="flex:1"></div></section>
   <section class="card"><h2>メニューの位置</h2><p>つまみをドラッグして動かした位置は、<b>アカウントに保存</b>され、アプリを閉じても・別の端末でも同じ位置で開きます。</p>
     <div class="opts"><button class="opt" data-act="railRight">右下に戻す</button><button class="opt" data-act="railLeft">左下に置く</button></div></section>
@@ -2173,9 +2200,9 @@ function counts(){
 function greetLine(){
   const hr=new Date().getHours(), w=hr<4?"こんばんは":hr<11?"おはよう":hr<18?"こんにちは":"こんばんは";
   const an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).sort((a,b)=>a.a.days-b.a.days)[0];
-  const cd=an&&an.a.days<=60?`・${esc(an.p.text)}${an.a.days===0?"は今日！":`まであと<b>${an.a.days}</b>日`}`:"";
-  const off=offState(today())==="both"?"・今日はふたり休み":"";
-  return `${w}、${esc(prefs.nick||nameOf(myRole()))}${off}${cd}`;
+  const cd=an&&an.a.days<=60?`<span class="hchip ann">${esc(an.p.text)}${an.a.days===0?" 今日！":` あと<b>${an.a.days}</b>日`}</span>`:"";
+  const off=offState(today())==="both"?`<span class="hchip off">今日はふたり休み</span>`:"";
+  return `<span class="gw">${w}、${esc(prefs.nick||nameOf(myRole()))}</span>${off}${cd}`;
 }
 function renderChrome(){
   const v=state.view, n=counts();
@@ -3885,7 +3912,7 @@ const railEl=$("rail");
 function railFit(){
   const rsc=$("rscroll"); if(!rsc) return;
   const tab=[...rsc.querySelectorAll(".rtab")].find(b=>!b.hidden); const th=tab?tab.offsetHeight:50;
-  const top0=12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
+  const hd=document.querySelector("header"), top0=Math.max(12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0),(hd&&innerWidth<760?hd.getBoundingClientRect().bottom+8:0)), bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const other=railEl.offsetHeight-rsc.offsetHeight;
   const cap=Math.max(th*3,innerHeight-top0-bottomPad-16-other);
   rsc.style.setProperty("--rmax",Math.min(LAYER_TABS.me.length*(th+2)-2,cap)+"px");
@@ -3910,7 +3937,7 @@ $("rscroll").addEventListener("wheel",e=>{ if(rMax()<=0) return; e.preventDefaul
 addEventListener("resize",()=>{ railFit(); placeRail(false); });
 function placeRail(anim){
   railFit();
-  const h=railEl.offsetHeight, top0=12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0);
+  const hd=document.querySelector("header"), h=railEl.offsetHeight, top0=Math.max(12+(parseFloat(getComputedStyle(document.documentElement).paddingTop)||0),(hd&&innerWidth<760?hd.getBoundingClientRect().bottom+8:0));
   const bottomPad=parseFloat(getComputedStyle(document.documentElement).paddingBottom)||0;
   const maxTop=Math.max(top0,innerHeight-bottomPad-16-h);
   let top=prefs.railY<0?maxTop:Math.round(prefs.railY*innerHeight);
