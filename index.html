@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=58"></script>
+<script src="shim.js?v=60"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -179,8 +179,9 @@ li.dragging{opacity:.45}
 .tt-bar .tb-g button{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;height:38px;font-weight:700;font-size:13px;white-space:nowrap;padding:0 4px}
 .tt-bar .tb-g button:active{background:var(--ground)}.tt-bar .tb-g button:disabled{opacity:.4}
 .tt-bar .tb-e{background:var(--accent)!important;color:var(--on-accent)!important;border-color:var(--accent)!important}
+.tt-bar .tb-del{color:var(--danger)!important;border-color:color-mix(in srgb,var(--danger) 40%,var(--line))!important}.tt-bar .tb-del.arm{background:var(--danger)!important;color:#fff!important;border-color:var(--danger)!important}
 .tt-bar .tb-tip{font-size:11px;color:var(--muted);text-align:center}
-body:has(.tt-bar) #toast{bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:61}
+body:has(.tt-bar) #toast{bottom:calc(262px + env(safe-area-inset-bottom,0px));z-index:61}
 .tt-drop{position:absolute;left:52px;right:4px;border-radius:8px;border:2px dashed var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);z-index:3;font-size:11px;font-weight:700;color:var(--accent);padding:2px 6px;box-sizing:border-box;pointer-events:none}
 .tt-ghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;background:var(--ink);color:var(--ground);border-radius:12px;padding:6px 10px;font-size:13px;display:flex;flex-direction:column;box-shadow:var(--shadow);max-width:200px}
 .tt-ghost b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tt-ghost span{font-size:11px;opacity:.8;font-variant-numeric:tabular-nums}
@@ -705,7 +706,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="58";
+const APP_VERSION="60";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1583,6 +1584,7 @@ function ttBarHTML(date){
     <div class="tb-h"><b>${esc(o.t)}</b><span>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}（${len}分）</span><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>
     <div class="tb-g"><span class="tb-l">時間</span><button data-act="ttmv" data-d="-60">−1時間</button><button data-act="ttmv" data-d="-15">−15分</button><button data-act="ttmv" data-d="15">＋15分</button><button data-act="ttmv" data-d="60">＋1時間</button></div>
     <div class="tb-g"><span class="tb-l">長さ</span><button data-act="ttln" data-d="-15" ${len<=15?"disabled":""}>短く</button><button data-act="ttln" data-d="15">長く</button><button class="tb-e" data-act="ttedit">詳しく編集</button></div>
+    <div class="tb-g"><span class="tb-l"></span>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button></div>
     <div class="tb-tip">ドラッグで移動・上下の端で開始／終了を変更</div></div>`;
 }
 async function ttApply(o,s,e,msg){
@@ -2340,7 +2342,7 @@ $("main").addEventListener("click",e=>{
     return; }
   const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); rightAction(c,id); render(); return; }
   const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
-    if(state.ttSel!==k){ state.ttSel=k; state.gEdit=null; haptic("tick"); render(); return; }
+    if(state.ttSel!==k){ state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); render(); return; }
     state.ttSel=null; if(ttb.dataset.gid){ state.gEdit={date:$("tt").dataset.ttdate,id:ttb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; } }
   const tb=e.target.closest("[data-tb]"); if(tb){ startEdit(tb.dataset.tb,tb.dataset.tid); setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },50); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
@@ -2463,7 +2465,14 @@ $("main").addEventListener("click",e=>{
   else if(a==="backup") exportBackup();
   else if(a==="exportMove") exportMove();
   else if(a==="ttday") ttShiftDay(Number(b.dataset.n));
-  else if(a==="ttx"){ state.ttSel=null; render(); }
+  else if(a==="ttx"){ state.ttSel=null; state.ttDelArm=false; render(); }
+  else if(a==="ttun"){ const o=ttSelEntry(state.sel); if(!o) return; const x=state[o.c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(o.c,x.id); dupd(o.c,x.id,timeCh(x,null,null)); state.ttSel=null; haptic("tick"); toast(`「${(x.text||"").slice(0,14)}」の時間を外しました`,u,"done"); render(); }
+  else if(a==="ttdel"){ const o=ttSelEntry(state.sel); if(!o) return;
+    if(o.kind==="g"&&!state.ttDelArm){ state.ttDelArm=true; haptic("warn"); render(); clearTimeout(state.ttDelT); state.ttDelT=setTimeout(()=>{ if(state.ttDelArm){ state.ttDelArm=false; if(state.view==="psched") render(); } },4000); return; }
+    state.ttDelArm=false; state.ttSel=null;
+    if(o.kind==="g"){ gCall("delete_event",{eventId:o.x.id},`Google：${o.t} を削除しました`,state.sel); return; }
+    if(!canDelete(o.c,o.x)){ toast("この予定は削除できません"); render(); return; }
+    removeWithUndo(o.c,[o.x.id],"削除しました"); render(); }
   else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
   else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else { startEdit(o.c,o.x.id); setTimeout(()=>{ const el2=document.querySelector(".edit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },50); } }
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
@@ -3816,8 +3825,12 @@ railEl.addEventListener("click",e=>{ const b=e.target.closest(".rtab"); if(!b||r
   if(b.dataset.v===state.view&&state.view==="future"&&state.fut){ state.fut=null; render(-40); return; }
   go(b.dataset.v); });
 let rs=null;
-railEl.addEventListener("pointerdown",e=>{ if(e.target.closest(".grip")) return; rs={y:e.clientY}; });
-railEl.addEventListener("pointerup",e=>{ if(!rs) return; const dy=e.clientY-rs.y; rs=null; if(rMax()>0) return; if(Math.abs(dy)>36){ railDrag.moved=true; goRel(dy>0?1:-1); setTimeout(()=>railDrag.moved=false,0);} });
+railEl.addEventListener("pointerdown",e=>{ if(e.target.closest(".grip")) return; rs={y:e.clientY,t:Date.now()}; });
+/* 上下スワイプでタブ移動。メニューがスクロールできる時（ふたり）は、素早くはらった時だけタブ移動・ゆっくりならスクロール */
+railEl.addEventListener("pointerup",e=>{ if(!rs) return; const dy=e.clientY-rs.y, dt=Date.now()-rs.t; rs=null;
+  if(rMax()>0){ if(!(dt<400&&Math.abs(dy)>28)) return; if(rsc) setROff(rsc.o,true); }
+  else if(Math.abs(dy)<=36) return;
+  railDrag.moved=true; goRel(dy>0?1:-1); setTimeout(()=>{ railDrag.moved=false; railShowActive(); },60); });
 $("grip").addEventListener("pointerdown",e=>{
   railDrag.on=true; railDrag.moved=false; railDrag.sx=e.clientX; railDrag.sy=e.clientY;
   const r=railEl.getBoundingClientRect(); railDrag.ox=e.clientX-r.left; railDrag.oy=e.clientY-r.top;
