@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=90"></script>
+<script src="shim.js?v=91"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1163,6 +1163,16 @@ li.item.flash{animation:flash 1.5s ease}
 .flayers button{border:0;border-radius:10px;height:26px;font-size:10px;font-weight:700;color:var(--muted);background:var(--ground);cursor:pointer;padding:0}
 .flayers button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
 body.layer-me .flayers button[data-flayer="me"][aria-pressed="true"]{background:var(--reflect,#6a5acd);color:#fff}
+
+/* v91: 月／週の切り替え */
+.cal-tools{justify-content:space-between}
+.calmode{display:inline-grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.calmode button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;min-width:74px;height:38px;border-radius:11px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer}
+.calmode button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.calmode button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.today-p{min-width:64px}
+#grid:not(.painting){touch-action:pan-y!important}
+.logo-ai{margin-top:8px;display:grid;gap:6px}
 </style>
 <style id="palStyle"></style>
 
@@ -1237,7 +1247,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="90";
+const APP_VERSION="91";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1313,7 +1323,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2214,10 +2224,10 @@ function viewPsched(){
   const vis=[]; for(let k=0;k<count;k++){ const d=new Date(start); d.setDate(start.getDate()+k); vis.push(ymd(d)); }
   const last=vis[vis.length-1];
   const saved=state.sel; mySchedRange(vis[0],last).forEach(o=>add(o.d,o));
-  let cells=calCells(start,count,curMonth,byDay,new Set(),true)+`<div class="grip-line" aria-hidden="true"></div>`;
+  let cells=calCells(start,count,curMonth,byDay,new Set(),true);
   h+=`<div class="dstrip" data-strip="cal"><button class="icon-btn" data-act="cprev" aria-label="前へ">‹</button><div class="ttl">${title}</div><button class="icon-btn" data-act="cnext" aria-label="次へ">›</button></div>
-    <div class="tools"><div class="grp">${seg("calmode",state.calWeek?"week":"month",[["month","月"],["week","週"]])}<button class="pill" data-act="ctoday">今日</button></div>
-      <span class="grp"><button class="pill ${prefs.gShow==="1"?"on":""}" data-act="gshow">Googleの予定${prefs.gShow==="1"?"を隠す":"も表示"}</button>${state.mcp?`<button class="pill" data-act="gsync" ${state.gsBusy?"disabled":""}>${state.gsBusy?"同期中…":"⟳ 今すぐ同期"}</button>`:""}</span></div>
+    <div class="tools cal-tools">${calModeHTML()}<button class="pill today-p" data-act="ctoday">今日</button></div>
+    <div class="tools"><span class="grp"><button class="pill ${prefs.gShow==="1"?"on":""}" data-act="gshow">Googleの予定${prefs.gShow==="1"?"を隠す":"も表示"}</button>${state.mcp?`<button class="pill" data-act="gsync" ${state.gsBusy?"disabled":""}>${state.gsBusy?"同期中…":"⟳ 今すぐ同期"}</button>`:""}</span></div>
     <div class="grid" id="grid">${cells}</div>`;
   const d=state.sel, sm=shiftOf(me,d), so=shiftOf(ot,d), off=offState(d);
   h+=`<div class="day-nav"><button class="icon-btn" data-act="ttday" data-n="-1" aria-label="前の日">‹</button><div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="ttday" data-n="1" aria-label="次の日">›</button>${d!==t?`<button class="pill" data-act="ttday" data-n="0">今日</button>`:""}</div>
@@ -2520,13 +2530,12 @@ function viewCal(){
     for(const p of state.plans.filter(p=>p.cat==="anniv"&&p.date)) for(const s of vis) if(s.slice(5)===p.date.slice(5)&&s>=p.date) add(s,{c:"plans",x:p}); }
   const diaryDays=new Set([...state.diary.filter(d=>d.text).map(d=>d.date),...state.priv.filter(d=>d.text).map(d=>d.date)]);
   let cells=calCells(start,count,curMonth,byDay,diaryDays,!P.on);
-  cells+=`<div class="grip-line" aria-hidden="true"></div>`;
   
 
   /* upcoming days off together */
   let offs=[]; for(let i=0;i<120&&offs.length<6;i++){ const s=addDays(t,i); if(offState(s)==="both") offs.push(s); }
   let h=`<div class="dstrip" data-strip="cal"><button class="icon-btn" data-act="cprev" aria-label="前へ">‹</button><div class="ttl">${title}</div><button class="icon-btn" data-act="cnext" aria-label="次へ">›</button></div>
-    <div class="tools"><div class="grp">${seg("calmode",state.calWeek?"week":"month",[["month","月"],["week","週"]])}<button class="pill" data-act="ctoday">今日</button></div>
+    <div class="tools cal-tools">${calModeHTML()}<button class="pill today-p" data-act="ctoday">今日</button></div><div class="tools" style="margin-top:0">
       <button class="pill ${P.on?"on":""}" data-act="paint">${P.on?"シフト入力を終える":"シフト入力"}</button></div>`;
   if(P.on){
     h+=`<div class="paint"><div class="edit-row"><span class="who">だれの分</span>${seg("pwho",P.who||myRole(),[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}</div>
@@ -2665,7 +2674,9 @@ function viewSettings(){
     <div class="chips" style="margin-top:6px">${["ふたりごと","futari","ふたり日和","Pairly"].map(x=>`<button class="chip" data-act="appNm" data-v="${x}" aria-pressed="${prefs.appName===x}">${x}</button>`).join("")}</div>
     <h2>アプリのアイコン</h2><div class="logos">${Object.keys(LOGOS).map(k=>`<button class="logo-o" data-act="logoSet" data-v="${k}" aria-pressed="${(prefs.logo||"rings")===k}" aria-label="${LOGOS[k].n}"><span class="logo-pv" style="${logoStyle(k)}"></span><small>${LOGOS[k].n}</small></button>`).join("")}
       <button class="logo-o" data-act="logoTxt" aria-pressed="${prefs.logo==="txt"}"><span class="logo-pv" style="${logoStyle("txt")}"></span><small>文字</small></button>
-      <button class="logo-o" data-act="logoImg" aria-pressed="${prefs.logo==="img"}"><span class="logo-pv" style="${logoStyle("img")}"></span><small>写真</small></button></div>
+      <button class="logo-o" data-act="logoImg" aria-pressed="${prefs.logo==="img"}"><span class="logo-pv" style="${logoStyle("img")}"></span><small>写真</small></button>
+      ${prefs.logoSvg?`<button class="logo-o" data-act="logoSet" data-v="ai" aria-pressed="${prefs.logo==="ai"}"><span class="logo-pv" style="${logoStyle("ai")}"></span><small>AIで作った</small></button>`:""}</div>
+    ${logoAiHTML()}
     <div class="colorrow"><input type="color" id="logoBgPick" value="${esc(prefs.logoBg||"#1f2a24")}" aria-label="アイコンの背景色"><span style="font-size:13px">アイコンの色</span>${prefs.logoBg?'<button class="link" data-act="logoBgReset">テーマに合わせる</button>':""}</div>
     <p>名前の左のマークと、ホーム画面に追加するときのアイコンに使われます。すでにホーム画面にあるアイコンは、いったん削除して「ホーム画面に追加」し直すと変わります。</p></section>
   <section class="card"><h2>表示するタブ</h2><p>使わないタブは隠せます（いつでも戻せます）。</p>
@@ -2793,6 +2804,7 @@ function render(anim){
 let editFocused=false;
 function go(v,anim){
   if(VIEW_ALIAS[v]) v=VIEW_ALIAS[v]; if(v==="pwish"){ state.fut="_mine"; v="future"; }
+  if(v==="cal"||v==="psched"){ const t=today(), d=parse(t); state.sel=t; state.calMonth=new Date(d.getFullYear(),d.getMonth(),1); } /* タブを押したら今日へ */
   if(v!==state.view) haptic("nav");
   if(state.editing) saveEdit(); flushDiary(); closeSheet();
   if(v==="settings"&&state.view==="settings") v=prefs.view||"talk";
@@ -3048,11 +3060,14 @@ $("main").addEventListener("click",e=>{
   else if(a==="logoSet"){ prefs.logo=b.dataset.v; savePrefs(); render(); }
   else if(a==="logoTxt"){ const t=prompt("アイコンに入れる文字（1〜3文字）",prefs.logoTxt||"ふ"); if(t!=null&&t.trim()){ prefs.logoTxt=t.trim().slice(0,3); prefs.logo="txt"; savePrefs(); render(); } }
   else if(a==="logoImg") logoPickImg();
+  else if(a==="logoAi") logoAiMake();
+  else if(a==="logoAiPick"){ const o=(state.logoAi&&state.logoAi.opts||[])[+b.dataset.i]; if(o){ prefs.logoSvg=o; prefs.logo="ai"; savePrefs(); haptic("done"); toast("AIで作ったアイコンにしました"); render(); } }
   else if(a==="logoBgReset"){ prefs.logoBg=""; savePrefs(); render(); }
   else if(a==="srchClr"){ state.srchQ=""; render(); setTimeout(()=>{ const i=$("srchIn"); if(i) i.focus(); },30); }
   else if(a==="appNm"){ prefs.appName=b.dataset.v; savePrefs(); render(); toast(`アプリの名前を「${b.dataset.v}」にしました`); }
   else if(a==="wxHere") wxLocate();
   else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
+  else if(a==="cmode"){ const w=b.dataset.v==="week"; if(w!==state.calWeek){ haptic("tick"); setWeek(w); } }
   else if(a==="futBack"){ state.fut=null; render(-40); }
   else if(a==="mvItem"&&c&&id){ const x=state[c].find(i=>i.id===id); if(x){ const toP=c==="items", now=Date.now();
       const keep=["list","text","due","time","memo","budget","done","doneAt","createdAt","link","actual"], o={};
@@ -3190,6 +3205,9 @@ function openRef(ref){
   prefs.whoF="all"; go(v,40); startEdit(ref.c,ref.id);
 }
 function selectDay(s){ state.sel=s; const d=parse(s); state.calMonth=new Date(d.getFullYear(),d.getMonth(),1); render(); }
+/* 月／週の切り替え：アイコン付きの大きめの2択。カレンダーをなぞっても切り替わらない（誤操作防止） */
+function calModeHTML(){ const w=state.calWeek;
+  return `<div class="calmode" role="group" aria-label="表示の切り替え"><button type="button" data-act="cmode" data-v="month" aria-pressed="${!w}"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9.3 10v10M14.7 10v10M4 15h16"/></svg>月</button><button type="button" data-act="cmode" data-v="week" aria-pressed="${w}"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="8" rx="2.5"/><path d="M9.3 8v8M14.7 8v8"/></svg>週</button></div>`; }
 function setWeek(w){ state.calWeek=w; if(!w){ const d=parse(state.sel); state.calMonth=new Date(d.getFullYear(),d.getMonth(),1);} render(); }
 function shiftCal(n){
   if(state.calWeek){ const s=addDays(state.sel,7*n); state.sel=s; const d=parse(s); state.calMonth=new Date(d.getFullYear(),d.getMonth(),1); render(n>0?40:-40); }
@@ -4574,7 +4592,7 @@ function endSwipe(){
     return;
   }
   state.busy=false; setPull(0);
-  if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER) openSheet(); else if(s.dy<-30) setWeek(!state.calWeek); else if(state.dirty) render(); return; }
+  if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER) openSheet(); else if(state.dirty) render(); return; }
   if(s.tt){ s.tt.style.transition="transform .18s,opacity .18s"; s.tt.style.transform=""; s.tt.style.opacity=""; }
   if(s.axis==="x"&&s.tt){ if(Math.abs(s.dx)>55) ttShiftDay(s.dx<0?1:-1); else if(state.dirty) render(); return; }
   if(s.axis==="x"&&Math.abs(s.dx)>55){
@@ -4885,7 +4903,7 @@ const LOGOS={
   cup:{n:"マグ",s:'<path d="M6 8.5h9.5v5.5a4 4 0 0 1-4 4h-1.5a4 4 0 0 1-4-4z" fill="#fff"/><path d="M15.5 10h1.2a2.2 2.2 0 0 1 0 4.4h-1.2" fill="none" stroke="#fff" stroke-width="1.8"/>'}};
 function logoBgColor(){ if(hexOk(prefs.logoBg)) return prefs.logoBg; const cs=getComputedStyle(document.documentElement), st=document.documentElement.dataset.style; return (cs.getPropertyValue(st==="glass"||st==="dynamic"?"--accent":"--ink")||"#1f2a24").trim(); }
 function logoSvg(k,bg,forIcon){ const r=forIcon?0:5.5;
-  let inner=LOGOS[k]?LOGOS[k].s:"";
+  let inner=LOGOS[k]?LOGOS[k].s:k==="ai"?(prefs.logoSvg||""):k&&k.startsWith("<")?k:"";
   if(k==="txt"){ const t=(prefs.logoTxt||"ふ").slice(0,3); const fs=t.length>=3?7.5:t.length===2?9.5:13; inner=`<text x="12" y="12.2" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-weight="700" font-size="${fs}" fill="#fff">${esc(t)}</text>`; }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="${r}" fill="${bg}"/>${forIcon?`<g transform="translate(12 12) scale(.82) translate(-12 -12)">${inner}</g>`:inner}</svg>`; }
 const svgUrl=x=>`url("data:image/svg+xml,${encodeURIComponent(x).replace(/'/g,"%27")}")`;
@@ -4907,6 +4925,31 @@ function logoPickImg(){ let i=$("logoIn"); if(!i){ i=document.createElement("inp
         c.getContext("2d").drawImage(bm,(n-w)/2,(n-h)/2,w,h); prefs.logoImg=c.toDataURL("image/jpeg",.85); prefs.logo="img"; savePrefs(); render(); toast("アイコンを写真にしました"); }catch(e){ toast("この写真は使えませんでした"); } }); }
   i.value=""; i.click(); }
 
+
+/* ================= AIでアイコンを作る（AIが線や面の図形を描き、安全な形だけ使う） ================= */
+const SVG_TAGS=new Set(["path","circle","ellipse","rect","line","polyline","polygon","g"]), SVG_ATTRS=new Set(["d","cx","cy","r","rx","ry","x","y","width","height","x1","y1","x2","y2","points","fill","stroke","stroke-width","stroke-linecap","stroke-linejoin","opacity","fill-opacity","stroke-opacity","transform","fill-rule"]);
+function svgClean(src){ try{ const doc=new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${String(src).replace(/<\/?svg[^>]*>/g,"")}</svg>`,"image/svg+xml"); if(doc.querySelector("parsererror")) return "";
+    const out=[]; const walk=(el,depth)=>{ for(const c of el.children){ const t=c.tagName.toLowerCase(); if(!SVG_TAGS.has(t)||depth>3) continue; const at=[];
+        for(const a of c.attributes){ const n=a.name.toLowerCase(); let v=a.value; if(!SVG_ATTRS.has(n)) continue; if((n==="fill"||n==="stroke")&&!/^(none|#fff(fff)?|white|currentColor)$/i.test(v)) v="#fff"; if(/url\(|javascript|expression/i.test(v)) continue; at.push(`${n}="${v.replace(/"/g,"")}"`); }
+        if(t==="g"){ out.push(`<g ${at.join(" ")}>`); walk(c,depth+1); out.push("</g>"); } else out.push(`<${t} ${at.join(" ")}/>`); } };
+    walk(doc.documentElement,0); const r=out.join(""); return r.length>30&&r.length<6000?r:""; }catch(e){ return ""; } }
+function logoAiHTML(){ const A=state.logoAi||{}, ai=aiText();
+  if(!ai) return `<p class="who">AIでアイコンを作るには、設定 › AI機能 を「使う」にしてください。</p>`;
+  return `<div class="logo-ai"><div class="edit-row"><input type="text" id="logoAiIn" maxlength="40" placeholder="どんなアイコン？（例：ふたりと猫、自転車、富士山）" value="${esc(A.q||"")}" style="flex:1"><button class="btn" data-act="logoAi" ${A.busy?"disabled":""}>${A.busy?'<span class="spin"></span>':"AIで作る"}</button></div>
+    ${A.err?`<div class="sho-err">${esc(A.err)}</div>`:""}${A.opts&&A.opts.length?`<div class="logos">${A.opts.map((o,i)=>`<button class="logo-o" data-act="logoAiPick" data-i="${i}"><span class="logo-pv" style="background-image:${svgUrl(logoSvg(o,logoBgColor())).replace(/"/g,"'")}"></span><small>案${i+1}</small></button>`).join("")}</div><p class="who">気に入った案をタップすると使えます。</p>`:""}</div>`; }
+async function logoAiMake(){
+  const q=(($("logoAiIn")||{}).value||"").trim(); if(!q){ toast("どんなアイコンにしたいか入れてください"); return; } const ai=aiText(); if(!ai) return;
+  state.logoAi={q,busy:true}; render();
+  try{ const d=await ai.json(`アプリのアイコン用に、「${q}」を表すシンプルなマークを3案描いてください。
+- 24×24 の座標（viewBox="0 0 24 24"）。中央に収め、四辺に2以上の余白
+- 使える要素：path, circle, ellipse, rect, line, polyline, polygon, g のみ
+- 色は白だけ：fill="#fff" または stroke="#fff"（背景色は別に付くので描かない）。線にするなら stroke-width="1.8"〜"2.2"、stroke-linecap="round"
+- 細かすぎない、小さく表示しても分かる太めの形。文字は使わない。3案は違うデザインに
+JSONだけを返す：{"icons":[{"svg":"<path d=\\"…\\" fill=\\"#fff\\"/>"}]}`,{modelTier:"quick"});
+    const opts=(d&&d.icons||[]).map(x=>svgClean(x&&x.svg)).filter(Boolean).slice(0,4);
+    state.logoAi={q,opts,err:opts.length?"":"うまく作れませんでした。言葉を変えてもう一度試してください"}; }
+  catch(e){ state.logoAi={q,err:`作れませんでした（${(e&&(e.detail||e.code||e.message))||"不明"}）`}; }
+  render(); }
 /* ================= タブ・項目の検索（ホームの上） ================= */
 const TAB_KW={home:"ホーム トップ まとめ",talk:"話す 話し合い 議題 会話 今日の質問",task:"やること タスク todo 用事",chore:"家事 掃除 ゴミ 洗濯 分担",shop:"買い物 買うもの 買い出し",trouble:"気になること 困りごと 相談",caution:"注意 ルール 気をつけること",
   cal:"カレンダー シフト 予定 休み 勤務",diary:"日記 写真 アルバム ありがとう 夕飯",future:"将来 記念日 旅行 やりたいこと 欲しいもの 計画",money:"出費 家計 お金 レシート 予算 貯金 支払い",
