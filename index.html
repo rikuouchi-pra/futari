@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=138"></script>
+<script src="shim.js?v=139"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1508,7 +1508,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="138";
+const APP_VERSION="139";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3138,7 +3138,7 @@ function viewSettings(){
   <section class="card"><h2>接続状態</h2>${diagHTML()}</section>
   ${bugCard()}
   <section class="card"><h2>使い方・ヘルプ</h2><p>操作のおさらいや、最初の設定のやり直しができます。</p>
-    <div class="opts"><button class="opt" data-act="tour">チュートリアルを見る</button><button class="opt" data-act="setupAgain">初期設定をやり直す</button></div>
+    <div class="opts"><button class="opt" data-act="tour">チュートリアルを見る</button>${window.__FUTARI_PWA?`<a class="opt" href="./setup.html" target="_blank" rel="noopener" style="text-decoration:none">始め方の手順ページ</a>`:""}<button class="opt" data-act="setupAgain">初期設定をやり直す</button></div>
     <details class="gdet"><summary>操作の早見表</summary><dl class="gest">
     <dt>タブを移動</dt><dd>メニューをタップ。フリックのメニューは、押したまま上・横にはらうと隠れているタブへ</dd>
     <dt>画面を ← →</dt><dd>同じ側（ふたり／じぶん）の隣のタブへ</dd>

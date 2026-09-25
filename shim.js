@@ -39,7 +39,7 @@
     g.innerHTML = '<div class="bx"><h1>ふたりのリスト</h1><p>ふたりのメールアドレスでログインします。はじめての人は「はじめて使う」で自分のパスワードを決めてください。</p>'
       + '<input type="email" id="fbEmail" autocomplete="username" placeholder="メールアドレス" inputmode="email">'
       + '<input type="password" id="fbPass" autocomplete="current-password" placeholder="パスワード（6文字以上）">'
-      + '<button class="pri" id="fbIn">ログイン</button><button class="sec" id="fbUp">はじめて使う（登録）</button><button class="sec" id="fbReset">パスワードを忘れた</button><div class="msg" id="fbMsg"></div></div>';
+      + '<button class="pri" id="fbIn">ログイン</button><button class="sec" id="fbUp">はじめて使う（登録）</button><button class="sec" id="fbReset">パスワードを忘れた</button><div class="msg" id="fbMsg"></div><a href="./setup.html" style="display:block;text-align:center;margin-top:14px;font-size:13px;color:inherit;opacity:.75">はじめての方へ：始め方の手順 ›</a></div>';
     var em = g.querySelector("#fbEmail"), pw = g.querySelector("#fbPass");
     try{ em.value = localStorage.getItem("futari.lastEmail") || ""; }catch(e){}
     var val = function(){ var e = em.value.trim().toLowerCase(); if(ALLOWED.length && ALLOWED.indexOf(e) < 0){ msg("このアプリに登録されたメールアドレスではありません"); return null; } try{ localStorage.setItem("futari.lastEmail", e); }catch(x){} return e; };
