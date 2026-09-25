@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=123"></script>
+<script src="shim.js?v=124"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1370,6 +1370,11 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .hi-l{flex:none;width:2.6em;font-size:12px;font-weight:700;color:var(--muted)}
 .hi-v{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;min-width:0}
 .hinfo.rain{background:color-mix(in srgb,var(--cal) 16%,var(--glass,var(--surface)))}
+
+.gdet{margin-top:6px}.gdet>summary{cursor:pointer;font-weight:700;padding:8px 0;color:var(--accent)}
+
+.demo-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;text-align:center;margin-left:4px;padding:0 4px}
+.demo-mini{display:inline-block;height:16px;line-height:14px;padding:0 5px;border-radius:8px;border:1px solid color-mix(in srgb,var(--danger) 55%,transparent);background:color-mix(in srgb,var(--danger) 22%,var(--surface));color:var(--danger);font-size:10px;font-weight:800}
 </style>
 <style id="palStyle"></style>
 
@@ -1448,7 +1453,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="123";
+const APP_VERSION="124";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1521,7 +1526,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -2640,30 +2645,25 @@ function onbSteps(){
         <div class="who" style="margin-top:8px">あいさつで呼ぶ名前（任意）</div><input type="text" id="onbNick" value="${esc(prefs.nick)}" maxlength="12" placeholder="${esc(nm)}" style="width:100%;box-sizing:border-box"></div>`},
     {k:"look",title:"見た目をえらぶ",body:`<p class="onb-lead">好きな雰囲気をタップ。すぐに反映されます（${esc(nm)}の画面だけ）。</p>
       <div class="onb-presets">${[["calm","落ち着き","森の色・すっきり"],["pop","にぎやか","桜色・水玉・丸"],["wa","和","夕焼け・青海波・明朝"],["night","夜","夜空・いつも暗く"]].map(([k,l,d])=>`<button class="onb-pre" data-onbpre="${k}" aria-pressed="${prefs.onbPreset===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>
-      <p class="onb-note">色・模様・文字・ボタンの形・演出などは、あとから設定の「あなた好みに」で細かく変えられます。</p>`}
+      <p class="onb-note">色・模様・文字・ボタンの形・演出などは、あとから 設定 › 見た目 で細かく変えられます。</p>`}
   ];
   const tour=[
-    {k:"layers",title:"2つのレイヤー",body:`<div class="onb-art"><div class="mini-rail"><span class="on">ふたり</span><span>じぶん</span><i></i><i></i><i></i></div></div>
-      <p class="onb-lead">メニュー上部で切り替えます。</p><ul class="onb-list"><li><b>ふたり</b>：話す・やること・買い物・困りごと・注意・カレンダー・日記・将来。ふたりで共有。</li><li><b>じぶん</b>：予定・習慣・タスク・買い物・やりたいこと・内省。<b>相手には見えません</b>。</li><li>メニューは上のつまみをドラッグして好きな位置へ。</li></ul>`},
-    {k:"add",title:"追加は「上から↓」",body:`<div class="onb-art"><div class="demo-pull"><div class="demo-sheet">＋ 追加</div><div class="demo-finger down"></div></div></div>
-      <p class="onb-lead">どの画面でも、いちばん上で下に引っぱると追加欄が出ます。右上の＋でも同じです。</p><ul class="onb-list"><li>「だれが（ふたり／${esc(state.fam.h)}／${esc(state.fam.w)}）」も選べます。</li><li>追加欄は上にスワイプで閉じます。</li></ul>`},
-    {k:"row",title:"項目は「スワイプ」と「タップ」",body:`${DEMO_ROW("r","完了")}${DEMO_ROW("l","削除")}
-      <ul class="onb-list"><li><b>右へ</b>：完了（話した・確認した・今日できた など）</li><li><b>左へ</b>：削除（5秒以内なら「元に戻す」）</li><li><b>タップ</b>：編集・メモ・「議題にする」</li></ul>`},
-    {k:"tabs",title:"タブ移動と「帯」",body:`<div class="onb-art"><div class="demo-tabs"><span></span><span class="on"></span><span></span><span></span></div><div class="demo-strip">‹ 9月23日（水） ›</div></div>
-      <p class="onb-lead">画面の左右スワイプでタブを移動。上の点が今の位置です。</p><ul class="onb-list"><li>「‹ 日付 ›」の<b>帯の上</b>だけは、前後の日・月へ動きます（カレンダー・日記・話す・内省・将来）。</li><li>メニューを上下にスワイプしてもタブ移動できます。</li></ul>`},
-    {k:"talk",title:"毎日の「話す」",body:`<div class="onb-art"><div class="demo-card"><b>話すこと</b><span>年末の帰省の予定</span><b>いっしょに確認</b><span>7日のシフト・困りごと・注意</span></div></div>
-      <p class="onb-lead">話し合いの時間はこの画面を一緒に見ながら。</p><ul class="onb-list"><li>議題は上から↓で追加、どの項目も「議題にする」で載せられます。</li><li>確認の項目はその場で完了・編集。決まったことはメモへ。</li></ul>`},
-    {k:"settings",title:"設定でできること",body:`<div class="onb-art"><div class="demo-card"><b>設定（右上の歯車）</b><span>見た目・名前・タブ・データ・不具合の報告</span></div></div>
-      <ul class="onb-list">
-        <li><b>ふたりの名前・アカウント</b>：名前の変更。夫・妻はアカウントで固定（夫は合言葉の設定・妻の登録解除ができます）。</li>
-        <li><b>あなた好みに</b>：おすすめの組み合わせ、テーマ8色、表示モード、ふたりの色、背景の模様、文字の雰囲気・大きさ、行の間隔、ボタンの形、アイコン、完了の演出、あいさつ、アプリの名前。</li>
-        <li><b>表示するタブ</b>：使わないタブを隠す／タイムテーブルの開始時刻／あいさつで呼ぶ名前。</li>
-        <li><b>メニューの位置・日記の公開範囲</b>の初期値。</li>
-        <li><b>データ</b>：バックアップ保存・Googleカレンダー用CSV。</li>
-        <li><b>不具合の報告</b>・このチュートリアル・初期設定のやり直し。</li>
-      </ul><button class="btn" data-onbgo="settings">設定を開いてみる</button>`},
-    {k:"me",title:"じぶんの予定とGoogle同期",body:`<div class="onb-art"><div class="demo-tt"><i style="top:8px;height:22px">運動 5:00</i><i style="top:40px;height:34px" class="b">勉強 19:00</i></div></div>
-      <p class="onb-lead">「じぶん › 予定」はカレンダー＋タイムテーブル。</p><ul class="onb-list"><li>空き時間をタップして予定を追加。くり返し（毎日・平日・休みの日）も。</li><li>「今すぐ同期」で自分のGoogleカレンダーへ書き込み。</li><li>不具合は設定の「不具合の報告」から。修正案を承認すると自動で直ります。</li></ul>`}
+    {k:"home",title:"まずはホーム",body:`<div class="onb-art"><div class="demo-card"><b>今日やること</b><span>① 今日の習慣（まだ） 2</span><span>② シフトの入力 1</span><span>③ 今日までのやること 1</span></div></div>
+      <p class="onb-lead">アプリを開くと必ずホーム。<b>今日やることだけ</b>がまとまっています。</p><ul class="onb-list"><li>行をタップすると、その場所へ移動します。</li><li>ふりかえり・お金・家事などは、下の「▾」を開くと見られます。</li></ul>`},
+    {k:"layers",title:"「ふたり」と「じぶん」",body:`<div class="onb-art"><div class="mini-rail"><span class="on">ふたり</span><span>じぶん</span><i></i><i></i><i></i></div></div>
+      <p class="onb-lead">メニューの上で切り替えます。</p><ul class="onb-list"><li><b>ふたり</b>：話す・やること・買い物・家事・気になること・カレンダー・日記・将来・出費。<b>ふたりで共有</b>。</li><li><b>じぶん</b>：予定・習慣・内省など。<b>相手には見えません</b>。</li><li>ボタンの数字は、その側の「今日やること」の合計です。</li></ul>`},
+    {k:"menu",title:"メニューの数字とフリック",body:`<div class="onb-art"><div class="demo-card"><b>話す <span class="demo-badge">2</span></b><span><span class="demo-mini">▣ 1</span> ← 上にはらうと「気になること」</span></div></div>
+      <ul class="onb-list"><li><b>赤い丸の数字</b>：そのタブで今日やることの数。</li><li><b>枠付きの小さな表示</b>：フリックで隠れているタブの数。押したまま、その方向にはらうと移動します。</li><li>メニューは上のつまみを押したまま動かすと、好きな位置に置けます。</li></ul>`},
+    {k:"add",title:"追加する",body:`<div class="onb-art"><div class="demo-pull"><div class="demo-sheet">＋ 追加</div><div class="demo-finger down"></div></div></div>
+      <p class="onb-lead">メニューの <b>＋</b>、または画面のいちばん上で<b>下に引っぱる</b>と追加欄が出ます。</p><ul class="onb-list"><li>「だれが（ふたり／${esc(state.fam.h)}／${esc(state.fam.w)}）」と日付を選べます。</li><li>上にスワイプで閉じます。</li></ul>`},
+    {k:"row",title:"項目の操作",body:`${DEMO_ROW("r","完了")}${DEMO_ROW("l","削除")}
+      <ul class="onb-list"><li><b>右へスワイプ</b>：完了（話した・確認した・今日できた など）</li><li><b>左へスワイプ</b>：削除（5秒以内なら「元に戻す」）</li><li><b>タップ</b>：編集　<b>長押し</b>：「議題にする」などのメニュー</li></ul>`},
+    {k:"day",title:"1日の流れ",body:`<div class="onb-art"><div class="demo-card"><b>朝〜昼</b><span>今日やること・今日の習慣（その日だけお知らせ）</span><b>夜 ${esc(prefs.eveH||"18")}時から</b><span>日記・内省・ありがとう・夕飯メモ</span></div></div>
+      <ul class="onb-list"><li>習慣は「毎週○曜」「毎月第○○曜」にでき、その日だけ知らせます。できなかった日は「できなかった」で確定。</li><li>「話す」は、今日の議題と話し合いの記録。終わったら「話した」を押します。</li><li>お知らせの時刻は 設定 › よく使う › お知らせ で変えられます。</li></ul>`},
+    {k:"shift",title:"シフト",body:`<div class="onb-art"><div class="demo-card"><b>カレンダー › シフト入力</b><span>記号を選んで日付をタップ、またはなぞってまとめて入力</span></div></div>
+      <ul class="onb-list"><li>入＝夜勤入り　明＝夜勤明け　休＝休み　早＝早番　日＝日勤</li><li>空いている日があると、<b>3日前に「やること」へ自動で追加</b>され、ホームにも表示されます。入力が済むと自動で完了します。</li><li>話し合いは、夜勤入りの日はお休みの日になります。</li></ul>`},
+    {k:"settings",title:"設定",body:`<div class="onb-art"><div class="demo-card"><b>設定（歯車）</b><span>よく使う／見た目／メニュー・画面の配置／データ・ヘルプ</span></div></div>
+      <ul class="onb-list"><li><b>よく使う</b>：名前・お知らせ・表示するタブ・日記・AI・天気</li><li><b>見た目</b>：スタイル・色・枠と文字の色・アイコン（ホーム画面のアイコンも）</li><li><b>メニュー・画面の配置</b>：メニューの形・位置・並び、上部の表示</li><li><b>データ・ヘルプ</b>：このチュートリアル・バックアップ・不具合の報告</li></ul><button class="btn" data-onbgo="settings">設定を開いてみる</button>`}
   ];
   const ready={k:"ready",title:"準備チェック",body:`<p class="onb-lead">あとはこれだけ。タップするとその画面へ移動します。</p>
       <div class="onb-checks">
@@ -2789,7 +2789,7 @@ function calRange(){
 }
 /* v118: シフト未入力のリマインド。対象＝今日から14日（20日以降は来月末まで） */
 function shiftWin(){ const t=today(), p=parse(t); if(p.getDate()>=20){ const e=ymd(new Date(p.getFullYear(),p.getMonth()+2,0)); return {s:t,e}; } return {s:t,e:addDays(t,13)}; }
-function shiftMissing(r){ const W=shiftWin(), out=[]; for(let d=W.s; d<=W.e; d=addDays(d,1)) if(!shiftOf(r,d)) out.push(d); return out; }
+function shiftMissing(r){ if(prefs.shRem==="off") return []; const W=shiftWin(), out=[]; for(let d=W.s; d<=W.e; d=addDays(d,1)) if(!shiftOf(r,d)) out.push(d); return out; }
 const rangeTxt=ds=>{ if(!ds.length) return ""; const g=[]; let a=ds[0],b=ds[0]; for(const d of ds.slice(1)){ if(d===addDays(b,1)) b=d; else { g.push([a,b]); a=b=d; } } g.push([a,b]); return g.slice(0,3).map(([x,y])=>x===y?short(x):`${short(x)}〜${short(y)}`).join("・")+(g.length>3?" ほか":""); };
 function shiftRemindHTML(){ const me=myRole(), ot=otherRole(), m=shiftMissing(me), o=shiftMissing(ot); if(!m.length&&!o.length) return "";
   const W=shiftWin(), lim=parse(W.e).getDate()===new Date(parse(W.e).getFullYear(),parse(W.e).getMonth()+1,0).getDate()&&parse(W.e).getMonth()!==parse(W.s).getMonth()?`${parse(W.e).getMonth()+1}月末まで`:"これから2週間";
@@ -2797,7 +2797,7 @@ function shiftRemindHTML(){ const me=myRole(), ot=otherRole(), m=shiftMissing(me
     ${m.length?`<span>${esc(nameOf(me))}：${m.length}日（${esc(rangeTxt(m))}）</span>`:""}${o.length?`<span class="who">${esc(nameOf(ot))}：${o.length}日（${esc(rangeTxt(o))}）</span>`:""}</div>
     ${m.length?`<button class="btn primary" data-act="shremGo">入力する</button>`:""}</div>`; }
 /* v119: ホーム用。先5日にシフトの空きがあればリマインド */
-function shiftSoonHTML(){ const t=today(), me=myRole(), ot=otherRole(), days=[...Array(5)].map((_,i)=>addDays(t,i));
+function shiftSoonHTML(){ if(prefs.shRem==="off") return ""; const t=today(), me=myRole(), ot=otherRole(), days=[...Array(5)].map((_,i)=>addDays(t,i));
   const m=days.filter(d=>!shiftOf(me,d)), o=days.filter(d=>!shiftOf(ot,d)); if(!m.length&&!o.length) return "";
   return `<div class="shrem home">${ic("moon")}<div class="shrem-t"><b>この先5日にシフトが入っていない日があります</b>
     ${m.length?`<span>${esc(nameOf(me))}：${esc(rangeTxt(m))}</span>`:""}${o.length?`<span${m.length?' class="who"':""}>${esc(nameOf(ot))}：${esc(rangeTxt(o))}</span>`:""}</div>
@@ -2805,6 +2805,7 @@ function shiftSoonHTML(){ const t=today(), me=myRole(), ot=otherRole(), days=[..
 /* v121: シフト未入力を「やること」に自動で追加（人ごとに1件・入力が済むと自動で完了） */
 function shiftTaskKick(ms){ clearTimeout(shiftTaskKick.t); shiftTaskKick.t=setTimeout(shiftTaskSync,ms??4000); }
 function shiftTaskSync(){
+  if(prefs.shRem==="off") return;
   if(typeof db!=="undefined"&&db&&(!state.itemsLoaded||!state.shiftsLoaded||state.readOnlyCache)) return; if(state.guest) return;
   const t=today();
   for(const r of ["h","w"]){ const id="auto-shift-"+r, m=shiftMissing(r), x=state.items.find(i=>i.id===id);
@@ -2913,8 +2914,13 @@ function renderDiaryDynamic(){
 }
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("tt-more")) state.ttMore=e.target.open; },true);
 document.addEventListener("focusout",e=>{ if(e.target.dataset&&e.target.dataset.centry) setTimeout(()=>{ if(diaryRenderDeferred&&state.view==="diary") renderDiaryDynamic(); },150); });
-const SET_GROUPS=[["basic","よく使う",["ふたりの名前","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["あなた好みに","スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示"]],["data","データ・アカウント・ヘルプ",[]]];
+const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示"]],["data","データ・アカウント・ヘルプ",[]]];
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; },true);
+let setAnchor=null;
+document.addEventListener("click",e=>{ if(state.view!=="settings") return; const b=e.target.closest("#main button,#main [data-pref]"); if(!b) return;
+  const at=["data-pref","data-val","data-act","data-v","data-sv","data-pal","data-preset","data-logo"].filter(k=>b.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(b.getAttribute(k))}"]`).join("");
+  if(at) setAnchor={sel:at,top:b.getBoundingClientRect().top,t:Date.now()}; },true);
+function setAnchorApply(){ if(!setAnchor||Date.now()-setAnchor.t>2500) return; const el=document.querySelector("#main "+setAnchor.sel); if(!el) return; const d=el.getBoundingClientRect().top-setAnchor.top; if(Math.abs(d)>2) window.scrollBy(0,d); }
 function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"); const box={};
   for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{basic:1})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{basic:1}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
   for(const sc of secs){ const h=(sc.querySelector("h2")||{}).textContent||""; const g=SET_GROUPS.find(([k,l,hs])=>hs.some(x=>h.startsWith(x))); box[g?g[0]:"data"].appendChild(sc); } }
@@ -2926,14 +2932,12 @@ function viewSettings(){
     <div class="onb-names"><label><span class="who">夫</span><input type="text" id="famH" value="${esc(state.fam.h)}" maxlength="12"></label><label><span class="who">妻</span><input type="text" id="famW" value="${esc(state.fam.w)}" maxlength="12"></label></div>
     ${roleCardHTML()}
     <p>「だれが」の選択肢（ふたり／${esc(state.fam.h)}／${esc(state.fam.w)}）とシフトの表示に使われます。名前はふたりで共有されます。</p></section>
-  <section class="card"><h2>はじめての方へ</h2><p>操作のおさらいや、最初の設定のやり直しができます。</p>
-    <div class="opts"><button class="opt" data-act="tour">チュートリアルを見る</button><button class="opt" data-act="setupAgain">初期設定をやり直す</button></div></section>
-  <section class="card"><h2>あなた好みに（${esc(nameOf(myRole()))}の画面だけに反映）</h2>
-    <p>色・形・文字・模様・動きを自由に組み合わせて、愛着のわく見た目にできます。設定はアカウントに保存され、相手の画面は変わりません。</p>
-    <div class="opts"><button class="opt" data-preset="calm">おすすめ：落ち着き</button><button class="opt" data-preset="pop">おすすめ：にぎやか</button><button class="opt" data-preset="wa">おすすめ：和</button><button class="opt" data-preset="night">おすすめ：夜</button><button class="opt" data-act="prefReset">初期設定に戻す</button></div></section>
+
   <section class="card"><h2>スタイル</h2>
     <div class="stiles">${[["classic","クラシック","これまでの見た目"],["modern","モダン","やわらかい影・大きめの角丸"],["glass","グラス","すりガラスと色のにじみ"],["dynamic","ダイナミック","ゆっくり動く背景と動きのある画面"]].map(([k,l,d])=>`<button class="stile st-${k}" data-pref="style" data-val="${k}" aria-pressed="${(prefs.style||"modern")===k}"><span class="stpv"><i></i><i></i><i></i></span><b>${l}</b><small>${d}</small></button>`).join("")}</div>
-    <div class="opts"><button class="opt" data-preset="modern">おすすめ：モダン</button><button class="opt" data-preset="dyn">おすすめ：ダイナミック</button></div></section>
+    <h2>おすすめの組み合わせ</h2><p class="who">タップすると色・模様・文字などをまとめて変えます（${esc(nameOf(myRole()))}の画面だけ）。</p>
+    <div class="opts"><button class="opt" data-preset="calm">落ち着き</button><button class="opt" data-preset="pop">にぎやか</button><button class="opt" data-preset="wa">和</button><button class="opt" data-preset="night">夜</button><button class="opt" data-preset="modern">モダン</button><button class="opt" data-preset="dyn">ダイナミック</button></div>
+    <div class="opts"><button class="opt" data-act="prefReset">見た目を初期設定に戻す</button></div></section>
   <section class="card"><h2>背景の色</h2>
     <div class="bgsw">${[["","テーマ"],["#FFFFFF","白"],["#F6F1E7","生成り"],["#EEF0F2","グレー"],["#EAF4EF","ミント"],["#EAF1F8","空"],["#F0EDF7","ラベンダー"],["#F8EEF1","桜"],["#FFF6E5","クリーム"],["#121212","墨"],["#0F1420","夜"]].map(([c,l])=>`<button class="bgc ${c?"":"auto"}" data-pref="bg" data-val="${c}" aria-pressed="${(prefs.bg||"")===c}" style="${c?`--bgc:${c}`:""}"><i></i><span>${l}</span></button>`).join("")}</div>
     <div class="colorrow"><input type="color" id="bgPick" value="${esc(prefs.bg||"#EEF2EF")}" aria-label="背景の色"><span style="font-size:13px">好きな色を選ぶ</span></div>
@@ -2983,6 +2987,10 @@ function viewSettings(){
       const zs=hdrZ(k);
       return `<li><span class="hord-n"><span class="hord-t">${L}</span><span class="hsz">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>`<button type="button" data-act="hsz" data-k="${k}" data-v="${v}" aria-pressed="${zs===v}">${l}</button>`).join("")}</span></span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
     <div class="opts"><button class="opt" data-act="hreset">初期に戻す</button></div></section>
+  <section class="card"><h2>お知らせ</h2><p class="who">メニューの数字と、ホームの「今日やること」に出すタイミングです。</p>
+    <h2>夜に書くもの（日記・内省・ありがとう・夕飯メモ）</h2><div class="opts">${["17","18","19","20","21"].map(v=>opt("eveH",v,v+"時から")).join("")}</div>
+    <h2>シフト未入力のリマインド</h2><div class="opts">${opt("shRem","on","する")}${opt("shRem","off","しない")}</div><p class="who">空いている日の3日前に「やること」へ追加し、ホームとカレンダーにも表示します。</p>
+    <h2>各タブの説明文</h2><div class="opts">${opt("hintsAlways","0","初回だけ")}${opt("hintsAlways","1","いつも表示")}</div></section>
   <section class="card"><h2>今日の1曲</h2><div class="opts">${opt("music","on","表示する")}${opt("music","off","表示しない")}</div>
     <p>ふたりの好きな音楽から、AIが毎日1曲選んで天気の左に出します（ふたりとも同じ曲）。タップで音楽アプリを開けます。</p>
     <label class="sho-f"><span class="who">${esc(nameOf(myRole()))}の好きな音楽（アーティスト・ジャンル・曲など）</span><textarea id="musicIn" rows="2" maxlength="200" placeholder="例：あいみょん、King Gnu、90年代J-POP、ジャズ">${esc(musicTaste(myRole()))}</textarea></label>
@@ -3032,21 +3040,18 @@ function viewSettings(){
   <section class="card"><h2>保存容量</h2>${storageHTML()}</section>
   <section class="card"><h2>接続状態</h2>${diagHTML()}</section>
   ${bugCard()}
-  <section class="card"><h2>画面の構成</h2>
-    <p><b>ふたり</b>（ふたりで見る）：話す｜やること・買い物・困りごと・注意｜カレンダー・日記｜将来</p>
-    <p><b>じぶん</b>（自分だけが見られる）：予定・習慣・タスク・買い物・やりたいこと・内省。「予定」には共有の予定（自分とふたりの担当）とシフトも並びます。じぶんの内容は相手には見えず、「話す」やカレンダーにも出ません。</p>
-    <p>切り替えはメニュー上部の「ふたり／じぶん」。どの項目も「だれが（ふたり／${esc(state.fam.h)}／${esc(state.fam.w)}）」を付けられ、各リスト上部で絞り込めます。</p></section>
-  <section class="card"><h2>操作ガイド</h2><div class="opts">${opt("hintsAlways","0","各タブの説明文：初回だけ")}${opt("hintsAlways","1","いつも表示")}</div><dl class="gest">
-    <dt>どこでも ← →</dt><dd>同じレイヤー内でタブを切り替え（上の点が今の位置）</dd>
-    <dt>帯 ← →</dt><dd>「‹ ○○ ›」の帯の中だけは、前後の日・月・カテゴリへ（話す・カレンダー・日記・将来・内省）</dd>
-    <dt>上から ↓ 引っぱる</dt><dd>追加（話す＝議題、習慣＝習慣、日記・内省＝今日を書く）</dd><dt>追加欄を ↑</dt><dd>閉じる</dd>
-    <dt>項目を →</dt><dd>完了／話した／対応する→解決／確認した／今日できた</dd>
-    <dt>議題にする</dt><dd>どの項目も長押しで「話し合いの議題にする」（詳細の「議題にする」でも可）</dd><dt>項目を ←</dt><dd>削除（5秒以内なら元に戻せる）</dd>
-    <dt>項目をタップ</dt><dd>編集・詳細・返信</dd><dt>メニューを ↑ ↓</dt><dd>タブを切り替え</dd>
-    <dt>カレンダーを ↓ / ↑</dt><dd>選んだ日に追加／週⇄月表示</dd>
-    <dt>将来</dt><dd>一覧のカードで開く・「将来」をもう一度タップで一覧へ・候補をタップで追加</dd>
-    <dt>シフト入力</dt><dd>記号を選んで日付をタップ、または指でなぞってまとめて入力</dd></dl>
-    <p>シフト：入＝夜勤入り　明＝夜勤明け　休＝休み　早＝早番　日＝日勤。カレンダーは四角が自分・丸が相手、濃い緑が「ふたり休み」、薄い緑が「片方休み」。</p></section>
+  <section class="card"><h2>使い方・ヘルプ</h2><p>操作のおさらいや、最初の設定のやり直しができます。</p>
+    <div class="opts"><button class="opt" data-act="tour">チュートリアルを見る</button><button class="opt" data-act="setupAgain">初期設定をやり直す</button></div>
+    <details class="gdet"><summary>操作の早見表</summary><dl class="gest">
+    <dt>タブを移動</dt><dd>メニューをタップ。フリックのメニューは、押したまま上・横にはらうと隠れているタブへ</dd>
+    <dt>画面を ← →</dt><dd>同じ側（ふたり／じぶん）の隣のタブへ</dd>
+    <dt>追加</dt><dd>メニューの＋、または画面のいちばん上で下に引っぱる</dd>
+    <dt>項目を →</dt><dd>完了（話した・確認した・今日できた など）</dd><dt>項目を ←</dt><dd>削除（5秒以内なら元に戻せる）</dd>
+    <dt>項目をタップ</dt><dd>編集・メモ・日付</dd><dt>項目を長押し</dt><dd>「議題にする」などのメニュー</dd>
+    <dt>「‹ 日付 ›」の帯</dt><dd>前後の日・月へ</dd>
+    <dt>シフト入力</dt><dd>カレンダー ›「シフト入力」で記号を選び、日付をタップまたはなぞる</dd>
+    <dt>数字（赤い丸）</dt><dd>そのタブで今日やること。枠付きのアイコン＋数字は、フリックで隠れているタブの件数</dd></dl>
+    <p class="who">シフト：入＝夜勤入り　明＝夜勤明け　休＝休み　早＝早番　日＝日勤</p></details></section>
   <section class="card"><h2>データの保存場所</h2>
     <p>ふたりのデータ（話す・リスト・困りごと・注意・将来・シフト・日記）はすべて、<b>Firebase（Googleのクラウドデータベース）</b>の、ふたりのアカウントだけが読み書きできる領域に保存されます。電波がないときも端末内の控えで動き、つながると自動で同期します。端末には保存されないので、機種変更しても消えません。</p>
     <p>「じぶん」レイヤーのデータと「自分だけ」の日記は、書いた本人しか読めない領域に保存されます。Firebaseのプロジェクトを削除するとデータも消えるので、定期的にバックアップを保存してください。</p>
@@ -3068,6 +3073,7 @@ function viewSettings(){
     <p><b>自動同期（今後）：</b>各項目に更新日時を記録しているので、じぶん › 予定 の「Googleカレンダーに同期」で、アプリを開いている間5分ごとに自動同期します。</p></section>
   <section class="card"><h2>ホーム画面に追加</h2><ol class="steps">
     <li>このアプリのURLをSafariで開く</li><li>共有ボタン →「ホーム画面に追加」</li><li>名前を「ふたりのリスト」にして追加</li></ol>
+    <p class="who">ホーム画面のアイコンは「見た目 › 楽しさ › ホーム画面のアイコン」で選べます。</p>
     <p>ホーム画面から開くと、アドレスバーのない専用アプリとして動きます。</p></section>
   </div>`;
 }
@@ -3075,7 +3081,7 @@ function viewSettings(){
 let lastView=null,lastDiaryKey=null;
 /* v103: メニューバーの数字は「今日のぶん」だけ。やること・買い物＝期限が今日（と過ぎたもの）、日記・内省＝18時以降にまだなら */
 const forMe=x=>{ const w=getWho(x); return w==="both"||w===myRole(); }; /* v104: 相手の名前だけのものはメニューの数字に入れない */
-const EVE_H=18, isEve=()=>new Date().getHours()>=EVE_H, dueNow=i=>!!i.due&&i.due<=today();
+const isEve=()=>new Date().getHours()>=(Number(prefs.eveH)||18), dueNow=i=>!!i.due&&i.due<=today();
 const myDiaryDone=t=>state.diary.some(x=>x.date===t&&isMine(x)&&x.text)||state.priv.some(x=>x.id===t&&x.text);
 const myReflectDone=t=>{ const rf=state.reflect.find(x=>x.id===t); return !!(rf&&(rf.good||rf.bad||rf.learn||rf.mood)); };
 function counts(){
@@ -3157,7 +3163,7 @@ function render(anim){
   document.querySelectorAll("#main .heat").forEach(h=>{ h.scrollLeft=h.scrollWidth; });
   if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
   if(anim){ const m=$("main"); m.style.setProperty("--sx",anim+"px"); m.classList.remove("slide"); void m.offsetWidth; m.classList.add("slide"); }
-  lastView=v; hintsApply(v); if(v==="settings") setGroups();
+  lastView=v; hintsApply(v); if(v==="settings"){ setGroups(); setAnchorApply(); requestAnimationFrame(setAnchorApply); }
   if(state.editing){ const e=$("editText"); if(e&&document.activeElement!==e&&!editFocused){ editFocused=true; e.focus(); try{e.setSelectionRange(e.value.length,e.value.length)}catch(_){} } }
 }
 let editFocused=false;
@@ -4894,7 +4900,7 @@ let prefTimer=null;
 function savePrefs(silent){
   store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs();
   if(prefsDoc) prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } });
-  if(!silent&&state.view==="settings"){ const y=window.scrollY; $("main").innerHTML=viewSettings(); window.scrollTo(0,y); }
+  if(!silent&&state.view==="settings"){ const y=window.scrollY; $("main").innerHTML=viewSettings(); setGroups(); window.scrollTo(0,y); setAnchorApply(); requestAnimationFrame(setAnchorApply); }
   placeRail(false);
 }
 
