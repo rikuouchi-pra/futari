@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=133"></script>
+<script src="shim.js?v=135"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1410,6 +1410,17 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .tt-nh{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--cal);border:3px solid var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.25);touch-action:none;z-index:6}
 .tt-nh::after{content:"";position:absolute;inset:-14px}
 .tt-nh.top{top:-12px;left:14px}.tt-nh.bot{bottom:-12px;right:14px}
+
+.phist{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.phist>summary{cursor:pointer;font-weight:700;padding:6px 0;color:var(--accent)}
+.ph-nav{display:flex;align-items:center;gap:8px;margin:6px 0}.ph-nav .who{margin-left:auto}
+.ph-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ph-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.ph-m{flex:1;min-width:0;display:flex;flex-direction:column}.ph-m b{font-size:14px;overflow-wrap:anywhere}.ph-m span{font-size:11.5px;color:var(--muted)}
+.ph-c{display:flex;align-items:center;gap:6px;flex:none}
+.ph-who{border:0;border-radius:10px;padding:5px 8px;font:inherit;font-size:12px;font-weight:700;color:#fff;white-space:nowrap}.ph-who.h{background:var(--who-h)}.ph-who.w{background:var(--who-w)}
+.ph-pt{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}.ph-pt button{border:0;background:transparent;color:var(--ink);width:28px;height:30px;font-size:16px}.ph-pt button:disabled{opacity:.3}.ph-pt b{min-width:18px;text-align:center;font-size:13px}
+.ph-del{border:0;background:transparent;color:var(--danger);width:28px;height:30px;font-size:14px}
+.ph-add{margin-top:10px;display:flex;flex-direction:column;gap:6px}.ph-add .edit-row{flex-wrap:wrap;gap:6px}
 </style>
 <style id="palStyle"></style>
 
@@ -1489,7 +1500,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="133";
+const APP_VERSION="135";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2992,7 +3003,7 @@ function renderDiaryDynamic(){
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("tt-more")) state.ttMore=e.target.open; },true);
 document.addEventListener("focusout",e=>{ if(e.target.dataset&&e.target.dataset.centry) setTimeout(()=>{ if(diaryRenderDeferred&&state.view==="diary") renderDiaryDynamic(); },150); });
 const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示"]],["data","データ・アカウント・ヘルプ",[]]];
-document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("tmore")) state.tmoreOpen=e.target.open; },true);
+document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("phist")) state.phOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("tmore")) state.tmoreOpen=e.target.open; },true);
 let setAnchor=null;
 document.addEventListener("click",e=>{ if(state.view!=="settings") return; const b=e.target.closest("#main button,#main [data-pref]"); if(!b) return;
   const at=["data-pref","data-val","data-act","data-v","data-sv","data-pal","data-preset","data-logo"].filter(k=>b.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(b.getAttribute(k))}"]`).join("");
@@ -3406,12 +3417,14 @@ $("main").addEventListener("click",e=>{
     else if(name==="psmode"){ state.psMode=v; render(); }
     else if(name==="sh_h"||name==="sh_w"){ writeShifts(name.slice(3),{[state.sel]:v}); render(); }
     else if(name==="logf"){ state.logF=v; render(); }
+    else if(name==="phwho"||name==="phpt"){ if(name==="phwho") state.phWho=v; else state.phPt=v; }
     else if(name==="dtab"){ flushDiary(); state.diaryTab=v; render(); }
     else if(name==="dpriv"){ diaryPrivNow=v==="1"; diaryPending=true; flushDiary(); }
     else { editSeg[name]=v; if(name==="htarget"&&$("hEveryRow")){ $("hEveryRow").hidden=v!=="iv"; if($("hWdRow")) $("hWdRow").hidden=!(v==="wd"||v==="mn"); if($("hNthRow")) $("hNthRow").hidden=v!=="mn"; } }
     return; }
   const chp=e.target.closest("[data-chpre]"); if(chp){ const [t,ev]=chp.dataset.chpre.split("|"); choreAdd(t,ev); return; }
   const alb=e.target.closest("[data-alb]"); if(alb){ const [d,w,id]=alb.dataset.alb.split("|"); if(w==="me"){ state.diaryTab="me"; state.diaryDate=d; render(); } else openPhoto(id); return; }
+  const phb=e.target.closest("[data-ph]"); if(phb){ e.preventDefault(); phAct(phb.dataset.ph); return; }
   const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); if(c==="habits"||isRecItem(state[c].find(q=>q.id===id))){ toggleHabit(id,($("tt")&&$("tt").dataset.ttdate)||today()); haptic("tick"); } else rightAction(c,id); render(); return; }
   const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
     if(state.ttSel!==k){ const hadEdit=!!state.gEdit; state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); if(hadEdit) render(); else renderTT(); return; }
@@ -4043,13 +4056,48 @@ function ringsHTML(){
 /* 家事・貢献：だれがどれだけ（家事ポイント＋完了したやること） */
 function contribEvents(){
   const out=[];
-  for(const c of state.chores||[]) for(const [d,r] of Object.entries(c.log||{})) if(r==="h"||r==="w") out.push({d,r,p:Number(c.pts||1),k:"chore"});
-  for(const i of state.items.filter(x=>x.list==="task")){
-    if(i.done_h&&i.doneAt_h) out.push({d:ymd(new Date(i.doneAt_h)),r:"h",p:1,k:"task"});
-    if(i.done_w&&i.doneAt_w) out.push({d:ymd(new Date(i.doneAt_w)),r:"w",p:1,k:"task"});
-    if(i.done&&i.doneAt&&!("done_h" in i)&&!("done_w" in i)){ const r=i.doneBy||i.updBy||(["h","w"].includes(getWho(i))?getWho(i):null); if(r) out.push({d:ymd(new Date(i.doneAt)),r,p:1,k:"task"}); } }
+  for(const c of state.chores||[]) for(const [d,r] of Object.entries(c.log||{})) if(r==="h"||r==="w"){ const po=(c.ptsLog||{})[d]; out.push({d,r,p:po!=null?Number(po):Number(c.pts||1),k:"chore",text:c.text,src:"chores",id:c.id,key:d}); }
+  for(const i of state.items.filter(x=>x.list==="task")){ const ov=i.ptsOv||{}, off=i.ptsOff||{}, P=r=>ov[r]!=null?Number(ov[r]):1;
+    if(i.done_h&&i.doneAt_h&&!off.h) out.push({d:ymd(new Date(i.doneAt_h)),r:"h",p:P("h"),k:"task",text:i.text,src:"items",id:i.id,key:"h"});
+    if(i.done_w&&i.doneAt_w&&!off.w) out.push({d:ymd(new Date(i.doneAt_w)),r:"w",p:P("w"),k:"task",text:i.text,src:"items",id:i.id,key:"w"});
+    if(i.done&&i.doneAt&&!("done_h" in i)&&!("done_w" in i)){ const r=i.doneBy||i.updBy||(["h","w"].includes(getWho(i))?getWho(i):null); if(r&&!off[r]) out.push({d:ymd(new Date(i.doneAt)),r,p:P(r),k:"task",text:i.text,src:"items",id:i.id,key:r}); } }
+  for(const b of ((state.kakei||{}).bonus||[])) if(b&&(b.r==="h"||b.r==="w")) out.push({d:b.d,r:b.r,p:Number(b.p||0),k:"bonus",text:b.text||"そのほか",src:"bonus",id:b.id,key:b.id});
   return out;
 }
+/* v134: ポイントの履歴（あとから見る・直す・足す） */
+function phistHTML(){ const ev=contribEvents(), ym=state.phMonth||today().slice(0,7), list=ev.filter(e=>e.d.slice(0,7)===ym).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+  const [y,m]=ym.split("-").map(Number), sum=r=>list.filter(e=>e.r===r).reduce((a,e)=>a+e.p,0), KL={chore:"家事",task:"やること",bonus:"手入力"};
+  const row=e=>{ const ref=`${e.src}|${e.id}|${e.key}`; return `<li class="ph-row"><div class="ph-m"><b>${esc(e.text)}</b><span>${parse(e.d).getMonth()+1}/${parse(e.d).getDate()}（${WDN[parse(e.d).getDay()]}）・${KL[e.k]}</span></div>
+    <div class="ph-c">${e.k==="task"?`<span class="ph-who ${e.r}">${esc(nameOf(e.r))}</span>`:`<button class="ph-who ${e.r}" data-ph="who|${ref}|${e.r}" aria-label="担当を入れ替える">${esc(nameOf(e.r))} ⇄</button>`}
+      <span class="ph-pt"><button data-ph="pt|${ref}|-1" ${e.p<=0?"disabled":""} aria-label="1pt減らす">−</button><b>${e.p}</b><button data-ph="pt|${ref}|1" aria-label="1pt増やす">＋</button></span>
+      <button class="ph-del" data-ph="del|${ref}" aria-label="この記録を消す">✕</button></div></li>`; };
+  return `<details class="phist" ${state.phOpen?"open":""}><summary>ポイントの履歴・修正</summary>
+    <div class="ph-nav"><button class="icon-btn" data-ph="mon|-1" aria-label="前の月">‹</button><b>${y}年${m}月</b><button class="icon-btn" data-ph="mon|1" aria-label="次の月" ${ym>=today().slice(0,7)?"disabled":""}>›</button><span class="who">${esc(nameOf("h"))} ${sum("h")}pt・${esc(nameOf("w"))} ${sum("w")}pt</span></div>
+    ${list.length?`<ul class="ph-list">${list.map(row).join("")}</ul>`:`<div class="empty" style="padding:12px">この月の記録はありません</div>`}
+    <div class="ph-add"><div class="who">記録にないことを足す（例：買い出し、草むしり）</div>
+      <div class="edit-row"><input type="text" id="phText" maxlength="30" placeholder="やったこと" style="flex:1"><input type="date" id="phDate" value="${today()}" max="${today()}"></div>
+      <div class="edit-row">${seg("phwho",state.phWho||myRole(),[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}${seg("phpt",state.phPt||"1",[["1","1pt"],["2","2pt"],["3","3pt"]])}<button class="btn primary" data-ph="add">追加</button></div></div>
+    <p class="who">⇄で担当の入れ替え、−＋でポイント、✕で記録を消します（やることは完了のまま、ポイントだけ消えます）。</p></details>`; }
+function phAct(a){ const [op,src,id,key,v]=a.split("|");
+  if(op==="mon"){ const ym=state.phMonth||today().slice(0,7); state.phMonth=ymAdd(ym,Number(src)); if(state.phMonth>today().slice(0,7)) state.phMonth=today().slice(0,7); state.phOpen=true; render(); return; }
+  if(op==="add"){ const t=($("phText")||{}).value||"", d=($("phDate")||{}).value||today(); if(!t.trim()){ toast("やったことを入れてください"); return; }
+    const b={id:newId(),d,r:state.phWho||myRole(),p:Number(state.phPt||1),text:t.trim().slice(0,30),by:myRole(),at:Date.now()};
+    state.kakei={...(state.kakei||{}),bonus:[...((state.kakei||{}).bonus||[]),b],updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("done"); toast(`「${b.text}」${b.p}pt を追加しました`); state.phOpen=true; render(); return; }
+  const setBonus=f=>{ state.kakei={...(state.kakei||{}),bonus:((state.kakei||{}).bonus||[]).map(x=>x.id===id?f(x):x).filter(Boolean),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); };
+  const ev=contribEvents().find(e=>e.src===src&&e.id===id&&e.key===key); if(!ev) return;
+  if(op==="who"){ const nr=v==="h"?"w":"h";
+    if(src==="chores"){ const c=state.chores.find(x=>x.id===id); if(c){ c.log={...(c.log||{}),[key]:nr}; dupd("chores",id,{log:{[key]:nr}}); } }
+    else if(src==="bonus") setBonus(x=>({...x,r:nr})); }
+  if(op==="pt"){ const np=Math.max(0,ev.p+Number(v));
+    if(src==="chores"){ const c=state.chores.find(x=>x.id===id); if(c){ c.ptsLog={...(c.ptsLog||{}),[key]:np}; dupd("chores",id,{ptsLog:{[key]:np}}); } }
+    else if(src==="items"){ const x=state.items.find(q=>q.id===id); if(x){ x.ptsOv={...(x.ptsOv||{}),[key]:np}; dupd("items",id,{ptsOv:{[key]:np}}); } }
+    else setBonus(x=>({...x,p:np})); }
+  if(op==="del"){
+    if(src==="chores"){ const c=state.chores.find(x=>x.id===id); if(c){ c.log={...(c.log||{}),[key]:null}; dupd("chores",id,{log:{[key]:null}}); } }
+    else if(src==="items"){ const x=state.items.find(q=>q.id===id); if(x){ x.ptsOff={...(x.ptsOff||{}),[key]:true}; dupd("items",id,{ptsOff:{[key]:true}}); } }
+    else setBonus(()=>null);
+    toast("記録を消しました"); }
+  haptic("tick"); state.phOpen=true; render(); }
 function balanceHTML(compact){
   const ev=contribEvents(), t=today(), ms=t.slice(0,7)+"-01";
   const mon=ev.filter(e=>e.d>=ms), H=mon.filter(e=>e.r==="h").reduce((a,e)=>a+e.p,0), Wt=mon.filter(e=>e.r==="w").reduce((a,e)=>a+e.p,0), T=H+Wt;
@@ -4062,7 +4110,7 @@ function balanceHTML(compact){
     const mx=Math.max(4,...vals.map(v=>v.h+v.wf)), HH=90;
     h+=`<div class="wk-cols" role="img" aria-label="週ごとの家事ポイント">${vals.map(v=>{ const hh=v.h/mx*HH, ww=v.wf/mx*HH;
       return `<div class="wk" data-tip="${short(v.w)}の週：${esc(nameOf("h"))} ${v.h}pt・${esc(nameOf("w"))} ${v.wf}pt"><div class="wk-st" style="height:${HH}px">${ww?`<i class="w" style="height:${ww}px"></i>`:""}${hh?`<i class="h" style="height:${hh}px"></i>`:""}</div><span>${parse(v.w).getMonth()+1}/${parse(v.w).getDate()}</span></div>`; }).join("")}</div>
-      <div class="cap">週ごと（直近8週）・棒をタップで数値</div>`; }
+      <div class="cap">週ごと（直近8週）・棒をタップで数値</div>`+phistHTML(); }
   return h+`</div>`;
 }
 /* お金のペースメーター */
@@ -4963,7 +5011,7 @@ $("form").addEventListener("submit",e=>{
   else if(S.kind==="task"||S.kind==="shop"){ const it=baseItem(S.kind,t,S.date,S.time,S.who); if(money(S.amount)){ it.budget=money(S.amount); S.amount=""; renderSheet(); } dset("items",newId(),it); }
   else if(S.kind==="ptask"||S.kind==="pshop"||S.kind==="pwish"){ const it=baseItem(S.kind==="ptask"?"task":S.kind==="pshop"?"shop":"wish",t,S.date,S.time); delete it.who; delete it.by; if(money(S.amount)){ it.budget=money(S.amount); S.amount=""; renderSheet(); } dset("pitems",newId(),it); }
   else if(S.kind==="block"){ const st=($("sTime")&&$("sTime").value)||S.time||"09:00", en=($("sEnd")&&$("sEnd").value)||S.end||hhmm(Math.min(tmin(st)+60,1439)); const d=($("sDate")&&$("sDate").value)||S.date||state.sel;
-    if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); $("input").focus({preventScroll:true}); return; }
+    if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); if(state.view==="cal"){ closeSheet(); return; } $("input").focus({preventScroll:true}); return; }
     dset("blocks",newId(),{text:t,date:d,from:S.brep==="none"?null:d,start:st,end:en,rep:S.brep,color:S.bcol,createdAt:now,updatedAt:now}); }
   else if(S.kind==="habit"||S.kind==="rtask"){ if(S.kind==="rtask"&&String(S.htarget)==="7") S.htarget="wd"; const hv={text:t,target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(S.kind==="rtask"&&S.who!=="priv") dset("items",newId(),{...hv,list:"rtask",who:S.who||"both",by:state.me||null}); else dset("habits",newId(),hv); if(String(S.htarget)!=="7") setTimeout(()=>toast("繰り返しのタスクとして「やること」に追加しました"),300); }
   else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,...(S.date?{on:S.date}:{}),by:state.me||null,createdAt:now,updatedAt:now});
@@ -4973,6 +5021,7 @@ $("form").addEventListener("submit",e=>{
     const bud=Number(String(S.budget||"").replace(/[^0-9]/g,""))||null;
     newPlan(S.pcat,t,{kind:S.pkind,horizon:S.pcat==="anniv"?"":S.phz,date:S.date,budget:bud,who:S.who}); S.budget=""; S.date=""; renderSheet(); }
   $("input").value=""; toast(`${S.kind==="plan"?PCATS[S.pcat].label:KINDS[S.kind].label}に「${t}」を追加しました`);
+  if(state.view==="cal"){ closeSheet(); return; } /* v135: カレンダーから追加したら閉じる */
   $("input").focus({preventScroll:true});
 });
 
