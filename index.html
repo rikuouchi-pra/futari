@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=116"></script>
+<script src="shim.js?v=117"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1436,7 +1436,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="116";
+const APP_VERSION="117";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2051,7 +2051,8 @@ function week7(){
 }
 /* v108: 議題の「話す日」。指定あり→その日から、指定なし→話し合いの日（お休みの日以外）に数える */
 const talkNow=t=>{ const d=today(); return t.status!=="done"&&(t.on?t.on<=d:true); };
-const talkBadge=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&(t.on?t.on<=d:!off)).length; };
+const talkTopicsN=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&(t.on?t.on<=d:!off)).length; };
+const talkBadge=()=>talkTopicsN()+talkMissing().length; /* v117: 話すの数字＝今日の議題＋話し合いの記録待ち（ホームの「今日やること」と同じ数） */
 const talkNext0=()=>{ const d=today(); return talkOff(d)?(nextTalkDay(d)||addDays(d,1)):d; };
 /* 毎日の話し合い：妻の夜勤入り（入）の日以外は毎日実施 */
 const talkOf=d=>state.talks.find(x=>x.id===d)||null;
@@ -3080,8 +3081,8 @@ function renderChrome(){
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
   { const pc=pendingChecks().length, bc=$("b-chk"); bc.hidden=!pc; bc.textContent=pc; $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
-  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?n.talk: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
-  $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
+  const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?null: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
+  $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
   document.querySelectorAll(".rtab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v||(v==="caution"&&b.dataset.v==="trouble"))));
@@ -3769,7 +3770,7 @@ function checkList(){
   const add=(key,title,num,desc)=>out.push({key,title,num,desc});
   add("caution","相手からの注意が未確認",n.caution,"確認すると相手に「確認済み」と伝わります");
   add("comment","日記への新しいコメント",n.diary,"");
-  { const miss=talkMissing(); add("talk",talkOff(t)&&talkState(t)==="off"?`話し合いの実施記録（今日は${nameOf("w")}さん「${shiftOf("w",t)}」でお休みの日）`:"話し合いの実施記録",miss.length,miss.length?`未入力：${miss.slice(0,4).map(x=>short(x)).join("・")}${miss.length>4?" ほか":""}（${nameOf("w")}さんが「${[...talkOffSet()].join("・")||"なし"}」の日はお休み）`:""); }
+  { const miss=talkMissing(), tn=talkTopicsN(); add("talk",[tn?`今日の議題 ${tn}件`:"",miss.length?`話し合いの記録待ち ${miss.length}日`:""].filter(Boolean).join("・")||"話し合い",tn+miss.length,[miss.length?`記録待ち：${miss.slice(0,4).map(x=>short(x)).join("・")}${miss.length>4?" ほか":""}`:"",tn?state.topics.filter(x=>x.status!=="done").slice(0,3).map(x=>x.text).join("、"):""].filter(Boolean).join("／")); }
   if(isEve()) add("diary","今日の日記",myDiaryDone(t)?0:1,"まだ書いていません");
   const th=thanksOf(t,me); if(isEve()) add("thanks",`${nameOf(otherRole())}へのありがとう（今日）`,th&&th.text?0:1,"一言でも");
   const dn=dinnerOf(t); if(isEve()) add("dinner","今日の夕飯メモ",dn&&dn.text?0:1,"ふたりで共有されます");
