@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=135"></script>
+<script src="shim.js?v=137"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1421,6 +1421,12 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .ph-pt{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}.ph-pt button{border:0;background:transparent;color:var(--ink);width:28px;height:30px;font-size:16px}.ph-pt button:disabled{opacity:.3}.ph-pt b{min-width:18px;text-align:center;font-size:13px}
 .ph-del{border:0;background:transparent;color:var(--danger);width:28px;height:30px;font-size:14px}
 .ph-add{margin-top:10px;display:flex;flex-direction:column;gap:6px}.ph-add .edit-row{flex-wrap:wrap;gap:6px}
+
+.tdo-card{margin-top:12px}
+.hlist.tdo button{align-items:flex-start;padding:10px 2px}
+.hlist.tdo .chkn{margin-top:1px;flex:none}
+.tdo-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.tdo-t b{font-size:14.5px;font-weight:700;line-height:1.4}.tdo-t small{font-size:12px;color:var(--muted);line-height:1.45;overflow-wrap:anywhere}
+.hlist.tdo button i{align-self:center}
 </style>
 <style id="palStyle"></style>
 
@@ -1500,7 +1506,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="135";
+const APP_VERSION="137";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2463,6 +2469,7 @@ function dayEntries(date){
   for(const i of state.items) if(i.due===date&&myT(i)&&mine(i)) out.push({kind:"i",c:"items",x:i,done:!!myDone(i),s:tmin(myT(i)),e:tmin(myT(i))+(myD(i)||30),t:i.text,col:i.list==="shop"?"shop":"task"});
   for(const x of state.events) if(x.date===date&&x.start&&mine(x)){ const s0=tmin(x.start), e0=x.end?tmin(x.end):s0+60; out.push({kind:"e",c:"events",x,s:s0,e:e0<=s0?1440:e0,t:x.text,col:"cal"}); }
   for(const i of state.pitems) if(i.due===date&&i.time) out.push({kind:"i",c:"pitems",x:i,done:!!i.done,s:tmin(i.time),e:tmin(i.time)+(i.dur||30),t:i.text,col:i.list==="shop"?"shop":"task"});
+  for(const c of state.chores||[]) if(myT(c)&&choreMine(c)&&choreOn(c,date)) out.push({kind:"i",c:"chores",x:c,done:!!(c.log||{})[date],s:tmin(myT(c)),e:tmin(myT(c))+(myD(c)||30),t:c.text,col:"future"});
   for(const h of recMine()) if(myT(h)&&recOn(h,date)) out.push({kind:"i",c:recColl(h),x:h,done:!!habitLog(h)[date],s:tmin(myT(h)),e:tmin(myT(h))+(myD(h)||30),t:h.text,col:"task"});
   if(false) for(const g of (state.gEvents[date]||[])) if(!g.allDay) out.push({kind:"g",x:g,s:g.s,e:g.e,t:g.t,col:"muted"});
   out.sort((a,b)=>a.s-b.s||b.e-a.e);
@@ -2607,7 +2614,7 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   if(gAll.length||bAll.length) h+=`<div class="gall">${bAll.map(b=>`<button class="gchip mine" data-tb="blocks" data-tid="${esc(b.id)}">終日｜${esc(b.text)}</button>`).join("")}${gAll.map(g=>`<button class="gchip" data-gid="${esc(g.id)}">終日｜${esc(g.t)}</button>`).join("")}</div>`;
   h+=timetable(d)+ttBarHTML(d)+gEditHTML(d);
   if(evTimed.length) h+=`<div class="section-label">ふたりの予定（${evTimed.length}）</div><ul class="list">${evTimed.map(o=>eventRow(o.x)).join("")}</ul>`;
-  if(timed.length) h+=`<div class="section-label">時間に入れたタスク（${timed.length}）</div><ul class="list">${timed.map(o=>(o.c==="habits"||isRecItem(o.x))?habitRow(o.x):itemRow(o.x,true,o.c)).join("")}</ul>`;
+  if(timed.length) h+=`<div class="section-label">時間に入れたタスク（${timed.length}）</div><ul class="list">${timed.map(o=>o.c==="chores"?choreRow(o.x):(o.c==="habits"||isRecItem(o.x))?habitRow(o.x):itemRow(o.x,true,o.c)).join("")}</ul>`;
   const dayItems=(byDay[d]||[]).filter(o=>!(o.x&&myT(o.x))&&o.c!=="items"&&o.c!=="pitems"&&!(o.c==="events"&&o.x.start));
   if(dayItems.length) h+=`<div class="section-label">時間なしの予定</div><ul class="list">${dayItems.map(schedRow).join("")}</ul>`;
   const bl=blocksFor(d).sort((a,b)=>tmin(a.start)-tmin(b.start));
@@ -3425,7 +3432,9 @@ $("main").addEventListener("click",e=>{
   const chp=e.target.closest("[data-chpre]"); if(chp){ const [t,ev]=chp.dataset.chpre.split("|"); choreAdd(t,ev); return; }
   const alb=e.target.closest("[data-alb]"); if(alb){ const [d,w,id]=alb.dataset.alb.split("|"); if(w==="me"){ state.diaryTab="me"; state.diaryDate=d; render(); } else openPhoto(id); return; }
   const phb=e.target.closest("[data-ph]"); if(phb){ e.preventDefault(); phAct(phb.dataset.ph); return; }
-  const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); if(c==="habits"||isRecItem(state[c].find(q=>q.id===id))){ toggleHabit(id,($("tt")&&$("tt").dataset.ttdate)||today()); haptic("tick"); } else rightAction(c,id); render(); return; }
+  const tck=e.target.closest("[data-ttck]"); if(tck){ const [c,id]=tck.dataset.ttck.split("|"); const tdt=($("tt")&&$("tt").dataset.ttdate)||today();
+    if(c==="chores"){ if(tdt===today()) choreToggle(id); else { const ch0=state.chores.find(q=>q.id===id); if(ch0){ const on=!(ch0.log||{})[tdt]; applyLocal("chores",id,{log:{[tdt]:on?myRole():null}}); dupd("chores",id,{log:{[tdt]:on?myRole():null}}); haptic("tick"); } } }
+    else if(c==="habits"||isRecItem(state[c].find(q=>q.id===id))){ toggleHabit(id,tdt); haptic("tick"); } else rightAction(c,id); render(); return; }
   const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
     if(state.ttSel!==k){ const hadEdit=!!state.gEdit; state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); if(hadEdit) render(); else renderTT(); return; }
     state.ttSel=null; if(ttb.dataset.gid){ state.gEdit={date:$("tt").dataset.ttdate,id:ttb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; } }
@@ -4151,6 +4160,10 @@ function choreInfo(c){ const L=choreLast(c), ev=Math.max(1,Number(c.every||7)), 
   const due=L?addDays(base,ev):base, t=today(), diff=Math.round((parse(due)-parse(t))/864e5);
   const who=c.who==="alt"?(L?(L.r==="h"?"w":"h"):"h"):c.who||"both";
   return {L,due,diff,who,st:diff<0?"over":diff===0?"today":diff<=2?"soon":"ok"}; }
+/* v137: 家事もタイムテーブルへ（その日にやる家事＝次の予定日。今日は予定日が過ぎたものも） */
+function choreOn(c,d){ if((c.log||{})[d]) return true; const I=choreInfo(c), t=today(); if(d<t) return false; if(d===t) return I.diff<=0; return I.due===d; }
+const choreMine=c=>{ const w=choreInfo(c).who; return w==="both"||w===myRole(); };
+const noDueC=(c,x)=>c==="habits"||c==="chores"||isRecItem(x);
 function choreDueCount(){ const me=myRole(); return (state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&(I.who==="both"||I.who===me); }).length; }
 function choreToggle(id){ const c=state.chores.find(x=>x.id===id); if(!c) return; const t=today(), on=!(c.log||{})[t]; const u=snapUndo("chores",id);
   applyLocal("chores",id,{log:{[t]:on?myRole():null}}); dupd("chores",id,{log:{[t]:on?myRole():null}}); if(on) celebrate(); haptic(on?"done":"tick");
@@ -4307,18 +4320,19 @@ const TT_H=46, ttS=()=>Number(prefs.ttStart||4);
 const ttMine=x=>["both",myRole()].includes(getWho(x));
 function ttUntimed(d){ return [...state.items.filter(i=>i.due===d&&!myT(i)&&!myDone(i)&&i.list!=="wish"&&ttMine(i)).map(x=>({c:"items",x})),
   ...state.pitems.filter(i=>i.due===d&&!i.time&&!i.done&&i.list!=="wish").map(x=>({c:"pitems",x})),
-  ...recMine().filter(h=>!myT(h)&&recOn(h,d)&&!habitLog(h)[d]&&!hMiss(h,d)).map(x=>({c:recColl(x),x}))]; }
+  ...recMine().filter(h=>!myT(h)&&recOn(h,d)&&!habitLog(h)[d]&&!hMiss(h,d)).map(x=>({c:recColl(x),x})),
+  ...(state.chores||[]).filter(c=>!myT(c)&&choreMine(c)&&choreOn(c,d)&&!(c.log||{})[d]).map(x=>({c:"chores",x}))]; }
 function ttOthers(d){ return [...state.pitems.filter(i=>!i.done&&i.list==="task"&&(!i.due||i.due<d)).map(x=>({c:"pitems",x})),
   ...state.items.filter(i=>!myDone(i)&&i.list==="task"&&ttMine(i)&&(!i.due||i.due<d)).map(x=>({c:"items",x}))].slice(0,20); }
-function ttTimed(d){ return [...state.items.filter(i=>i.due===d&&myT(i)&&!myDone(i)&&ttMine(i)).map(x=>({c:"items",x})),...state.pitems.filter(i=>i.due===d&&i.time&&!i.done).map(x=>({c:"pitems",x})),...recMine().filter(h=>myT(h)&&recOn(h,d)&&!habitLog(h)[d]).map(x=>({c:recColl(x),x}))].sort((a,b)=>(myT(a.x)||"")<(myT(b.x)||"")?-1:1); }
+function ttTimed(d){ return [...state.items.filter(i=>i.due===d&&myT(i)&&!myDone(i)&&ttMine(i)).map(x=>({c:"items",x})),...state.pitems.filter(i=>i.due===d&&i.time&&!i.done).map(x=>({c:"pitems",x})),...recMine().filter(h=>myT(h)&&recOn(h,d)&&!habitLog(h)[d]).map(x=>({c:recColl(x),x})),...(state.chores||[]).filter(c=>myT(c)&&choreMine(c)&&choreOn(c,d)&&!(c.log||{})[d]).map(x=>({c:"chores",x}))].sort((a,b)=>(myT(a.x)||"")<(myT(b.x)||"")?-1:1); }
 function dragRow(c,x){
-  const R=(c==="habits"||isRecItem(x))?habitRow:(y=>itemRow(y,true,c));
+  const R=c==="chores"?choreRow:(c==="habits"||isRecItem(x))?habitRow:(y=>itemRow(y,true,c));
   if(isEditing(c,x.id)) return R(x);
   const picked=state.ttPick&&state.ttPick.c===c&&state.ttPick.id===x.id;
   return R(x).replace(/<\/div><\/li>$/,`<button type="button" class="dgrip ${picked?"on":""}" data-dg="${c}|${esc(x.id)}" aria-label="「${esc(x.text)}」をタイムテーブルへ（ドラッグ、またはタップして時間をタップ）"><svg viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg></button></div></li>`);
 }
 function ttPlace(c,id,d,time,dur){
-  const x=state[c].find(i=>i.id===id); if(!x) return; const u=snapUndo(c,id), ch={...((c==="habits"||isRecItem(x))?{}:{due:d}),...timeCh(x,time,dur||null)};
+  const x=state[c].find(i=>i.id===id); if(!x) return; const u=snapUndo(c,id), ch={...(noDueC(c,x)?{}:{due:d}),...timeCh(x,time,dur||null)};
   dupd(c,id,ch); haptic("done"); state.ttPick=null;
   toast(`${time} に「${(x.text||"").slice(0,14)}」`,u,"done"); render();
 }
@@ -4375,7 +4389,7 @@ function tdEnd(e){
   if(d.c==="blocks"||d.c==="events"){ const x=state[d.c].find(b=>b.id===d.id); if(!x){ render(); return; } const u=snapUndo(d.c,d.id), len=d.dur;
     const ch={start:hhmm(d.m),end:hhmm((d.m+len)%1440),...(x.auto?{touched:true}:{}),...(d.c==="events"?{date}:{})};
     applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch}); haptic("done"); toast(`${hhmm(d.m)} に移動${x.rep&&x.rep!=="none"?"（くり返しすべて）":""}`,u,"done"); return; }
-  if(d.from==="tt"){ const x=state[d.c].find(i=>i.id===d.id); if(x){ const u=snapUndo(d.c,d.id), ch={...((d.c==="habits"||isRecItem(x))?{}:{due:date}),...timeCh(x,hhmm(d.m),null)}; applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch}); haptic("done"); toast(`${hhmm(d.m)} に移動`,u,"done"); return; } }
+  if(d.from==="tt"){ const x=state[d.c].find(i=>i.id===d.id); if(x){ const u=snapUndo(d.c,d.id), ch={...(noDueC(d.c,x)?{}:{due:date}),...timeCh(x,hhmm(d.m),null)}; applyLocal(d.c,d.id,ch); if(!renderTT()) render(); dupd(d.c,d.id,{...ch}); haptic("done"); toast(`${hhmm(d.m)} に移動`,u,"done"); return; } }
   ttPlace(d.c,d.id,date,hhmm(d.m),null);
 }
 function tdStart(e,src){
@@ -5790,6 +5804,13 @@ function briefHTML(withChecks){
       for(const r of rs){ const s=shiftOf(r,d), m=tmin(x.start); if(s==="入"&&m>=15*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤入りと重なりそう`); else if(s==="明"&&m<12*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤明け（休息中）`); } } }
   const prep=prepCands();
   const pc=withChecks?pendingChecks():[];
+  if(withChecks){ /* v136: ホームの「今日やること」は他のカードと同じ見た目・同じ行の形にそろえる */
+    const rows=[...pc.map(x=>({k:`data-chk="${x.key}"`,n:x.num,t:x.title,s:x.desc||""})),
+      ...L.map(([ic0,lb,tx,go])=>{ const m=String(lb).match(/(\d+)件/); return {k:`data-go2="${go}"`,n:m?Number(m[1]):"",t:String(lb).replace(/\s*\d+件/,"").replace(/（.*?）/,""),s:tx}; })];
+    const total=rows.reduce((a,r)=>a+(Number(r.n)||0),0);
+    const body=rows.length?`<ul class="hlist tdo">${rows.slice(0,7).map(r=>`<li><button ${r.k}><span class="chkn">${r.n===""?"!":r.n}</span><span class="tdo-t"><b>${esc(r.t)}</b>${r.s?`<small>${esc(r.s)}</small>`:""}</span><i>›</i></button></li>`).join("")}</ul>${rows.length>7?`<button class="link br-more" data-go2="check">ほか ${rows.length-7}件を見る ›</button>`:""}`:`<div class="hempty">✓ 今日やることは全部済んでいます</div>`;
+    return `<section class="hcard tdo-card"><div class="hc-head"><h3>今日やること${total?` <span class="hn">${total}</span>`:""}</h3>${pc.length?`<button class="link" data-go2="check">一覧 ›</button>`:""}</div>${body}
+      ${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`; }
   if(!L.length&&!wn.length&&!prep.length&&!pc.length) return withChecks?`<section class="brief"><div class="br-h"><b>今日やること</b></div><div class="hempty">✓ 今日やることは全部済んでいます</div></section>`:"";
   return `<section class="brief"><div class="br-h"><b>${withChecks?"今日やること":"今日のまとめ"}</b>${withChecks&&pc.length?`<button class="link" data-go2="check">未入力・未確認 ${pc.length} ›</button>`:`<span class="who">${jpDate(t)}</span>`}</div>
     ${pc.length?`<ul class="hlist br-chk">${pc.slice(0,5).map(x=>`<li><button data-chk="${x.key}"><span class="chkn">${x.num}</span><span>${esc(x.title)}</span><i>›</i></button></li>`).join("")}</ul>${pc.length>5?`<button class="link br-more" data-go2="check">ほか ${pc.length-5}件を見る ›</button>`:""}`:""}
