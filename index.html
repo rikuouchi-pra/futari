@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=117"></script>
+<script src="shim.js?v=120"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1317,7 +1317,8 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adju
 .htd{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--habit) 10%,transparent);border:1px solid color-mix(in srgb,var(--habit) 30%,transparent)}
 .htd .check{flex:none}
 .htd .tx{flex:1;min-width:0;display:flex;flex-direction:column}
-.htd .tx b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.htd .tx b{font-size:15px;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+.htd .hmissb{flex:none;font-size:11.5px;padding:6px 9px;white-space:nowrap}.htd-st{flex:none}
 .htd .tx small{font-size:11.5px;color:var(--muted)}
 .htd.done{background:transparent;border-color:var(--line);opacity:.7}
 .htd.done .tx b{text-decoration:line-through;text-decoration-color:var(--muted)}
@@ -1358,6 +1359,11 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .brief .br-chk{margin:4px 0 6px}.brief .br-more{display:block;margin:0 0 6px auto}
 
 .hsrow{display:flex;align-items:center;gap:14px;margin:6px 0}.hsprev{width:64px;height:64px;border-radius:15px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex:none;background:var(--line);object-fit:cover}
+
+.shrem{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--caution) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--caution) 40%,transparent)}
+.shrem>.ib{flex:none}
+.shrem-t{flex:1 1 170px;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13px}.shrem-t b{font-size:14px}
+.shrem .btn{flex:none;margin-left:auto}
 </style>
 <style id="palStyle"></style>
 
@@ -1392,7 +1398,7 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
   <button class="rtab v-shop" role="tab" data-v="shop" data-l="us"><svg viewBox="0 0 24 24"><path class="f" d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>買い物<span class="badge" id="b-shop" hidden></span></button>
   <button class="rtab v-trouble" role="tab" data-v="trouble" data-l="us"><svg viewBox="0 0 24 24"><path class="f" d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-7l-4 3.5v-3.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z"/><path d="M10 9.3a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9v.3M12 14.2v.1"/></svg>気になる<span class="badge" id="b-trouble" hidden></span></button>
   <span class="sep" data-l="us" aria-hidden="true"></span>
-  <button class="rtab v-cal" role="tab" data-v="cal" data-l="us"><svg viewBox="0 0 24 24"><rect class="f" x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>カレンダー</button>
+  <button class="rtab v-cal" role="tab" data-v="cal" data-l="us"><svg viewBox="0 0 24 24"><rect class="f" x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>カレンダー<span class="badge" id="b-cal" hidden></span></button>
   <button class="rtab v-diary" role="tab" data-v="diary" data-l="us"><svg viewBox="0 0 24 24"><path class="f" d="M6 4.5h10.5a1.5 1.5 0 0 1 1.5 1.5v13.5H7.5A1.5 1.5 0 0 1 6 18z"/><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5H18M9.5 8.5h5M9.5 11.5h3.5"/></svg>日記<span class="badge" id="b-diary" hidden></span></button>
   <span class="sep" data-l="us" aria-hidden="true"></span>
   <button class="rtab v-psched" role="tab" data-v="psched" data-l="me"><svg viewBox="0 0 24 24"><rect class="f" x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4M8 14h3"/></svg>予定<span class="badge" id="b-psched" hidden></span></button>
@@ -1436,7 +1442,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="117";
+const APP_VERSION="120";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2775,6 +2781,21 @@ function calRange(){
   else { const m=state.calMonth; start=new Date(m.getFullYear(),m.getMonth(),1-m.getDay()); count=Math.ceil((m.getDay()+new Date(m.getFullYear(),m.getMonth()+1,0).getDate())/7)*7; title=`${m.getFullYear()}年${m.getMonth()+1}月`; }
   return {start,count,title,curMonth:state.calWeek?-1:state.calMonth.getMonth()};
 }
+/* v118: シフト未入力のリマインド。対象＝今日から14日（20日以降は来月末まで） */
+function shiftWin(){ const t=today(), p=parse(t); if(p.getDate()>=20){ const e=ymd(new Date(p.getFullYear(),p.getMonth()+2,0)); return {s:t,e}; } return {s:t,e:addDays(t,13)}; }
+function shiftMissing(r){ const W=shiftWin(), out=[]; for(let d=W.s; d<=W.e; d=addDays(d,1)) if(!shiftOf(r,d)) out.push(d); return out; }
+const rangeTxt=ds=>{ if(!ds.length) return ""; const g=[]; let a=ds[0],b=ds[0]; for(const d of ds.slice(1)){ if(d===addDays(b,1)) b=d; else { g.push([a,b]); a=b=d; } } g.push([a,b]); return g.slice(0,3).map(([x,y])=>x===y?short(x):`${short(x)}〜${short(y)}`).join("・")+(g.length>3?" ほか":""); };
+function shiftRemindHTML(){ const me=myRole(), ot=otherRole(), m=shiftMissing(me), o=shiftMissing(ot); if(!m.length&&!o.length) return "";
+  const W=shiftWin(), lim=parse(W.e).getDate()===new Date(parse(W.e).getFullYear(),parse(W.e).getMonth()+1,0).getDate()&&parse(W.e).getMonth()!==parse(W.s).getMonth()?`${parse(W.e).getMonth()+1}月末まで`:"これから2週間";
+  return `<div class="shrem">${ic("moon")}<div class="shrem-t"><b>シフトが未入力の日があります（${lim}）</b>
+    ${m.length?`<span>${esc(nameOf(me))}：${m.length}日（${esc(rangeTxt(m))}）</span>`:""}${o.length?`<span class="who">${esc(nameOf(ot))}：${o.length}日（${esc(rangeTxt(o))}）</span>`:""}</div>
+    ${m.length?`<button class="btn primary" data-act="shremGo">入力する</button>`:""}</div>`; }
+/* v119: ホーム用。先5日にシフトの空きがあればリマインド */
+function shiftSoonHTML(){ const t=today(), me=myRole(), ot=otherRole(), days=[...Array(5)].map((_,i)=>addDays(t,i));
+  const m=days.filter(d=>!shiftOf(me,d)), o=days.filter(d=>!shiftOf(ot,d)); if(!m.length&&!o.length) return "";
+  return `<div class="shrem home">${ic("moon")}<div class="shrem-t"><b>この先5日にシフトが入っていない日があります</b>
+    ${m.length?`<span>${esc(nameOf(me))}：${esc(rangeTxt(m))}</span>`:""}${o.length?`<span${m.length?' class="who"':""}>${esc(nameOf(ot))}：${esc(rangeTxt(o))}</span>`:""}</div>
+    <button class="btn primary" data-act="shremGo5" data-r="${m.length?me:ot}">${m.length?"入力する":`${esc(nameOf(ot))}の分を入力`}</button></div>`; }
 function viewCal(){
   const t=today(), sel=parse(state.sel), P=state.paint;
   let start,count,title;
@@ -2796,6 +2817,7 @@ function viewCal(){
   let h=`<div class="dstrip" data-strip="cal"><button class="icon-btn" data-act="cprev" aria-label="前へ">‹</button><div class="ttl">${title}</div><button class="icon-btn" data-act="cnext" aria-label="次へ">›</button></div>
     <div class="tools cal-tools">${calModeHTML()}<button class="pill today-p" data-act="ctoday">今日</button></div><div class="tools" style="margin-top:0">
       <button class="pill ${P.on?"on":""}" data-act="paint">${P.on?"シフト入力を終える":"シフト入力"}</button></div>`;
+  if(!P.on) h+=shiftRemindHTML();
   if(P.on){
     h+=`<div class="paint"><div class="edit-row"><span class="who">だれの分</span>${seg("pwho",P.who||myRole(),[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}</div>
       <div class="pal">${SHIFTS.map(([v,n])=>`<button class="pbtn s-${v}" data-pv="${v}" aria-pressed="${P.val===v}" aria-label="${n}">${v}</button>`).join("")}<button class="pbtn clr" data-pv="" aria-pressed="${P.val===""}" aria-label="消す">消す</button></div>
@@ -3045,7 +3067,7 @@ function counts(){
   return {chore:choreDueCount(),task:state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)).length, shop:state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)&&forMe(i)).length,
     taskAll:state.items.filter(i=>i.list==="task"&&!i.done).length, shopAll:state.items.filter(i=>i.list==="shop"&&!i.done).length,
     ptaskAll:state.pitems.filter(i=>i.list==="task"&&!i.done).length, pshopAll:state.pitems.filter(i=>i.list==="shop"&&!i.done).length,
-    diaryC, reflect:eve&&!myReflectDone(t)?1:0,
+    cal:shiftMissing(myRole()).length?1:0, diaryC, reflect:eve&&!myReflectDone(t)?1:0,
     trouble:state.troubles.filter(t=>t.status!=="done"&&forMe(t)).length, troubleAll:state.troubles.filter(t=>t.status!=="done").length,
     caution:state.cautions.filter(c=>!isMine(c)&&cNeedAck(c)&&(!c.date||c.date>=today())&&!(c.ack&&c.ack[me])).length,
     diary:diaryC+(eve&&!myDiaryDone(t)?1:0),
@@ -3086,7 +3108,7 @@ function renderChrome(){
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
   document.querySelectorAll(".rtab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v||(v==="caution"&&b.dataset.v==="trouble"))));
-  for(const k of ["task","chore","shop","trouble","caution","diary","future","talk","habit","ptask","pshop","psched","reflect"]){ const b=$("b-"+k); if(!b) continue; b.hidden=!n[k]; b.textContent=n[k]; }
+  for(const k of ["task","chore","shop","trouble","caution","diary","future","talk","habit","ptask","pshop","psched","reflect","cal"]){ const b=$("b-"+k); if(!b) continue; b.hidden=!n[k]; b.textContent=n[k]; }
   { const mg=(id,x)=>{ const b=$("b-"+id); if(b){ b.hidden=!x; b.textContent=x; } }; mg("trouble",(n.trouble||0)+(n.caution||0)); mg("task",(n.task||0)+(n.ptask||0)); mg("shop",(n.shop||0)+(n.pshop||0)); }
   document.documentElement.style.setProperty("--frc",`var(--who-${otherRole()})`);
   { const F=freshByView(); if(F.caution) F.trouble=(F.trouble||0)+F.caution; document.querySelectorAll("#rail .rtab[data-v]").forEach(t=>{ let d=t.querySelector(".fdot"); if(!d){ d=document.createElement("i"); d.className="fdot"; d.setAttribute("aria-hidden","true"); t.appendChild(d); } d.hidden=!F[t.dataset.v]; t.title=F[t.dataset.v]?`${nameOf(otherRole())}の更新 ${F[t.dataset.v]}件`:""; });
@@ -3397,6 +3419,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
   else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
   else if(a==="cardReset"){ Object.assign(prefs,{cardTone:"auto",cardAlpha:"65",lineTone:"auto",textTone:"auto"}); savePrefs(); applyPrefs(); render(); }
+  else if(a==="shremGo5"){ const r=b.dataset.r||myRole(), t=today(), d=[...Array(5)].map((_,i)=>addDays(t,i)).find(x=>!shiftOf(r,x))||t; go("cal"); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=r; render(); haptic("tick"); }
+  else if(a==="shremGo"){ const m=shiftMissing(myRole()); const d=m[0]||today(); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=myRole(); render(); haptic("tick"); }
   else if(a==="hreset"){ prefs.hdrOrder="brand,greet,title,layer"; prefs.hdrHide=""; prefs.hdrSz=""; prefs.hdrPos="top"; prefs.hdrSize="m"; prefs.hdrFold="0"; savePrefs(); render(); }
   else if(a==="wxHere") wxLocate();
   else if(a==="wxDef"){ prefs.wxLat=""; prefs.wxLon=""; prefs.wxName=""; savePrefs(); state.wx=null; wxLoad(true); }
@@ -3778,8 +3802,7 @@ function checkList(){
   add("qa","今日の質問に答える",qaAns(t,myRole())?0:1,qaQ(t));
   { const hf=state.habits.filter(hFollow); add("habit","今日の習慣（まだ）",hf.length,hf.slice(0,3).map(x=>x.text).join("、")); }
   const cp=state.cautions.filter(c=>cOngoing(c)&&cRoles(c).includes(me)&&!cLog(c,me)[t]).length; add("cprac","今日の「気をつけること」の実施",cp,"できたら記録");
-  let shMe=0,shOt=0; for(let i=0;i<14;i++){ const d=addDays(t,i); if(!shiftOf(me,d)) shMe++; if(!shiftOf(otherRole(),d)) shOt++; }
-  add("shift","シフト未入力（今日から14日）",shMe,`${nameOf(me)} ${shMe}日・${nameOf(otherRole())} ${shOt}日`);
+  { const m=shiftMissing(me), o=shiftMissing(otherRole()); add("shift","シフトの入力",m.length?1:0,`${nameOf(me)}：${m.length?`${m.length}日（${rangeTxt(m)}）`:"入力済み"}・${nameOf(otherRole())}：${o.length?`${o.length}日`:"入力済み"}`); }
   add("trouble","未対応の困りごと",state.troubles.filter(x=>x.status==="open").length,"対応を書くと「注意」へ移ります");
   const over=state.items.filter(i=>i.due&&!myDone(i)&&i.due<t&&["both",me].includes(getWho(i))).length+state.pitems.filter(i=>i.due&&!i.done&&i.due<t).length;
   add("overdue","期限を過ぎたタスク・買い物",over,"");
@@ -4506,7 +4529,7 @@ function viewHome(){
   let h=`<div class="hhero"><div class="hdate">${jpDate(t)}</div>
     <div class="hshift"><span>${esc(nameOf(me))} ${shiftBadge(sm,me)} ${esc(SHIFT_NAME[sm]||"未入力")}</span><span>${esc(nameOf(ot))} ${shiftBadge(so,ot)} ${esc(SHIFT_NAME[so]||"未入力")}</span>${off==="both"?'<b class="hoff">ふたり休み</b>':""}</div></div>`;
   /* ふたり／じぶん：大きな入口 */
-  h+=searchHTML()+briefHTML(true);
+  h+=shiftSoonHTML()+searchHTML()+briefHTML(true);
   const usN=n.task+n.shop+n.trouble+n.caution+n.talk, meN=(n.ptask||0)+(n.habit||0);
   h+=`<div class="hlayers">
     <button class="hl us" data-layer2="us"><span class="hl-ic"><svg viewBox="0 0 24 24" class="lic"><circle cx="8.5" cy="8" r="3"/><circle cx="15.5" cy="8" r="3"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M12.5 14.4c.9-.3 1.9-.4 3-.4 3 0 5.5 2 5.5 5"/></svg></span><b>ふたり</b><small>${usN?`${usN}件の未完了・未確認`:"すっきり"}</small><span class="hl-go">›</span></button>
