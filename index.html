@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=125"></script>
+<script src="shim.js?v=126"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1379,6 +1379,12 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .tt-b.done{background:color-mix(in srgb,var(--bc) 8%,var(--surface));opacity:.75}
 .tt-b.done b{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--muted)}
 .tt-b.done .tt-ck{background:var(--bc)}.tt-b.done .tt-ck svg{opacity:1;stroke:var(--surface)}
+
+.recnote{display:block;width:100%;text-align:left;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:12px;padding:10px 12px;font:inherit;font-size:13px;margin:4px 0 8px;cursor:pointer}
+.tmore{margin-top:14px}.tmore>summary{list-style:none;cursor:pointer;padding:12px 14px;border-radius:14px;background:var(--glass,var(--surface));font-weight:700;color:var(--muted);display:flex;justify-content:space-between}
+.tmore>summary::-webkit-details-marker{display:none}.tmore>summary::after{content:"▾"}.tmore[open]>summary::after{content:"▴"}
+.tmore>summary b{margin-left:auto;margin-right:8px;color:var(--ink)}
+.tmore .subttl{margin-top:12px}
 </style>
 <style id="palStyle"></style>
 
@@ -1457,7 +1463,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="125";
+const APP_VERSION="126";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2177,10 +2183,14 @@ function toggleHabit(id,date,cycle){
 }
 const HFOL=["today","soon","over"];
 function hFollow(h){ const t=today(); if(tgtCode(h)==="7") return !habitLog(h)[t]&&!hMiss(h,t); const D=habitDue(h); return !!D&&HFOL.includes(D.status); }
-function hTodayList(){ const t=today(); return state.habits.filter(h=>{ if(tgtCode(h)==="7"||hOn(h,t)) return true; const D=habitDue(h); return !!D&&(HFOL.includes(D.status)||D.status==="skip"||(D.status==="done"&&!!habitLog(h)[t])); }); }
+/* v126: 毎日以外の習慣は「繰り返しのタスク」として やること に表示（頻度の設定はそのまま） */
+const hDaily=h=>tgtCode(h)==="7";
+const recTasks=()=>state.habits.filter(h=>!hDaily(h));
+const recToday=h=>{ const t=today(); if(habitLog(h)[t]||hMiss(h,t)) return true; return hFollow(h); };
+function hTodayList(){ const t=today(); return state.habits.filter(hDaily).filter(h=>{ if(tgtCode(h)==="7"||hOn(h,t)) return true; const D=habitDue(h); return !!D&&(HFOL.includes(D.status)||D.status==="skip"||(D.status==="done"&&!!habitLog(h)[t])); }); }
 function hUpcoming(days){ const t=today(), out=[]; for(const h of state.habits){ if(!hSch(h)) continue; const nx=hNextOn(h,addDays(t,1)); if(nx&&dDiff(nx,t)<=days) out.push({h,d:nx}); } return out.sort((a,b)=>a.d<b.d?-1:1); }
 function hTodayHTML(compact){
-  const t=today(), T=hTodayList(), dn=T.filter(x=>habitLog(x)[t]).length, ms=T.filter(x=>hMiss(x,t)).length, rest=T.length-dn-ms, up=hUpcoming(6);
+  const t=today(), T=hTodayList(), dn=T.filter(x=>habitLog(x)[t]).length, ms=T.filter(x=>hMiss(x,t)).length, rest=T.length-dn-ms, up=[];
   const sub=h=>{ const D=habitDue(h); return tgtCode(h)==="7"?"毎日":D&&D.kind==="day"?tgtLabel(h):D&&D.kind==="iv"?(D.status==="over"?`${-D.left}日超過`:"今日が目安の日"):D&&D.P?`${D.P.cur}の最終日（${D.done}/${D.need}）`:tgtLabel(h); };
   const row=h=>{ const on=!!habitLog(h)[t], x=hMiss(h,t), st=on?"done":x?"miss":"todo";
     return `<div class="htd ${st}"><button class="check ${on?"on":""}" style="--c:var(--habit)" data-htc="${esc(h.id)}" aria-label="${esc(h.text)} ${on?"できたを取り消す":"できた"}">${CHECK}</button><div class="tx"><b>${esc(h.text)}</b><small>${esc(sub(h))}</small></div>${on?`<span class="htd-st">できた</span>`:`<button class="hmissb ${x?"on":""}" data-htx="${esc(h.id)}" aria-pressed="${x}">${x?"できなかった ✓":"できなかった"}</button>`}</div>`; };
@@ -2328,10 +2338,11 @@ document.addEventListener("click",e=>{
 },true);
 const HABIT_TPL=["早起き","運動30分","読書","ストレッチ","英語の勉強","資格の勉強","水を2L飲む","22時以降スマホを見ない"];
 function viewHabit(){
-  const t=today(), hs=state.habits.slice().sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
+  const t=today(), recN=recTasks().length, hs=state.habits.filter(hDaily).sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
   let h=hs.length?hTodayHTML(false):"";
   const have=new Set(hs.map(x=>x.text)), tpl=HABIT_TPL.filter(x=>!have.has(x));
-  h+=`<div class="section-label"><span>すべての習慣</span><span class="who" style="font-weight:500">頻度の高い順</span></div>`;
+  h+=`<div class="section-label"><span>毎日の習慣</span></div>`;
+  if(recN) h+=`<button class="recnote" data-go2="task">毎日以外の ${recN} 件は「やること › 繰り返し」にあります ›</button>`;
   h+=hs.length?`<ul class="list">${hs.map(habitRow).join("")}</ul>`:`<div class="empty">習慣にしたいことを追加しましょう<br>下の候補をタップ、または上から↓で追加</div>`;
   if(tpl.length) h+=`<div class="section-label">候補（タップで追加）</div><div class="chips">${tpl.slice(0,8).map(x=>`<button class="chip" data-htpl="${esc(x)}">＋ ${esc(x)}</button>`).join("")}</div>`;
   if(hs.length){
@@ -2733,8 +2744,18 @@ function viewList(list,c="items"){
     if(chips.length) h+=`<div class="section-label">よく買うもの（タップで追加）</div><div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}">＋ ${esc(c)}</button>`).join("")}</div>`;
   }
   const LB={task:["未完了","やることはありません","完了"],shop:["買うもの","買うものはありません","カゴに入れた"],wish:["やりたいこと","やりたいことはまだありません","叶った"]}[list];
+  if(list==="task"){ const t=today(), R=shared&&(prefs.whoF==="all"||prefs.whoF===myRole())?recTasks():[], rT=R.filter(recToday), rO=R.filter(h=>!recToday(h));
+    const oT=open.filter(i=>i.due&&i.due<=t), oL=open.filter(i=>!(i.due&&i.due<=t)), nT=oT.length+rT.filter(h=>!habitLog(h)[t]&&!hMiss(h,t)).length;
+    h+=`<div class="section-label"><span>今日のタスク${nT?`（${nT}）`:""}</span><span class="who" style="font-weight:500">${jpDate(t)}</span></div>`;
+    h+=oT.length||rT.length?`<ul class="list today-list">${oT.map(i=>itemRow(i,false,cOf(i))).join("")}${rT.map(habitRow).join("")}</ul>`:`<div class="empty">今日のタスクはありません ✓</div>`;
+    h+=`<details class="tmore" ${state.tmoreOpen?"open":""}><summary>それ以外のタスク <b>${oL.length+rO.length}</b></summary>`;
+    h+=oL.length?`<div class="subttl">日付が先・日付なし（${oL.length}）</div><ul class="list">${oL.map(i=>itemRow(i,false,cOf(i))).join("")}</ul>`:"";
+    if(shared&&(prefs.whoF==="all"||prefs.whoF===myRole())) h+=`<div class="subttl"><span>繰り返し（${rO.length}）</span><button class="link" data-act="recAdd">＋ 繰り返しを追加</button></div>${rO.length?`<ul class="list">${rO.map(habitRow).join("")}</ul>`:`<div class="empty" style="padding:12px">「毎週○曜」「毎月第○○曜」などの繰り返しを追加できます</div>`}`;
+    h+=`</details>`;
+  } else {
   h+=`<div class="section-label">${LB[0]}</div>`;
   h+=open.length?`<ul class="list">${open.map(i=>itemRow(i,false,cOf(i))).join("")}</ul>`:`<div class="empty">${LB[1]}<br>下に引っぱって追加</div>`;
+  }
   if(done.length) h+=`<div class="section-label"><span>${LB[2]}（${done.length}）</span><button class="link" data-act="clear" data-c="${c}">完了分を片付ける</button></div><ul class="list">${done.map(i=>itemRow(i,false,cOf(i))).join("")}</ul>`;
   if(shared&&(list==="task"||list==="shop")) h+=`<p class="who lk-note">${LKI}のついた項目は${esc(nameOf(myRole()))}だけに見えます（追加するとき「だれが」で「じぶん」を選ぶ）</p>`;
   return h+PULL_HINT;
@@ -2917,7 +2938,7 @@ function renderDiaryDynamic(){
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("tt-more")) state.ttMore=e.target.open; },true);
 document.addEventListener("focusout",e=>{ if(e.target.dataset&&e.target.dataset.centry) setTimeout(()=>{ if(diaryRenderDeferred&&state.view==="diary") renderDiaryDynamic(); },150); });
 const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示"]],["data","データ・アカウント・ヘルプ",[]]];
-document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; },true);
+document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("tmore")) state.tmoreOpen=e.target.open; },true);
 let setAnchor=null;
 document.addEventListener("click",e=>{ if(state.view!=="settings") return; const b=e.target.closest("#main button,#main [data-pref]"); if(!b) return;
   const at=["data-pref","data-val","data-act","data-v","data-sv","data-pal","data-preset","data-logo"].filter(k=>b.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(b.getAttribute(k))}"]`).join("");
@@ -3093,8 +3114,8 @@ function counts(){
     diary:diaryC+(eve&&!myDiaryDone(t)?1:0),
     future:state.plans.filter(p=>(p.cat==="anniv"&&p.date&&annivInfo(p).days<=14&&!planDone(p))||(p.cat==="bousai"&&planSoon(p))).length,
     talk:talkBadge(), talkAll:state.topics.filter(t=>t.status!=="done").length,
-    habit:state.habits.filter(hFollow).length,
-    ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
+    habit:state.habits.filter(h=>hDaily(h)&&hFollow(h)).length,
+    ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length+recTasks().filter(hFollow).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
     psched:mySched(0).filter(o=>o.d<=today()).length};
 }
 /* 18時・日付の切り替わりでメニューバーの数字を更新 */
@@ -3438,6 +3459,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="hsz"){ const m=Object.fromEntries((prefs.hdrSz||"").split(",").filter(Boolean).map(x=>x.split(":"))); m[b.dataset.k]=b.dataset.v; prefs.hdrSz=Object.entries(m).map(([k,v])=>k+":"+v).join(","); savePrefs(); render(); }
   else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
   else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
+  else if(a==="recAdd"){ openSheet("habit"); state.sheet.htarget="wd"; renderSheet(); }
   else if(a==="cardReset"){ Object.assign(prefs,{cardTone:"auto",cardAlpha:"65",lineTone:"auto",textTone:"auto"}); savePrefs(); applyPrefs(); render(); }
   else if(a==="wxOpen"){ const w=$("wx"); if(w&&!w.hidden){ setTimeout(()=>w.click(),0); } else go("home"); }
   else if(a==="shremGo5"){ const r=b.dataset.r||myRole(), t=today(), d=[...Array(5)].map((_,i)=>addDays(t,i)).find(x=>!shiftOf(r,x))||t; go("cal"); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=r; render(); haptic("tick"); }
@@ -3821,7 +3843,7 @@ function checkList(){
   const dn=dinnerOf(t); if(isEve()) add("dinner","今日の夕飯メモ",dn&&dn.text?0:1,"ふたりで共有されます");
   if(isEve()) add("reflect","今日の内省",myReflectDone(t)?0:1,"気分だけでも");
   add("qa","今日の質問に答える",qaAns(t,myRole())?0:1,qaQ(t));
-  { const hf=state.habits.filter(hFollow); add("habit","今日の習慣（まだ）",hf.length,hf.slice(0,3).map(x=>x.text).join("、")); }
+  { const hf=state.habits.filter(h=>hDaily(h)&&hFollow(h)); add("habit","今日の習慣（まだ）",hf.length,hf.slice(0,3).map(x=>x.text).join("、")); }
   const cp=state.cautions.filter(c=>cOngoing(c)&&cRoles(c).includes(me)&&!cLog(c,me)[t]).length; add("cprac","今日の「気をつけること」の実施",cp,"できたら記録");
   { const m=shiftMissing(me), o=shiftMissing(otherRole()); add("shift","シフトの入力",m.length?1:0,`${nameOf(me)}：${m.length?`${m.length}日（${rangeTxt(m)}）`:"入力済み"}・${nameOf(otherRole())}：${o.length?`${o.length}日`:"入力済み"}`); }
   add("trouble","未対応の困りごと",state.troubles.filter(x=>x.status==="open").length,"対応を書くと「注意」へ移ります");
@@ -4881,7 +4903,7 @@ $("form").addEventListener("submit",e=>{
   else if(S.kind==="block"){ const st=($("sTime")&&$("sTime").value)||S.time||"09:00", en=($("sEnd")&&$("sEnd").value)||S.end||hhmm(Math.min(tmin(st)+60,1439)); const d=($("sDate")&&$("sDate").value)||S.date||state.sel;
     if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); $("input").focus({preventScroll:true}); return; }
     dset("blocks",newId(),{text:t,date:d,from:S.brep==="none"?null:d,start:st,end:en,rep:S.brep,color:S.bcol,createdAt:now,updatedAt:now}); }
-  else if(S.kind==="habit"){ const hv={text:t,target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; dset("habits",newId(),hv); }
+  else if(S.kind==="habit"){ const hv={text:t,target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; dset("habits",newId(),hv); if(String(S.htarget)!=="7") setTimeout(()=>toast("繰り返しのタスクとして「やること」に追加しました"),300); }
   else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,...(S.date?{on:S.date}:{}),by:state.me||null,createdAt:now,updatedAt:now});
   else if(S.kind==="trouble") dset("troubles",newId(),{text:t,detail:"",level:S.tlevel,status:"open",assignee:null,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,replies:[]});
   else if(S.kind==="caution"){ const c={text:t,level:S.clevel,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,ack:{}}; if(S.date) c.date=S.date; dset("cautions",newId(),c); }
@@ -5644,7 +5666,7 @@ function briefHTML(withChecks){
   const t=today(), me=myRole(), L=[], wn=[];
   const evs=state.events.filter(x=>x.date===t).sort((a,b)=>(a.start||"99")<(b.start||"99")?-1:1);
   if(evs.length&&!withChecks) L.push(["cal",`今日の予定 ${evs.length}件`,`${evs.slice(0,3).map(x=>`${x.start?x.start+" ":""}${x.text}${x.who&&x.who!=="both"?`（${nameOf(x.who)}）`:""}`).join("、")}`,"cal"]);
-  const due=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t), mineP=state.pitems.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t);
+  const due=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t), mineP=[...state.pitems.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t),...recTasks().filter(hFollow).map(h=>({due:t,text:h.text}))];
   if(due.length||mineP.length){ const by=r=>due.filter(i=>getWho(i)===r).length, ov=[...due,...mineP].filter(i=>i.due<t).length;
     L.push(["task",`今日までのやること ${due.length+mineP.length}件${ov?`（期限切れ ${ov}）`:""}`,[["h",by("h")],["w",by("w")],["both",by("both")]].filter(([,n])=>n).map(([r,n])=>`${r==="both"?"ふたり":nameOf(r)} ${n}件`).concat(mineP.length?[`じぶん ${mineP.length}件`]:[]).join("・"),"task"]); }
   const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]; });
