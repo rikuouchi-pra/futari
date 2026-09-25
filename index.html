@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=137"></script>
+<script src="shim.js?v=138"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1427,6 +1427,8 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .hlist.tdo .chkn{margin-top:1px;flex:none}
 .tdo-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.tdo-t b{font-size:14.5px;font-weight:700;line-height:1.4}.tdo-t small{font-size:12px;color:var(--muted);line-height:1.45;overflow-wrap:anywhere}
 .hlist.tdo button i{align-self:center}
+
+.item.chskip{opacity:.7}
 </style>
 <style id="palStyle"></style>
 
@@ -1506,7 +1508,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="137";
+const APP_VERSION="138";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3544,6 +3546,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="hsz"){ const m=Object.fromEntries((prefs.hdrSz||"").split(",").filter(Boolean).map(x=>x.split(":"))); m[b.dataset.k]=b.dataset.v; prefs.hdrSz=Object.entries(m).map(([k,v])=>k+":"+v).join(","); savePrefs(); render(); }
   else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
   else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
+  else if(a==="chskip"){ const li3=b.closest("[data-id]"); const c=li3&&state.chores.find(q=>q.id===li3.dataset.id); if(c){ const t=today(), v=chSkip(c,t)?null:myRole(); applyLocal("chores",c.id,{skip:{[t]:v}}); dupd("chores",c.id,{skip:{[t]:v}}); haptic("tick"); toast(v?`「${c.text}」は今日はやらない（明日また出ます）`:`「${c.text}」を今日やる家事に戻しました`); render(); } }
   else if(a==="recAdd"){ state.sheet.htarget="wd"; openSheet("rtask"); state.sheet.htarget="wd"; renderSheet(); }
   else if(a==="cardReset"){ Object.assign(prefs,{cardTone:"auto",cardAlpha:"65",lineTone:"auto",textTone:"auto"}); savePrefs(); applyPrefs(); render(); }
   else if(a==="wxOpen"){ const w=$("wx"); if(w&&!w.hidden){ setTimeout(()=>w.click(),0); } else go("home"); }
@@ -4161,10 +4164,11 @@ function choreInfo(c){ const L=choreLast(c), ev=Math.max(1,Number(c.every||7)), 
   const who=c.who==="alt"?(L?(L.r==="h"?"w":"h"):"h"):c.who||"both";
   return {L,due,diff,who,st:diff<0?"over":diff===0?"today":diff<=2?"soon":"ok"}; }
 /* v137: 家事もタイムテーブルへ（その日にやる家事＝次の予定日。今日は予定日が過ぎたものも） */
-function choreOn(c,d){ if((c.log||{})[d]) return true; const I=choreInfo(c), t=today(); if(d<t) return false; if(d===t) return I.diff<=0; return I.due===d; }
+const chSkip=(c,d)=>!!(c.skip||{})[d];
+function choreOn(c,d){ if((c.log||{})[d]) return true; if(chSkip(c,d)) return false; const I=choreInfo(c), t=today(); if(d<t) return false; if(d===t) return I.diff<=0; return I.due===d; }
 const choreMine=c=>{ const w=choreInfo(c).who; return w==="both"||w===myRole(); };
 const noDueC=(c,x)=>c==="habits"||c==="chores"||isRecItem(x);
-function choreDueCount(){ const me=myRole(); return (state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&(I.who==="both"||I.who===me); }).length; }
+function choreDueCount(){ const me=myRole(), t=today(); return (state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!chSkip(c,t)&&!(c.log||{})[t]&&(I.who==="both"||I.who===me); }).length; }
 function choreToggle(id){ const c=state.chores.find(x=>x.id===id); if(!c) return; const t=today(), on=!(c.log||{})[t]; const u=snapUndo("chores",id);
   applyLocal("chores",id,{log:{[t]:on?myRole():null}}); dupd("chores",id,{log:{[t]:on?myRole():null}}); if(on) celebrate(); haptic(on?"done":"tick");
   toast(on?`「${c.text}」やった！（+${c.pts||1}pt）`:`「${c.text}」の今日の記録を取り消しました`,u,"done"); render(); }
@@ -4179,19 +4183,22 @@ function choreRow(c){
   const dl=I.diff<0?`${-I.diff}日すぎ`:I.diff===0?"今日":I.diff===1?"明日":`あと${I.diff}日`;
   const whoTxt=c.who==="alt"?`交代・次は${esc(nameOf(I.who))}`:I.who==="both"?"ふたり":esc(nameOf(I.who));
   const recent=Object.entries(c.log||{}).filter(([,r])=>r).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,6).reverse();
-  return wrapRow("chores",c,`${doneT?"done":""} ch-${I.st}`,
+  const skT=chSkip(c,today()), canSkip=!doneT&&I.diff<=0;
+  return wrapRow("chores",c,`${doneT?"done":""} ${skT?"chskip":""} ch-${I.st}`,
     `<button class="check ${doneT?"on":""}" style="--c:var(--future)" data-act="right" aria-label="${doneT?"今日の記録を取り消す":"今日やった"}">${CHECK}</button>`,
-    `<div class="text">${esc(c.text)}</div><div class="meta"><span class="chdue ${I.st}">${doneT?"✓ 今日やった":dl}</span><span class="tag tc-muted">${Number(c.every||7)===1?"毎日":`${c.every||7}日ごと`}</span><span>${whoTxt}</span><span>${"●".repeat(Number(c.pts||1))}</span></div>
-     ${recent.length?`<div class="chlog">${recent.map(([d,r])=>`<i class="${r}" data-tip="${short(d)}：${esc(nameOf(r))}"></i>`).join("")}<span>最近の担当</span></div>`:""}`);
+    `<div class="text">${esc(c.text)}</div><div class="meta"><span class="chdue ${skT?"ok":I.st}">${doneT?"✓ 今日やった":skT?"今日はやらない":dl}</span><span class="tag tc-muted">${Number(c.every||7)===1?"毎日":`${c.every||7}日ごと`}</span><span>${whoTxt}</span><span>${"●".repeat(Number(c.pts||1))}</span></div>
+     ${recent.length?`<div class="chlog">${recent.map(([d,r])=>`<i class="${r}" data-tip="${short(d)}：${esc(nameOf(r))}"></i>`).join("")}<span>最近の担当</span></div>`:""}
+     ${canSkip||skT?`<div class="meta"><button class="hmissb ${skT?"on":""}" data-act="chskip" aria-pressed="${skT}">${skT?"今日はやらない ✓（取り消す）":"今日はやらない・できない"}</button></div>`:""}`);
 }
 function viewChore(){
   const cs=(state.chores||[]).slice().sort((a,b)=>choreInfo(a).diff-choreInfo(b).diff||(a.text<b.text?-1:1));
-  const due=cs.filter(c=>choreInfo(c).diff<=0&&!(c.log||{})[today()]), rest=cs.filter(c=>!due.includes(c));
+  const due=cs.filter(c=>choreInfo(c).diff<=0&&!(c.log||{})[today()]&&!chSkip(c,today())), sk=cs.filter(c=>chSkip(c,today())&&!(c.log||{})[today()]), rest=cs.filter(c=>!due.includes(c)&&!sk.includes(c));
   let h=`<div class="chart">${balanceHTML(false)}</div>`;
   h+=`<div class="chadd"><input type="text" id="chNew" maxlength="40" placeholder="家事を追加（例：お風呂掃除）" enterkeyhint="done"><input type="number" id="chNewE" min="1" max="365" value="7" inputmode="numeric" aria-label="何日ごと"><span class="who">日ごと</span><button class="btn primary" data-act="chAdd">追加</button></div>`;
   const have=new Set(cs.map(c=>c.text)), sug=CHORE_PRESET.filter(([t])=>!have.has(t));
   if(sug.length) h+=`<div class="chips">${sug.slice(0,8).map(([t,e])=>`<button class="chip" data-chpre="${esc(t)}|${e}">＋ ${esc(t)}<small>${e===1?"毎日":e+"日"}</small></button>`).join("")}</div>`;
   if(due.length) h+=`<div class="section-label">今日やること（${due.length}）</div><ul class="list">${due.map(choreRow).join("")}</ul>`;
+  if(sk.length) h+=`<div class="section-label">今日はやらない（${sk.length}）</div><ul class="list">${sk.map(choreRow).join("")}</ul>`;
   h+=rest.length?`<div class="section-label">これから</div><ul class="list">${rest.map(choreRow).join("")}</ul>`:due.length?"":`<div class="empty">家事がまだありません<br>上の候補をタップするか、名前と間隔を入れて追加</div>`;
   return h+hint("→で今日やった（担当・ポイントを記録）・←で削除・タップで間隔／担当／大変さを編集<br>「交代」は前回と違う人が次の担当になります");
 }
@@ -5794,7 +5801,7 @@ function briefHTML(withChecks){
   const due=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t), mineP=[...state.pitems.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t),...recMine().filter(hFollow).map(h=>({due:t,text:h.text}))];
   if(due.length||mineP.length){ const by=r=>due.filter(i=>getWho(i)===r).length, ov=[...due,...mineP].filter(i=>i.due<t).length;
     L.push(["task",`今日までのやること ${due.length+mineP.length}件${ov?`（期限切れ ${ov}）`:""}`,[["h",by("h")],["w",by("w")],["both",by("both")]].filter(([,n])=>n).map(([r,n])=>`${r==="both"?"ふたり":nameOf(r)} ${n}件`).concat(mineP.length?[`じぶん ${mineP.length}件`]:[]).join("・"),"task"]); }
-  const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]; });
+  const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]&&!chSkip(c,t); });
   if(ch.length) L.push(["chore",`今日の家事 ${ch.length}件`,`${ch.slice(0,3).map(c=>{ const I=choreInfo(c); return `${c.text}${I.who&&I.who!=="both"?`（${nameOf(I.who)}）`:""}`; }).join("、")}${ch.length>3?` ほか${ch.length-3}`:""}`,"chore"]);
   if(!withChecks){ const T=wxToday(); if(T&&prefs.wx!=="off"&&(T.pop>=50||T.rainAt!=null)) L.push(["rain",`雨の予報（最大${T.pop}%）`,T.rainAt!=null?`${T.rainAt}時ごろから降りそう・洗濯物や傘に注意`:"今日は傘があると安心","home"]); }
   const sh=shiftOf("h",addDays(t,1)), sw=shiftOf("w",addDays(t,1));
