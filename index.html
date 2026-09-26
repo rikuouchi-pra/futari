@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=143"></script>
+<script src="shim.js?v=144"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1515,7 +1515,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="143";
+const APP_VERSION="144";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2512,12 +2512,15 @@ function renderTT(){ const tt=$("tt"); if(!tt||state.view!=="cal") return false;
 function ttDeselect(){ state.ttSel=null; state.ttDelArm=false; if(state.dirty){ state.dirty=false; render(); } else renderTT(); }
 function ttSelEntry(date){ const k=state.ttSel; if(!k) return null; const [c,id]=k.split("|");
   return dayEntries(date).find(o=>c==="g"?(o.kind==="g"&&o.x.id===id):(o.c===c&&o.x.id===id))||null; }
+/* v144: 家事・習慣・繰り返しタスクはタイムテーブルから丸ごと消さない（その日だけ「やらない」にする。削除は各タブで） */
+const ttRecur=o=>o.c==="chores"||o.c==="habits"||(o.c==="items"&&isRecItem(o.x));
+const ttSkipped=o=>o.c==="chores"?chSkip(o.x,state.sel):hMiss(o.x,state.sel);
 function ttBarHTML(date){
   const o=ttSelEntry(date); if(!o){ return ""; }
   const len=o.e-o.s;
   return `<div class="tt-bar" role="toolbar" aria-label="選んだ予定の調整">
     <div class="tb-h"><b>${esc(o.t)}</b><span>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}（${len}分）</span><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>
-    <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button></div>
+    <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button>`}</div>
     <div class="tb-tip">予定をつかんで移動・上下のつまみで開始／終了を変更</div></div>`;
 }
 async function ttApply(o,s,e,msg){
@@ -3350,10 +3353,18 @@ function goRel(n){ const i=ORDER.indexOf(state.view==="caution"?"trouble":state.
 
 /* ================= editing ================= */
 let editSeg={};
+/* v144: 編集欄を確実に開く（今の画面に出ていなければ、その項目のタブへ移動して開く） */
+function editHome(c,x){ if(c==="chores") return "chore"; if(c==="habits") return "habit"; if(c==="items") return isRecItem(x)?"task":(x.list==="shop"?"shop":"task"); if(c==="pitems") return x.list==="shop"?"shop":"task"; if(c==="topics") return "talk"; if(c==="troubles") return "trouble"; return state.view; }
+function openEdit(c,id){ const x=(state[c]||[]).find(i=>i.id===id); if(!x){ toast("元の項目が見つかりません"); return; }
+  const focus=()=>setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60);
+  startEdit(c,id); if($("editText")){ focus(); return; }
+  state.editing=null; const v=editHome(c,x); if(v!==state.view){ if(prefs.whoF!=="all"){ prefs.whoF="all"; savePrefs(true); } go(v); startEdit(c,id); if($("editText")){ focus(); return; } }
+  state.editing=null; render(); toast("ここでは編集できませんでした。項目のタブから編集してください"); }
 function startEdit(c,id){ state.editing={c,id}; editSeg={}; editFocused=false; render(); }
 function saveEdit(){
   const ed=state.editing; if(!ed) return; const {c,id}=ed; const x=state[c].find(i=>i.id===id);
-  const t=$("editText")?$("editText").value.trim():"";
+  if(!$("editText")){ state.editing=null; return; } /* v144: 編集欄が画面にない時は何もしない（空＝削除と誤判定しない） */
+  const t=$("editText").value.trim();
   state.editing=null;
   if(x){
     if(!t){ removeWithUndo(c,[id],"削除しました"); }
@@ -3460,7 +3471,7 @@ $("main").addEventListener("click",e=>{
   const ttb=e.target.closest("#tt .tt-b"); if(ttb&&!e.target.closest(".tt-ck")){ const k=ttb.dataset.gid?"g|"+ttb.dataset.gid:ttb.dataset.tb+"|"+ttb.dataset.tid;
     if(state.ttSel!==k){ const hadEdit=!!state.gEdit; state.ttSel=k; state.ttDelArm=false; state.gEdit=null; haptic("tick"); if(hadEdit) render(); else renderTT(); return; }
     state.ttSel=null; if(ttb.dataset.gid){ state.gEdit={date:$("tt").dataset.ttdate,id:ttb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; } }
-  const tb=e.target.closest("[data-tb]"); if(tb){ startEdit(tb.dataset.tb,tb.dataset.tid); setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },50); return; }
+  const tb=e.target.closest("[data-tb]"); if(tb){ openEdit(tb.dataset.tb,tb.dataset.tid); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
@@ -3633,7 +3644,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="futhome"){ state.fut=null; render(-40); }
   else if(a==="cprev"||a==="cnext") shiftCal(a==="cprev"?-1:1);
   else if(a==="paint"){ state.paint.on=!state.paint.on; render(); }
-  else if(a==="edit") startEdit(c,id);
+  else if(a==="edit") openEdit(c,id);
   else if(a==="esave") saveEdit();
   else if(a==="edel"){ state.editing=null; removeWithUndo(c,[id],"削除しました"); render(); }
   else if(a==="reply") sendReply();
@@ -3662,13 +3673,17 @@ $("main").addEventListener("click",e=>{
   else if(a==="ttx") ttDeselect();
   else if(a==="ttun"){ const o=ttSelEntry(state.sel); if(!o) return; const x=state[o.c].find(i=>i.id===o.x.id); if(!x) return; const u=snapUndo(o.c,x.id); dupd(o.c,x.id,timeCh(x,null,null)); state.ttSel=null; haptic("tick"); toast(`「${(x.text||"").slice(0,14)}」の時間を外しました`,u,"done"); render(); }
   else if(a==="ttdel"){ const o=ttSelEntry(state.sel); if(!o) return;
-    if(o.kind==="g"&&!state.ttDelArm){ state.ttDelArm=true; haptic("warn"); render(); clearTimeout(state.ttDelT); state.ttDelT=setTimeout(()=>{ if(state.ttDelArm){ state.ttDelArm=false; if(state.view==="cal") render(); } },4000); return; }
+    if((o.kind==="g"||(o.c==="blocks"&&o.x.rep&&o.x.rep!=="none"))&&!state.ttDelArm){ state.ttDelArm=true; haptic("warn"); render(); clearTimeout(state.ttDelT); state.ttDelT=setTimeout(()=>{ if(state.ttDelArm){ state.ttDelArm=false; if(state.view==="cal") render(); } },4000); return; }
     state.ttDelArm=false; state.ttSel=null;
     if(o.kind==="g"){ gCall("delete_event",{eventId:o.x.id},`Google：${o.t} を削除しました`,state.sel); return; }
     if(!canDelete(o.c,o.x)){ toast("この予定は削除できません"); render(); return; }
     removeWithUndo(o.c,[o.x.id],"削除しました"); render(); }
   else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
-  else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else { startEdit(o.c,o.x.id); setTimeout(()=>{ const el2=document.querySelector(".edit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },50); } }
+  else if(a==="ttskip"){ const o=ttSelEntry(state.sel); if(!o||!ttRecur(o)) return; const d=state.sel, x=o.x;
+    if(o.c==="chores"){ const v=chSkip(x,d)?null:myRole(); applyLocal("chores",x.id,{skip:{[d]:v}}); dupd("chores",x.id,{skip:{[d]:v}}); toast(v?`「${x.text}」はこの日はやらない`:`「${x.text}」をやる日に戻しました`); }
+    else { const nx=hMiss(x,d)?null:"x"; x.log={...hRaw(x),[d]:nx}; dupd(recColl(x),x.id,{log:{[d]:nx}}); toast(nx?`「${x.text}」この日はできない、で記録しました`:`「${x.text}」を戻しました`); }
+    state.ttSel=null; haptic("tick"); render(); }
+  else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else openEdit(o.c,o.x.id); }
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
