@@ -65,6 +65,7 @@
     auth = M.getAuth(app);
     try{ fs = M.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: M.persistentLocalCache({ tabManager: M.persistentMultipleTabManager() }) }); }
     catch(e){ fs = M.getFirestore(app); }
+    window.__futariWaitWrites = function(){ return M.waitForPendingWrites(fs); }; /* v171: オンライン復帰時に、オフライン中の変更の送信完了を待つ */
     me = await new Promise(function(ok){ var un = M.onAuthStateChanged(auth, function(u){ if(u && ALLOWED.length && ALLOWED.indexOf((u.email || "").toLowerCase()) < 0){ gate("denied", u.email); return; }
       if(u){ un(); ok(u); } else gate("login"); }); });
     gate("none");

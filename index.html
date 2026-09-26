@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=170"></script>
+<script src="shim.js?v=171"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1482,11 +1482,12 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .ai-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.ai-chips .chip{flex:none}
 .updbar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .updbar span{flex:1}.updbar button{border:0;border-radius:999px;padding:6px 12px;font:inherit;font-weight:800;background:var(--on-accent);color:var(--accent);cursor:pointer}.updbar button[data-upd="0"]{background:transparent;color:var(--on-accent);padding:6px}
-.aip{display:flex;flex-direction:column;gap:8px;margin:8px 0}.aip label{display:flex;flex-direction:column;gap:3px}.aip label span{font-size:12px;font-weight:700;color:var(--muted)}.aip input{width:100%}
+.aip{display:flex;flex-direction:column;gap:8px;margin:8px 0}.aip label{display:flex;flex-direction:column;gap:3px}.aip label span{font-size:12px;font-weight:700;color:var(--muted)}.aip input{width:100%;max-width:100%;min-width:0;box-sizing:border-box}.aip label{min-width:0}.aip{min-width:0}
 .kind-cfg{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px}
 .kind-cfg li{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--ground)}.kind-cfg li span{flex:1;min-width:0;font-weight:700;font-size:14px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.kind-cfg li.off span{opacity:.45;text-decoration:line-through}
 .kind-cfg .dotc{width:10px;height:10px;border-radius:50%;flex:none}.kind-cfg .kv{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--on-accent);font-weight:900;cursor:pointer;padding:0}.kind-cfg .kv.on{background:var(--accent);border-color:var(--accent)}.kind-cfg .icon-btn.sm{flex:none;width:30px;height:30px;min-width:30px}.kind-cfg li{gap:5px}
 .kind.kcfg{flex:none;opacity:.7}.kc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}.ksub .seg{width:100%}.ksub .seg button{flex:1}
+#sync.offl{background:color-mix(in srgb,var(--caution) 22%,transparent)!important;color:var(--ink)!important}#sync.offl .dot{background:var(--caution)!important}
 </style>
 <style id="palStyle"></style>
 
@@ -1566,7 +1567,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="170";
+const APP_VERSION="171";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1839,9 +1840,9 @@ function err(e){
   $("offline").hidden=false;
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
-async function dset(c,id,data){ if(guestBlock(c)) return; if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
-async function dupd(c,id,ch){ if(guestBlock(c)) return; ch.updatedAt=Date.now(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
-async function ddel(c,id){ if(guestBlock(c)) return; if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
+async function dset(c,id,data){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
+async function dupd(c,id,ch){ if(guestBlock(c)) return; netMark(); ch.updatedAt=Date.now(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
+async function ddel(c,id){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
 function removeWithUndo(c,ids,msg){
   if(c==="blocks"){ const ks=ids.map(id=>id.match(/^auto_(.+)_(\d{4}-\d{2}-\d{2})$/)).filter(Boolean).map(m=>`${m[1]}:${m[2]}`); if(ks.length){ const sk=arSkip(); ks.forEach(k=>sk.add(k)); prefs.autoSkip=[...sk].filter(k=>k.slice(-10)>=addDays(today(),-7)).join(","); savePrefs(true); } }
   const saved=ids.map(id=>state[c].find(i=>i.id===id)).filter(Boolean);
@@ -5438,6 +5439,13 @@ $("form").addEventListener("submit",e=>{
 
 /* ================= prefs sync ================= */
 let prefTimer=null;
+/* v171: オフライン（災害時など）。この端末に保存したデータで動き、変更は端末にためておき、つながったら自動で送る（送った内容で上書き） */
+state.netOff=navigator.onLine===false;
+function netMark(){ if(state.netOff||navigator.onLine===false){ state.netOff=true; state.pendW=(state.pendW||0)+1; netChip(); } }
+function netChip(){ const el=$("sync"), tx=$("syncText"); if(!el||!tx) return; el.classList.toggle("offl",!!state.netOff); if(state.netOff) tx.textContent=`オフライン${state.pendW?`・送信待ち${state.pendW}`:""}`; else if(el.classList.contains("live")) tx.textContent="共有中"; }
+addEventListener("offline",()=>{ state.netOff=true; netChip(); toast("オフラインです。この端末のデータで使えます（変更は保存し、つながったら自動で送ります）"); });
+addEventListener("online",async()=>{ const n=state.pendW||0; state.netOff=false; netChip(); if(n){ $("syncText")&&($("syncText").textContent="送信中…"); try{ if(window.__futariWaitWrites) await Promise.race([window.__futariWaitWrites(),new Promise(r=>setTimeout(r,20000))]); }catch(e){} }
+  state.pendW=0; netChip(); toast(n?`オンラインに戻りました。オフライン中の変更 ${n}件を送りました`:"オンラインに戻りました"); requestRender(); });
 function savePrefs(silent){ try{ if(typeof aiProfSync==="function"&&state.kakei&&kakeiDoc) setTimeout(aiProfSync,0); }catch(e){}
   store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs();
   if(prefsDoc) prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } });
@@ -6526,7 +6534,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   rolesDoc.onSnapshot(s=>{ state.roles=s.exists?s.data():{}; state.rolesLoaded=true; resolveRole(); requestRender(); if(!$("onb").hidden) renderOnb(); },()=>{ state.rolesLoaded=true; });
   famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
   if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(c!=="gsync") gAutoKick(4000); if(c==="blocks"){ state.blocksLoaded=true; autoCook(); } requestRender(); },()=>{});
-  const live=()=>{ $("sync").classList.add("live"); $("syncText").textContent="共有中"; };
+  const live=()=>{ $("sync").classList.add("live"); netChip(); };
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
