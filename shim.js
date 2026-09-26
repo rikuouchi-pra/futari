@@ -185,7 +185,7 @@
     await M.setDoc(M.doc(fs, "aitmp", id), doc);
     try{
       var tok = await me.getIdToken();
-      var j = await jsonp_(G, { idToken: tok, tool: "ai", args: { doc: id } }, 90000);
+      var j = await gasCall_(G, { idToken: tok, tool: "ai", args: { doc: id } }, 90000);
       if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
       return j.payload;
     } finally { M.deleteDoc(M.doc(fs, "aitmp", id)).catch(function(){}); }
@@ -202,6 +202,28 @@
 
   /* ---------- Apps Script 呼び出し（JSONP：スクリプトタグで読むので、ブラウザの通信制限を受けない） ---------- */
   var jpN = 0;
+  /* v151: まず普通の通信（POST）で呼び、だめなときだけ従来の方法（JSONP）に切り替える。
+     どちらも、返事がJSONでない（ログイン画面など）ときは待ち続けずにすぐ理由を出す */
+  var gasMode = null; /* "post" | "jsonp"：一度うまくいった方を使い続ける */
+  async function gasCall_(url, req, ms){
+    if(gasMode !== "jsonp"){
+      var ctl = new AbortController(), tm = setTimeout(function(){ ctl.abort(); }, ms || 30000), r = null;
+      var post = function(){ return fetch(url, { method: "POST", body: JSON.stringify(req), headers: { "Content-Type": "text/plain;charset=utf-8" }, redirect: "follow", signal: ctl.signal, credentials: "omit" }); };
+      try{ r = await post(); }
+      catch(x){
+        if(ctl.signal.aborted){ clearTimeout(tm); var e1 = new Error("timeout"); e1.code = "Apps Scriptの処理が時間内に終わりませんでした。もう一度試してください"; throw e1; }
+        r = null;
+        if(gasMode === "post"){ /* 前はこの方法で動いていた＝一時的なエラー（混雑など）。少し待って1回だけやり直す */
+          await new Promise(function(ok){ setTimeout(ok, 2500); });
+          try{ r = await post(); }catch(x2){ clearTimeout(tm); var e3 = new Error("busy"); e3.code = "Apps Script／Geminiが一時的に混み合っています。少し待ってもう一度試してください"; throw e3; }
+        }
+      }
+      clearTimeout(tm);
+      if(r){ var txt = await r.text(); try{ var j = JSON.parse(txt); gasMode = "post"; return j; }
+        catch(x){ var e2 = new Error("not_json"); e2.code = /<html|<!doctype/i.test(txt) ? "Apps Scriptがログイン画面などを返しました。デプロイの「アクセスできるユーザー」を「全員」にして、新しいバージョンでデプロイしてください" : "Apps Scriptの返事を読み取れませんでした（" + r.status + "）"; throw e2; } }
+    }
+    var j2 = await jsonp_(url, req, ms); gasMode = "jsonp"; return j2;
+  }
   function jsonp_(url, req, ms){
     return new Promise(function(ok, ng){
       var cb = "__fjp" + Date.now().toString(36) + (jpN++), sc = document.createElement("script"), done = false;
@@ -212,6 +234,7 @@
       if(q.length > 7000){ fail("送る内容が長すぎます"); return; }
       sc.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "cb=" + cb + "&q=" + q;
       sc.onerror = function(){ fail(navigator.onLine === false ? "server_unavailable" : "Apps Scriptに接続できません（URLと公開設定を確認）"); };
+      sc.onload = function(){ setTimeout(function(){ fail("Apps Scriptが正しい返事を返しませんでした。デプロイの「アクセスできるユーザー」が「全員」か確認し、新しいバージョンでデプロイしてください"); }, 2500); };
       var t = setTimeout(function(){ fail("Apps Scriptから返事がありません。Safariで …/exec?diag=1 を開いて結果を確認してください"); }, ms || 30000);
       document.head.appendChild(sc);
     });
@@ -230,7 +253,7 @@
       return { callTool: async function(server, tool, args){
         if(/googleusercontent\.com\/macros\/echo/.test(G) || !/\/exec(\?|$)/.test(G)){ var q = new Error("bad url"); q.code = "config.js のURLが違います。Apps Scriptの「デプロイを管理」に表示される https://script.google.com/macros/s/…/exec の形のURLを入れてください"; throw q; }
         var tok = await me.getIdToken();
-        var j = await jsonp_(G, { idToken: tok, tool: tool, args: args || {} }, tool === "workcal" ? 150000 : 30000);
+        var j = await gasCall_(G, { idToken: tok, tool: tool, args: args || {} }, tool === "workcal" ? 150000 : 30000);
         if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
         return { payload: j.payload };
       } }; }

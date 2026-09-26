@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=151"></script>
+<script src="shim.js?v=153"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1550,7 +1550,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="151";
+const APP_VERSION="153";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4828,7 +4828,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
     const gl=(state.goals||[]).map(g=>`${cut(g.text,20)} 目標${g.target}円${g.due?" "+g.due:""}`); sec("貯金の目標",gl,8); }catch(e){}
   { const rows=state.diary.filter(x=>x.text&&x.date>=addDays(t,-3)).map(x=>`${short(x.date)} ${isMine(x)?nm(me):nm(ot)}：${cut(x.text,80)}`); for(const x of state.priv) if(x.text&&x.id>=addDays(t,-3)) rows.push(`${short(x.id)} ${nm(me)}（🔒）：${cut(x.text,80)}`); sec("最近の日記（3日）",rows,8); }
   { const rows=state.reflect.filter(x=>x.id>=addDays(t,-3)).map(x=>`${short(x.id)} 気分${x.mood||"-"} ${x.good?"良かった:"+cut(x.good,40):""}`); sec("自分の内省（🔒 3日）",rows,4); }
-  return L.join("\n").slice(0,12000); }
+  return L.join("\n").slice(0,9000); }
 /* v151: AIの提案する操作（押したときだけ実行） */
 const AI_ACT_L={add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
 function aiActText(x){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id);
@@ -4858,6 +4858,8 @@ async function aiAsk(q){ q=String(q||"").trim(); const A=state.ai; if(!q||A.busy
 - 状況に関係する点（シフト・天気・最近の夕飯とかぶらない・買い物リストにある食材・予定の時間など）を理由に入れる
 - 候補は2〜3個。全体で300字以内。箇条書きは「・」を使う
 - 分からないことは決めつけず、確認の一言を添える
+- 「いまの状況」に書かれていない事実・ルール・習慣は作らない（推測するときは「〜かも」と書く）
+- 「追加して」「完了にして」など操作を頼まれたら、必ず acts に入れる。日時などが足りないときは、いちばん自然な案で acts を作り、replyで「違えば直してね」と添える
 - 🔒の付いた情報は相談している本人だけのもの。答えに出してよいが、相手に伝える前提の書き方はしない
 - アプリで実際にできる操作があれば "acts" に入れる（実行するのは本人がボタンを押したときだけ。頼まれていない大きな変更は入れない。最大5個）。使える操作：
   {"type":"add_task","text":"","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","who":"both|me|partner|priv"}
@@ -4877,14 +4879,15 @@ ${hist?`\n【これまでの会話】\n${hist}\n`:""}
   try{ const d=await state._smt.json(prompt,{modelTier:"quick"}); const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const RF=state.ai.refs||{}, acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]).slice(0,5).map(x=>({...x,_r:RF[x.ref]||null}));
     A.log[A.log.length-1].a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]}; haptic("done"); }
-  catch(e){ A.log[A.log.length-1].a={reply:`相談できませんでした（${esc((e&&(e.code||e.message))||"エラー")}）`,next:[],err:true}; }
+  catch(e){ const c=String((e&&(e.code||e.message))||"エラー"), busy=/busy|rate_limited|混み合|回数制限|混雑/.test(c+String(e&&e.detail||""));
+    A.log[A.log.length-1].a={reply:busy?"AIが混み合っていて答えられませんでした。少し待ってから「もう一度」を押してください。":`相談できませんでした（${c}）`,next:[q],err:true,retry:true}; }
   A.busy=false; if(state.view==="home") render(); else toast("AIの答えがホームに届きました"); }
 function aiCardHTML(){ if(!aiCan()) return ""; const A=state.ai, last=A.log[A.log.length-1];
-  const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:AIQ);
+  const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:AIQ), retry=last&&last.a&&last.a.retry;
   return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>AIに相談</b><span class="who">アプリ内の情報をふまえて答えます。追加・完了などの操作は「実行」を押したときだけ行います</span>${A.log.length?`<button class="link" data-act="aiClear">クリア</button>`:""}</div>
     ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="link" data-aiall="${li}">すべて実行</button>`:""}</div>`:""}`:`<div class="ai-a busy"><span class="spin"></span>考え中…</div>`}`).join("")}
     <div class="ai-in"><input type="text" id="aiIn" maxlength="200" enterkeyhint="send" placeholder="例：お昼なにがいい？" value="${esc(A.q||"")}" ${A.busy?"disabled":""}><button class="btn primary" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る">送る</button></div>
-    <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${esc(c)}</button>`).join("")}</div></section>`; }
+    <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${retry?"↻ もう一度："+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div></section>`; }
 function viewHome(){
   const t=today(), me=myRole(), ot=otherRole(), n=counts(), sm=shiftOf(me,t), so=shiftOf(ot,t), off=offState(t);
   const ents=dayEntries(t).filter(o=>(o.kind!=="g"||false)&&!o.done), nowM=new Date().getHours()*60+new Date().getMinutes();
