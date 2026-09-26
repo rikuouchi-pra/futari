@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=153"></script>
+<script src="shim.js?v=155"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1550,7 +1550,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="153";
+const APP_VERSION="155";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1752,7 +1752,7 @@ function who(id){ return nameOf(roleOf(id)); }
 function dueLabel(i){
   if(!i.due||i.done) return "";
   const diff=Math.round((parse(i.due)-parse(today()))/864e5), d=parse(i.due);
-  let cls="due",t=`${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）`;
+  let cls="due",t=`${d.getFullYear()!==parse(today()).getFullYear()?d.getFullYear()+"/":""}${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）`;
   if(diff<0){cls+=" over";t+=" 期限切れ";}else if(diff===0){cls+=" today";t="今日";}else if(diff===1)t="明日";
   { const mt=myT(i); if(mt) t+=` ${mt}`; }
   if(i.list==="shop"&&diff>=0) t+="まで";
@@ -4804,7 +4804,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   const nm=r=>nameOf(r), wh=x=>{ const w=getWho(x); return w==="both"?"ふたり":w==="h"||w==="w"?nm(w)+"だけ":""; };
   const sh=(r,d)=>SHIFT_NAME[shiftOf(r,d)]||"未入力", cut=(v,n)=>String(v||"").replace(/\s+/g," ").slice(0,n);
   const sec=(title,rows,max)=>{ if(rows.length) L.push(`■${title}${rows.length>max?`（${rows.length}件中${max}件）`:""}\n${rows.slice(0,max).join("\n")}`); };
-  L.push(`いま：${jpDate(t)} ${hhmm(now.getHours()*60+now.getMinutes())}`);
+  L.push(`いま：${t}（${now.getFullYear()}年${jpDate(t)}） ${hhmm(now.getHours()*60+now.getMinutes())}`);
   L.push(`相談している人：${nm(me)}（${me==="h"?"夫":"妻"}）／相手：${nm(ot)}`);
   L.push("住まい：愛知県西三河（刈谷・大府・豊明・東浦あたり）");
   { const rows=[]; for(let i=-1;i<14;i++){ const d=addDays(t,i); rows.push(`${short(d)}(${WD[parse(d).getDay()]}) ${nm(me)}=${sh(me,d)} ${nm(ot)}=${sh(ot,d)}${offState(d)==="both"?" ★ふたり休み":""}`); } sec("シフト（入=夜勤入り 明=夜勤明け 休=休み 早=早番 日=日勤）",rows,15); }
@@ -4829,16 +4829,26 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   { const rows=state.diary.filter(x=>x.text&&x.date>=addDays(t,-3)).map(x=>`${short(x.date)} ${isMine(x)?nm(me):nm(ot)}：${cut(x.text,80)}`); for(const x of state.priv) if(x.text&&x.id>=addDays(t,-3)) rows.push(`${short(x.id)} ${nm(me)}（🔒）：${cut(x.text,80)}`); sec("最近の日記（3日）",rows,8); }
   { const rows=state.reflect.filter(x=>x.id>=addDays(t,-3)).map(x=>`${short(x.id)} 気分${x.mood||"-"} ${x.good?"良かった:"+cut(x.good,40):""}`); sec("自分の内省（🔒 3日）",rows,4); }
   return L.join("\n").slice(0,9000); }
+/* v154: AIの日付を直す（年の取り違え・「2026/9/26」「今日」「明日」などの書き方にも対応） */
+function aiDate(v){ v=String(v||"").trim(); const t=today(); if(!v) return ""; if(/^(今日|today)$/i.test(v)) return t; if(/^(明日|tomorrow)$/i.test(v)) return addDays(t,1); if(/^明後日$/.test(v)) return addDays(t,2);
+  let m=v.match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/), y, mo, dd; if(m){ y=+m[1]; mo=+m[2]; dd=+m[3]; } else { m=v.match(/^(\d{1,2})[\/月](\d{1,2})/); if(!m) return ""; y=+t.slice(0,4); mo=+m[1]; dd=+m[2]; }
+  if(!(mo>=1&&mo<=12&&dd>=1&&dd<=31)) return ""; const f=yy=>`${yy}-${String(mo).padStart(2,"0")}-${String(dd).padStart(2,"0")}`; let d=f(y);
+  const cy=+t.slice(0,4); if(y!==cy&&Math.abs(dDiff(d,t))>200){ d=f(cy); if(dDiff(d,t)<-180) d=f(cy+1); } return d; }
+/* v155: AIが年を取り違えて入れた期限を直す（作った日の年とずれていて、年を直すと作った日の近くになるもの） */
+function aiYearFix(){ const fix=(c,k)=>{ for(const x of state[c]||[]){ const v=x[k]; if(!/^\d{4}-\d{2}-\d{2}$/.test(v||"")||!x.createdAt) continue; const cd=ymd(new Date(x.createdAt)), cy=cd.slice(0,4);
+    if(v.slice(0,4)>=cy||Date.now()-x.createdAt>45*864e5) continue; const nv=cy+v.slice(4); if(Math.abs(dDiff(nv,cd))<=60){ applyLocal(c,x.id,{[k]:nv}); dupd(c,x.id,{[k]:nv}); } } };
+  try{ fix("items","due"); fix("pitems","due"); fix("events","date"); }catch(e){} }
+setTimeout(aiYearFix,8000); setTimeout(aiYearFix,30000);
 /* v151: AIの提案する操作（押したときだけ実行） */
 const AI_ACT_L={add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
 function aiActText(x){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id);
-  const dt=x.date?` ${short(x.date)}`:"", tm=x.start||x.time?` ${x.start||x.time}${x.end?"–"+x.end:""}`:"", w=x.who&&x.who!=="both"?`（${x.who==="me"?nameOf(myRole()):x.who==="partner"?nameOf(otherRole()):x.who==="priv"?"🔒じぶん":""}）`:"";
+  const dt=aiDate(x.date)?` ${short(aiDate(x.date))}`:"", tm=x.start||x.time?` ${x.start||x.time}${x.end?"–"+x.end:""}`:"", w=x.who&&x.who!=="both"?`（${x.who==="me"?nameOf(myRole()):x.who==="partner"?nameOf(otherRole()):x.who==="priv"?"🔒じぶん":""}）`:"";
   if(x.type==="done") return `完了にする：${it?cut2(it.text):"（見つかりません）"}`;
-  if(x.type==="set_shift") return `シフト：${x.who==="partner"?nameOf(otherRole()):nameOf(myRole())} ${short(x.date||today())} を「${x.value}」に`;
+  if(x.type==="set_shift") return `シフト：${x.who==="partner"?nameOf(otherRole()):nameOf(myRole())} ${short(aiDate(x.date)||today())} を「${x.value}」に`;
   return `${AI_ACT_L[x.type]||x.type}：${cut2(x.text)}${dt}${tm}${w}`; }
 const cut2=v=>String(v||"").slice(0,40);
 function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.acts[ai]; if(!x||x.ok) return; const t=today(), now=Date.now(), me=myRole();
-  const who=x.who==="me"?me:x.who==="partner"?otherRole():x.who==="priv"?"priv":"both", d=/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:"", tm=/^\d{1,2}:\d{2}$/.test(x.time||x.start||"")?(x.time||x.start).padStart(5,"0"):"";
+  const who=x.who==="me"?me:x.who==="partner"?otherRole():x.who==="priv"?"priv":"both", d=aiDate(x.date), tm=/^\d{1,2}:\d{2}$/.test(x.time||x.start||"")?(x.time||x.start).padStart(5,"0"):"";
   let undo=null, id=newId();
   try{
     if(x.type==="add_task"||x.type==="add_shop"){ const L=x.type==="add_task"?"task":"shop"; if(who==="priv"){ const it=baseItem(L,cut2(x.text),d,tm); delete it.who; delete it.by; dset("pitems",id,it); undo=()=>ddel("pitems",id); } else { const it=baseItem(L,cut2(x.text),d,tm,who); dset("items",id,it); undo=()=>ddel("items",id); } }
@@ -4847,7 +4857,7 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     else if(x.type==="add_topic"){ dset("topics",id,{text:cut2(x.text),who:"both",status:"open",note:"",ref:null,...(d?{on:d}:{}),by:state.me||null,createdAt:now,updatedAt:now}); undo=()=>ddel("topics",id); }
     else if(x.type==="add_dinner"){ const dd=d||t, ex=dinnerOf(dd), old=ex?{...ex}:null; dset("dinner",dd,{date:dd,role:me,by:state.me||null,text:cut2(x.text),at:now}); undo=()=>{ if(old) dset("dinner",dd,old); else ddel("dinner",dd); }; }
     else if(x.type==="done"){ const R=x._r; if(!R||!(state[R.c]||[]).find(i=>i.id===R.id)){ toast("対象の項目が見つかりませんでした"); return; } rightAction(R.c,R.id); }
-    else if(x.type==="set_shift"){ const r=x.who==="partner"?otherRole():me, v=String(x.value||""); if(!SHIFT_NAME[v]&&v!==""){ toast("シフトの記号が分かりませんでした"); return; } shiftEdit(r,{[d||t]:v}); }
+    else if(x.type==="set_shift"){ if(x.date&&!d){ toast("日付が分かりませんでした"); return; } const r=x.who==="partner"?otherRole():me, v=String(x.value||""); if(!SHIFT_NAME[v]&&v!==""){ toast("シフトの記号が分かりませんでした"); return; } shiftEdit(r,{[d||t]:v}); }
     else { toast("この操作はまだできません"); return; }
   }catch(err){ toast("実行できませんでした"); return; }
   x.ok=true; haptic("done"); if(x.type!=="done") toast(`${aiActText(x)} を実行しました`,undo,"done"); render(); }
@@ -4859,6 +4869,8 @@ async function aiAsk(q){ q=String(q||"").trim(); const A=state.ai; if(!q||A.busy
 - 候補は2〜3個。全体で300字以内。箇条書きは「・」を使う
 - 分からないことは決めつけず、確認の一言を添える
 - 「いまの状況」に書かれていない事実・ルール・習慣は作らない（推測するときは「〜かも」と書く）
+- acts の日付は必ず「いま」と同じ年を基準にした YYYY-MM-DD で書く（今日は ${today()}）
+- acts の who：家のこと・ふたりに関係することは "both"、自分の用事は "me"。"priv"（相手に見せない）は本人が「内緒」「自分だけ」と言ったときだけ
 - 「追加して」「完了にして」など操作を頼まれたら、必ず acts に入れる。日時などが足りないときは、いちばん自然な案で acts を作り、replyで「違えば直してね」と添える
 - 🔒の付いた情報は相談している本人だけのもの。答えに出してよいが、相手に伝える前提の書き方はしない
 - アプリで実際にできる操作があれば "acts" に入れる（実行するのは本人がボタンを押したときだけ。頼まれていない大きな変更は入れない。最大5個）。使える操作：
