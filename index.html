@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=167"></script>
+<script src="shim.js?v=168"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1485,7 +1485,7 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .kind-cfg{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px}
 .kind-cfg li{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--ground)}.kind-cfg li span{flex:1;min-width:0;font-weight:700;font-size:14px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.kind-cfg li.off span{opacity:.45;text-decoration:line-through}
 .kind-cfg .dotc{width:10px;height:10px;border-radius:50%;flex:none}.kind-cfg .kv{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--on-accent);font-weight:900;cursor:pointer;padding:0}.kind-cfg .kv.on{background:var(--accent);border-color:var(--accent)}.kind-cfg .icon-btn.sm{flex:none;width:30px;height:30px;min-width:30px}.kind-cfg li{gap:5px}
-.kind.kcfg{flex:none;opacity:.7}
+.kind.kcfg{flex:none;opacity:.7}.kc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}.ksub .seg{width:100%}.ksub .seg button{flex:1}
 </style>
 <style id="palStyle"></style>
 
@@ -1565,7 +1565,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="167";
+const APP_VERSION="168";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5007,12 +5007,16 @@ function aiMemAdd(t,scope){ t=String(t||"").trim().slice(0,80); if(!t) return nu
   else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); }
   return m; }
 /* v166: 追加画面の種類（議題・やること…）の順番と表示／非表示 */
-const KIND_INT=["ptask","pshop","gevent","caution","goal","rtask"];
-function kindList(all){ const base=Object.keys(KINDS).filter(k=>!KIND_INT.includes(k)), ord=String(prefs.kindOrder||"").split(",").filter(k=>base.includes(k)), L=[...ord,...base.filter(k=>!ord.includes(k))];
+/* v168: 種類を7つに集約（予定＝ふたりの予定＋自分の時間の予定、話す＝議題＋困りごと、お金＝出費＋毎月、将来＝ふたり＋自分のやりたいこと） */
+const KGROUPS=[["task","やること",["task"]],["shop","買い物",["shop"]],["event","予定",["event","block"]],["topic","話す",["topic","trouble"]],["money","お金",["spend","recur"]],["plan","将来",["plan","pwish"]],["habit","習慣",["habit"]]];
+const KSUB={event:"ふたりの予定",block:"🔒自分の時間の予定",topic:"議題",trouble:"困りごと",spend:"出費",recur:"毎月の支払い・貯金",plan:"ふたりの将来",pwish:"🔒自分のやりたいこと"};
+const kgOf=k=>(KGROUPS.find(g=>g[2].includes(k))||[null])[0];
+const kgDef=g=>{ const G=KGROUPS.find(x=>x[0]===g); return G?((state.kLast||{})[g]&&G[2].includes(state.kLast[g])?state.kLast[g]:G[2][0]):"task"; };
+function kindList(all){ const base=KGROUPS.map(g=>g[0]), ord=String(prefs.kindOrder||"").split(",").filter(k=>base.includes(k)), L=[...ord,...base.filter(k=>!ord.includes(k))];
   if(all) return L; const hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); const v=L.filter(k=>!hid.has(k)); return v.length?v:L; }
 function kindCardHTML(){ const L=kindList(true), hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean));
   return `<section class="card" id="kindCard"><h2>追加画面の種類</h2><p class="who">↑↓で順番、右の丸（✓＝出す）で表示を切り替え。出さない種類も、各タブから追加するときは使えます</p>
-    <ul class="kind-cfg">${L.map((k,i)=>`<li class="${hid.has(k)?"off":""}"><i class="dotc" style="background:var(${KINDS[k].c})"></i><span>${esc(KINDS[k].label)}</span>
+    <ul class="kind-cfg">${L.map((k,i)=>`<li class="${hid.has(k)?"off":""}"><i class="dotc" style="background:var(${KINDS[KGROUPS.find(g=>g[0]===k)[2][0]].c})"></i><span>${esc(KGROUPS.find(g=>g[0]===k)[1])}${KGROUPS.find(g=>g[0]===k)[2].length>1?`<small class="kc-sub">${({event:"ふたりの予定・自分の時間",topic:"議題・困りごと",money:"出費・毎月の支払い",plan:"ふたりの将来・自分のやりたいこと"})[k]||""}</small>`:""}</span>
       <button class="icon-btn sm" data-kmv="${k}|-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn sm" data-kmv="${k}|1" ${i<L.length-1?"":"disabled"} aria-label="下へ">↓</button>
       <button class="kv ${hid.has(k)?"":"on"}" data-khide="${k}" aria-pressed="${!hid.has(k)}" aria-label="${hid.has(k)?"出さない（押すと出す）":"出す（押すと出さない）"}">${hid.has(k)?"":"✓"}</button></li>`).join("")}</ul>
     <div class="opts"><button class="opt" data-act="kindReset">最初の並びに戻す</button></div></section>`; }
@@ -5288,7 +5292,7 @@ function closeSheet(){ if(!state.sheet.open) return; state.sheet.open=false; $("
 function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
-  $("kinds").innerHTML=[...kindList(),...(kindList().includes(S.kind)?[]:[S.kind])].map(key=>[key,KINDS[key]]).map(([key,o])=>`<button type="button" class="kind" data-kind="${key}" style="--kc:var(${o.c})" aria-pressed="${S.kind===key}">${o.label}</button>`).join("")+`<button type="button" class="kind kcfg" data-kcfg="1" aria-label="種類の並べ替え・表示">✎</button>`;
+  { const cg=kgOf(S.kind), gl=kindList(); $("kinds").innerHTML=[...gl,...(cg&&!gl.includes(cg)?[cg]:[])].map(g=>{ const G=KGROUPS.find(x=>x[0]===g); return `<button type="button" class="kind" data-kgrp="${g}" style="--kc:var(${KINDS[G[2][0]].c})" aria-pressed="${cg===g}">${G[1]}</button>`; }).join("")+(cg?"":`<button type="button" class="kind" aria-pressed="true" style="--kc:var(${k.c})">${k.label}</button>`)+`<button type="button" class="kind kcfg" data-kcfg="1" aria-label="種類の並べ替え・表示">✎</button>`; }
   $("input").placeholder= S.kind==="block"?"時間の予定（例：ジム、勉強、入浴）": S.kind==="gevent"?"Googleカレンダーの予定名": S.kind==="topic"?"話したいこと（例：年末の帰省の予定）": S.kind==="habit"?"毎日の習慣（例：毎朝ストレッチ）": S.kind==="rtask"?"繰り返すタスク（例：ゴミ出し、排水口そうじ）": S.kind==="ptask"?"じぶんのタスク": S.kind==="pshop"?"じぶんの買うもの": S.kind==="pwish"?"やってみたいこと（例：陶芸で夫婦の器をつくる）": S.kind==="plan"?({wish:"やりたいこと・欲しいもの",travel:"行きたい場所・旅行名",anniv:"記念日の名前（例：結婚記念日）",bousai:"備えるもの・やること",prep:"準備すること",kids:"子どもとやりたいこと"})[S.pcat]: S.kind==="spend"?"何に使った？（例：スーパー、ホテル代）": S.kind==="recur"?`名前（例：${(RKIND[S.rkind]||RKIND.fixed).ex.split("、")[0]}）`: S.kind==="goal"?"目標の名前（例：旅行資金、車の買い替え）": S.kind==="event"?"予定（例：歯医者、実家に帰る、友人と食事）": S.kind==="task"?"やることを入力": S.kind==="shop"?"買うものを入力": S.kind==="trouble"?"困っていること（例：洗面所の水が流れにくい）":"気をつけること（例：明日は断水 9-12時）";
   const t=today(), sat=(()=>{const x=parse(t);x.setDate(x.getDate()+((6-x.getDay()+7)%7||7));return ymd(x);})();
   const q=[["今日",t],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]];
@@ -5339,15 +5343,17 @@ function renderSheet(){
   const pv=(!!k.me&&S.kind!=="event")||(S.kind==="event"&&S.evPriv);
   const tsk=S.kind==="task"||S.kind==="shop"||S.kind==="rtask"; if(!tsk&&S.who==="priv") S.who="both";
   const whoRow=pv?"":`<div class="edit-row"><span class="lbl">だれが</span>${seg("swho",S.who,tsk?[...WHO_OPTS(),["priv",LKI+"じぶん"]]:WHO_OPTS())}</div>${tsk&&S.who==="priv"?'<div class="who sharenote">じぶんだけの項目になり、相手には見えません</div>':""}`;
-  $("opts").innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${whoRow}${o}${pv?'<div class="lock" style="margin:0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>':""}</div>`;
+  const kgS=kgOf(S.kind), subRow=kgS&&KGROUPS.find(g=>g[0]===kgS)[2].length>1?`<div class="edit-row ksub">${seg("skind",S.kind,KGROUPS.find(g=>g[0]===kgS)[2].map(x=>[x,KSUB[x]]))}</div>`:"";
+  $("opts").innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${subRow}${whoRow}${o}${pv?'<div class="lock" style="margin:0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>':""}</div>`;
 }
 $("sheet").addEventListener("click",e=>{
   const S=state.sheet;
   if(e.target.closest("[data-kcfg]")){ closeSheet(); go("settings"); setTimeout(()=>{ const g=document.querySelector('#kindCard'); if(g){ const d=g.closest("details"); if(d) d.open=true; g.scrollIntoView({block:"start",behavior:"smooth"}); } },250); return; }
+  const kg=e.target.closest("[data-kgrp]"); if(kg){ S.kind=kgDef(kg.dataset.kgrp); renderSheet(); $("input").focus({preventScroll:true}); return; }
   const kb=e.target.closest("[data-kind]"); if(kb){ S.kind=kb.dataset.kind; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const qd=e.target.closest("[data-qd]"); if(qd){ S.date=S.date===qd.dataset.qd?"":qd.dataset.qd; if(!S.date) S.time=""; renderSheet(); return; }
   const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
-  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
+  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="skind"){ S.kind=v; state.kLast={...(state.kLast||{}),[kgOf(v)]:v}; } if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
   if(e.target.closest("[data-sx=clear]")){ S.date=""; S.time=""; renderSheet(); }
 });
 $("sheet").addEventListener("input",e=>{ if(e.target.id==="sBudget") state.sheet.budget=e.target.value; if(e.target.id==="sAmount") state.sheet.amount=e.target.value; if(e.target.id==="sDay") state.sheet.rday=e.target.value; if(e.target.id==="sEvery") state.sheet.hevery=e.target.value; });
@@ -5366,8 +5372,8 @@ let sheetTouchT=0;
 { let sx=null; const hScroll=el=>{ for(let n=el;n&&n!==$("sheet");n=n.parentElement){ if(n.scrollWidth>n.clientWidth+4&&/(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true; } return false; };
   $("sheet").addEventListener("pointerdown",e=>{ sx=(e.target.closest("input,textarea,select")||hScroll(e.target))?null:{x:e.clientX,y:e.clientY,t:Date.now()}; },true);
   $("sheet").addEventListener("pointerup",e=>{ const a=sx; sx=null; if(!a) return; const dx=e.clientX-a.x, dy=e.clientY-a.y; if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*.6||Date.now()-a.t>800) return;
-    const ks=[...document.querySelectorAll("#kinds [data-kind]")].map(b=>b.dataset.kind), S=state.sheet, i=ks.indexOf(S.kind); if(i<0) return; const n=ks[(i+(dx<0?1:-1)+ks.length)%ks.length];
-    S.kind=n; haptic("tick"); renderSheet(); const kb=document.querySelector(`#kinds [data-kind="${n}"]`); if(kb) kb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}); sheetTouchT=Date.now(); },true); }
+    const ks=[...document.querySelectorAll("#kinds [data-kgrp]")].map(b=>b.dataset.kgrp), S=state.sheet, i=ks.indexOf(kgOf(S.kind)); if(i<0) return; const n=ks[(i+(dx<0?1:-1)+ks.length)%ks.length];
+    S.kind=kgDef(n); haptic("tick"); renderSheet(); const kb=document.querySelector(`#kinds [data-kgrp="${n}"]`); if(kb) kb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}); sheetTouchT=Date.now(); },true); }
 $("sheet").addEventListener("pointerdown",()=>{ sheetTouchT=Date.now(); },true);
 $("input").addEventListener("blur",()=>{ setTimeout(()=>{ const S=state.sheet; if(!S.open) return; if(Date.now()-sheetTouchT<700) return; const ae=document.activeElement; if(ae&&$("sheet").contains(ae)) return; if($("input").value.trim()) return; closeSheet(); },250); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&state.sheet.open){ e.preventDefault(); closeSheet(); } });
