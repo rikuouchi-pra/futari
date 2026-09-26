@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=171"></script>
+<script src="shim.js?v=172"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1483,6 +1483,8 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .updbar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .updbar span{flex:1}.updbar button{border:0;border-radius:999px;padding:6px 12px;font:inherit;font-weight:800;background:var(--on-accent);color:var(--accent);cursor:pointer}.updbar button[data-upd="0"]{background:transparent;color:var(--on-accent);padding:6px}
 .aip{display:flex;flex-direction:column;gap:8px;margin:8px 0}.aip label{display:flex;flex-direction:column;gap:3px}.aip label span{font-size:12px;font-weight:700;color:var(--muted)}.aip input{width:100%;max-width:100%;min-width:0;box-sizing:border-box}.aip label{min-width:0}.aip{min-width:0}
+.orph{margin-top:8px;display:flex;flex-direction:column;gap:8px}.orph-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.orph-i{position:relative;aspect-ratio:1;border:2px solid transparent;border-radius:10px;overflow:hidden;padding:0;background:var(--ground);cursor:pointer}.orph-i img{width:100%;height:100%;object-fit:cover;display:block}.orph-i.on{border-color:var(--danger)}.orph-i i{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center;border:1.5px solid #fff}.orph-i.on i{background:var(--danger)}.orph-i small{position:absolute;left:0;right:0;bottom:0;font-size:10px;color:#fff;background:rgba(0,0,0,.45);text-align:center}.opt.danger{background:var(--danger)!important;color:#fff!important}
+.bk-g{display:flex;flex-direction:column;gap:8px;margin:8px 0}.bk-b{display:flex;flex-direction:column;gap:3px;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--ground);color:var(--ink);font:inherit;cursor:pointer}.bk-b b{font-size:15px}.bk-b small{color:var(--muted);font-size:12px;line-height:1.5}
 .kind-cfg{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px}
 .kind-cfg li{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--ground)}.kind-cfg li span{flex:1;min-width:0;font-weight:700;font-size:14px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.kind-cfg li.off span{opacity:.45;text-decoration:line-through}
 .kind-cfg .dotc{width:10px;height:10px;border-radius:50%;flex:none}.kind-cfg .kv{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--on-accent);font-weight:900;cursor:pointer;padding:0}.kind-cfg .kv.on{background:var(--accent);border-color:var(--accent)}.kind-cfg .icon-btn.sm{flex:none;width:30px;height:30px;min-width:30px}.kind-cfg li{gap:5px}
@@ -1567,7 +1569,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="171";
+const APP_VERSION="172";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3236,20 +3238,21 @@ function viewSettings(){
     <dt>シフト入力</dt><dd>カレンダー ›「シフト入力」で記号を選び、日付をタップまたはなぞる</dd>
     <dt>数字（赤い丸）</dt><dd>そのタブで今日やること。枠付きのアイコン＋数字は、フリックで隠れているタブの件数</dd></dl>
     <p class="who">シフト：入＝夜勤入り　明＝夜勤明け　休＝休み　早＝早番　日＝日勤</p></details></section>
-  <section class="card"><h2>データの保存場所</h2>
-    <p>ふたりのデータ（話す・リスト・困りごと・注意・将来・シフト・日記）はすべて、<b>Firebase（Googleのクラウドデータベース）</b>の、ふたりのアカウントだけが読み書きできる領域に保存されます。電波がないときも端末内の控えで動き、つながると自動で同期します。端末には保存されないので、機種変更しても消えません。</p>
-    <p>「じぶん」レイヤーのデータと「自分だけ」の日記は、書いた本人しか読めない領域に保存されます。Firebaseのプロジェクトを削除するとデータも消えるので、定期的にバックアップを保存してください。</p>
-    <div class="opts"><button class="opt" data-act="backup">バックアップを保存（JSON）</button><button class="opt" data-act="csv">予定をCSVで保存</button></div></section>
   ${window.__FUTARI_PWA?`<section class="card"><h2>アカウント</h2><p class="who">${esc((window.__futariEmail&&window.__futariEmail())||"")} でログイン中</p><div class="opts"><button class="opt" data-act="signOut">ログアウト</button></div></section>`:""}
   <section class="card"><h2>${window.__FUTARI_PWA?"Claude版からの引っ越し":"単独アプリ版への引っ越し"}</h2>
     ${window.__FUTARI_PWA?`<p class="who">Claude版の「引っ越しデータを書き出す」で保存したファイルを読み込みます。ふたりで使う項目・自分の設定・じぶんの項目・写真が移ります（すでにある項目はそのまま）。夫婦それぞれが自分のファイルを読み込んでください。</p><div class="opts"><label class="opt" style="cursor:pointer">引っ越しデータを読み込む<input type="file" accept="application/json,.json" id="mvIn" hidden></label></div>`
     :`<p class="who">単独アプリ版（ホーム画面アプリ）へ移るときに使います。ふたりの項目・自分の設定・じぶんの項目・写真をまとめて1つのファイルに書き出します。<b>夫婦それぞれ</b>が自分のiPhoneで書き出してください。</p><label class="who" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mvNoPh">写真を含めない（ファイルを小さくする）</label><div class="opts"><button class="opt" data-act="exportMove">引っ越しデータを書き出す</button></div>`}</section>
-  <section class="card"><h2>災害・オフライン用のバックアップ</h2>
-    <p>通信できないときのために、<b>圏外でも開ける控えファイル（HTML）</b>を保存できます。iPhoneでは保存先に「ファイル」を選ぶと、機内モードでも「ファイル」アプリから開けます。中身：注意・防災・シフト30日・これからの予定・やること・買うもの・困りごと・将来・今年の出費。</p>
-    <label class="who" style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="bkMe"> じぶんのタスク・買い物・習慣も入れる（その端末を見られる人には見えます）</label>
-    <div class="opts"><button class="opt" data-act="bkHtml">オフライン用の控えを保存（HTML）</button><button class="opt" data-act="backup">全データを保存（JSON）</button><button class="opt" data-act="bkRestore">JSONから復元</button></div>
+  <section class="card" id="bkCard"><h2>バックアップ・書き出し</h2>
+    <p class="who">ふたりのデータは${window.__FUTARI_PWA?"Firebase（Googleのサーバー）":"このページ専用の保存場所（Anthropicのサーバー）"}に、🔒自分の項目は本人しか読めない場所に保存され、この端末にも自動で控えを残しています${state.cacheAt?`（最終 ${new Date(state.cacheAt).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}）`:""}。消した・上書きした項目は元に戻せないので、ときどきファイルでも保存してください（保存先に「ファイル」→iCloud Driveを選ぶと端末をなくしても残ります）。</p>
+    <label class="who" style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" id="bkMe"> 🔒自分だけの項目も入れる（そのファイルを見られる人には見えます）</label>
+    <div class="bk-g">
+      <button class="bk-b" data-act="bkXlsx"><b>📊 Excelで保存（.xlsx）</b><small>Excel・Numbers・Googleスプレッドシートで開ける表。シートごとに分かれ、「はじめに」にアプリの機能の説明つき</small></button>
+      <button class="bk-b" data-act="bkHtml"><b>📄 オフライン用の控え（HTML）</b><small>圏外・災害時でも「ファイル」アプリで読める一覧（注意・防災・シフト・予定など）</small></button>
+      <button class="bk-b" data-act="backup"><b>💾 復元用データ（JSON）</b><small>アプリに戻すためのファイル。下の「JSONから復元」で使います</small></button>
+    </div>
+    <div class="opts"><button class="opt" data-act="bkRestore">JSONから復元</button></div>
     <input type="file" id="bkFile" accept="application/json,.json" hidden>
-    <p class="who">この端末にも最新の控えを自動で残しています${state.cacheAt?`（最終 ${new Date(state.cacheAt).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}）`:""}。共有データにつながらないときは、その控えを閲覧専用で表示します。復元は「今ない項目だけ」を追加します。</p></section>
+    <p class="who">復元は「今ない項目だけ」を追加します（今ある項目は上書きしません）。</p></section>
   <section class="card"><h2>ホーム画面に追加</h2><ol class="steps">
     <li>このアプリのURLをSafariで開く</li><li>共有ボタン →「ホーム画面に追加」</li><li>名前を「ふたりのリスト」にして追加</li></ol>
     <p class="who">ホーム画面のアイコンは「見た目 › 楽しさ › ホーム画面のアイコン」で選べます。</p>
@@ -3394,11 +3397,11 @@ function storageHTML(){
     <dt>いちばん大きい1件</dt><dd>約${fmt(mx)}（1件の上限 256KB の ${Math.max(1,Math.round(mx/262144*100))}%）</dd><dt>この端末の控え</dt><dd>約${fmt(cache)}</dd></dl>
     ${(()=>{ const U=state.assetUsage; if(!state.assets) return `<p class="who">写真：この画面では写真の保存領域を使えません（編集できる人の画面で表示されます）</p>`;
       if(!U){ setTimeout(loadAssetUsage,0); return `<p class="who">写真の保存容量を確認中…</p>`; }
-      const pct=U.maxBytes?Math.round(U.bytes/U.maxBytes*100):0, orph=U.ids.filter(id=>!photoRefs().has(id)).length;
+      const pct=U.maxBytes?Math.round(U.bytes/U.maxBytes*100):0;
       return `<div class="who" style="margin-top:8px"><b>写真</b> ${U.files}枚・${fmt(U.bytes)} / ${fmt(U.maxBytes)}（${pct}%）${U.maxFiles?`・枚数上限 ${U.maxFiles}`:""}</div><div class="mbar"><i class="${pct>90?"over":""}" style="width:${Math.max(1,pct)}%"></i></div>
         <div class="who">1枚は長辺1600pxに縮めて保存（約200〜400KB）。${U.maxBytes?`この容量ならあと約${Math.max(0,Math.floor((U.maxBytes-U.bytes)/300000))}枚保存できます。`:""}</div>
-        ${orph?`<button class="btn" data-act="orphans" style="margin-top:6px">${state.orphArm?"本当に削除する":"使われていない写真を片付ける"}（${orph}枚）</button>`:""}`; })()}
-    <p class="who">文字のデータはとても小さく、毎日使っても1年で数MB程度の見込みです。保存先（Anthropicのサーバー）の合計の上限は公開されておらず、ここでは測れません。上限に達したときは「保存上限に達しました」と表示され、新しい項目だけが追加できなくなります（既存の編集はできます）。</p>`;
+        ${orphanHTML()}`; })()}
+    <p class="who">文字のデータはとても小さく、毎日使っても1年で数MB程度の見込みです。保存先（${window.__FUTARI_PWA?"Firebase":"Anthropicのサーバー"}）の合計の上限は公開されておらず、ここでは測れません。上限に達したときは「保存上限に達しました」と表示され、新しい項目だけが追加できなくなります（既存の編集はできます）。</p>`;
 }
 function diagHTML(){
   const D=state.diag||{}, yn=v=>v===true?"はい":v===false?"いいえ":"不明";
@@ -3535,6 +3538,7 @@ $("main").addEventListener("click",e=>{
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
   const kmv=e.target.closest("[data-kmv]"); if(kmv){ const [k,d]=kmv.dataset.kmv.split("|"), L=kindList(true), i=L.indexOf(k), j=i+Number(d); if(j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; prefs.kindOrder=L.join(","); savePrefs(); haptic("tick"); return; }
   const khd=e.target.closest("[data-khide]"); if(khd){ const k=khd.dataset.khide, H=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); if(H.has(k)) H.delete(k); else { if(kindList(true).filter(x=>!H.has(x)).length<=1){ toast("1つは出しておいてください"); return; } H.add(k); } prefs.kindHide=[...H].join(","); savePrefs(); haptic("tick"); return; }
+  const orb=e.target.closest("[data-orph]"); if(orb){ const S=state.orphSel||(state.orphSel=new Set()), id=orb.dataset.orph; if(S.has(id)) S.delete(id); else S.add(id); state.orphArm=false; render(); return; }
   const amd=e.target.closest("[data-aimdel]"); if(amd){ aiMemDel(amd.dataset.aimdel); state.aiMemOpen=true; render(); return; }
   const ame=e.target.closest("[data-aimed]"); if(ame){ state.aiMemEdit=ame.dataset.aimed; state.aiMemEsc=null; state.aiMemOpen=true; render(); setTimeout(()=>{ const i=$("aiMemEd"); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },50); return; }
   const ams2=e.target.closest("[data-aimsave]"); if(ams2){ aiMemUpd(ams2.dataset.aimsave,($("aiMemEd")||{}).value,state.aiMemEsc); state.aiMemEdit=null; haptic("done"); render(); return; }
@@ -3697,6 +3701,9 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcpt") rcptStart();
   else if(a==="rcsave") rcptSave();
   else if(a==="orphans") cleanOrphans();
+  else if(a==="orphOpen"){ state.orphOpen=true; state.orphSel=new Set(); render(); }
+  else if(a==="orphClose"){ state.orphOpen=false; state.orphArm=false; render(); }
+  else if(a==="orphAll"){ const L=orphanIds(); state.orphSel=state.orphSel&&state.orphSel.size===L.length?new Set():new Set(L); state.orphArm=false; render(); }
   else if(a==="rctxt") rcptFromText();
   else if(a==="rcpaste") rcptTextStart();
   else if(a==="rcskip") rcptSkip();
@@ -3718,6 +3725,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="gdep"){ const id=b.dataset.g, inp=document.querySelector(`[data-gdep="${CSS.escape(id)}"]`), v=money(inp&&inp.value); if(!v){ toast("入金額を入れてください"); inp&&inp.focus(); return; }
     const g=state.goals.find(x=>x.id===id); if(!g) return; const u=snapUndo("goals",id), deps=[...(g.deposits||[]),{a:v,d:today(),by:state.me||null}]; g.deposits=deps; dupd("goals",id,{deposits:deps}); haptic("done"); celebrate(); toast(`${g.text} に ${yen(v)} 入金`,u,"done"); render(); }
   else if(a==="bkHtml") exportOffline();
+  else if(a==="bkXlsx") exportXlsx();
   else if(a==="bkRestore"){ $("bkFile")&&$("bkFile").click(); }
   else if(a==="ttpickx"){ state.ttPick=null; render(); }
   else if(a==="futhome"){ state.fut=null; render(-40); }
@@ -5148,9 +5156,17 @@ async function savePhoto(file){ if(!state.assets||!file) return null; try{ const
 const photoUrl=id=>window.__blobUrl?window.__blobUrl(id):"/_blob/"+id;
 function openPhoto(id){ const o=document.createElement("div"); o.className="lightbox"; o.innerHTML=`<img src="${photoUrl(id)}" alt="レシートの写真"><button aria-label="閉じる">✕</button>`; o.onclick=()=>o.remove(); document.body.appendChild(o); }
 const photoRefs=()=>{ const s2=new Set(); for(const p of state.photos) if(p.kind&&p.kind!=="receipt") s2.add(p.id); for(const x of state.diary) for(const id of (x.photos||[])) s2.add(id); for(const x of state.priv) for(const id of (x.photos||[])) s2.add(id); for(const x of state.spend) if(x.photo) s2.add(x.photo); for(const c of ["items","pitems","plans"]) for(const x of state[c]) if(x.receipt&&x.receipt.photo) s2.add(x.receipt.photo); return s2; };
-async function loadAssetUsage(){ if(!state.assets) return; try{ const r=await state.assets.list(); state.assetUsage={...r.usage,ids:r.assets.map(a=>a.id)}; if(state.view==="settings") render(); }catch(e){} }
-async function cleanOrphans(){ if(!state.assets||!state.assetUsage) return; const refs=photoRefs(), orphans=state.assetUsage.ids.filter(id=>!refs.has(id)); if(!orphans.length){ toast("使われていない写真はありません"); return; }
-  if(!state.orphArm){ state.orphArm=true; toast(`使われていない写真が${orphans.length}枚あります。もう一度押すと完全に削除します`); render(); return; }
+async function loadAssetUsage(){ if(!state.assets) return; try{ const r=await state.assets.list(); state.assetUsage={...r.usage,ids:r.assets.map(a=>a.id),meta:Object.fromEntries(r.assets.map(a=>[a.id,a]))}; if(state.view==="settings") render(); }catch(e){} }
+/* v172: 使われていない写真＝日記・レシートなどを消したあとに残った写真。相手が入れた写真は、相手の「自分だけの日記」などで使っている可能性があるので出さない */
+function orphanIds(){ const U=state.assetUsage; if(!U) return []; const refs=photoRefs(); if(prefs.bgPhoto) refs.add(prefs.bgPhoto); const M=U.meta||{};
+  return U.ids.filter(id=>!refs.has(id)&&!(M[id]&&M[id].by&&M[id].mine===false)); }
+function orphanHTML(){ const L=orphanIds(); if(!L.length) return ""; const S=state.orphSel||(state.orphSel=new Set()), M=(state.assetUsage||{}).meta||{};
+  if(!state.orphOpen) return `<button class="btn" data-act="orphOpen" style="margin-top:6px">使われていない写真を確認する（${L.length}枚）</button>`;
+  return `<div class="orph"><div class="who">日記・レシートなどを消したあとに残った写真です。消すものを選んでください（消した写真は元に戻せません）。${esc(nameOf(otherRole()))}が入れた写真はここには出しません。</div>
+    <div class="orph-g">${L.map(id=>`<button class="orph-i ${S.has(id)?"on":""}" data-orph="${esc(id)}" aria-pressed="${S.has(id)}"><img src="${photoUrl(id)}" alt="" loading="lazy"><i>${S.has(id)?"✓":""}</i>${M[id]&&M[id].at?`<small>${short(ymd(new Date(M[id].at)))}</small>`:""}</button>`).join("")}</div>
+    <div class="opts"><button class="opt" data-act="orphAll">${S.size===L.length?"選択をやめる":"全部選ぶ"}</button><button class="opt ${state.orphArm?"danger":""}" data-act="orphans" ${S.size?"":"disabled"}>${state.orphArm?`本当に削除する（${S.size}枚）`:`選んだ写真を削除（${S.size}枚）`}</button><button class="opt" data-act="orphClose">閉じる</button></div></div>`; }
+async function cleanOrphans(){ if(!state.assets||!state.assetUsage) return; const ok=new Set(orphanIds()), orphans=[...(state.orphSel||[])].filter(id=>ok.has(id)); if(!orphans.length){ toast("削除する写真を選んでください"); return; }
+  if(!state.orphArm){ state.orphArm=true; render(); clearTimeout(state.orphT); state.orphT=setTimeout(()=>{ state.orphArm=false; if(state.view==="settings") render(); },5000); return; } state.orphSel=new Set();
   state.orphArm=false; let n=0; for(const id of orphans){ try{ const r=await state.assets.delete(id); if(r.deleted) n++; }catch(e){} } toast(`${n}枚の写真を削除しました`); state.assetUsage=null; loadAssetUsage(); }
 
 /* 写真の索引（photos/<assetId>）：どの写真が何のためにあるかを記録し、片付けの判断に使う */
@@ -5459,8 +5475,55 @@ async function saveFile(filename,data){
   try{ await downloads.save({filename,data}); toast("保存しました"); }
   catch(e){ if(e&&e.code!=="declined") toast("保存できませんでした"); }
 }
+/* v172: Excelなどで開ける形（.xlsx）で書き出す。シートごとに表で、「はじめに」にアプリの機能と各シートの説明 */
+const CRCT=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+const crc32=u=>{ let c=0xFFFFFFFF; for(let i=0;i<u.length;i++) c=CRCT[(c^u[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+function zipStore(files){ const enc=new TextEncoder(), parts=[], cen=[]; let off=0;
+  for(const f of files){ const nm=enc.encode(f.name), d=typeof f.data==="string"?enc.encode(f.data):f.data, crc=crc32(d);
+    const h=new DataView(new ArrayBuffer(30)); h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true); h.setUint32(14,crc,true); h.setUint32(18,d.length,true); h.setUint32(22,d.length,true); h.setUint16(26,nm.length,true);
+    parts.push(new Uint8Array(h.buffer),nm,d);
+    const c=new DataView(new ArrayBuffer(46)); c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint32(16,crc,true); c.setUint32(20,d.length,true); c.setUint32(24,d.length,true); c.setUint16(28,nm.length,true); c.setUint32(42,off,true);
+    cen.push(new Uint8Array(c.buffer),nm); off+=30+nm.length+d.length; }
+  const cs=cen.reduce((a,x)=>a+x.length,0), e=new DataView(new ArrayBuffer(22)); e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,cs,true); e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}); }
+function xlsxBuild(sheets){ const X=v=>String(v??"").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const col=i=>{ let s2=""; i++; while(i){ const m=(i-1)%26; s2=String.fromCharCode(65+m)+s2; i=Math.floor((i-1)/26); } return s2; };
+  const sheetXml=rows=>{ const w=[]; rows.forEach(r=>r.forEach((v,i)=>{ const l=String(v??"").length; w[i]=Math.min(60,Math.max(w[i]||6,l*1.9+2)); }));
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${w.map((x,i)=>`<col min="${i+1}" max="${i+1}" width="${x.toFixed(1)}" customWidth="1"/>`).join("")}</cols><sheetData>${rows.map((r,ri)=>`<row r="${ri+1}">${r.map((v,ci)=>{ const ref=col(ci)+(ri+1), st=ri===0?' s="1"':' s="2"'; return typeof v==="number"&&isFinite(v)?`<c r="${ref}"${st}><v>${v}</v></c>`:`<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${X(v)}</t></is></c>`; }).join("")}</row>`).join("")}</sheetData></worksheet>`; };
+  const files=[{name:"[Content_Types].xml",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`},
+    {name:"_rels/.rels",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:"xl/workbook.xml",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((sh,i)=>`<sheet name="${X(sh.name.slice(0,31))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>`},
+    {name:"xl/_rels/workbook.xml.rels",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:"xl/styles.xml",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Yu Gothic"/></font><font><b/><sz val="11"/><name val="Yu Gothic"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCEFE7"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`},
+    ...sheets.map((sh,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,data:sheetXml(sh.rows)}))];
+  return zipStore(files); }
+function exportXlsx(){ const me=!!($("bkMe")&&$("bkMe").checked), t=today(), R=myRole(), N=r=>r==="both"?"ふたり":r==="h"||r==="w"?nameOf(r):"", yn=b=>b?"済":"", ds=d=>d||"";
+  const whoOf=x=>N(getWho(x)), sheets=[], add=(name,desc,head,rows)=>{ sheets.push({name,rows:[head,...rows]}); return [name,desc,rows.length]; };
+  const info=[];
+  info.push(add("やること","ふたり・それぞれのやること。アプリでは期限の日にホームとタイムテーブルに出て、→スワイプで完了",["内容","だれ","期限","時刻","状態","予算","実績","作成日"],state.items.filter(i=>i.list==="task"&&!isRecItem(i)).map(i=>[i.text,whoOf(i),ds(i.due),myT(i)||"",i.done?"済":"",i.budget||"",actOf(i)||"",i.createdAt?ymd(new Date(i.createdAt)):""])));
+  info.push(add("買い物","買うもの。買ったら完了にすると出費の実績に入る",["内容","だれ","期限","状態","予算","実績"],state.items.filter(i=>i.list==="shop").map(i=>[i.text,whoOf(i),ds(i.due),i.done?"済":"",i.budget||"",actOf(i)||""])));
+  info.push(add("くり返し","曜日・○日ごと・○か月ごとなどでくり返すやること（時間を入れるとタイムテーブルに毎回のる）",["内容","だれ","頻度","時刻","最近30日の実施"],[...state.items.filter(isRecItem),...(me?state.habits.filter(h=>!hDaily(h)):[])].map(h=>[h.text,isRecItem(h)?whoOf(h):"🔒自分",tgtLabel(h),myT(h)||"",Object.keys(habitLog(h)).filter(d=>habitLog(h)[d]&&d>=addDays(t,-30)).length])));
+  info.push(add("家事","家事の分担。やった人にポイントが付き、ホームの「分担」で偏りを確認",["家事","頻度","担当","ポイント","前回","次回"],(state.chores||[]).map(c=>{ const I=choreInfo(c), L=choreLast(c); return [c.text,chFqLabel(c),c.who==="alt"?"交代":N(c.who||"both"),Number(c.pts||1),L?`${L.d}（${nameOf(L.r)}）`:"",I.due]; })));
+  info.push(add("予定","ふたりで共有する予定（カレンダーに表示）",["日付","開始","終了","内容","だれ"],state.events.slice().sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(x=>[ds(x.date),x.start||"",x.end||"",x.text,whoOf(x)])));
+  { const days=[...new Set(state.shifts.flatMap(x=>Object.keys(x.days||{}).map(dd=>`${x.month}-${String(dd).padStart(2,"0")}`)))].sort();
+    info.push(add("シフト","ふたりの勤務（入＝夜勤入り 明＝夜勤明け 休＝休み 早＝早番 日＝日勤）。ふたり休みの日が分かる",["日付","曜日",nameOf("h"),nameOf("w"),"ふたり休み"],days.map(d=>[d,WD[parse(d).getDay()],shiftOf("h",d)||"",shiftOf("w",d)||"",offState(d)==="both"?"○":""]))); }
+  info.push(add("話す","毎日の話し合いの議題と、決まったこと",["議題","だれ","状態","話す日","メモ・決まったこと"],state.topics.map(x=>[x.text,whoOf(x),x.status==="done"?"話した":"",ds(x.on),x.note||""])));
+  info.push(add("話し合いの記録","日ごとの話し合いメモ",["日付","メモ"],state.talks.filter(x=>x.notes).sort((a,b)=>a.id<b.id?-1:1).map(x=>[x.id,x.notes])));
+  info.push(add("気になる・注意","困りごとと、相手に気をつけてほしいこと",["種類","内容","程度","状態","詳細"],[...state.troubles.map(x=>["困りごと",x.text,(TLEVEL[x.level]||{}).name||"",x.status==="done"?"解決":x.status==="doing"?"対応中":"未対応",x.detail||""]),...state.cautions.map(x=>["注意",x.text,(CLEVEL[x.level]||{}).l||"",x.date?`${x.date}まで`:"",""])]));
+  info.push(add("将来","やりたいこと・旅行・記念日・防災・子育てなど（アプリの「将来」タブ）",["カテゴリ","内容","いつ頃","日付","予算","状態","メモ","チェックリスト"],state.plans.map(p=>[(PCATS[p.cat]||{}).label||p.cat,p.text,(Object.fromEntries(HORIZON)[p.horizon])||"",ds(p.date),p.budget||"",planDone(p)?"済":"",p.memo||"",(p.checks||[]).map(c=>(c.done?"☑":"☐")+c.t).join(" / ")])));
+  info.push(add("出費","使ったお金の記録（アプリの「お金」タブ）",["日付","分類","内容","金額","だれ"],state.spend.slice().sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(x=>[ds(x.date),(MCATS[x.cat]||{}).l||x.cat,x.text||"",Number(x.amount)||0,whoOf(x)])));
+  info.push(add("毎月の支払い・貯金","固定費・変動費・積立（毎月◯日）",["名前","種類","金額","毎月の日","状態"],state.recur.map(r=>[r.text,(RKIND[r.kind]||{}).l||"",Number(r.amount)||0,r.day||"",r.active===false?"停止":""])));
+  info.push(add("貯金の目標","目標金額と、いま貯まっている額",["目標","目標額","いまの額","期限"],state.goals.map(g=>[g.text,Number(g.target)||0,goalSaved(g),ds(g.due)])));
+  info.push(add("日記（ふたり）","「ふたりで見る」にした日記・ありがとう・夕飯メモ",["日付","種類","書いた人","内容"],[...state.diary.filter(x=>x.text).map(x=>[x.date,"日記",nameOf(authorRole(x)),x.text]),...state.thanks.filter(x=>x.text).map(x=>[x.date,"ありがとう",nameOf(x.role||authorRole(x)),x.text]),...state.dinner.filter(x=>x.text).map(x=>[x.id,"夕飯",nameOf(x.role||""),x.text])].sort((a,b)=>a[0]<b[0]?-1:1)));
+  if(me){ info.push(add("🔒自分のやること","自分だけのやること・買い物（相手には見えない）",["種類","内容","期限","時刻","状態"],state.pitems.map(i=>[i.list==="shop"?"買い物":i.list==="wish"?"やりたい":"やること",i.text,ds(i.due),i.time||"",i.done?"済":""])));
+    info.push(add("🔒習慣","毎日の習慣と最近の実施",["習慣","最近30日の実施","連続"],state.habits.filter(hDaily).map(h=>{ const st=habitStats(h); return [h.text,st.count,st.streak]; })));
+    info.push(add("🔒時間の予定","自分の時間の予定（タイムテーブル）",["日付","開始","終了","内容","くり返し"],state.blocks.map(b=>[ds(b.date),b.start||"",b.end||"",b.text,b.rep&&b.rep!=="none"?b.rep:""])));
+    info.push(add("🔒日記・内省","自分だけの日記と内省",["日付","種類","内容"],[...state.priv.filter(x=>x.text).map(x=>[x.id,"日記",x.text]),...state.reflect.map(x=>[x.id,"内省",[x.mood?`気分${x.mood}`:"",x.good?"良かった："+x.good:"",x.bad?"うまくいかなかった："+x.bad:"",x.learn?"学び："+x.learn:""].filter(Boolean).join(" / ")])].sort((a,b)=>a[0]<b[0]?-1:1))); }
+  const intro={name:"はじめに",rows:[["ふたりのリスト　バックアップ",""],["書き出した日時",bkStamp()],["書き出した人",nameOf(R)],["自分だけの項目",me?"含む（このファイルを見られる人には見えます）":"含まない"],["",""],["シート","このシートの中身と、アプリでの使い方","件数"],...info.map(([n,d,c])=>[n,d,c]),["",""],["アプリの主な機能",""],
+    ["ホーム","今日やること（数字＝各タブの数）・今日の予定・AIに相談・今日の1曲"],["追加","＋または画面を下に引っぱる。種類：やること／買い物／予定／話す／お金／将来／習慣（左右スワイプで切り替え）"],["カレンダー","月の表とシフト入力、日ごとのタイムテーブル（空き時間をタップで追加・長押しで範囲）"],["AI","アプリ内の情報をふまえて相談。追加・変更は「実行」を押したときだけ"],["バックアップ","このExcel（見る用）／オフライン用の控え（圏外で読む用）／JSON（アプリに戻す用）"]]};
+  const blob=xlsxBuild([intro,...sheets]); saveFile(`futari-${today()}.xlsx`,blob); }
 function exportBackup(){
-  const data={app:"futari-list",version:7,exportedAt:new Date().toISOString(),items:state.items,troubles:state.troubles,cautions:state.cautions,
+  const data={app:"futari-list",version:8,exportedAt:new Date().toISOString(),...Object.fromEntries(SHARED_BK.map(c=>[c,state[c]||[]])),items:state.items,troubles:state.troubles,cautions:state.cautions,
     diary:state.diary.filter(d=>d.by===state.me),privateDiary:state.priv,comments:state.comments,shifts:state.shifts,plans:state.plans,topics:state.topics,talks:state.talks,thanks:state.thanks,dinner:state.dinner,spend:state.spend,mine:{items:state.pitems,habits:state.habits,reflect:state.reflect,blocks:state.blocks},shoppingHistory:state.history};
   saveFile(`futari-backup-${today()}.json`,JSON.stringify(data,null,2));
 }

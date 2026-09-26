@@ -143,7 +143,7 @@
   var ASSETS = {
     upload: function(blob, o){ return putBlob(rid(), blob, (o && o.type) || blob.type); },
     putWithId: function(id, blob){ return putBlob(id, blob, blob.type || "image/jpeg"); },
-    list: async function(){ var qs = await M.getDocs(M.collection(fs, "blobmeta")); var as = qs.docs.map(function(d){ return { id: d.id, size: d.data().size || 0 }; });
+    list: async function(){ var qs = await M.getDocs(M.collection(fs, "blobmeta")); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
       return { assets: as, usage: { files: as.length, bytes: as.reduce(function(a, x){ return a + x.size; }, 0), maxFiles: MAX_FILES, maxBytes: MAX_BYTES } }; },
     delete: async function(id){ await M.deleteDoc(M.doc(fs, "blobs", id)); await M.deleteDoc(M.doc(fs, "blobmeta", id)); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
   };
