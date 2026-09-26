@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=163"></script>
+<script src="shim.js?v=164"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1559,7 +1559,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="163";
+const APP_VERSION="164";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3541,11 +3541,10 @@ $("main").addEventListener("click",e=>{
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
-  if(tt&&state.ttSel){ ttDeselect(); return; }
-  if(tt&&state.ttNewJust&&Date.now()-state.ttNewJust<600) return;
+  if(tt&&state.ttNewJust&&Date.now()-state.ttNewJust<400) return;
+  if(tt&&state.ttSel&&!e.target.closest(".tt-b")){ state.ttSel=null; state.ttDelArm=false; } /* v164: 選択中でも1回のタップで新しい枠を出す */
   if(e.target.closest("#ttNew")&&!e.target.closest("[data-nh]")){ const N=state.ttNew; state.pendTime=hhmm(N.s); state.pendEnd=hhmm(N.e%1440); state.ttNew=null; openSheet("task"); return; } /* v157: タイムテーブルから追加＝やること（時間つき） */
-  if(tt&&state.ttNew){ state.ttNew=null; renderTT(); return; }
-  if(tt){ const S0=ttS(), m=Math.min(Math.max(ttY2mF(tt,e.clientY,30),S0*60),23*60+30); state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; haptic("tick"); renderTT(); return; }
+  if(tt){ /* v164: 枠があっても、別の場所をタップしたらそこへ枠を移す（空振りのタップをなくす） */ const S0=ttS(), m=Math.min(Math.max(ttY2mF(tt,e.clientY,30),S0*60),23*60+30); state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; haptic("tick"); renderTT(); return; }
   const bg=e.target.closest("[data-bug]"); if(bg){ dupd("bugs",bg.dataset.bug,{status:bg.dataset.bst,decidedAt:Date.now()}); toast(bg.dataset.bst==="approved"?"承認しました。次の確認で自動修正されます":"見送りにしました"); return; }
   const pk=e.target.closest("[data-ppk]"); if(pk&&state.prep&&state.prep.items){ state.prep.items[+pk.dataset.ppk].on=pk.checked; const bt=document.querySelector('[data-act="prepAdd"]'); if(bt) bt.textContent=`やることに追加（${state.prep.items.filter(i=>i.on).length}件）`; return; }
   const qk=e.target.closest("[data-qk]"); if(qk&&state.quick&&state.quick.r){ const r=state.quick.r; r.text=(($("qText")||{}).value||r.text); r.date=($("qDate")||{}).value||""; r.time=($("qTime")||{}).value||""; r.kind=qk.dataset.qk; render(); return; }
@@ -3644,7 +3643,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="hmv"){ const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), i=O.indexOf(b.dataset.k), j=i+Number(b.dataset.d); if(i>=0&&j>=0&&j<O.length){ [O[i],O[j]]=[O[j],O[i]]; prefs.hdrOrder=O.join(","); savePrefs(); render(); } }
   else if(a==="hvis"){ const H=new Set((prefs.hdrHide||"").split(",").filter(Boolean)), k=b.dataset.k; if(H.has(k)) H.delete(k); else H.add(k); prefs.hdrHide=[...H].join(","); savePrefs(); render(); }
   else if(a==="chskip"){ const li3=b.closest("[data-id]"); const c=li3&&state.chores.find(q=>q.id===li3.dataset.id); if(c){ const t=today(), v=chSkip(c,t)?null:myRole(); applyLocal("chores",c.id,{skip:{[t]:v}}); dupd("chores",c.id,{skip:{[t]:v}}); haptic("tick"); toast(v?`「${c.text}」は今日はやらない（明日また出ます）`:`「${c.text}」を今日やる家事に戻しました`); render(); } }
-  else if(a==="recAdd"){ state.sheet.htarget="wd"; openSheet("rtask"); state.sheet.htarget="wd"; renderSheet(); }
+  else if(a==="recAdd"){ state.sheet.htarget="wd"; openSheet("rtask"); }
   else if(a==="cardReset"){ Object.assign(prefs,{cardTone:"auto",cardAlpha:"65",lineTone:"auto",textTone:"auto"}); savePrefs(); applyPrefs(); render(); }
   else if(a==="wxOpen"){ const w=$("wx"); if(w&&!w.hidden){ setTimeout(()=>w.click(),0); } else go("home"); }
   else if(a==="shremGo5"){ const r=b.dataset.r||myRole(), t=today(), d=[...Array(5)].map((_,i)=>addDays(t,i)).find(x=>!shiftOf(r,x))||t; go("cal"); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=r; render(); haptic("tick"); }
@@ -5249,6 +5248,7 @@ function openSheet(kind){
   if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
   if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
   S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
+  S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
   $("input").focus({preventScroll:true});
@@ -5257,7 +5257,7 @@ function closeSheet(){ if(!state.sheet.open) return; state.sheet.open=false; $("
 function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
-  $("kinds").innerHTML=Object.entries(KINDS).filter(([key])=>!["ptask","pshop","gevent","caution","goal"].includes(key)||key===S.kind).map(([key,o])=>`<button type="button" class="kind" data-kind="${key}" style="--kc:var(${o.c})" aria-pressed="${S.kind===key}">${o.label}</button>`).join("");
+  $("kinds").innerHTML=Object.entries(KINDS).filter(([key])=>!["ptask","pshop","gevent","caution","goal","rtask"].includes(key)||key===S.kind).map(([key,o])=>`<button type="button" class="kind" data-kind="${key}" style="--kc:var(${o.c})" aria-pressed="${S.kind===key}">${o.label}</button>`).join("");
   $("input").placeholder= S.kind==="block"?"時間の予定（例：ジム、勉強、入浴）": S.kind==="gevent"?"Googleカレンダーの予定名": S.kind==="topic"?"話したいこと（例：年末の帰省の予定）": S.kind==="habit"?"毎日の習慣（例：毎朝ストレッチ）": S.kind==="rtask"?"繰り返すタスク（例：ゴミ出し、排水口そうじ）": S.kind==="ptask"?"じぶんのタスク": S.kind==="pshop"?"じぶんの買うもの": S.kind==="pwish"?"やってみたいこと（例：陶芸で夫婦の器をつくる）": S.kind==="plan"?({wish:"やりたいこと・欲しいもの",travel:"行きたい場所・旅行名",anniv:"記念日の名前（例：結婚記念日）",bousai:"備えるもの・やること",prep:"準備すること",kids:"子どもとやりたいこと"})[S.pcat]: S.kind==="spend"?"何に使った？（例：スーパー、ホテル代）": S.kind==="recur"?`名前（例：${(RKIND[S.rkind]||RKIND.fixed).ex.split("、")[0]}）`: S.kind==="goal"?"目標の名前（例：旅行資金、車の買い替え）": S.kind==="event"?"予定（例：歯医者、実家に帰る、友人と食事）": S.kind==="task"?"やることを入力": S.kind==="shop"?"買うものを入力": S.kind==="trouble"?"困っていること（例：洗面所の水が流れにくい）":"気をつけること（例：明日は断水 9-12時）";
   const t=today(), sat=(()=>{const x=parse(t);x.setDate(x.getDate()+((6-x.getDay()+7)%7||7));return ymd(x);})();
   const q=[["今日",t],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]];
@@ -5283,7 +5283,9 @@ function renderSheet(){
   else if(S.kind==="ptask") o=dateRow("期限")+budRow;
   else if(S.kind==="pshop") o=dateRow("納期")+budRow;
   else if(S.kind==="pwish") o=dateRow("やる日（任意）")+budRow;
-  else if(S.kind==="task") o=dateRow("期限")+(S.time?`<div class="edit-row"><span class="lbl">終わり</span><input type="time" id="sEnd" value="${esc(S.end||hhmm(Math.min(tmin(S.time)+30,1439)))}" aria-label="終わり"></div>`:"")+budRow;
+  else if(S.kind==="task"&&S.trep&&S.trep!=="none") o=`<div class="edit-row"><span class="lbl">くり返し</span>${seg("srep",S.trep,[["none","しない"],["daily","毎日"],...tgtOpts(true,S.htarget).filter(x=>x[0]!=="7")])}</div>${S.htarget==="mo"?moPick("sMo",S.hmoN||3,S.hmoS||today(),true,"lbl"):""}${S.trep!=="daily"?wdPick("sWd",S.hwd||(S.hwd=[parse(today()).getDay()]),S.htarget==="wd"||S.htarget==="mn","lbl"):""}${nthPick("sNth",S.hnth||(S.hnth=[Math.min(4,nthOfD(today()))]),S.htarget==="mn","lbl")}${S.htarget==="wd"||S.htarget==="mn"?`<div class="who hnext" id="sHNext">${esc(sHNextTxt())}</div>`:""}${S.htarget==="iv"?`<div class="edit-row"><span class="lbl">前回から</span><input type="number" id="sEvery" min="1" max="730" value="${esc(S.hevery||30)}" style="width:80px"><span class="lbl">日ごと</span></div>`:""}
+    <div class="edit-row"><span class="lbl">時間</span><input type="time" id="sTime" value="${esc(S.time||"")}" aria-label="開始"><span class="lbl">〜</span><input type="time" id="sEnd" value="${esc(S.end||"")}" aria-label="終わり"><span class="who">任意・入れるとタイムテーブルに毎回のる</span></div>`;
+  else if(S.kind==="task") o=`<div class="edit-row"><span class="lbl">くり返し</span>${seg("srep","none",[["none","しない"],["daily","毎日"],...tgtOpts(true,"").filter(x=>x[0]!=="7")])}</div>`+dateRow("期限")+(S.time?`<div class="edit-row"><span class="lbl">終わり</span><input type="time" id="sEnd" value="${esc(S.end||hhmm(Math.min(tmin(S.time)+30,1439)))}" aria-label="終わり"></div>`:"")+budRow;
   else if(S.kind==="event") o=`<div class="edit-row"><span class="lbl">共有</span>${seg("sevs",S.evPriv?"0":"1",[["1","ふたりに表示"],["0","じぶんだけ"]])}</div>
       <div class="who sharenote">${S.evPriv?"じぶんの予定（タイムテーブル）にだけ入ります。相手には見えません":"ふたりのカレンダーに表示され、相手にも見えます"}</div>
       <div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||state.sel||today())}" aria-label="日付"></div>
@@ -5313,7 +5315,7 @@ $("sheet").addEventListener("click",e=>{
   const kb=e.target.closest("[data-kind]"); if(kb){ S.kind=kb.dataset.kind; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const qd=e.target.closest("[data-qd]"); if(qd){ S.date=S.date===qd.dataset.qd?"":qd.dataset.qd; if(!S.date) S.time=""; renderSheet(); return; }
   const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
-  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="sht") S.htarget=v; if(n==="sbr") S.brep=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
+  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
   if(e.target.closest("[data-sx=clear]")){ S.date=""; S.time=""; renderSheet(); }
 });
 $("sheet").addEventListener("input",e=>{ if(e.target.id==="sBudget") state.sheet.budget=e.target.value; if(e.target.id==="sAmount") state.sheet.amount=e.target.value; if(e.target.id==="sDay") state.sheet.rday=e.target.value; if(e.target.id==="sEvery") state.sheet.hevery=e.target.value; });
@@ -5321,7 +5323,7 @@ $("sheet").addEventListener("change",e=>{ const S=state.sheet;
   if(e.target.id==="sBudget"){ S.budget=e.target.value; }
   if(e.target.id==="sDate"){ S.date=e.target.value; if(!S.date) S.time=""; renderSheet(); }
   if(e.target.id==="sEnd"){ S.end=e.target.value; return; }
-  if(e.target.id==="sTime"&&(S.kind==="block"||S.kind==="gevent"||S.kind==="event")){ S.time=e.target.value; return; }
+  if(e.target.id==="sTime"&&(S.kind==="block"||S.kind==="gevent"||S.kind==="event"||(S.kind==="task"&&S.trep&&S.trep!=="none"))){ S.time=e.target.value; return; }
   if(e.target.id==="sTime"){ S.time=e.target.value; if(S.time&&!S.date) S.date=state.view==="cal"?state.sel:today(); renderSheet(); } });
 $("scrim").addEventListener("click",closeSheet);
 $("sheetHandle").addEventListener("click",closeSheet);
@@ -5349,6 +5351,13 @@ $("form").addEventListener("submit",e=>{
     S.amount=""; renderSheet(); }
   else if(S.kind==="spend"){ const am=money(S.amount); if(!am){ toast("金額を入れてください"); $("sAmount")&&$("sAmount").focus(); return; }
     dset("spend",newId(),{cat:S.mcat||"other",amount:am,text:t,date:S.date||today(),who:S.who||"both",by:state.me||null,role:myRole(),createdAt:now}); S.amount=""; renderSheet(); }
+  else if(S.kind==="task"&&S.trep&&S.trep!=="none"){ /* v164: くり返しのやること（時間つきならタイムテーブルに毎回のる） */
+    const tg=S.trep==="daily"?"wd":S.htarget, hv={text:t,target:tgtVal(tg),log:{},createdAt:now,updatedAt:now};
+    if(tg==="wd"||tg==="mn"){ hv.wd=(S.trep==="daily"?[0,1,2,3,4,5,6]:(S.hwd||[])).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(tg==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } }
+    if(tg==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(tg==="mo") Object.assign(hv,moRead("sMo"));
+    const st=($("sTime")&&$("sTime").value)||S.time||"", en=($("sEnd")&&$("sEnd").value)||S.end||""; if(st){ hv.time=st; if(en&&tmin(en)>tmin(st)) hv.dur=tmin(en)-tmin(st); }
+    if(S.who!=="priv") dset("items",newId(),{...hv,list:"rtask",who:S.who||"both",by:state.me||null}); else dset("habits",newId(),hv);
+    setTimeout(()=>toast(`くり返しのやること（${tgtLabel(hv)}${st?"・"+st:""}）として追加しました`),300); }
   else if((S.kind==="task"||S.kind==="shop")&&S.who==="priv"){ const it=baseItem(S.kind,t,S.date,S.time); delete it.who; delete it.by; { const en=($("sEnd")&&$("sEnd").value)||S.end; if(it.time&&en&&tmin(en)>tmin(it.time)) it.dur=tmin(en)-tmin(it.time); } if(money(S.amount)){ it.budget=money(S.amount); S.amount=""; renderSheet(); } dset("pitems",newId(),it); }
   else if(S.kind==="task"||S.kind==="shop"){ const it=baseItem(S.kind,t,S.date,S.time,S.who); { const en=($("sEnd")&&$("sEnd").value)||S.end; if(it.time&&en&&tmin(en)>tmin(it.time)) it.dur=tmin(en)-tmin(it.time); } if(money(S.amount)){ it.budget=money(S.amount); S.amount=""; renderSheet(); } dset("items",newId(),it); }
   else if(S.kind==="ptask"||S.kind==="pshop"||S.kind==="pwish"){ const it=baseItem(S.kind==="ptask"?"task":S.kind==="pshop"?"shop":"wish",t,S.date,S.time); delete it.who; delete it.by; if(money(S.amount)){ it.budget=money(S.amount); S.amount=""; renderSheet(); } dset("pitems",newId(),it); }
@@ -5425,7 +5434,7 @@ $("app").addEventListener("pointermove",e=>{
   if(!sw||e.pointerId!==sw.pid) return;
   const dx=e.clientX-sw.x, dy=e.clientY-sw.y; sw.dx=dx; sw.dy=dy;
   if(!sw.axis){
-    if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)) sw.axis="x";
+    if(Math.abs(dx)>(sw.tt?18:10)&&Math.abs(dx)>Math.abs(dy)*1.3) sw.axis="x";
     else if(Math.abs(dy)>8){ if(sw.grid) sw.axis="y"; else { sw=null; return; } }
     else return;
     sw.on=true; state.busy=true; try{e.target.setPointerCapture(e.pointerId)}catch(_){}
