@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=165"></script>
+<script src="shim.js?v=167"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1482,6 +1482,10 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .ai-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.ai-chips .chip{flex:none}
 .updbar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.3)}
 .updbar span{flex:1}.updbar button{border:0;border-radius:999px;padding:6px 12px;font:inherit;font-weight:800;background:var(--on-accent);color:var(--accent);cursor:pointer}.updbar button[data-upd="0"]{background:transparent;color:var(--on-accent);padding:6px}
+.kind-cfg{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.kind-cfg li{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--ground)}.kind-cfg li span{flex:1;min-width:0;font-weight:700;font-size:14px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.kind-cfg li.off span{opacity:.45;text-decoration:line-through}
+.kind-cfg .dotc{width:10px;height:10px;border-radius:50%;flex:none}.kind-cfg .kv{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--on-accent);font-weight:900;cursor:pointer;padding:0}.kind-cfg .kv.on{background:var(--accent);border-color:var(--accent)}.kind-cfg .icon-btn.sm{flex:none;width:30px;height:30px;min-width:30px}.kind-cfg li{gap:5px}
+.kind.kcfg{flex:none;opacity:.7}
 </style>
 <style id="palStyle"></style>
 
@@ -1561,7 +1565,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="165";
+const APP_VERSION="167";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1634,7 +1638,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -3090,7 +3094,7 @@ function renderDiaryDynamic(){
 }
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("tt-more")) state.ttMore=e.target.open; },true);
 document.addEventListener("focusout",e=>{ if(e.target.dataset&&e.target.dataset.centry) setTimeout(()=>{ if(diaryRenderDeferred&&state.view==="diary") renderDiaryDynamic(); },150); });
-const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示"]],["data","データ・アカウント・ヘルプ",[]]];
+const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示","追加画面の種類"]],["data","データ・アカウント・ヘルプ",[]]];
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("phist")) state.phOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("tmore")) state.tmoreOpen=e.target.open; },true);
 let setAnchor=null;
 document.addEventListener("click",e=>{ if(state.view!=="settings") return; const b=e.target.closest("#main button,#main [data-pref]"); if(!b) return;
@@ -3155,7 +3159,7 @@ function viewSettings(){
     <h2>並び順</h2><div class="opts">${opt("navRev","0",prefs.nav==="flick"?"ふつう（左から）":"ふつう（上から）")}${opt("navRev","1",prefs.nav==="flick"?"逆（右から）":"逆（下から）")}</div>
     ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
     <p>フリックは、キーを押したまま上・左・右にはらうと、そのキーに入っている別のタブへ移動します。押してすぐ離すと真ん中のタブです。押している間は行き先が表示されます。</p></section>
-  <section class="card"><h2>上部の表示（アプリ名・あいさつ・見出し・天気・ふたり／じぶん）</h2>
+  ${kindCardHTML()}<section class="card"><h2>上部の表示（アプリ名・あいさつ・見出し・天気・ふたり／じぶん）</h2>
     <h2>位置</h2><div class="opts">${opt("hdrPos","top","上に固定")}${opt("hdrPos","scroll","上（スクロールで隠れる）")}${opt("hdrPos","bottom","画面の下")}</div>
     <h2>大きさ</h2><div class="opts">${opt("hdrSize","s","小さめ")}${opt("hdrSize","m","ふつう")}${opt("hdrSize","l","大きめ")}</div>
     <h2>たたむ</h2><div class="opts">${opt("hdrFold","0","広げる")}${opt("hdrFold","1","たたむ（見出しの行だけ）")}</div><p class="who">見出しの右の「︿」でもたためます。</p>
@@ -3526,6 +3530,8 @@ $("main").addEventListener("click",e=>{
       if(name==="chfq"){ const V=(id,on)=>{ if($(id)) $(id).hidden=!on; }; V("chEveryRow",v==="iv"); V("chWdRow",v==="wd"||v==="mn"); V("chNthRow",v==="mn"); V("chMoRow",v==="mo"); V("chMoTip",v==="mo"); } }
     return; }
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
+  const kmv=e.target.closest("[data-kmv]"); if(kmv){ const [k,d]=kmv.dataset.kmv.split("|"), L=kindList(true), i=L.indexOf(k), j=i+Number(d); if(j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; prefs.kindOrder=L.join(","); savePrefs(); haptic("tick"); return; }
+  const khd=e.target.closest("[data-khide]"); if(khd){ const k=khd.dataset.khide, H=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); if(H.has(k)) H.delete(k); else { if(kindList(true).filter(x=>!H.has(x)).length<=1){ toast("1つは出しておいてください"); return; } H.add(k); } prefs.kindHide=[...H].join(","); savePrefs(); haptic("tick"); return; }
   const amd=e.target.closest("[data-aimdel]"); if(amd){ aiMemDel(amd.dataset.aimdel); state.aiMemOpen=true; render(); return; }
   const ame=e.target.closest("[data-aimed]"); if(ame){ state.aiMemEdit=ame.dataset.aimed; state.aiMemEsc=null; state.aiMemOpen=true; render(); setTimeout(()=>{ const i=$("aiMemEd"); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },50); return; }
   const ams2=e.target.closest("[data-aimsave]"); if(ams2){ aiMemUpd(ams2.dataset.aimsave,($("aiMemEd")||{}).value,state.aiMemEsc); state.aiMemEdit=null; haptic("done"); render(); return; }
@@ -3750,6 +3756,7 @@ $("main").addEventListener("click",e=>{
     removeWithUndo(o.c,[o.x.id],"削除しました"); render(); }
   else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
   else if(a==="aiAsk"){ aiAsk(($("aiIn")||{}).value); }
+  else if(a==="kindReset"){ prefs.kindOrder=""; prefs.kindHide=""; savePrefs(); toast("最初の並びに戻しました"); }
   else if(a==="updCheck"){ updCheck(true); }
   else if(a==="updNow"){ updNow(); }
   else if(a==="aiClear"){ state.ai.log=[]; aiLogSave(); render(); }
@@ -4999,6 +5006,16 @@ function aiMemAdd(t,scope){ t=String(t||"").trim().slice(0,80); if(!t) return nu
   if(scope==="me") aiMemPSet([...aiMemP(),m]);
   else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); }
   return m; }
+/* v166: 追加画面の種類（議題・やること…）の順番と表示／非表示 */
+const KIND_INT=["ptask","pshop","gevent","caution","goal","rtask"];
+function kindList(all){ const base=Object.keys(KINDS).filter(k=>!KIND_INT.includes(k)), ord=String(prefs.kindOrder||"").split(",").filter(k=>base.includes(k)), L=[...ord,...base.filter(k=>!ord.includes(k))];
+  if(all) return L; const hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); const v=L.filter(k=>!hid.has(k)); return v.length?v:L; }
+function kindCardHTML(){ const L=kindList(true), hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean));
+  return `<section class="card" id="kindCard"><h2>追加画面の種類</h2><p class="who">↑↓で順番、右の丸（✓＝出す）で表示を切り替え。出さない種類も、各タブから追加するときは使えます</p>
+    <ul class="kind-cfg">${L.map((k,i)=>`<li class="${hid.has(k)?"off":""}"><i class="dotc" style="background:var(${KINDS[k].c})"></i><span>${esc(KINDS[k].label)}</span>
+      <button class="icon-btn sm" data-kmv="${k}|-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn sm" data-kmv="${k}|1" ${i<L.length-1?"":"disabled"} aria-label="下へ">↓</button>
+      <button class="kv ${hid.has(k)?"":"on"}" data-khide="${k}" aria-pressed="${!hid.has(k)}" aria-label="${hid.has(k)?"出さない（押すと出す）":"出す（押すと出さない）"}">${hid.has(k)?"":"✓"}</button></li>`).join("")}</ul>
+    <div class="opts"><button class="opt" data-act="kindReset">最初の並びに戻す</button></div></section>`; }
 function aiMemUpd(id,t,scope){ t=String(t||"").trim().slice(0,80); if(!t){ aiMemDel(id); return; } const inP=aiMemP().some(m=>m.id===id), cur=(inP?aiMemP():aiMemB()).find(m=>m.id===id); if(!cur) return;
   const want=scope||(inP?"me":"both");
   if((want==="me")!==inP){ aiMemDel(id); const m={...cur,t,at:Date.now()}; if(want==="me") aiMemPSet([...aiMemP(),m]); else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } return; }
@@ -5271,7 +5288,7 @@ function closeSheet(){ if(!state.sheet.open) return; state.sheet.open=false; $("
 function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
-  $("kinds").innerHTML=Object.entries(KINDS).filter(([key])=>!["ptask","pshop","gevent","caution","goal","rtask"].includes(key)||key===S.kind).map(([key,o])=>`<button type="button" class="kind" data-kind="${key}" style="--kc:var(${o.c})" aria-pressed="${S.kind===key}">${o.label}</button>`).join("");
+  $("kinds").innerHTML=[...kindList(),...(kindList().includes(S.kind)?[]:[S.kind])].map(key=>[key,KINDS[key]]).map(([key,o])=>`<button type="button" class="kind" data-kind="${key}" style="--kc:var(${o.c})" aria-pressed="${S.kind===key}">${o.label}</button>`).join("")+`<button type="button" class="kind kcfg" data-kcfg="1" aria-label="種類の並べ替え・表示">✎</button>`;
   $("input").placeholder= S.kind==="block"?"時間の予定（例：ジム、勉強、入浴）": S.kind==="gevent"?"Googleカレンダーの予定名": S.kind==="topic"?"話したいこと（例：年末の帰省の予定）": S.kind==="habit"?"毎日の習慣（例：毎朝ストレッチ）": S.kind==="rtask"?"繰り返すタスク（例：ゴミ出し、排水口そうじ）": S.kind==="ptask"?"じぶんのタスク": S.kind==="pshop"?"じぶんの買うもの": S.kind==="pwish"?"やってみたいこと（例：陶芸で夫婦の器をつくる）": S.kind==="plan"?({wish:"やりたいこと・欲しいもの",travel:"行きたい場所・旅行名",anniv:"記念日の名前（例：結婚記念日）",bousai:"備えるもの・やること",prep:"準備すること",kids:"子どもとやりたいこと"})[S.pcat]: S.kind==="spend"?"何に使った？（例：スーパー、ホテル代）": S.kind==="recur"?`名前（例：${(RKIND[S.rkind]||RKIND.fixed).ex.split("、")[0]}）`: S.kind==="goal"?"目標の名前（例：旅行資金、車の買い替え）": S.kind==="event"?"予定（例：歯医者、実家に帰る、友人と食事）": S.kind==="task"?"やることを入力": S.kind==="shop"?"買うものを入力": S.kind==="trouble"?"困っていること（例：洗面所の水が流れにくい）":"気をつけること（例：明日は断水 9-12時）";
   const t=today(), sat=(()=>{const x=parse(t);x.setDate(x.getDate()+((6-x.getDay()+7)%7||7));return ymd(x);})();
   const q=[["今日",t],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]];
@@ -5326,6 +5343,7 @@ function renderSheet(){
 }
 $("sheet").addEventListener("click",e=>{
   const S=state.sheet;
+  if(e.target.closest("[data-kcfg]")){ closeSheet(); go("settings"); setTimeout(()=>{ const g=document.querySelector('#kindCard'); if(g){ const d=g.closest("details"); if(d) d.open=true; g.scrollIntoView({block:"start",behavior:"smooth"}); } },250); return; }
   const kb=e.target.closest("[data-kind]"); if(kb){ S.kind=kb.dataset.kind; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const qd=e.target.closest("[data-qd]"); if(qd){ S.date=S.date===qd.dataset.qd?"":qd.dataset.qd; if(!S.date) S.time=""; renderSheet(); return; }
   const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
@@ -5961,7 +5979,7 @@ function songRender(){
   const q=x?`${x.title} ${x.artist}`:"", svc=prefs.musicSvc||"apple";
   pn.innerHTML=x?`<div class="wxp-h"><b>今日の1曲</b><span class="who">${short(t)}・ふたりの好みから</span></div>
       <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
-      <div class="song-l"><a class="btn primary" href="${esc(x.url||SVC.apple[1](q))}" target="_blank" rel="noopener">Apple Musicで${x.url?"開く":"探す"}</a>
+      <div class="song-l"><a class="btn primary" data-act="songOpen" href="${esc(x.url||SVC.apple[1](q))}" target="_blank" rel="noopener">Apple Musicで${x.url?"開く":"探す"}</a>
       <div class="song-sg" role="group">${ai?`<button data-act="songRe">⟳ 別の曲</button>`:""}<button data-act="songPref">♡ 好みを変える</button></div></div>`
     :`<div class="wxp-h"><b>今日の1曲</b></div><p class="song-r">${taste?(state.songBusy?"ふたりの好みから選んでいます…":`選べませんでした${state.songErr?`（${esc(state.songErr)}）`:""}`):"設定 ›「今日の1曲」に、ふたりそれぞれの好きな音楽を入れると、毎日1曲選びます。"}</p><div class="song-f"><button class="link" data-act="songPref">好みを入れる</button>${taste&&!state.songBusy?`<button class="link" data-act="songRe">もう一度選ぶ</button>`:""}</div>`;
   const r=el.getBoundingClientRect(), pw=Math.min(340,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; pn.style.top=Math.round(r.bottom+8)+"px";
@@ -5971,6 +5989,11 @@ document.addEventListener("click",e=>{ if(state.songOpen&&e.target.isConnected&&
 addEventListener("scroll",()=>{ if(state.songOpen){ state.songOpen=false; songRender(); } },{passive:true});
 document.addEventListener("click",e=>{ const b=e.target.closest("#songp [data-act]"); if(!b) return; const a=b.dataset.act;
   if(a==="songRe"){ songNext(); }
+  else if(a==="songOpen"){ /* v167: iPhoneはミュージックアプリを直接開く（music://）。開かなかったときだけWeb版へ */
+    const x=songOf(today()); if(!x) return; const web=x.url||SVC.apple[1](`${x.title} ${x.artist}`), ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    if(!ios) return; e.preventDefault(); songStop(); songRender();
+    const app=web.replace(/^https:\/\//,"music://"), t0=Date.now(); let left=false; const vis=()=>{ if(document.visibilityState==="hidden") left=true; }; document.addEventListener("visibilitychange",vis);
+    location.href=app; setTimeout(()=>{ document.removeEventListener("visibilitychange",vis); if(!left&&Date.now()-t0<3000) window.open(web,"_blank"); },1500); }
   else if(a==="songPlay"){ songToggle(); }
   else if(a==="songPref"){ state.songOpen=false; songRender(); go("settings"); setTimeout(()=>{ const el=$("musicIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },200); } });
 
