@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=160"></script>
+<script src="shim.js?v=161"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1475,7 +1475,7 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .ai-od span{flex:1;min-width:0}.ai-od b{flex:none;background:var(--caution);color:#1a1a1a;border-radius:999px;padding:3px 10px;font-size:12px}
 .ai-all{align-self:flex-end}
 .ai-mem{border-top:1px solid var(--line);padding-top:8px;font-size:13px}.ai-mem summary{cursor:pointer;color:var(--muted);font-weight:700}
-.ai-mrow{display:flex;align-items:center;gap:6px;margin:6px 0}.ai-mt{flex:1;min-width:0}.ai-mem .ai-in{margin-top:6px;flex-wrap:wrap;align-items:center}.ai-mem .ai-in input{flex:1 1 100%}.ai-mem .ai-in .btn{margin-left:auto}.ai-mem .seg button{padding:3px 8px;font-size:12px}
+.ai-mrow{display:flex;align-items:center;gap:6px;margin:6px 0}.ai-mt{flex:1;min-width:0;text-align:left;background:none;border:0;padding:4px 2px;color:var(--ink);font:inherit;cursor:pointer}.ai-mrow.ed{flex-wrap:wrap}.ai-mrow.ed input{flex:1 1 100%}.ai-mrow.ed .seg button{padding:3px 8px;font-size:12px}.ai-mem .ai-in{margin-top:6px;flex-wrap:wrap;align-items:center}.ai-mem .ai-in input{flex:1 1 100%}.ai-mem .ai-in .btn{margin-left:auto}.ai-mem .seg button{padding:3px 8px;font-size:12px}
 .icon-btn.sm{width:28px;height:28px;min-width:28px;font-size:12px}
 .ai-in{display:flex;gap:6px}.ai-in input{flex:1;min-width:0}
 .ai-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.ai-chips .chip{flex:none}
@@ -1558,7 +1558,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="160";
+const APP_VERSION="161";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1631,7 +1631,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -3512,6 +3512,7 @@ $("main").addEventListener("click",e=>{
     else if(name==="psmode"){ state.psMode=v; render(); }
     else if(name==="sh_h"||name==="sh_w"){ shiftEdit(name.slice(3),{[state.sel]:v}); render(); }
     else if(name==="aimsc"){ state.aiMemSc=v; }
+    else if(name==="aimesc"){ state.aiMemEsc=v; }
     else if(name==="logf"){ state.logF=v; render(); }
     else if(name==="phwho"||name==="phpt"){ if(name==="phwho") state.phWho=v; else state.phPt=v; }
     else if(name==="dtab"){ flushDiary(); state.diaryTab=v; render(); }
@@ -3521,6 +3522,9 @@ $("main").addEventListener("click",e=>{
     return; }
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
   const amd=e.target.closest("[data-aimdel]"); if(amd){ aiMemDel(amd.dataset.aimdel); state.aiMemOpen=true; render(); return; }
+  const ame=e.target.closest("[data-aimed]"); if(ame){ state.aiMemEdit=ame.dataset.aimed; state.aiMemEsc=null; state.aiMemOpen=true; render(); setTimeout(()=>{ const i=$("aiMemEd"); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },50); return; }
+  const ams2=e.target.closest("[data-aimsave]"); if(ams2){ aiMemUpd(ams2.dataset.aimsave,($("aiMemEd")||{}).value,state.aiMemEsc); state.aiMemEdit=null; haptic("done"); render(); return; }
+  if(e.target.closest("[data-aimcancel]")){ state.aiMemEdit=null; render(); return; }
   const ams=e.target.closest(".ai-mem summary"); if(ams){ state.aiMemOpen=!state.aiMemOpen; }
   const aa=e.target.closest("[data-aiact]"); if(aa){ const [li,ai]=aa.dataset.aiact.split("|").map(Number); aiDoAct(li,ai); return; }
   const al=e.target.closest("[data-aiall]"); if(al){ const li=Number(al.dataset.aiall), e2=state.ai.log[li]; (e2&&e2.a&&e2.a.acts||[]).forEach((c,ai)=>{ if(!c.ok) aiDoAct(li,ai); }); return; }
@@ -3769,6 +3773,8 @@ $("main").addEventListener("input",e=>{
 $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.dataset&&(e.target.dataset.ramt||e.target.dataset.gdep)){ e.preventDefault(); e.target.blur(); if(e.target.dataset.gdep){ const bb=document.querySelector(`[data-act=gdep][data-g="${CSS.escape(e.target.dataset.gdep)}"]`); bb&&bb.click(); } return; }
   if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.cgin){ e.preventDefault(); if(e.target.classList.contains("cgin")) e.target.blur(); else { const b=document.querySelector(`[data-cgsave="${e.target.dataset.cgin}"]`); b&&b.click(); } return; }
+  if(e.key==="Enter"&&e.target.id==="aiMemEd"&&!e.isComposing){ e.preventDefault(); aiMemUpd(state.aiMemEdit,e.target.value,state.aiMemEsc); state.aiMemEdit=null; render(); return; }
+  if(e.key==="Enter"&&e.target.id==="aiMemIn"&&!e.isComposing){ e.preventDefault(); if(aiMemAdd(e.target.value,state.aiMemSc==="me"?"me":"both")){ state.aiMemOpen=true; haptic("done"); render(); } return; }
   if(e.key==="Enter"&&e.target.id==="aiIn"&&!e.isComposing){ e.preventDefault(); aiAsk(e.target.value); return; }
   if(e.key==="Enter"&&e.target.id==="chNew"){ e.preventDefault(); choreAdd(e.target.value,($("chNewE")||{}).value); e.target.value=""; return; }
   if(e.key==="Enter"&&e.target.id==="replyText"){e.preventDefault();sendReply();return;}
@@ -4973,12 +4979,19 @@ ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフ�
   A.busy=false; aiLogSave(); if(state.view==="home"||state.view==="talk") render(); else toast("AIの答えがホームに届きました"); }
 /* v159: 覚え書き（ふたり共通＝共有データ／🔒自分＝自分の設定）・朝のブリーフ・遅れたら組み直し・話し合いの準備と片付け */
 const aiMemB=()=>Array.isArray((state.kakei||{}).aiMem)?state.kakei.aiMem:[];
-const aiMemP=()=>Array.isArray(prefs.aiMem)?prefs.aiMem:[];
+/* v161: 自分の覚え書きは設定（文字列で保存。設定の同期は決まった形の項目しか残さないため） */
+const aiMemP=()=>{ const v=prefs.aiMem; if(Array.isArray(v)) return v; try{ const a=JSON.parse(v||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } };
+const aiMemPSet=a=>{ prefs.aiMem=JSON.stringify(a.slice(-40)); savePrefs(true); };
 function aiMemAdd(t,scope){ t=String(t||"").trim().slice(0,80); if(!t) return null; const m={id:newId(),t,at:Date.now(),by:myRole()};
-  if(scope==="me"){ prefs.aiMem=[...aiMemP(),m].slice(-40); savePrefs(true); }
+  if(scope==="me") aiMemPSet([...aiMemP(),m]);
   else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); }
   return m; }
-function aiMemDel(id){ if(aiMemP().some(m=>m.id===id)){ prefs.aiMem=aiMemP().filter(m=>m.id!==id); savePrefs(true); }
+function aiMemUpd(id,t,scope){ t=String(t||"").trim().slice(0,80); if(!t){ aiMemDel(id); return; } const inP=aiMemP().some(m=>m.id===id), cur=(inP?aiMemP():aiMemB()).find(m=>m.id===id); if(!cur) return;
+  const want=scope||(inP?"me":"both");
+  if((want==="me")!==inP){ aiMemDel(id); const m={...cur,t,at:Date.now()}; if(want==="me") aiMemPSet([...aiMemP(),m]); else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } return; }
+  if(inP) aiMemPSet(aiMemP().map(m=>m.id===id?{...m,t,at:Date.now()}:m));
+  else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().map(m=>m.id===id?{...m,t,at:Date.now()}:m),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } }
+function aiMemDel(id){ if(aiMemP().some(m=>m.id===id)){ aiMemPSet(aiMemP().filter(m=>m.id!==id)); }
   else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().filter(m=>m.id!==id),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } }
 const AI_BRIEF_Q="おはよう。今日のブリーフと、今日の予定の組み方を提案して（タイムテーブルを整理して、時間未定のものや食事も入れて）";
 const AI_REPLAN_Q="予定の時間を過ぎてまだ終わっていないものがあるので、今からの残りの予定を組み直して";
@@ -4998,7 +5011,7 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
     <div class="ai-in"><input type="text" id="aiIn" maxlength="200" enterkeyhint="send" placeholder="${talk?"例：今日の議題の順番は？":"例：お昼なにがいい？"}" value="${esc(A.q||"")}" ${A.busy?"disabled":""}><button class="btn primary" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る">送る</button></div>
     <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${retry?"↻ もう一度："+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>
     <details class="ai-mem" ${state.aiMemOpen?"open":""}><summary>🧠 AIが覚えていること（${mb.length+mp.length}）</summary>
-      ${[...mb.map(m=>[m,"ふたり"]),...mp.map(m=>[m,"🔒自分"])].map(([m,l])=>`<div class="ai-mrow"><span class="tag tc-muted">${l}</span><span class="ai-mt">${esc(m.t)}</span><button class="icon-btn sm" data-aimdel="${esc(m.id)}" aria-label="忘れる">✕</button></div>`).join("")||`<div class="who">まだありません。「辛いものは苦手」「平日は自炊」など、覚えてほしいことを入れてください</div>`}
+      ${[...mb.map(m=>[m,"both"]),...mp.map(m=>[m,"me"])].map(([m,sc])=>state.aiMemEdit===m.id?`<div class="ai-mrow ed"><input type="text" id="aiMemEd" maxlength="80" value="${esc(m.t)}" enterkeyhint="done">${seg("aimesc",sc,[["both","ふたり"],["me","🔒自分"]])}<button class="btn primary" data-aimsave="${esc(m.id)}">保存</button><button class="link" data-aimcancel="1">やめる</button></div>`:`<div class="ai-mrow"><span class="tag tc-muted">${sc==="me"?"🔒自分":"ふたり"}</span><button class="ai-mt" data-aimed="${esc(m.id)}" aria-label="編集">${esc(m.t)}</button><button class="icon-btn sm" data-aimdel="${esc(m.id)}" aria-label="忘れる">✕</button></div>`).join("")||`<div class="who">まだありません。「辛いものは苦手」「平日は自炊」など、覚えてほしいことを入れてください</div>`}
       <div class="ai-in"><input type="text" id="aiMemIn" maxlength="80" placeholder="覚えてほしいこと" enterkeyhint="done">${seg("aimsc",state.aiMemSc||"both",[["both","ふたり"],["me","🔒自分"]])}<button class="btn" data-act="aiMemAdd">追加</button></div></details></section>`; }
 function viewHome(){
   const t=today(), me=myRole(), ot=otherRole(), n=counts(), sm=shiftOf(me,t), so=shiftOf(ot,t), off=offState(t);
