@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=162"></script>
+<script src="shim.js?v=163"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1278,6 +1278,7 @@ html.has-bgphoto header :is(h1,#appTitle,.gw){text-shadow:0 1px 8px color-mix(in
 .song-a{font-size:13px;color:var(--muted);font-weight:700;margin-top:2px}
 .song-r{font-size:13px;line-height:1.6;margin:8px 0 0}
 .song-l{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+.song-sg{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;margin-left:auto}.song-sg button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;white-space:nowrap}.song-sg button+button{border-left:1.5px solid var(--line)}
 .song-top{display:flex;align-items:center;gap:12px}.song-top>div{flex:1;min-width:0}.song-art{width:56px;height:56px;border-radius:10px;flex:none;object-fit:cover}
 .song-pl,.song-nx{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);font-size:16px;cursor:pointer}.song-nx{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-size:20px}.song-pl.wait{opacity:.5}
 .song-l .btn{text-decoration:none;display:inline-flex;align-items:center}
@@ -1558,7 +1559,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="162";
+const APP_VERSION="163";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3167,7 +3168,6 @@ function viewSettings(){
     <p>ふたりの好きな音楽から、AIが毎日1曲選んで天気の左に出します（ふたりとも同じ曲）。タップで音楽アプリを開けます。</p>
     <label class="sho-f"><span class="who">${esc(nameOf(myRole()))}の好きな音楽（アーティスト・ジャンル・曲など）</span><textarea id="musicIn" rows="2" maxlength="200" placeholder="例：あいみょん、King Gnu、90年代J-POP、ジャズ">${esc(musicTaste(myRole()))}</textarea></label>
     <p class="who">${esc(nameOf(otherRole()))}の好み：${esc(musicTaste(otherRole())||"まだ入っていません")}</p>
-    <h2>聞くアプリ</h2><div class="opts">${Object.entries(SVC).map(([k,[l]])=>opt("musicSvc",k,l)).join("")}</div>
     <h2>アプリを開いたら試聴を流す</h2><p class="who">iPhoneでは画面に触れる前は音を出せないため、開いて最初に画面に触れたときに今日の1曲の試聴（30秒）を流します</p><div class="opts">${opt("songAuto","on","流す")}${opt("songAuto","off","流さない")}</div>
     ${aiText()?"":'<p class="who">曲を選ぶにはAI機能を「使う」にしてください。</p>'}</section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
@@ -5905,7 +5905,7 @@ async function songFind(title,artist){ const j=await itunesJsonp(`${title} ${art
   const best=R.find(o=>nz(o.trackName).includes(nz(title))&&(nz(o.artistName).includes(nz(artist))||nz(artist).includes(nz(o.artistName))))||null; if(!best) return null;
   return {url:best.trackViewUrl||null,preview:best.previewUrl||null,art:(best.artworkUrl100||"").replace("100x100","200x200")||null}; }
 async function songLookup(d){ const x=songOf(d); if(!x||!x.title||x.url||state.songLk===d+x.title) return; state.songLk=d+x.title;
-  try{ const m=await songFind(x.title,x.artist); const cur=songOf(d); if(!m||!cur||cur.title!==x.title) return; Object.assign(cur,m); dupd("music",d,m); songPreload(); songRender(); }catch(e){} }
+  try{ const m=await songFind(x.title,x.artist); const cur=songOf(d); if(!m||!cur||cur.title!==x.title) return; Object.assign(cur,m); dupd("music",d,m); songPreload(); if(state.songPlayNext&&m.preview){ state.songPlayNext=false; songToggle(); } else songRender(); }catch(e){} }
 let songAudio=null;
 function songEl(){ if(!songAudio){ songAudio=new Audio(); songAudio.preload="auto"; songAudio.onended=()=>{ state.songPlaying=false; songRender(); }; } return songAudio; }
 function songPreload(){ const x=songOf(today()); if(!x||!x.preview) return; const a=songEl(); if(a.src!==x.preview){ a.src=x.preview; try{ a.load(); }catch(e){} } }
@@ -5915,7 +5915,7 @@ function songToggle(){ const x=songOf(today()); if(!x||!x.preview) return; const
   a.play().catch(()=>{ state.songPlaying=false; songRender(); }); }
 function songNext(){ const d=today(), x=songOf(d); if(!x) return; const was=state.songPlaying; songStop();
   if(Array.isArray(x.alts)&&x.alts.length){ const [n,...rest]=x.alts, doc={title:n.title,artist:n.artist,reason:n.reason||"",url:n.url||null,preview:n.preview||null,art:n.art||null,alts:[...rest,{title:x.title,artist:x.artist,reason:x.reason||"",url:x.url||null,preview:x.preview||null,art:x.art||null,seen:true}].slice(0,12),by:myRole(),at:Date.now()};
-    Object.assign(x,doc); dset("music",d,doc); haptic("tick"); if(!x.url) songLookup(d); songPreload(); if(was&&x.preview) songToggle(); else songRender();
+    Object.assign(x,doc); dset("music",d,doc); haptic("tick"); if(!x.url) songLookup(d); songPreload(); if(x.preview) songToggle(); else { state.songPlayNext=true; songRender(); } /* v163: 別の曲にしたらすぐ再生 */
     if(rest.filter(a=>!a.seen).length<=1) songRefill(d); }
   else { state.songTried={}; songEnsure(d,true); } }
 /* アプリを開いて最初に画面に触れたとき、今日の1曲の試聴を流す（iPhoneは触れる前の自動再生ができないため） */
@@ -5931,9 +5931,9 @@ function songRender(){
   if(!pn){ pn=document.createElement("div"); pn.id="songp"; pn.className="wxp songp"; document.body.appendChild(pn); }
   const q=x?`${x.title} ${x.artist}`:"", svc=prefs.musicSvc||"apple";
   pn.innerHTML=x?`<div class="wxp-h"><b>今日の1曲</b><span class="who">${short(t)}・ふたりの好みから</span></div>
-      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button><button class="song-nx" data-act="songRe" aria-label="別の曲にする">⟳</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
-      <div class="song-l"><a class="btn primary" href="${esc(svc==="apple"&&x.url?x.url:SVC[svc][1](q))}" target="_blank" rel="noopener">${SVC[svc][0]}で${svc==="apple"&&x.url?"開く":"聞く"}</a>${Object.keys(SVC).filter(k=>k!==svc).map(k=>`<a class="link" href="${esc(SVC[k][1](q))}" target="_blank" rel="noopener">${SVC[k][0]}</a>`).join("")}</div>
-      <div class="song-f">${ai?`<button class="link" data-act="songRe">別の曲にする</button>`:""}<button class="link" data-act="songPref">好みを変える</button></div>`
+      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
+      <div class="song-l"><a class="btn primary" href="${esc(x.url||SVC.apple[1](q))}" target="_blank" rel="noopener">Apple Musicで${x.url?"開く":"探す"}</a>
+      <div class="song-sg" role="group">${ai?`<button data-act="songRe">⟳ 別の曲</button>`:""}<button data-act="songPref">♡ 好みを変える</button></div></div>`
     :`<div class="wxp-h"><b>今日の1曲</b></div><p class="song-r">${taste?(state.songBusy?"ふたりの好みから選んでいます…":`選べませんでした${state.songErr?`（${esc(state.songErr)}）`:""}`):"設定 ›「今日の1曲」に、ふたりそれぞれの好きな音楽を入れると、毎日1曲選びます。"}</p><div class="song-f"><button class="link" data-act="songPref">好みを入れる</button>${taste&&!state.songBusy?`<button class="link" data-act="songRe">もう一度選ぶ</button>`:""}</div>`;
   const r=el.getBoundingClientRect(), pw=Math.min(340,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; pn.style.top=Math.round(r.bottom+8)+"px";
   if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px"; }
