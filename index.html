@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=172"></script>
+<script src="shim.js?v=173"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1490,6 +1490,21 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .kind-cfg .dotc{width:10px;height:10px;border-radius:50%;flex:none}.kind-cfg .kv{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--on-accent);font-weight:900;cursor:pointer;padding:0}.kind-cfg .kv.on{background:var(--accent);border-color:var(--accent)}.kind-cfg .icon-btn.sm{flex:none;width:30px;height:30px;min-width:30px}.kind-cfg li{gap:5px}
 .kind.kcfg{flex:none;opacity:.7}.kc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}.ksub .seg{width:100%}.ksub .seg button{flex:1}
 #sync.offl{background:color-mix(in srgb,var(--caution) 22%,transparent)!important;color:var(--ink)!important}#sync.offl .dot{background:var(--caution)!important}
+#chkBtn{display:none!important}
+.hh2{display:flex;align-items:center;justify-content:space-between}
+.tdo-h{display:flex;align-items:center;gap:12px;margin-bottom:10px}.tdo-h h3{margin:0;font-size:15px}.tdo-ring{width:52px;height:52px;flex:none}.tdo-ring text{font-size:17px;font-weight:800;fill:var(--ink)}
+.htiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.htile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:0;border-radius:16px;padding:10px 12px;background:color-mix(in srgb,var(--tc) 14%,transparent);color:var(--ink);cursor:pointer;min-width:0;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tc) 28%,transparent)}
+.ht-top{display:flex;align-items:center;justify-content:space-between;width:100%}.ht-ic{color:var(--tc);display:grid}.ht-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ht-ic .f{fill:currentColor;fill-opacity:.2}
+.ht-n{font-size:24px;font-weight:800;color:var(--tc);font-variant-numeric:tabular-nums;line-height:1}.ht-t{font-size:13.5px;font-weight:700;line-height:1.3}.htile small{font-size:11px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;width:100%}
+.tdo-ok{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+.hweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.hwd{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;border-radius:12px;padding:6px 0;background:transparent;color:var(--ink);cursor:pointer;min-width:0}
+.hwd.now{box-shadow:inset 0 0 0 2px var(--accent)}.hwd.both{background:color-mix(in srgb,var(--s-off) 22%,transparent)}.hwd.one{background:color-mix(in srgb,var(--s-off) 8%,transparent)}
+.hwd-w{font-size:10.5px;color:var(--muted);font-weight:700}.hwd-w.sun{color:var(--sun)}.hwd-w.sat{color:var(--sat)}.hwd-d{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.hwd-s{display:flex;flex-direction:column;gap:2px}.hwd-bar{width:8px;height:30px;border-radius:4px;background:var(--line);display:flex;align-items:flex-end;overflow:hidden}.hwd-bar i{display:block;width:100%;background:var(--accent);border-radius:4px}.hwd-n{font-size:10.5px;color:var(--muted);min-height:13px}
+.htl{margin:4px 0 8px}.htl-b{position:relative;height:18px;border-radius:9px;background:var(--line);overflow:hidden}.htl-b i{position:absolute;top:2px;bottom:2px;border-radius:6px;background:var(--bc)}.htl-b i.dn{opacity:.35}
+.htl-now{position:absolute;top:0;bottom:0;width:2px;background:var(--danger)}.htl-x{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);padding:2px 2px 0}
 </style>
 <style id="palStyle"></style>
 
@@ -1513,7 +1528,7 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 
 <nav class="rail" id="rail" role="tablist" aria-label="メニュー">
   <button class="grip" id="grip" aria-label="メニューの位置を移動（ドラッグ）"><span></span></button>
-  <button class="rhome" id="rhome" aria-label="ホームに戻る"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>ホーム</button>
+  <button class="rhome" id="rhome" aria-label="ホームに戻る" style="position:relative"><span class="badge" id="b-home" hidden></span><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>ホーム</button>
   <div class="layers" id="layers"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false">じぶん</button></div>
   <i class="rfade t" id="rfT" aria-hidden="true"></i><i class="rfade b" id="rfB" aria-hidden="true"></i>
   <div class="rscroll" id="rscroll"><div class="rinner" id="rinner">
@@ -1559,7 +1574,7 @@ const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
-let fN={}, fL="us"; const fCnt=t=>!t?0:t==="check"?pendingChecks().length:t==="@me"?(fL!=="me"?layerN("me",fN):0):t==="@us"?(fL==="me"?layerN("us",fN):0):tabN(t,fN);
+let fN={}, fL="us"; const fCnt=t=>!t?0:(t==="check"||t==="home")?pendingChecks().length:t==="@me"?(fL!=="me"?layerN("me",fN):0):t==="@us"?(fL==="me"?layerN("us",fN):0):tabN(t,fN);
 const layerN=(L,n)=>LAYER_TABS[L].reduce((q,t)=>q+tabN(t,n),0);
 const LAYER_TABS={us:["talk","task","chore","shop","trouble","cal","diary","future","money","habit","reflect"],me:[]}; /* v127: ふたり／じぶんの区別をなくし1つのメニューに（中身の秘匿性はそのまま） */
 const PRIV_VIEWS=new Set(["habit","reflect"]);
@@ -1569,7 +1584,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="172";
+const APP_VERSION="173";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1642,7 +1657,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -3307,7 +3322,7 @@ function renderChrome(){
   $("lock").hidden=!PRIV_VIEWS.has(v);
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
-  { const pc=pendingChecks().length, bc=$("b-chk"); bc.hidden=!pc; bc.textContent=pc; $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
+  { const pc=pendingChecks().length, bc=$("b-chk"), bh=$("b-home"); bc.hidden=!pc; bc.textContent=pc; if(bh){ bh.hidden=!pc; bh.textContent=pc; } $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
   const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?null: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
   $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
@@ -3350,7 +3365,8 @@ function render(anim){
 }
 let editFocused=false;
 function go(v,anim){
-  if(VIEW_ALIAS[v]) v=VIEW_ALIAS[v]; if(v==="pwish"){ state.fut="_mine"; v="future"; }
+  if(v==="check"){ v="home"; setTimeout(()=>{ const el=document.querySelector(".tdo-card"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },120); } /* v173: 未確認はホームの「今日やること」に統合 */
+  state.homeEdit=false; if(VIEW_ALIAS[v]) v=VIEW_ALIAS[v]; if(v==="pwish"){ state.fut="_mine"; v="future"; }
   if(v==="cal"||v==="psched"){ const t=today(), d=parse(t); state.sel=t; state.calMonth=new Date(d.getFullYear(),d.getMonth(),1); } /* タブを押したら今日へ */
   if(v!==state.view) haptic("nav");
   if(state.editing) saveEdit(); flushDiary(); closeSheet();
@@ -3536,6 +3552,9 @@ $("main").addEventListener("click",e=>{
       if(name==="chfq"){ const V=(id,on)=>{ if($(id)) $(id).hidden=!on; }; V("chEveryRow",v==="iv"); V("chWdRow",v==="wd"||v==="mn"); V("chNthRow",v==="mn"); V("chMoRow",v==="mo"); V("chMoTip",v==="mo"); } }
     return; }
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
+  const hwm=e.target.closest("[data-hwmv]"); if(hwm){ const [k,d]=hwm.dataset.hwmv.split("|"), L=homeOrder(), i=L.indexOf(k), j=i+Number(d); if(j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; prefs.homeOrder=L.join(","); savePrefs(true); haptic("tick"); render(); return; }
+  const hwv=e.target.closest("[data-hwvis]"); if(hwv){ const k=hwv.dataset.hwvis, H=homeHidden(); if(H.has(k)) H.delete(k); else H.add(k); prefs.homeHide=[...H].join(","); savePrefs(true); haptic("tick"); render(); return; }
+  const wkd=e.target.closest("[data-wkday]"); if(wkd){ const d=wkd.dataset.wkday; go("cal"); selectDay(d); return; }
   const kmv=e.target.closest("[data-kmv]"); if(kmv){ const [k,d]=kmv.dataset.kmv.split("|"), L=kindList(true), i=L.indexOf(k), j=i+Number(d); if(j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; prefs.kindOrder=L.join(","); savePrefs(); haptic("tick"); return; }
   const khd=e.target.closest("[data-khide]"); if(khd){ const k=khd.dataset.khide, H=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); if(H.has(k)) H.delete(k); else { if(kindList(true).filter(x=>!H.has(x)).length<=1){ toast("1つは出しておいてください"); return; } H.add(k); } prefs.kindHide=[...H].join(","); savePrefs(); haptic("tick"); return; }
   const orb=e.target.closest("[data-orph]"); if(orb){ const S=state.orphSel||(state.orphSel=new Set()), id=orb.dataset.orph; if(S.has(id)) S.delete(id); else S.add(id); state.orphArm=false; render(); return; }
@@ -3767,6 +3786,9 @@ $("main").addEventListener("click",e=>{
     removeWithUndo(o.c,[o.x.id],"削除しました"); render(); }
   else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
   else if(a==="aiAsk"){ aiAsk(($("aiIn")||{}).value); }
+  else if(a==="homeEdit"){ state.homeEdit=true; render(); window.scrollTo(0,0); }
+  else if(a==="homeEditDone"){ state.homeEdit=false; render(); }
+  else if(a==="homeReset"){ prefs.homeOrder=""; prefs.homeHide=""; savePrefs(true); render(); }
   else if(a==="kindReset"){ prefs.kindOrder=""; prefs.kindHide=""; savePrefs(); toast("最初の並びに戻しました"); }
   else if(a==="updCheck"){ updCheck(true); }
   else if(a==="updNow"){ updNow(); }
@@ -5073,48 +5095,48 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
     <details class="ai-mem" ${state.aiMemOpen?"open":""}><summary>🧠 AIが覚えていること（${mb.length+mp.length}）</summary>
       ${[...mb.map(m=>[m,"both"]),...mp.map(m=>[m,"me"])].map(([m,sc])=>state.aiMemEdit===m.id?`<div class="ai-mrow ed"><input type="text" id="aiMemEd" maxlength="80" value="${esc(m.t)}" enterkeyhint="done">${seg("aimesc",sc,[["both","ふたり"],["me","🔒自分"]])}<button class="btn primary" data-aimsave="${esc(m.id)}">保存</button><button class="link" data-aimcancel="1">やめる</button></div>`:`<div class="ai-mrow"><span class="tag tc-muted">${sc==="me"?"🔒自分":"ふたり"}</span><button class="ai-mt" data-aimed="${esc(m.id)}" aria-label="編集">${esc(m.t)}</button><button class="icon-btn sm" data-aimdel="${esc(m.id)}" aria-label="忘れる">✕</button></div>`).join("")||`<div class="who">まだありません。「辛いものは苦手」「平日は自炊」など、覚えてほしいことを入れてください</div>`}
       <div class="ai-in"><input type="text" id="aiMemIn" maxlength="80" placeholder="覚えてほしいこと" enterkeyhint="done">${seg("aimsc",state.aiMemSc||"both",[["both","ふたり"],["me","🔒自分"]])}<button class="btn" data-act="aiMemAdd">追加</button></div></details></section>`; }
+/* v173: ホームはウィジェットの組み合わせ。並び順・表示／非表示を変えられる */
+const CHK_LOOK={talk:["talk","--talk"],task:["task","--task"],shop:["shop","--shop"],chore:["chore","--future"],habit:["habit","--habit"],trouble:["trouble","--trouble"],shift:["cal","--cal"],evening:["diary","--diary"],comment:["diary","--diary"],qa:["talk","--talk"],money:["money","--habit"],bousai:["future","--caution"],bug:["settings","--muted"]};
+const HOME_W=[["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
+function homeOrder(){ const base=HOME_W.map(w=>w[0]), o=String(prefs.homeOrder||"").split(",").filter(k=>base.includes(k)); return [...o,...base.filter(k=>!o.includes(k))]; }
+const homeHidden=()=>new Set(String(prefs.homeHide||"").split(",").filter(Boolean));
+function homeWeekHTML(){ const t=today(), me=myRole(), ot=otherRole(), mine=x=>["both",me].includes(getWho(x));
+  const days=[...Array(7)].map((_,i)=>addDays(t,i)), cnt=d=>state.events.filter(x=>x.date===d&&mine(x)).length+state.items.filter(i=>i.due===d&&!myDone(i)&&mine(i)).length+state.pitems.filter(i=>i.due===d&&!i.done).length+state.plans.filter(p=>p.cat!=="anniv"&&p.date===d&&!p.done).length;
+  const mx=Math.max(3,...days.map(cnt)), an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).filter(o=>o.a.days<=6);
+  return homeCard("この先7日",`<div class="hweek">${days.map(d=>{ const n=cnt(d), off=offState(d), dw=parse(d).getDay(), A=an.find(o=>o.a.occ===d);
+    return `<button class="hwd ${off} ${d===t?"now":""}" data-wkday="${d}" aria-label="${jpDate(d)} 予定${n}件"><span class="hwd-w ${dw===0?"sun":dw===6?"sat":""}">${d===t?"今日":WD[dw]}</span><span class="hwd-d">${parse(d).getDate()}</span><span class="hwd-s">${shiftBadge(shiftOf(me,d),me)}${shiftBadge(shiftOf(ot,d),ot)}</span><span class="hwd-bar"><i style="height:${Math.round(n/mx*100)}%"></i></span><span class="hwd-n">${n||""}${A?"💍":""}</span></button>`; }).join("")}</div>
+    <div class="cap" style="text-align:left">上：${esc(nameOf(me))}／下：${esc(nameOf(ot))}のシフト・棒＝その日の予定とやることの数・緑＝ふたり休み</div>`,"cal"); }
+function homeSchedHTML(){ const t=today(), me=myRole(), S=6*60, E=24*60, ents=dayEntries(t).filter(o=>o.kind!=="g"), nowM=new Date().getHours()*60+new Date().getMinutes();
+  const pos=m=>Math.max(0,Math.min(100,(m-S)/(E-S)*100));
+  const bars=ents.map(o=>`<i class="${o.done?"dn":""}" style="left:${pos(o.s)}%;width:${Math.max(1.2,pos(o.e)-pos(o.s))}%;--bc:var(--${o.col})" title="${esc(hhmm(o.s%1440)+" "+o.t)}"></i>`).join("");
+  const up=ents.filter(o=>!o.done&&o.e>nowM).slice(0,4), untimed=ttUntimed(t), evAll=state.events.filter(x=>x.date===t&&!x.start&&["both",me].includes(getWho(x)));
+  const rows=[...up.map(o=>`<li><button data-hgo="cal"><span class="ht">${hhmm(o.s%1440)}</span><span class="hdot" style="--bc:var(--${o.col})"></span><span>${esc(o.t)}</span></button></li>`),...evAll.map(x=>`<li><button data-hgo="cal"><span class="ht">終日</span><span class="hdot" style="--bc:var(--cal)"></span><span>${esc(x.text)}</span></button></li>`),...untimed.slice(0,3).map(o=>`<li><button data-hgo="cal"><span class="ht">未定</span><span class="hdot" style="--bc:var(--task)"></span><span>${esc(o.x.text)}</span></button></li>`)];
+  return homeCard(`今日のタイムライン <span class="who" style="font-weight:500">${ents.length}件${untimed.length?`・時間未定 ${untimed.length}`:""}</span>`,`<div class="htl"><div class="htl-b">${bars}${nowM>=S?`<b class="htl-now" style="left:${pos(nowM)}%"></b>`:""}</div><div class="htl-x"><span>6</span><span>12</span><span>18</span><span>24</span></div></div>${rows.length?`<ul class="hlist">${rows.join("")}</ul>`:`<div class="hempty">これからの予定はありません</div>`}`,"cal"); }
+function homeWidget(k){ const t=today(), n=counts();
+  if(k==="today") return briefHTML(true);
+  if(k==="week") return homeWeekHTML();
+  if(k==="sched") return homeSchedHTML();
+  if(k==="ai"){ setTimeout(aiAutoBrief,1200); return aiCardHTML("home"); }
+  if(k==="habit") return hTodayList().length?homeCard("今日の習慣",hTodayHTML(true).replace('<div class="chart htoday-card">','<div class="htoday-card home">'),"habit"):"";
+  if(k==="talk"){ const ts=talkState(t); return homeCard("今日の話し合い",ts==="done"?`<div class="hrow ok">✓ 話しました</div>`:ts==="off"?`<div class="hrow">☾ お休みの日（${esc(nameOf("w"))}さん「${esc(shiftOf("w",t))}」）</div>`:ts==="skip"?`<div class="hrow">見送り</div>`:`<div class="hrow"><span>まだ話していません${n.talkAll?`・議題${n.talkAll}件`:""}</span><button class="btn primary" data-act="homeTalk">話した</button></div>`,"talk"); }
+  if(k==="money"){ const ym=t.slice(0,7), rs=state.recur.filter(r=>rActive(r,ym)), rp=rs.filter(r=>rPaid(r,ym)).length; return homeCard("今月のお金",paceHTML()+(rs.length?`<div class="who" style="margin-top:6px">振込確認 ${rp}/${rs.length}</div>`:""),"money"); }
+  if(k==="rings") return homeCard("今週の達成",ringsHTML(),null,"hc-rings");
+  if(k==="chore") return (state.chores||[]).length?homeCard("家事のバランス",balanceHTML(true),"chore"):"";
+  if(k==="qa") return qaCardHTML(t,"hq");
+  if(k==="act") return actCardHTML();
+  if(k==="search") return searchHTML();
+  if(k==="quick") return `<div class="hquick"><button class="chip" data-act="rcpt">＋ レシート</button>${[["task","やること"],["shop","買い物"],["event","予定"],["spend","出費"],["ptask","じぶんのタスク"]].map(([k2,l])=>`<button class="chip" data-hadd="${k2}">＋ ${l}</button>`).join("")}</div>`;
+  return ""; }
+function homeEditHTML(){ const L=homeOrder(), H=homeHidden();
+  return `<section class="hcard"><div class="hc-head"><h3>ホームの並び・表示</h3><button class="btn primary" data-act="homeEditDone">完了</button></div><p class="who" style="margin:0 0 6px">↑↓で順番、右の丸（✓＝表示）で出す／出さないを切り替え</p>
+    <ul class="kind-cfg">${L.map((k,i)=>`<li class="${H.has(k)?"off":""}"><span>${esc((HOME_W.find(w=>w[0]===k)||[k,k])[1])}</span><button class="icon-btn sm" data-hwmv="${k}|-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn sm" data-hwmv="${k}|1" ${i<L.length-1?"":"disabled"} aria-label="下へ">↓</button><button class="kv ${H.has(k)?"":"on"}" data-hwvis="${k}" aria-pressed="${!H.has(k)}">${H.has(k)?"":"✓"}</button></li>`).join("")}</ul>
+    <div class="opts"><button class="opt" data-act="homeReset">最初の並びに戻す</button></div></section>`; }
 function viewHome(){
-  const t=today(), me=myRole(), ot=otherRole(), n=counts(), sm=shiftOf(me,t), so=shiftOf(ot,t), off=offState(t);
-  const ents=dayEntries(t).filter(o=>(o.kind!=="g"||false)&&!o.done), nowM=new Date().getHours()*60+new Date().getMinutes();
-  const upcoming=ents.filter(o=>o.e>nowM).slice(0,4);
-  const untimed=ttUntimed(t), evAll=state.events.filter(x=>x.date===t&&!x.start&&["both",me].includes(getWho(x)));
-  const tm=addDays(t,1), shRow=(lb,d,go)=>{ const a=shiftOf(me,d), b=shiftOf(ot,d), both=offState(d)==="both";
-      return `<button class="hinfo" data-hgo="${go}"><span class="hi-l">${lb}</span><span class="hi-v"><span>${esc(nameOf(me))} ${shiftBadge(a,me)} ${esc(SHIFT_NAME[a]||"未入力")}</span><span>${esc(nameOf(ot))} ${shiftBadge(b,ot)} ${esc(SHIFT_NAME[b]||"未入力")}</span>${both?'<b class="hoff">ふたり休み</b>':""}</span></button>`; };
-  const WX=prefs.wx!=="off"&&wxToday(), rain=WX&&(WX.pop>=50||WX.rainAt!=null);
-  let h=`<div class="hhero"><div class="hdate">${jpDate(t)}</div><div class="hinfos">${shRow("今日",t,"cal")}
-    </div></div>`;
-  /* ふたり／じぶん：大きな入口 */
-  h+=shiftSoonHTML()+searchHTML()+briefHTML(true)+aiCardHTML("home"); setTimeout(aiAutoBrief,1200);
-  const usN=n.task+n.shop+n.trouble+n.caution+n.talk, meN=(n.ptask||0)+(n.habit||0);
-
-  const hmore0=h.length; let top="";
-  if(actNewCount()) h+=actCardHTML();
-  h+=homeCard("今週の達成",ringsHTML()+`<div class="cap" style="text-align:left;margin-top:6px">「じぶん」は${esc(nameOf(myRole()))}だけの記録で、相手には見えません</div>`,null,"hc-rings");
-  h+=qaCardHTML(t,"hq");
-  if(!actNewCount()) h+=actCardHTML();
-  const moreA=h.slice(hmore0); h=h.slice(0,hmore0);
-  /* 今日の予定 */
-  const rows=[...upcoming.map(o=>`<li><button ${o.kind==="g"?"":`data-hgo="psched"`}><span class="ht">${hhmm(o.s%1440)}</span><span class="hdot" style="--bc:var(--${o.col})"></span><span>${esc(o.t)}</span></button></li>`),
-    ...evAll.map(x=>`<li><button data-hgo="cal"><span class="ht">終日</span><span class="hdot" style="--bc:var(--cal)"></span><span>${esc(x.text)}</span></button></li>`),
-    ...untimed.slice(0,4).map(o=>`<li><button data-hgo="psched"><span class="ht">時間未定</span><span class="hdot" style="--bc:var(--task)"></span><span>${esc(o.x.text)}</span></button></li>`)];
-  h+=homeCard("今日の予定",rows.length?`<ul class="hlist">${rows.join("")}</ul>`:`<div class="hempty">今日の予定はありません</div>`,"psched");
-  /* 話し合い */
-  const ts=talkState(t);
-  h+=homeCard("今日の話し合い",ts==="done"?`<div class="hrow ok">✓ 話しました</div>`:ts==="off"?`<div class="hrow">☾ お休みの日（${esc(nameOf("w"))}さん「${esc(shiftOf("w",t))}」）</div>`:ts==="skip"?`<div class="hrow">見送り</div>`
-    :`<div class="hrow"><span>まだ話していません${n.talkAll?`・議題${n.talkAll}件`:""}</span><button class="btn primary" data-act="homeTalk">話した</button></div>`,"talk");
-  /* 習慣 */
-  if(hTodayList().length) h+=homeCard("今日の習慣",hTodayHTML(true).replace('<div class="chart htoday-card">','<div class="htoday-card home">'),"habit");
-  if(false) h+=homeCard("習慣",`${daily.length?`<div class="hrow"><span>毎日の習慣 ${dd}/${daily.length}</span><span class="prog" style="flex:1;max-width:140px"><i style="width:${Math.round(dd/daily.length*100)}%;background:var(--habit)"></i></span></div>`:""}${due.length?`<div class="who" style="margin-top:6px">そろそろ：${due.slice(0,3).map(o=>esc(o.x.text)).join("、")}</div>`:""}`,"habit");
-  h+=qaCardHTML(t,"hq");
-  let more=moreA.replace(qaCardHTML(t,"hq"),"");
-  /* お金 */
-  const ym=t.slice(0,7), sp=moneyEntries().filter(e=>e.actual&&!e.save&&e.aDate&&e.aDate.slice(0,7)===ym).reduce((q,e)=>q+e.actual,0), L=Number((state.kakei||{}).limit||0);
-  const rs=state.recur.filter(r=>rActive(r,ym)), rp=rs.filter(r=>rPaid(r,ym)).length;
-  more+=homeCard("今月のお金",paceHTML()+`${rs.length?`<div class="who" style="margin-top:6px">振込確認 ${rp}/${rs.length}</div>`:""}`,"money");
-  if((state.chores||[]).length) more+=homeCard("家事のバランス",balanceHTML(true)+(choreDueCount()?`<div class="hrow" style="margin-top:6px"><span>今日の家事 ${choreDueCount()}件</span><button class="link" data-hgo="chore">家事へ ›</button></div>`:""),"chore");
-  /* すぐ追加 */
-  h+=`<div class="hquick"><button class="chip" data-act="rcpt">＋ レシート</button>${[["task","やること"],["shop","買い物"],["event","予定"],["spend","出費"],["ptask","じぶんのタスク"]].map(([k,l])=>`<button class="chip" data-hadd="${k}">＋ ${l}</button>`).join("")}</div>`;
-  h+=`<details class="hmore" ${state.hmoreOpen?"open":""}><summary>ふりかえり・お金・家事・更新</summary>${more}</details>`;
+  const t=today();
+  let h=`<div class="hhero hh2"><div class="hdate">${jpDate(t)}</div><button class="link" data-act="homeEdit" aria-label="ホームの並び・表示を変える">✎ 並び替え</button></div>`+shiftSoonHTML();
+  if(state.homeEdit) return h+homeEditHTML();
+  const H=homeHidden(); for(const k of homeOrder()) if(!H.has(k)) h+=homeWidget(k);
+  h+=`<div style="text-align:center;margin:14px 0 4px"><button class="link" data-act="homeEdit">✎ ホームの並び・表示を変える</button></div>`;
   return h+hint("アプリを開くと必ずこのホームから始まります・右のメニューの「ホーム」でいつでも戻れます");
 }
 
@@ -5794,13 +5816,13 @@ addEventListener("resize",()=>fitTitle());
 /* 真ん中は「追加」。右上のボタン（未確認・設定）はホームのキーに入れる（上＝未確認・右＝設定・左＝ログ） */
 /* 利き手（設定 › メニューの形）：右手なら ホーム を右端に、左手なら左端に置く */
 /* 親指の届く範囲だけに並べる（画面の反対側の端は空ける）。よく使うものほど親指の近くに */
-const FLICK_R={us:[{c:"habit",u:"reflect"},{c:"talk",u:"trouble",r:"future",l:"log"},{c:"cal",u:"diary",r:"money"},{c:"task",u:"shop",l:"chore"},{c:"@add"},{c:"home",u:"check",l:"settings"}],
-  me:[{c:"reflect",l:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",u:"check",l:"settings"}]};
-const FLICK_L={us:[{c:"home",u:"check",r:"settings"},{c:"@add"},{c:"task",u:"shop",r:"chore"},{c:"cal",u:"diary",l:"money"},{c:"talk",u:"trouble",l:"future",r:"log"},{c:"habit",u:"reflect"}],
-  me:[{c:"home",u:"check",r:"settings"},{c:"@add"},{c:"habit"},{c:"psched"},{c:"reflect",r:"log"}]};
+const FLICK_R={us:[{c:"habit",u:"reflect"},{c:"talk",u:"trouble",r:"future",l:"log"},{c:"cal",u:"diary",r:"money"},{c:"task",u:"shop",l:"chore"},{c:"@add"},{c:"home",l:"settings"}],
+  me:[{c:"reflect",l:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",l:"settings"}]};
+const FLICK_L={us:[{c:"home",r:"settings"},{c:"@add"},{c:"task",u:"shop",r:"chore"},{c:"cal",u:"diary",l:"money"},{c:"talk",u:"trouble",l:"future",r:"log"},{c:"habit",u:"reflect"}],
+  me:[{c:"home",r:"settings"},{c:"@add"},{c:"habit"},{c:"psched"},{c:"reflect",r:"log"}]};
 /* 縦のフリックメニュー（上から下へ。下ほど親指の近く）。x＝画面の内側へはらう方向 */
-const FLICK_V={us:[{c:"habit",u:"reflect"},{c:"talk",u:"trouble",x:"future",d:"log"},{c:"cal",u:"diary",x:"money"},{c:"task",u:"shop",x:"chore"},{c:"@add"},{c:"home",u:"check",x:"settings"}],
-  me:[{c:"reflect",x:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",u:"check",x:"settings"}]};
+const FLICK_V={us:[{c:"habit",u:"reflect"},{c:"talk",u:"trouble",x:"future",d:"log"},{c:"cal",u:"diary",x:"money"},{c:"task",u:"shop",x:"chore"},{c:"@add"},{c:"home",x:"settings"}],
+  me:[{c:"reflect",x:"log"},{c:"psched"},{c:"habit"},{c:"@add"},{c:"home",x:"settings"}]};
 const FLICK=new Proxy({},{get:(_,k)=>(prefs.hand==="left"?FLICK_L:FLICK_R)[k]});
 const FSHORT={log:"ログ",check:"未確認",settings:"設定","@add":"追加","@me":"じぶん","@us":"ふたり",home:"ホーム"};
 const FICON={home:'<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>',
@@ -6315,11 +6337,12 @@ function briefHTML(withChecks){
       for(const r of rs){ const s=shiftOf(r,d), m=tmin(x.start); if(s==="入"&&m>=15*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤入りと重なりそう`); else if(s==="明"&&m<12*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤明け（休息中）`); } } }
   const prep=prepCands();
   const pc=withChecks?pendingChecks():[];
-  if(withChecks){ /* v136: ホームの「今日やること」は他のカードと同じ見た目・同じ行の形にそろえる */
-    const rows=[...pc.map(x=>({k:`data-chk="${x.key}"`,n:x.num,t:x.title,s:x.desc||""}))];
-    const total=rows.length;
-    const body=rows.length?`<ul class="hlist tdo">${rows.slice(0,7).map(r=>`<li><button ${r.k}><span class="chkn">${r.n===""?"!":r.n}</span><span class="tdo-t"><b>${esc(r.t)}</b>${r.s?`<small>${esc(r.s)}</small>`:""}</span><i>›</i></button></li>`).join("")}</ul>${rows.length>7?`<button class="link br-more" data-go2="check">ほか ${rows.length-7}件を見る ›</button>`:""}`:`<div class="hempty">✓ 今日やることは全部済んでいます</div>`;
-    return `<section class="hcard tdo-card"><div class="hc-head"><h3>今日やること${total?` <span class="hn" title="残っている項目の数">${total}</span>`:""}</h3>${pc.length?`<button class="link" data-go2="check">一覧 ›</button>`:""}</div>${body}
+  if(withChecks){ /* v173: 今日やること＝未確認の一覧と統合。色つきのタイルで一目で分かるように */
+    const all=checkList(), done=all.filter(x=>!x.num).length, N=all.length, pct=N?done/N:1, R=22, C=2*Math.PI*R;
+    const ring=`<svg class="tdo-ring" viewBox="0 0 56 56" aria-label="済み ${done}/${N}"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--task)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 28 28)"/><text x="28" y="32" text-anchor="middle">${pc.length}</text></svg>`;
+    const tiles=pc.map(x=>{ const [v,col]=CHK_LOOK[x.key]||["check","--accent"]; return `<button class="htile" data-chk="${x.key}" style="--tc:var(${col})"><span class="ht-top"><span class="ht-ic">${fIcon(v)||ic("spark")}</span><b class="ht-n">${x.num}</b></span><span class="ht-t">${esc(x.title)}</span>${x.desc?`<small>${esc(x.desc)}</small>`:""}</button>`; }).join("");
+    return `<section class="hcard tdo-card"><div class="tdo-h">${ring}<div><h3>今日やること</h3><div class="who">${pc.length?`残り ${pc.length}・済み ${done}/${N}`:"ぜんぶ済んでいます ✓"}</div></div></div>
+      ${pc.length?`<div class="htiles">${tiles}</div>`:""}${all.filter(x=>!x.num).length&&pc.length?`<div class="tdo-ok">${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div>`:""}
       ${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`; }
   if(!L.length&&!wn.length&&!prep.length&&!pc.length) return withChecks?`<section class="brief"><div class="br-h"><b>今日やること</b></div><div class="hempty">✓ 今日やることは全部済んでいます</div></section>`:"";
   return `<section class="brief"><div class="br-h"><b>${withChecks?"今日やること":"今日のまとめ"}</b>${withChecks&&pc.length?`<button class="link" data-go2="check">未入力・未確認 ${pc.length} ›</button>`:`<span class="who">${jpDate(t)}</span>`}</div>
