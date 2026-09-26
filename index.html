@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=150"></script>
+<script src="shim.js?v=151"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1465,6 +1465,10 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .ai-q{align-self:flex-end;max-width:85%;background:color-mix(in srgb,var(--accent) 18%,transparent);padding:6px 10px;border-radius:14px 14px 4px 14px;font-size:14px}
 .ai-a{align-self:flex-start;max-width:95%;background:var(--ground);padding:8px 11px;border-radius:14px 14px 14px 4px;font-size:14px;line-height:1.65}
 .ai-a.busy{display:flex;align-items:center;gap:8px;color:var(--muted)}.ai-a.err{color:var(--danger)}
+.ai-acts{display:flex;flex-direction:column;gap:6px;align-self:stretch}
+.ai-act{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--ink);cursor:pointer}
+.ai-act span{flex:1;min-width:0}.ai-act b{flex:none;background:var(--accent);color:var(--on-accent);border-radius:999px;padding:3px 10px;font-size:12px}
+.ai-act.ok{opacity:.6}.ai-act.ok b{background:transparent;color:var(--muted)}
 .ai-in{display:flex;gap:6px}.ai-in input{flex:1;min-width:0}
 .ai-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.ai-chips .chip{flex:none}
 </style>
@@ -1546,7 +1550,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="150";
+const APP_VERSION="151";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3506,6 +3510,8 @@ $("main").addEventListener("click",e=>{
       if(name==="chfq"){ const V=(id,on)=>{ if($(id)) $(id).hidden=!on; }; V("chEveryRow",v==="iv"); V("chWdRow",v==="wd"||v==="mn"); V("chNthRow",v==="mn"); V("chMoRow",v==="mo"); V("chMoTip",v==="mo"); } }
     return; }
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
+  const aa=e.target.closest("[data-aiact]"); if(aa){ const [li,ai]=aa.dataset.aiact.split("|").map(Number); aiDoAct(li,ai); return; }
+  const al=e.target.closest("[data-aiall]"); if(al){ const li=Number(al.dataset.aiall), e2=state.ai.log[li]; (e2&&e2.a&&e2.a.acts||[]).forEach((c,ai)=>{ if(!c.ok) aiDoAct(li,ai); }); return; }
   const chp=e.target.closest("[data-chpre]"); if(chp){ const [t,ev]=chp.dataset.chpre.split("|"); choreAdd(t,ev); return; }
   const alb=e.target.closest("[data-alb]"); if(alb){ const [d,w,id]=alb.dataset.alb.split("|"); if(w==="me"){ state.diaryTab="me"; state.diaryDate=d; render(); } else openPhoto(id); return; }
   const phb=e.target.closest("[data-ph]"); if(phb){ e.preventDefault(); phAct(phb.dataset.ph); return; }
@@ -4792,25 +4798,59 @@ function homeCard(title,body,go,cls){ return `<section class="hcard ${cls||""}">
 /* ================= v150: AIに相談（アプリの状況をふまえて答える） ================= */
 const AIQ=["お昼なにがいい？","今日の夕飯どうする？","今日なにから片付ける？","休みの日どこ行く？"];
 const aiCan=()=>{ const s=aiOn()&&state._smt; return !!s&&!s.local; };
-function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), L=[];
-  const sh=(r,d)=>SHIFT_NAME[shiftOf(r,d)]||"未入力";
+/* v151: システム内の情報をすべて渡す（ふたりの共有データ＋自分の🔒じぶん専用）。相手の🔒はそもそも読めない */
+function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), L=[], R=state.ai.refs={}; let rn=0;
+  const ref=(c,id)=>{ const k="r"+(++rn); R[k]={c,id}; return k; };
+  const nm=r=>nameOf(r), wh=x=>{ const w=getWho(x); return w==="both"?"ふたり":w==="h"||w==="w"?nm(w)+"だけ":""; };
+  const sh=(r,d)=>SHIFT_NAME[shiftOf(r,d)]||"未入力", cut=(v,n)=>String(v||"").replace(/\s+/g," ").slice(0,n);
+  const sec=(title,rows,max)=>{ if(rows.length) L.push(`■${title}${rows.length>max?`（${rows.length}件中${max}件）`:""}\n${rows.slice(0,max).join("\n")}`); };
   L.push(`いま：${jpDate(t)} ${hhmm(now.getHours()*60+now.getMinutes())}`);
-  L.push(`相談している人：${nameOf(me)}（${me==="h"?"夫":"妻"}）／相手：${nameOf(ot)}`);
-  L.push(`シフト 今日：${nameOf(me)}=${sh(me,t)}、${nameOf(ot)}=${sh(ot,t)}${offState(t)==="both"?"（ふたり休み）":""}`);
-  L.push(`シフト 明日：${nameOf(me)}=${sh(me,addDays(t,1))}、${nameOf(ot)}=${sh(ot,addDays(t,1))}`);
-  { const offs=[]; for(let i=0;i<30&&offs.length<3;i++){ const d=addDays(t,i); if(offState(d)==="both") offs.push(jpDate(d)); } if(offs.length) L.push(`次のふたり休み：${offs.join("、")}`); }
-  const W=wxToday(); if(W) L.push(`今日の天気：最高${W.max}℃／最低${W.min}℃・降水確率${W.pop}%${W.rainAt!=null?`（${W.rainAt}時ごろから雨）`:""}`);
-  const din=[]; for(let i=1;i<=7;i++){ const d=addDays(t,-i), x=dinnerOf(d); if(x&&x.text) din.push(`${short(d)} ${x.text}`); } const dt=dinnerOf(t); if(dt&&dt.text) din.unshift(`今日 ${dt.text}`);
-  if(din.length) L.push(`最近の夕飯：${din.join("／")}`);
-  const mine=x=>["both",me].includes(getWho(x));
-  const shop=state.items.filter(i=>i.list==="shop"&&!myDone(i)&&mine(i)).slice(0,15).map(i=>i.text); if(shop.length) L.push(`買い物リスト（未購入）：${shop.join("、")}`);
-  const tasks=state.items.filter(i=>i.list==="task"&&!myDone(i)&&mine(i)&&i.due&&i.due<=t).slice(0,10).map(i=>i.text+(myT(i)?`(${myT(i)})`:"")); if(tasks.length) L.push(`今日までのやること：${tasks.join("、")}`);
-  const ch=(state.chores||[]).filter(c=>choreMine(c)&&choreInfo(c).diff<=0&&!(c.log||{})[t]&&!chSkip(c,t)).map(c=>c.text); if(ch.length) L.push(`今日の家事：${ch.join("、")}`);
-  const ev=[...state.events.filter(x=>x.date===t&&mine(x)).map(x=>(x.start?x.start+" ":"")+x.text),...blocksFor(t).filter(b=>b.start).map(b=>`${b.start}-${b.end||""} ${b.text}`)]; if(ev.length) L.push(`今日の予定：${ev.slice(0,12).join("、")}`);
-  const ev2=state.events.filter(x=>x.date>t&&x.date<=addDays(t,7)&&mine(x)).slice(0,6).map(x=>`${short(x.date)} ${x.text}`); if(ev2.length) L.push(`1週間以内の予定：${ev2.join("、")}`);
-  try{ const ym=t.slice(0,7), fs=(state.spend||[]).filter(e=>(e.date||"").slice(0,7)===ym&&(e.cat==="food"||e.cat==="eatout")); if(fs.length){ const f=fs.filter(e=>e.cat==="food").reduce((a,e)=>a+(Number(e.amount)||0),0), o=fs.filter(e=>e.cat==="eatout").reduce((a,e)=>a+(Number(e.amount)||0),0); L.push(`今月の支出：食費${f.toLocaleString()}円・外食費${o.toLocaleString()}円`); } }catch(e){}
+  L.push(`相談している人：${nm(me)}（${me==="h"?"夫":"妻"}）／相手：${nm(ot)}`);
   L.push("住まい：愛知県西三河（刈谷・大府・豊明・東浦あたり）");
-  return L.join("\n"); }
+  { const rows=[]; for(let i=-1;i<14;i++){ const d=addDays(t,i); rows.push(`${short(d)}(${WD[parse(d).getDay()]}) ${nm(me)}=${sh(me,d)} ${nm(ot)}=${sh(ot,d)}${offState(d)==="both"?" ★ふたり休み":""}`); } sec("シフト（入=夜勤入り 明=夜勤明け 休=休み 早=早番 日=日勤）",rows,15); }
+  const W=wxToday(); if(W) L.push(`■今日の天気：最高${W.max}℃／最低${W.min}℃・降水確率${W.pop}%${W.rainAt!=null?`（${W.rainAt}時ごろから雨）`:""}`);
+  const mine=x=>["both",me].includes(getWho(x));
+  const itemRowT=(i,c)=>`[${ref(c,i.id)}] ${cut(i.text,40)}${i.due?` 期限${short(i.due)}${myT(i)?" "+myT(i):""}`:""}${c==="items"?" "+wh(i):" 🔒自分だけ"}${i.budget?` 予算${i.budget}円`:""}${(c==="items"?myDone(i):i.done)?" ✓済":""}`;
+  sec("やること（未完了）",[...state.items.filter(i=>i.list==="task"&&!isRecItem(i)&&!myDone(i)).sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="task"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
+  sec("買い物リスト（未購入）",[...state.items.filter(i=>i.list==="shop"&&!myDone(i)).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="shop"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
+  sec("繰り返しのタスク・習慣",recMine().map(h=>`[${ref(recColl(h),h.id)}] ${cut(h.text,30)} ${tgtLabel(h)}${recColl(h)==="habits"?" 🔒":""}${habitLog(h)[t]?" 今日✓済":recOn(h,t)?" 今日の日":""}`),20);
+  sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${chFqLabel(c)} 担当:${I.who==="both"?"ふたり":nm(I.who)} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
+  sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
+  sec("気になること・困りごと",state.troubles.filter(x=>x.status!=="done").map(x=>`[${ref("troubles",x.id)}] ${cut(x.text,40)} ${x.status==="doing"?"対応中":"未対応"}`),15);
+  sec("注意",state.cautions.filter(x=>!x.done).map(x=>`[${ref("cautions",x.id)}] ${cut(x.text,40)}${x.date?" "+short(x.date):""}`),10);
+  sec("予定（ふたり・これから30日）",state.events.filter(x=>x.date>=t&&x.date<=addDays(t,30)&&mine(x)).sort((a,b)=>a.date<b.date?-1:1).map(x=>`[${ref("events",x.id)}] ${short(x.date)}${x.start?` ${x.start}-${x.end||""}`:""} ${cut(x.text,40)} ${wh(x)}`),25);
+  sec("自分の時間の予定（🔒 今日・明日）",[t,addDays(t,1)].flatMap(d=>blocksFor(d).map(b=>`${short(d)} ${b.allDay||!b.start?"終日":`${b.start}-${b.end||""}`} ${cut(b.text,30)}${b.rep&&b.rep!=="none"?" (くり返し)":""}`)),20);
+  sec("将来の計画・記念日",state.plans.filter(x=>!x.done).map(x=>`[${ref("plans",x.id)}] ${(PCATS[x.cat]||{}).label||x.cat}：${cut(x.text,30)}${x.date?" "+x.date:""}${x.budget?` 予算${x.budget}円`:""}`),20);
+  { const rows=[]; for(let i=0;i<=10;i++){ const d=addDays(t,-i), x=dinnerOf(d); if(x&&x.text) rows.push(`${i?short(d):"今日"} ${cut(x.text,40)}`); } sec("最近の夕飯",rows,11); }
+  try{ const ym=t.slice(0,7), sp=(state.spend||[]).filter(e=>(e.date||"").slice(0,7)===ym), by={}; for(const e of sp) by[e.cat]=(by[e.cat]||0)+(Number(e.amount)||0);
+    const rows=Object.entries(by).map(([k,v])=>`${(MCATS[k]||{}).l||k} ${v.toLocaleString()}円`); if(rows.length) L.push(`■今月の支出：${rows.join("、")}`);
+    const rc=(state.recur||[]).filter(r=>r.active!==false).map(r=>`${cut(r.text,20)} ${r.amount}円/月`); sec("固定費",rc,15);
+    const gl=(state.goals||[]).map(g=>`${cut(g.text,20)} 目標${g.target}円${g.due?" "+g.due:""}`); sec("貯金の目標",gl,8); }catch(e){}
+  { const rows=state.diary.filter(x=>x.text&&x.date>=addDays(t,-3)).map(x=>`${short(x.date)} ${isMine(x)?nm(me):nm(ot)}：${cut(x.text,80)}`); for(const x of state.priv) if(x.text&&x.id>=addDays(t,-3)) rows.push(`${short(x.id)} ${nm(me)}（🔒）：${cut(x.text,80)}`); sec("最近の日記（3日）",rows,8); }
+  { const rows=state.reflect.filter(x=>x.id>=addDays(t,-3)).map(x=>`${short(x.id)} 気分${x.mood||"-"} ${x.good?"良かった:"+cut(x.good,40):""}`); sec("自分の内省（🔒 3日）",rows,4); }
+  return L.join("\n").slice(0,12000); }
+/* v151: AIの提案する操作（押したときだけ実行） */
+const AI_ACT_L={add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
+function aiActText(x){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id);
+  const dt=x.date?` ${short(x.date)}`:"", tm=x.start||x.time?` ${x.start||x.time}${x.end?"–"+x.end:""}`:"", w=x.who&&x.who!=="both"?`（${x.who==="me"?nameOf(myRole()):x.who==="partner"?nameOf(otherRole()):x.who==="priv"?"🔒じぶん":""}）`:"";
+  if(x.type==="done") return `完了にする：${it?cut2(it.text):"（見つかりません）"}`;
+  if(x.type==="set_shift") return `シフト：${x.who==="partner"?nameOf(otherRole()):nameOf(myRole())} ${short(x.date||today())} を「${x.value}」に`;
+  return `${AI_ACT_L[x.type]||x.type}：${cut2(x.text)}${dt}${tm}${w}`; }
+const cut2=v=>String(v||"").slice(0,40);
+function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.acts[ai]; if(!x||x.ok) return; const t=today(), now=Date.now(), me=myRole();
+  const who=x.who==="me"?me:x.who==="partner"?otherRole():x.who==="priv"?"priv":"both", d=/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:"", tm=/^\d{1,2}:\d{2}$/.test(x.time||x.start||"")?(x.time||x.start).padStart(5,"0"):"";
+  let undo=null, id=newId();
+  try{
+    if(x.type==="add_task"||x.type==="add_shop"){ const L=x.type==="add_task"?"task":"shop"; if(who==="priv"){ const it=baseItem(L,cut2(x.text),d,tm); delete it.who; delete it.by; dset("pitems",id,it); undo=()=>ddel("pitems",id); } else { const it=baseItem(L,cut2(x.text),d,tm,who); dset("items",id,it); undo=()=>ddel("items",id); } }
+    else if(x.type==="add_event"){ const o={text:cut2(x.text),date:d||t,who,by:state.me||null,role:me,createdAt:now,updatedAt:now}; if(tm){ o.start=tm; o.end=/^\d{1,2}:\d{2}$/.test(x.end||"")?x.end.padStart(5,"0"):hhmm(Math.min(tmin(tm)+60,1439)); } dset("events",id,o); undo=()=>ddel("events",id); }
+    else if(x.type==="add_block"){ const st=tm||"09:00"; dset("blocks",id,{text:cut2(x.text),date:d||t,from:null,start:st,end:/^\d{1,2}:\d{2}$/.test(x.end||"")?x.end.padStart(5,"0"):hhmm(Math.min(tmin(st)+60,1439)),rep:"none",color:"cal",createdAt:now,updatedAt:now}); undo=()=>ddel("blocks",id); }
+    else if(x.type==="add_topic"){ dset("topics",id,{text:cut2(x.text),who:"both",status:"open",note:"",ref:null,...(d?{on:d}:{}),by:state.me||null,createdAt:now,updatedAt:now}); undo=()=>ddel("topics",id); }
+    else if(x.type==="add_dinner"){ const dd=d||t, ex=dinnerOf(dd), old=ex?{...ex}:null; dset("dinner",dd,{date:dd,role:me,by:state.me||null,text:cut2(x.text),at:now}); undo=()=>{ if(old) dset("dinner",dd,old); else ddel("dinner",dd); }; }
+    else if(x.type==="done"){ const R=x._r; if(!R||!(state[R.c]||[]).find(i=>i.id===R.id)){ toast("対象の項目が見つかりませんでした"); return; } rightAction(R.c,R.id); }
+    else if(x.type==="set_shift"){ const r=x.who==="partner"?otherRole():me, v=String(x.value||""); if(!SHIFT_NAME[v]&&v!==""){ toast("シフトの記号が分かりませんでした"); return; } shiftEdit(r,{[d||t]:v}); }
+    else { toast("この操作はまだできません"); return; }
+  }catch(err){ toast("実行できませんでした"); return; }
+  x.ok=true; haptic("done"); if(x.type!=="done") toast(`${aiActText(x)} を実行しました`,undo,"done"); render(); }
 async function aiAsk(q){ q=String(q||"").trim(); const A=state.ai; if(!q||A.busy) return; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
   A.busy=true; A.q=""; A.log.push({q,a:null}); if(A.log.length>6) A.log.shift(); render();
   const hist=A.log.slice(0,-1).filter(x=>x.a).slice(-3).map(x=>`Q：${x.q}\nA：${x.a.reply}`).join("\n\n");
@@ -4818,20 +4858,31 @@ async function aiAsk(q){ q=String(q||"").trim(); const A=state.ai; if(!q||A.busy
 - 状況に関係する点（シフト・天気・最近の夕飯とかぶらない・買い物リストにある食材・予定の時間など）を理由に入れる
 - 候補は2〜3個。全体で300字以内。箇条書きは「・」を使う
 - 分からないことは決めつけず、確認の一言を添える
-次の形のJSONだけを返してください：{"reply":"答え（改行は\\n）","next":["続けて聞けそうな短い質問","…"]}（nextは2〜3個）
+- 🔒の付いた情報は相談している本人だけのもの。答えに出してよいが、相手に伝える前提の書き方はしない
+- アプリで実際にできる操作があれば "acts" に入れる（実行するのは本人がボタンを押したときだけ。頼まれていない大きな変更は入れない。最大5個）。使える操作：
+  {"type":"add_task","text":"","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","who":"both|me|partner|priv"}
+  {"type":"add_shop","text":"","who":"both|me|partner|priv"}
+  {"type":"add_event","text":"","date":"YYYY-MM-DD","start":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner"}
+  {"type":"add_block","text":"","date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM"}（自分だけの時間の予定）
+  {"type":"add_topic","text":"","date":"話す日(任意)"}
+  {"type":"add_dinner","text":"","date":"YYYY-MM-DD"}
+  {"type":"done","ref":"r12"}（状況の[r番号]の項目を完了にする）
+  {"type":"set_shift","date":"YYYY-MM-DD","value":"入|明|休|早|日","who":"me|partner"}
+次の形のJSONだけを返してください：{"reply":"答え（改行は\\n）","acts":[…],"next":["続けて聞けそうな短い質問","…"]}（nextは2〜3個、actsは無ければ[]）
 
 【いまの状況】
 ${aiCtx()}
 ${hist?`\n【これまでの会話】\n${hist}\n`:""}
 【質問】${q}`;
   try{ const d=await state._smt.json(prompt,{modelTier:"quick"}); const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
-    A.log[A.log.length-1].a={reply,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]}; haptic("done"); }
+    const RF=state.ai.refs||{}, acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]).slice(0,5).map(x=>({...x,_r:RF[x.ref]||null}));
+    A.log[A.log.length-1].a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]}; haptic("done"); }
   catch(e){ A.log[A.log.length-1].a={reply:`相談できませんでした（${esc((e&&(e.code||e.message))||"エラー")}）`,next:[],err:true}; }
   A.busy=false; if(state.view==="home") render(); else toast("AIの答えがホームに届きました"); }
 function aiCardHTML(){ if(!aiCan()) return ""; const A=state.ai, last=A.log[A.log.length-1];
   const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:AIQ);
-  return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>AIに相談</b><span class="who">シフト・天気・最近の夕飯などをふまえて答えます</span>${A.log.length?`<button class="link" data-act="aiClear">クリア</button>`:""}</div>
-    ${A.log.map(x=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}</div>`:`<div class="ai-a busy"><span class="spin"></span>考え中…</div>`}`).join("")}
+  return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>AIに相談</b><span class="who">アプリ内の情報をふまえて答えます。追加・完了などの操作は「実行」を押したときだけ行います</span>${A.log.length?`<button class="link" data-act="aiClear">クリア</button>`:""}</div>
+    ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="link" data-aiall="${li}">すべて実行</button>`:""}</div>`:""}`:`<div class="ai-a busy"><span class="spin"></span>考え中…</div>`}`).join("")}
     <div class="ai-in"><input type="text" id="aiIn" maxlength="200" enterkeyhint="send" placeholder="例：お昼なにがいい？" value="${esc(A.q||"")}" ${A.busy?"disabled":""}><button class="btn primary" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る">送る</button></div>
     <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${esc(c)}</button>`).join("")}</div></section>`; }
 function viewHome(){
