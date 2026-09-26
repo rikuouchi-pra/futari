@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=176"></script>
+<script src="shim.js?v=177"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1536,6 +1536,17 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 .ai-wave{display:inline-flex;gap:2px;align-items:center;height:14px}.ai-wave i{width:3px;height:100%;border-radius:2px;background:var(--danger);animation:wv .9s ease-in-out infinite}.ai-wave i:nth-child(2){animation-delay:.15s}.ai-wave i:nth-child(3){animation-delay:.3s}.ai-wave i:nth-child(4){animation-delay:.45s}
 @keyframes wv{50%{transform:scaleY(.3)}}
 .fplan{display:grid;gap:4px;margin-top:6px}.fp-k{display:flex;flex-direction:column;padding:6px 10px;border-radius:10px;background:var(--ground)}.fp-k b{font-size:13px}
+.ug-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ug-mini>div{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;background:var(--ground);font-size:12px}.ug-mini b{font-size:18px}.ug-mini small{color:var(--muted);font-size:11px}
+.ug-kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.ug-k{background:var(--glass,var(--surface));border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.ug-kl{font-size:12px;font-weight:700;color:var(--muted)}.ug-kv{display:grid;grid-template-columns:1fr 1fr;gap:4px}.ug-kv span{display:flex;flex-direction:column}.ug-kv small{font-size:10.5px;color:var(--muted)}.ug-kv b{font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.2}.ug-kv .h b{color:var(--ch-h)}.ug-kv .w b{color:var(--ch-w)}
+.ug-sp{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden}.ug-sp i{display:block}.ug-sp i.h,.ug-b i.h{background:var(--ch-h)}.ug-sp i.w,.ug-b i.w{background:var(--ch-w)}.ug-sp i.none{flex:1;background:var(--line)}
+.ug-days{gap:2px!important}.ug-days .wk>span{font-size:9px;white-space:nowrap}
+.ug-rows{display:grid;gap:6px}.ug-r{display:grid;grid-template-columns:9em 1fr 4.2em;gap:8px;align-items:center;font-size:12.5px}.ug-r.zero{opacity:.45}.ug-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ug-r b{text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+.ug-b{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.ug-b>span{display:flex;height:100%;gap:1px;min-width:2px}.ug-b i{display:block}
+.ug-un{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:10px}
+.ug-hr{display:grid;grid-template-columns:2.4em repeat(24,1fr);gap:2px;align-items:center}.ug-hr i{display:block;aspect-ratio:1;border-radius:3px}.ug-hr i.h{background:var(--ch-h)}.ug-hr i.w{background:var(--ch-w)}.ug-hn{font-size:10.5px;font-weight:700}.ug-hn.h{color:var(--ch-h)}.ug-hn.w{color:var(--ch-w)}.ug-hr small{font-size:9px;color:var(--muted)}
+.ug-pre{white-space:pre-wrap;font-size:11px;line-height:1.5;background:var(--ground);border-radius:10px;padding:10px;max-height:320px;overflow:auto}
+.ug-list{display:grid;gap:4px;margin-top:8px}.ug-li{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:10px;background:var(--ground)}.ug-li span{display:flex;flex-direction:column}.ug-li small{font-size:11px;color:var(--muted)}
 </style>
 <style id="palStyle"></style>
 
@@ -1601,7 +1612,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
 const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
-  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認"};
+  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
@@ -1615,7 +1626,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="176";
+const APP_VERSION="177";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1733,7 +1744,7 @@ function applyPrefs(){
 applyPrefs();
 
 /* ================= state ================= */
-const state={view:(prefs.startView==="cal"?"cal":"home"),items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
+const state={usage:[],usageReports:[],usagePer:"7",view:(prefs.startView==="cal"?"cal":"home"),items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
   fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],activity:[],chores:[],qa:[],music:[],shOcr:null,diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
   paint:{on:false,val:"休",who:""},refFilter:"all",psFilter:"mine",
   busy:false,dirty:false,editing:null,ai:{q:"",busy:false,log:[]},sel:today(),calMonth:(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1)})(),calWeek:false,
@@ -1824,7 +1835,7 @@ function dueLabel(i){
   return `<span class="${cls}">${t}</span>`;
 }
 function dayLabel(s){ const diff=Math.round((parse(s)-parse(today()))/864e5); if(diff===0) return "今日"; if(diff===1) return "明日"; const d=parse(s); return `${d.getMonth()+1}/${d.getDate()}（${WD[d.getDay()]}）`; }
-addEventListener("error",e=>{ state.lastErr=String(e.message||"").slice(0,200)+" @"+(e.lineno||""); });
+addEventListener("error",e=>{ state.lastErr=String(e.message||"").slice(0,200)+" @"+(e.lineno||""); try{ usageErr(state.lastErr); }catch(_){} });
 function typingInMain(){ const a=document.activeElement; return a&&a.closest&&a.closest("#main")&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&a.type==="text")); }
 document.addEventListener("focusout",()=>setTimeout(()=>{ if(state.dirty&&!typingInMain()&&!state.busy&&!state.editing) render(); },120));
 let ttIdle=null; function requestRender(){ if(state.view==="cal"&&!state.busy&&!state.editing&&$("tt")&&!typingInMain()&&!(document.querySelector(".gedit"))){ state.dirty=true; renderTT(); if(!state.ttSel) renderChrome(); clearTimeout(ttIdle); ttIdle=setTimeout(()=>{ if(state.view==="cal"&&state.dirty&&!tdrag&&!state.editing&&!state.ttSel&&!state.busy) render(); },1500); return; } if(state.busy||state.editing||state.view==="settings"||typingInMain()){state.dirty=true; if(!state.busy) renderChrome(); return;} render(); }
@@ -3306,6 +3317,7 @@ function viewSettings(){
   <section class="card"><h2>日記</h2><p>日記は一人ずつ別々に保存されます。「自分だけ」にした日記はパートナーからは見えません。</p>
     <div class="opts">${opt("diaryPriv","0","新しい日記は「ふたりで見る」")}${opt("diaryPriv","1","新しい日記は「自分だけ」")}</div></section>
   <section class="card"><h2>保存容量</h2>${storageHTML()}</section>
+  ${usageCardHTML()}
   <section class="card"><h2>接続状態</h2>${diagHTML()}</section>
   ${bugCard()}
   <section class="card"><h2>バージョン</h2><p>いまのバージョン：<b>v${APP_VERSION}</b>${state.upd&&state.upd.v>Number(APP_VERSION)?`　→ <b style="color:var(--accent)">新しいv${state.upd.v}があります</b>`:state.upd?"（最新です）":""}</p>${window.__FUTARI_PWA?`<div class="opts"><button class="opt" data-act="updCheck">最新か確認</button>${state.upd&&state.upd.v>Number(APP_VERSION)?`<button class="opt" data-act="updNow">いますぐ更新</button>`:""}</div><p class="who">GitHubに新しいファイルを上げたあと、ここで確認・更新できます（ふだんはアプリを開いたときに自動で確認します）</p>`:""}</section>
@@ -3427,7 +3439,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="usage"?viewUsage(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -6716,6 +6728,107 @@ function showTip(){
 }
 function hideTip(){ if(tipEl){tipEl.remove();tipEl=null;store.set("futari.tipDone","1"); if(prefs.tipDone!=="1"){ prefs.tipDone="1"; savePrefs(true); } } }
 
+/* ================= v177: ふたりの利用状況（何を・いつ・どれだけ使ったか）。中身は記録せず、回数と時間だけ ================= */
+const USG_DEV=(()=>{ let d=store.get("futari.dev"); if(!d){ d=Math.random().toString(36).slice(2,8); store.set("futari.dev",d); } return d; })();
+const USG_FEAT={ai:"AIに相談",aiAct:"AIの提案を実行",voice:"音声入力",qa:"今日の質問に回答",receipt:"レシート登録",quick:"一行で追加",search:"検索から移動",export:"書き出し・バックアップ",song:"今日の1曲を試聴",tt:"タイムテーブルに配置"};
+const USG_OP={add:"追加",edit:"変更",done:"完了",undone:"戻す",del:"削除",ack:"確認",paid:"振込確認",reply:"返信"};
+const USG_SKIP=new Set(["usage","usageReports","activity","gsync","photos","music"]);
+let UG=null, usgLastAct=Date.now();
+function usgDoc(){ const t=today(), role=myRole(); if(UG&&UG.date===t&&UG.role===role) return UG;
+  if(UG&&UG.dirty) usageFlush(true);
+  let o=null; try{ const c=JSON.parse(store.get("futari.usage")||"null"); if(c&&c.date===t&&c.role===role) o=c; }catch(e){}
+  UG=o||{id:`${role}_${t}_${USG_DEV}`,role,date:t,dev:USG_DEV,opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[]}; return UG; }
+function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},views:{},hours:{},errMsg:[],errs:0,opens:0,sec:0}; /* 夫・妻が決まるまでは数えない */ const u=usgDoc(); u.ver=APP_VERSION; u.ua=navigator.userAgent.replace(/.*?\(([^)]*)\).*/,"$1").slice(0,60); u.nav=prefs.nav; u.at=Date.now(); u.dirty=true; return u; }
+function usageFeat(k){ try{ const u=usgTouch(); u.feats[k]=(u.feats[k]||0)+1; }catch(e){} }
+function usageAct(c,op){ try{ if(USG_SKIP.has(c)) return; const u=usgTouch(); u.acts[op]=(u.acts[op]||0)+1; const k=PRIVATE.has(c)||c==="priv"?"🔒じぶん":c; u.cols[k]=(u.cols[k]||0)+1; }catch(e){} }
+function usageErr(m){ const u=usgTouch(); u.errs++; if(u.errMsg.length<5&&!u.errMsg.includes(m)) u.errMsg.push(String(m).slice(0,120)); }
+function usageFlush(force){ const u=UG; if(!u||!u.dirty) return; u.dirty=false; const {dirty,...doc}=u; try{ store.set("futari.usage",JSON.stringify(u)); }catch(e){}
+  const r=colRef("usage"); if(r&&!state.guest&&!state.needCode){ r.doc(u.id).set(doc).catch(()=>{}); } else { state.usage=state.usage.filter(x=>x.id!==u.id); state.usage.push({...doc}); } }
+{ const act=()=>{ usgLastAct=Date.now(); }; ["pointerdown","keydown","scroll","touchstart"].forEach(ev=>addEventListener(ev,act,{passive:true,capture:true}));
+  const open=()=>{ const u=usgTouch(); u.opens++; };
+  setTimeout(open,5000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ usgLastAct=Date.now(); open(); } else usageFlush(true); });
+  setInterval(()=>{ if(document.visibilityState!=="visible"||Date.now()-usgLastAct>60e3) return; const u=usgTouch(), v=PRIV_VIEWS.has(state.view)?"🔒じぶん":state.view, h=String(new Date().getHours()); u.sec+=15; u.views[v]=(u.views[v]||0)+15; u.hours[h]=(u.hours[h]||0)+15; },15e3);
+  setInterval(()=>usageFlush(),60e3); addEventListener("pagehide",()=>usageFlush(true)); }
+/* 操作と機能の記録（関数の外側から包んで数える） */
+{ const W=(name,fn)=>{ const o=window[name]; if(typeof o!=="function") return; window[name]=function(){ try{ fn.apply(this,arguments); }catch(e){} return o.apply(this,arguments); }; };
+  W("dset",(c,id)=>usageAct(c,(state[c]||[]).some(x=>x.id===id)?"edit":"add")); W("dupd",(c,id,ch)=>usageAct(c,actOpOf(ch||{}))); W("ddel",c=>usageAct(c,"del"));
+  W("aiAsk",q=>{ if(String(q||"").trim()) usageFeat("ai"); }); W("aiDoAct",()=>usageFeat("aiAct")); W("aiMic",()=>{ if(!state.aiListening) usageFeat("voice"); }); W("qaSave",()=>usageFeat("qa")); W("rcptSave",()=>usageFeat("receipt"));
+  W("quickCommit",()=>usageFeat("quick")); W("searchGo",()=>usageFeat("search")); W("exportXlsx",()=>usageFeat("export")); W("exportBackup",()=>usageFeat("export")); W("exportOffline",()=>usageFeat("export")); W("songToggle",()=>{ if(!state.songPlaying) usageFeat("song"); }); W("ttPlace",()=>usageFeat("tt")); }
+function usgPrune(){ const r=colRef("usage"); if(!r) return; const lim=addDays(today(),-120); for(const x of state.usage) if(x.role===myRole()&&x.date<lim) r.doc(x.id).delete().catch(()=>{}); }
+/* 集計 */
+const USG_NAME=v=>v==="🔒じぶん"?"🔒じぶんの画面":TITLES[v]||v;
+function usgAgg(days){ const t=today(), from=addDays(t,-(days-1)), cur=UG&&!state.usage.some(x=>x.id===UG.id)?[{...UG}]:[];
+  const L=[...state.usage.filter(x=>!(UG&&x.id===UG.id)),...(UG?[{...UG}]:[]),...cur.filter(()=>false)].filter(x=>x.date>=from&&x.date<=t);
+  const A={}; for(const r of ["h","w"]) A[r]={days:new Set(),opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[],byDay:{},ua:"",ver:"",nav:""};
+  for(const x of L){ const a=A[x.role]; if(!a) continue; if(x.sec||x.opens) a.days.add(x.date); a.opens+=x.opens||0; a.sec+=x.sec||0; a.errs+=x.errs||0; a.byDay[x.date]=(a.byDay[x.date]||0)+(x.sec||0);
+    for(const f of ["views","hours","acts","cols","feats"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; for(const m of x.errMsg||[]) if(a.errMsg.length<8&&!a.errMsg.includes(m)) a.errMsg.push(m); if((x.at||0)>(a.lastAt||0)){ a.lastAt=x.at; a.ua=x.ua||""; a.ver=x.ver||""; a.nav=x.nav||""; } }
+  return {A,from,t,days}; }
+const mins=sec=>{ const m=Math.round(sec/60); return m>=60?`${Math.floor(m/60)}時間${m%60?m%60+"分":""}`:`${m}分`; };
+function usageCardHTML(){ const {A}=usgAgg(7), tot=A.h.sec+A.w.sec;
+  return `<section class="card"><h2>利用状況</h2><p class="who">ふたりが、いつ・どの画面を・どれだけ使ったかの記録です（書いた内容は記録しません）。改修を頼むときのレポートもここで作れます。</p>
+    <div class="ug-mini">${["h","w"].map(r=>`<div><span class="bsw ${r}"></span>${esc(nameOf(r))}<b>${mins(A[r].sec)}</b><small>7日・${A[r].days.size}日利用</small></div>`).join("")}</div>
+    <div class="bal-bar" style="margin-top:6px">${tot?`<i class="h" style="flex:${A.h.sec||0.0001}"><span>${Math.round(A.h.sec/tot*100)}%</span></i><i class="w" style="flex:${A.w.sec||0.0001}"><span>${Math.round(A.w.sec/tot*100)}%</span></i>`:`<i class="none">まだ記録がありません</i>`}</div>
+    <div class="opts"><button class="opt" data-go2="usage">くわしく見る ›</button></div></section>`; }
+function viewUsage(){ const days=Number(state.usagePer)||7, {A,from,t}=usgAgg(days), R=["h","w"], mx=o=>Math.max(1,...Object.values(o));
+  let h=`<div class="tools">${seg("ugper",String(days),[["7","7日"],["30","30日"],["90","90日"]])}<button class="link" data-go2="settings">‹ 設定へ</button></div>`;
+  /* KPI */
+  const K=[["利用した日",r=>A[r].days.size+"日",r=>A[r].days.size],["開いた回数",r=>A[r].opens+"回",r=>A[r].opens],["使った時間",r=>mins(A[r].sec),r=>A[r].sec],["操作した数",r=>Object.values(A[r].acts).reduce((q,v)=>q+v,0)+"回",r=>Object.values(A[r].acts).reduce((q,v)=>q+v,0)]];
+  h+=`<div class="ug-kpi">${K.map(([l,f,n])=>{ const a=n("h"), b=n("w"), s2=a+b; return `<div class="ug-k"><span class="ug-kl">${l}</span><div class="ug-kv">${R.map(r=>`<span class="${r}"><small>${esc(nameOf(r))}</small><b>${f(r)}</b></span>`).join("")}</div><div class="ug-sp">${s2?`<i class="h" style="flex:${a||0.0001}"></i><i class="w" style="flex:${b||0.0001}"></i>`:`<i class="none"></i>`}</div></div>`; }).join("")}</div>`;
+  /* 日ごと */
+  const ds=[...Array(days)].map((_,i)=>addDays(from,i)), dm=Math.max(60,...ds.map(d=>(A.h.byDay[d]||0)+(A.w.byDay[d]||0))), HH=90, step=days>30?7:days>7?5:1;
+  h+=`<div class="chart"><h3>日ごとの利用時間</h3><div class="wk-cols ug-days">${ds.map((d,i)=>{ const a=A.h.byDay[d]||0, b=A.w.byDay[d]||0; return `<div class="wk" data-tip="${short(d)}：${esc(nameOf("h"))} ${mins(a)}・${esc(nameOf("w"))} ${mins(b)}"><div class="wk-st" style="height:${HH}px">${b?`<i class="w" style="height:${b/dm*HH}px"></i>`:""}${a?`<i class="h" style="height:${a/dm*HH}px"></i>`:""}</div><span>${i%step===0||d===t?`${parse(d).getMonth()+1}/${parse(d).getDate()}`:""}</span></div>`; }).join("")}</div>
+    <div class="cr-leg"><span><i class="bsw h"></i>${esc(nameOf("h"))}</span><span><i class="bsw w"></i>${esc(nameOf("w"))}</span><span>棒をタップで数値</span></div></div>`;
+  /* 画面ごと */
+  const vs={}; for(const r of R) for(const [k,v] of Object.entries(A[r].views)) vs[k]=(vs[k]||0)+v; const vl=Object.entries(vs).sort((a,b)=>b[1]-a[1]), vmx=vl.length?vl[0][1]:1;
+  h+=`<div class="chart"><h3>よく使う画面</h3>${vl.length?`<div class="ug-rows">${vl.slice(0,12).map(([k,v])=>{ const a=A.h.views[k]||0, b=A.w.views[k]||0; return `<div class="ug-r"><span class="ug-n">${esc(USG_NAME(k))}</span><span class="ug-b"><span style="width:${v/vmx*100}%"><i class="h" style="flex:${a||0.0001}"></i><i class="w" style="flex:${b||0.0001}"></i></span></span><b>${mins(v)}</b></div>`; }).join("")}</div>`:`<div class="who">まだ記録がありません</div>`}`;
+  const unused=LAYER_TABS.us.filter(k=>!vs[k]&&!hiddenTabs().has(k)); if(unused.length) h+=`<div class="ug-un"><span class="who">この期間に開いていない画面：</span>${unused.map(k=>`<span class="chip mini">${esc(TITLES[k])}</span>`).join("")}</div>`;
+  h+=`</div>`;
+  /* 時間帯 */
+  h+=`<div class="chart"><h3>使っている時間帯</h3><div class="ug-hr">${R.map(r=>{ const m=mx(A[r].hours); return `<span class="ug-hn ${r}">${esc(nameOf(r).slice(0,2))}</span>${[...Array(24)].map((_,i)=>{ const v=A[r].hours[i]||0; return `<i class="${r}" style="opacity:${v?.18+.82*v/m:.07}" data-tip="${i}時台：${esc(nameOf(r))} ${mins(v)}"></i>`; }).join("")}`; }).join("")}<span></span>${[...Array(24)].map((_,i)=>`<small>${i%6===0?i:""}</small>`).join("")}</div></div>`;
+  /* 機能・操作 */
+  const fk=Object.keys(USG_FEAT), fm=Math.max(1,...fk.map(k=>(A.h.feats[k]||0)+(A.w.feats[k]||0)));
+  h+=`<div class="chart"><h3>機能の利用回数</h3><div class="ug-rows">${fk.map(k=>{ const a=A.h.feats[k]||0, b=A.w.feats[k]||0, v=a+b; return `<div class="ug-r ${v?"":"zero"}"><span class="ug-n">${USG_FEAT[k]}</span><span class="ug-b"><span style="width:${v/fm*100}%"><i class="h" style="flex:${a||0.0001}"></i><i class="w" style="flex:${b||0.0001}"></i></span></span><b>${v}回</b></div>`; }).join("")}</div></div>`;
+  const ops=Object.keys(USG_OP), om=Math.max(1,...ops.map(k=>(A.h.acts[k]||0)+(A.w.acts[k]||0)));
+  h+=`<div class="chart"><h3>操作の内訳</h3><div class="ug-rows">${ops.filter(k=>(A.h.acts[k]||0)+(A.w.acts[k]||0)).map(k=>{ const a=A.h.acts[k]||0, b=A.w.acts[k]||0; return `<div class="ug-r"><span class="ug-n">${USG_OP[k]}</span><span class="ug-b"><span style="width:${(a+b)/om*100}%"><i class="h" style="flex:${a||0.0001}"></i><i class="w" style="flex:${b||0.0001}"></i></span></span><b>${a+b}</b></div>`; }).join("")||'<div class="who">まだ記録がありません</div>'}</div></div>`;
+  if(A.h.errs||A.w.errs) h+=`<div class="chart"><h3>エラー</h3>${R.filter(r=>A[r].errs).map(r=>`<div class="who">${esc(nameOf(r))}：${A[r].errs}回${A[r].errMsg.length?`<br><small>${A[r].errMsg.map(esc).join("<br>")}</small>`:""}</div>`).join("")}</div>`;
+  /* 改修AIに渡す */
+  const reps=state.usageReports.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,6);
+  h+=`<div class="chart ug-rep"><h3>改修AIに渡すレポート</h3><p class="who">この画面の数字を、システムを直すAI（Claude）が読みやすい形にまとめて、ふたりの共有データに保管します。改修を頼むときに「コピー」して貼り付けるか、ファイルで渡してください。7日ごとに自動でも保管します。</p>
+    <div class="opts"><button class="opt" data-act="ugSave">いまの内容で保管</button><button class="opt" data-act="ugCopy">コピー</button><button class="opt" data-act="ugFile">ファイルで保存（.md）</button></div>
+    <details class="gdet"><summary>中身を見る</summary><pre class="ug-pre">${esc(usageReport(days))}</pre></details>
+    ${reps.length?`<div class="ug-list">${reps.map(x=>`<div class="ug-li"><span><b>${esc(x.id)}</b><small>${esc(nameOf(x.role||"h"))}が保管・${x.days||7}日分${x.auto?"・自動":""}</small></span><button class="link" data-ugcopy="${esc(x.id)}">コピー</button></div>`).join("")}</div>`:""}</div>`;
+  return h+hint("記録するのは、開いた回数・画面ごとの時間・操作の回数・機能の利用回数・エラーだけです（書いた内容は記録しません）。🔒じぶんの画面はまとめて表示します");
+}
+function usageReport(days){ const {A,from,t}=usgAgg(days), R=["h","w"], top=(o,n)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  const hm=o=>{ const x=top(o,3).map(([k])=>k+"時台"); return x.join("・")||"-"; };
+  let s=`# ふたりのリスト 利用状況レポート\n期間：${from}〜${t}（${days}日）・作成：${new Date().toLocaleString("ja-JP")}・アプリ v${APP_VERSION}${window.__FUTARI_PWA?"（単独アプリ版）":"（Claude版）"}\n\n## まとめ\n`;
+  for(const r of R){ const a=A[r], ac=Object.values(a.acts).reduce((q,v)=>q+v,0);
+    s+=`- ${nameOf(r)}（${r==="h"?"夫":"妻"}）：利用 ${a.days.size}日・開いた ${a.opens}回・${mins(a.sec)}・操作 ${ac}回・エラー ${a.errs}回・よく使う時間帯 ${hm(a.hours)}・メニュー ${a.nav||"-"}・端末 ${a.ua||"-"}・版 v${a.ver||"-"}\n`; }
+  s+=`\n## 画面ごとの利用時間（分）\n| 画面 | ${nameOf("h")} | ${nameOf("w")} |\n|---|---|---|\n`;
+  const vs={}; for(const r of R) for(const [k,v] of Object.entries(A[r].views)) vs[k]=(vs[k]||0)+v;
+  for(const [k] of top(vs,20)) s+=`| ${USG_NAME(k)} | ${Math.round((A.h.views[k]||0)/60)} | ${Math.round((A.w.views[k]||0)/60)} |\n`;
+  const unused=LAYER_TABS.us.filter(k=>!vs[k]); s+=`\n開いていない画面：${unused.map(k=>TITLES[k]).join("、")||"なし"}\n非表示にしているタブ：${[...hiddenTabs()].map(k=>TITLES[k]||k).join("、")||"なし"}\n`;
+  s+=`\n## 機能の利用回数\n| 機能 | ${nameOf("h")} | ${nameOf("w")} |\n|---|---|---|\n`; for(const [k,l] of Object.entries(USG_FEAT)) s+=`| ${l} | ${A.h.feats[k]||0} | ${A.w.feats[k]||0} |\n`;
+  s+=`\n## 操作の回数（種類別）\n| 操作 | ${nameOf("h")} | ${nameOf("w")} |\n|---|---|---|\n`; for(const [k,l] of Object.entries(USG_OP)) if((A.h.acts[k]||0)+(A.w.acts[k]||0)) s+=`| ${l} | ${A.h.acts[k]||0} | ${A.w.acts[k]||0} |\n`;
+  s+=`\n## 操作したデータの種類\n`; for(const r of R) s+=`- ${nameOf(r)}：${top(A[r].cols,10).map(([k,v])=>`${k} ${v}`).join("・")||"-"}\n`;
+  const E=R.flatMap(r=>A[r].errMsg.map(m=>`${nameOf(r)}：${m}`)); s+=`\n## エラー\n${E.length?E.map(x=>"- "+x).join("\n"):"なし"}\n`;
+  s+=`\n## 設定（${nameOf(myRole())}の画面）\n- メニュー：${prefs.nav}・並び ${tabOrder().map(k=>TITLES[k]).join(">")}・フリックのキー ${prefs.flickKeys}\n- 開いたときの画面：${prefs.startView}・ホームの並び ${homeOrder().filter(k=>!homeHidden().has(k)).join(",")}・非表示 ${[...homeHidden()].join(",")||"なし"}\n- AI：${prefs.ai}・今日の質問ポップアップ：${prefs.qaPop}\n`;
+  s+=`\n## 未解決の不具合報告\n${state.bugs.filter(b=>!["fixed","rejected"].includes(b.status)).map(b=>`- [${b.status}] ${String(b.text).slice(0,100)}`).join("\n")||"なし"}\n`;
+  return s; }
+async function usageSaveReport(auto){ const days=auto?7:Number(state.usagePer)||7, id=today()+(auto?"":"_"+new Date().toTimeString().slice(0,5).replace(":","")), doc={at:Date.now(),role:myRole(),days,auto:!!auto,ver:APP_VERSION,text:usageReport(days)};
+  const r=colRef("usageReports"); if(r) await r.doc(id).set(doc).catch(()=>{}); else { state.usageReports=state.usageReports.filter(x=>x.id!==id); state.usageReports.push({id,...doc}); }
+  const old=state.usageReports.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(20); if(r) old.forEach(x=>r.doc(x.id).delete().catch(()=>{})); return id; }
+function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded) return; state.usgAutoDone=true; setTimeout(usgPrune,8000);
+  const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>usageSaveReport(true),10000); }
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast("コピーしました。改修を頼むときに貼り付けてください"); }catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("コピーできませんでした。ファイルで保存してください"); } ta.remove(); } }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=ug],#main [data-ugcopy]"); if(!b||state.view!=="usage") return; e.stopPropagation(); const a=b.dataset.act;
+  usageFlush(true);
+  if(b.dataset.ugcopy){ const x=state.usageReports.find(q=>q.id===b.dataset.ugcopy); if(x) copyText(x.text); return; }
+  if(a==="ugSave") usageSaveReport(false).then(id=>{ toast(`レポート ${id} を保管しました`); render(); });
+  else if(a==="ugCopy") copyText(usageReport(Number(state.usagePer)||7));
+  else if(a==="ugFile") saveFile(`futari-usage-${today()}.md`,usageReport(Number(state.usagePer)||7)); },true);
+document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg="ugper"] [data-sv]'); if(!b) return; e.stopPropagation(); state.usagePer=b.dataset.sv; usageFlush(true); render(); },true);
+
 initOnb();
 function maybeOnb(){ if(prefs.onboarded!=="1"&&!state.onbShown){ state.onbShown=true; state.onbAuto=true; openOnb("setup"); } }
 render(); requestAnimationFrame(()=>{placeRail(false); if(prefs.onboarded==="1") showTip();});
@@ -6760,7 +6873,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.view==="settings"){ const c=$("bugCard"); if(c&&!typingInMain()) c.outerHTML=bugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",requestRender); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
