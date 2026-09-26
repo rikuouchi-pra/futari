@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=161"></script>
+<script src="shim.js?v=162"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1279,7 +1279,7 @@ html.has-bgphoto header :is(h1,#appTitle,.gw){text-shadow:0 1px 8px color-mix(in
 .song-r{font-size:13px;line-height:1.6;margin:8px 0 0}
 .song-l{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
 .song-top{display:flex;align-items:center;gap:12px}.song-top>div{flex:1;min-width:0}.song-art{width:56px;height:56px;border-radius:10px;flex:none;object-fit:cover}
-.song-pl{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);font-size:16px;cursor:pointer}
+.song-pl,.song-nx{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);font-size:16px;cursor:pointer}.song-nx{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-size:20px}.song-pl.wait{opacity:.5}
 .song-l .btn{text-decoration:none;display:inline-flex;align-items:center}
 .song-f{display:flex;gap:14px;margin-top:10px}
 
@@ -1558,7 +1558,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="161";
+const APP_VERSION="162";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5865,66 +5865,83 @@ function bgPhotoPick(){ if(!state.assets){ toast("この画面では写真を保
 const songOf=d=>state.music.find(x=>x.id===d)||null;
 const musicTaste=r=>(((state.kakei||{}).music||{})[r]||"").trim();
 const SVC={apple:["Apple Music",q=>`https://music.apple.com/jp/search?term=${encodeURIComponent(q)}`],spotify:["Spotify",q=>`https://open.spotify.com/search/${encodeURIComponent(q)}`],youtube:["YouTube Music",q=>`https://music.youtube.com/search?q=${encodeURIComponent(q)}`]};
-async function songEnsure(d,force){
-  const x=songOf(d); if(x&&x.title&&!force) return; const ai=aiText(); if(!ai||prefs.music==="off") return;
-  const th=musicTaste("h"), tw=musicTaste("w"); if(!th&&!tw) return;
-  state.songTried=state.songTried||{}; if(!force&&state.songTried[d]) return; state.songTried[d]=1; state.songBusy=true; songRender();
-  const past=state.music.filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).slice(0,25).map(m=>`${m.title}／${m.artist}`);
-  const T=typeof wxToday==="function"?wxToday():null, sh=shiftOf("h",d), sw=shiftOf("w",d), off=offState(d)==="both";
-  const an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).filter(o=>o.a.days<=7).map(o=>`${o.p.text}まであと${o.a.days}日`);
-  try{ const r=await ai.json(`夫婦のアプリで、今日ふたりで聞きたい「今日の1曲」を1曲選んでください。
+/* v162: 候補をまとめて選び、Apple Musicの試聴も先に取っておく（押したらすぐ鳴る・別の曲もすぐ） */
+function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), T=typeof wxToday==="function"?wxToday():null, off=offState(d)==="both";
+  return `夫婦のアプリで「今日の1曲」の候補を${n}曲選んでください。いちばん大事なのは、ふたりの好みに合っていること。
 - ${nameOf("h")}の好み：${th||"（未登録）"}
 - ${nameOf("w")}の好み：${tw||"（未登録）"}
-- 今日：${d}（${"日月火水木金土"[parse(d).getDay()]}曜）${T?`・天気 ${WXN[wxKind(T.code,1)]||""} 最高${T.max}°`:""}・シフト ${nameOf("h")}${sh||"未入力"}／${nameOf("w")}${sw||"未入力"}${off?"・ふたり休み":""}${an.length?"・"+an.join("、"):""}
-- ふたりの好みの両方に近い、実在する曲を選ぶ（存在が確かな有名曲を優先。架空の曲は不可）
-- 最近選んだ曲は避ける：${past.join(" / ")||"なし"}
-- reason は「〜だから」のような短い一言（40文字以内・日本語）
-- 候補を3曲、おすすめ順に（「別の曲にする」ですぐ次を出すため。3曲とも違うアーティストが望ましい）
-JSONだけを返す：{"songs":[{"title":"曲名","artist":"アーティスト名","reason":"選んだ理由"},…]}`,{modelTier:"quick"});
-    const L=(Array.isArray(r&&r.songs)?r.songs:[r]).map(o=>({title:String(o&&o.title||"").trim().slice(0,60),artist:String(o&&o.artist||"").trim().slice(0,60),reason:String(o&&o.reason||"").slice(0,80)})).filter(o=>o.title&&o.artist);
-    if(L.length){ const doc={...L[0],alts:L.slice(1),url:null,preview:null,art:null,by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur) Object.assign(cur,doc); else state.music.push({id:d,...doc}); dset("music",d,doc); songLookup(d); }
+ルール：
+- 好みに書かれたアーティスト本人の曲を中心にする（${n}曲のうち半分以上）。残りも、好みに書かれたアーティスト・ジャンルと同じ系統で、好きな人なら知っている曲だけ
+- 好みと関係ない流行曲・定番曲・季節の曲は選ばない。天気（${T?WXN[wxKind(T.code,1)]||"":"不明"}）や${off?"ふたり休み":"曜日"}は、好みに合う曲の中から選ぶときの参考だけ
+- ふたりとも好みが登録されていれば、交互に（${nameOf("h")}寄り・${nameOf("w")}寄り・両方寄り）
+- 実在が確かな曲だけ（曲名とアーティスト名は正式な表記で。架空の曲は不可）
+- 同じアーティストは2曲まで。次の曲は選ばない：${exclude.join(" / ")||"なし"}
+- reason は「〇〇好きの${nameOf("h")}に」「△△が好きな${nameOf("w")}と」のように、どちらの好みに合うかが分かる一言（40文字以内）
+JSONだけを返す：{"songs":[{"title":"曲名","artist":"アーティスト名","reason":"理由"},…]}`; }
+function songPast(){ return state.music.filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).slice(0,25).flatMap(m=>[`${m.title}／${m.artist}`,...(m.alts||[]).map(a=>`${a.title}／${a.artist}`)]).slice(0,60); }
+const songNorm=L=>(Array.isArray(L)?L:[]).map(o=>({title:String(o&&o.title||"").trim().slice(0,60),artist:String(o&&o.artist||"").trim().slice(0,60),reason:String(o&&o.reason||"").slice(0,80)})).filter(o=>o.title&&o.artist);
+async function songEnsure(d,force){
+  const x=songOf(d); if(x&&x.title&&!force) return; const ai=aiText(); if(!ai||prefs.music==="off") return;
+  if(!musicTaste("h")&&!musicTaste("w")) return;
+  state.songTried=state.songTried||{}; if(!force&&state.songTried[d]) return; state.songTried[d]=1; state.songBusy=true; songRender();
+  try{ const r=await ai.json(songPrompt(d,5,songPast()),{modelTier:"quick"}); let L=songNorm(r&&r.songs||[r]);
+    L=await songCheck(L); if(L.length){ const doc={...L[0],alts:L.slice(1),by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur){ for(const k of ["url","preview","art"]) delete cur[k]; Object.assign(cur,doc); } else state.music.push({id:d,...doc}); dset("music",d,doc); songPreload(); }
+    else state.songErr="好みに合う曲が見つかりませんでした";
   }catch(e){ state.songErr=String((e&&(e.detail||e.code||e.message))||"").slice(0,80); }
   state.songBusy=false; songRender(); }
-/* v160: 曲をApple Musicで探して、曲のページ（開くとその曲が出る）と30秒の試聴を取ってくる。結果はふたりで共有して1回だけ */
+/* 候補がなくなりそうなら裏で追加（待たせない） */
+async function songRefill(d){ const x=songOf(d), ai=aiText(); if(!x||!ai||state.songRefilling||(x.alts||[]).filter(a=>!a.seen).length>1) return; state.songRefilling=true;
+  try{ const r=await ai.json(songPrompt(d,4,[...songPast(),`${x.title}／${x.artist}`]),{modelTier:"quick"}); const L=await songCheck(songNorm(r&&r.songs));
+    const cur=songOf(d); if(cur&&L.length){ const A=cur.alts||[]; cur.alts=[...A.filter(a=>!a.seen),...L,...A.filter(a=>a.seen)].slice(0,14); dupd("music",d,{alts:cur.alts}); } }catch(e){}
+  state.songRefilling=false; }
+/* Apple Musicで実在を確かめ、ページ・試聴・ジャケットを付ける（見つからない曲＝作り話の可能性があるので外す。検索できない環境ではそのまま） */
+async function songCheck(L){ let net=true; const out=await Promise.all(L.map(async o=>{ if(!net) return o; try{ const m=await songFind(o.title,o.artist); return m?{...o,...m}:null; }catch(e){ net=false; return o; } }));
+  const ok=out.filter(Boolean); return ok.length?ok:L; }
 function itunesJsonp(term){ return new Promise((ok,ng)=>{ const cb="__it"+Date.now().toString(36)+Math.floor(Math.random()*1e4), sc=document.createElement("script"); let done=false;
   const fin=v=>{ if(done) return; done=true; clearTimeout(tm); try{ delete window[cb]; }catch(e){} sc.remove(); v instanceof Error?ng(v):ok(v); };
   window[cb]=j=>fin(j||{}); sc.onerror=()=>fin(new Error("net")); const tm=setTimeout(()=>fin(new Error("timeout")),6000);
-  sc.src=`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=JP&entity=song&limit=8&lang=ja_jp&callback=${cb}`; document.head.appendChild(sc); }); }
+  sc.src=`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=JP&entity=song&limit=10&lang=ja_jp&callback=${cb}`; document.head.appendChild(sc); }); }
+async function songFind(title,artist){ const j=await itunesJsonp(`${title} ${artist}`), R=(j.results||[]); const nz=v=>String(v||"").toLowerCase().normalize("NFKC").replace(/[\s・\-‐（）()「」'’!！?？.,、。]/g,"");
+  const best=R.find(o=>nz(o.trackName).includes(nz(title))&&(nz(o.artistName).includes(nz(artist))||nz(artist).includes(nz(o.artistName))))||null; if(!best) return null;
+  return {url:best.trackViewUrl||null,preview:best.previewUrl||null,art:(best.artworkUrl100||"").replace("100x100","200x200")||null}; }
 async function songLookup(d){ const x=songOf(d); if(!x||!x.title||x.url||state.songLk===d+x.title) return; state.songLk=d+x.title;
-  try{ const j=await itunesJsonp(`${x.title} ${x.artist}`), R=(j.results||[]); const nz=v=>String(v||"").toLowerCase().replace(/[\s・\-‐（）()「」'’!！?？.,、。]/g,"");
-    const best=R.find(o=>nz(o.trackName).includes(nz(x.title))&&nz(o.artistName).includes(nz(x.artist)))||R.find(o=>nz(o.trackName).includes(nz(x.title)))||null; if(!best) return;
-    const doc={url:best.trackViewUrl||null,preview:best.previewUrl||null,art:(best.artworkUrl100||"").replace("100x100","200x200")||null}; const cur=songOf(d); if(!cur||cur.title!==x.title) return; Object.assign(cur,doc); dupd("music",d,doc); songRender(); }catch(e){} }
+  try{ const m=await songFind(x.title,x.artist); const cur=songOf(d); if(!m||!cur||cur.title!==x.title) return; Object.assign(cur,m); dupd("music",d,m); songPreload(); songRender(); }catch(e){} }
 let songAudio=null;
+function songEl(){ if(!songAudio){ songAudio=new Audio(); songAudio.preload="auto"; songAudio.onended=()=>{ state.songPlaying=false; songRender(); }; } return songAudio; }
+function songPreload(){ const x=songOf(today()); if(!x||!x.preview) return; const a=songEl(); if(a.src!==x.preview){ a.src=x.preview; try{ a.load(); }catch(e){} } }
 function songStop(){ if(songAudio){ try{ songAudio.pause(); }catch(e){} } state.songPlaying=false; }
-function songToggle(){ const x=songOf(today()); if(!x||!x.preview) return; if(!songAudio) songAudio=new Audio(); if(state.songPlaying){ songStop(); songRender(); return; }
-  if(songAudio.src!==x.preview) songAudio.src=x.preview; songAudio.volume=0.8; songAudio.onended=()=>{ state.songPlaying=false; songRender(); };
-  songAudio.play().then(()=>{ state.songPlaying=true; songRender(); }).catch(()=>{ state.songPlaying=false; songRender(); }); }
+function songToggle(){ const x=songOf(today()); if(!x||!x.preview) return; const a=songEl(); if(state.songPlaying){ songStop(); songRender(); return; }
+  if(a.src!==x.preview) a.src=x.preview; a.volume=0.8; state.songPlaying=true; songRender();
+  a.play().catch(()=>{ state.songPlaying=false; songRender(); }); }
+function songNext(){ const d=today(), x=songOf(d); if(!x) return; const was=state.songPlaying; songStop();
+  if(Array.isArray(x.alts)&&x.alts.length){ const [n,...rest]=x.alts, doc={title:n.title,artist:n.artist,reason:n.reason||"",url:n.url||null,preview:n.preview||null,art:n.art||null,alts:[...rest,{title:x.title,artist:x.artist,reason:x.reason||"",url:x.url||null,preview:x.preview||null,art:x.art||null,seen:true}].slice(0,12),by:myRole(),at:Date.now()};
+    Object.assign(x,doc); dset("music",d,doc); haptic("tick"); if(!x.url) songLookup(d); songPreload(); if(was&&x.preview) songToggle(); else songRender();
+    if(rest.filter(a=>!a.seen).length<=1) songRefill(d); }
+  else { state.songTried={}; songEnsure(d,true); } }
 /* アプリを開いて最初に画面に触れたとき、今日の1曲の試聴を流す（iPhoneは触れる前の自動再生ができないため） */
 document.addEventListener("pointerdown",function sa(){ if(state.songAutoDone) return; const x=songOf(today()); if(prefs.songAuto!=="on"||!x||!x.preview) return; state.songAutoDone=true; document.removeEventListener("pointerdown",sa,true); songToggle(); },true);
 function songRender(){
   const el=$("song"); if(!el) return; const t=today(), x=songOf(t), ai=aiText(), taste=musicTaste(myRole())||musicTaste(otherRole());
   if(prefs.music==="off"||(!x&&!ai)){ el.hidden=true; return; }
   if(!x&&ai&&taste&&!state.songBusy) setTimeout(()=>songEnsure(t),200);
-  if(x&&x.title&&!x.url) setTimeout(()=>songLookup(t),300);
+  if(x&&x.title&&!x.url) setTimeout(()=>songLookup(t),300); else if(x&&x.preview&&(!songAudio||songAudio.src!==x.preview)) songPreload();
   el.hidden=false;
   el.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg><span>${state.songBusy&&!x?"選曲中…":x?esc(x.title):"今日の1曲"}</span>`;
   let pn=$("songp"); if(!state.songOpen){ if(pn) pn.remove(); return; }
   if(!pn){ pn=document.createElement("div"); pn.id="songp"; pn.className="wxp songp"; document.body.appendChild(pn); }
   const q=x?`${x.title} ${x.artist}`:"", svc=prefs.musicSvc||"apple";
   pn.innerHTML=x?`<div class="wxp-h"><b>今日の1曲</b><span class="who">${short(t)}・ふたりの好みから</span></div>
-      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div>${x.preview?`<button class="song-pl" data-act="songPlay" aria-label="${state.songPlaying?"止める":"試聴する"}">${state.songPlaying?"❚❚":"▶"}</button>`:""}</div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
+      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button><button class="song-nx" data-act="songRe" aria-label="別の曲にする">⟳</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
       <div class="song-l"><a class="btn primary" href="${esc(svc==="apple"&&x.url?x.url:SVC[svc][1](q))}" target="_blank" rel="noopener">${SVC[svc][0]}で${svc==="apple"&&x.url?"開く":"聞く"}</a>${Object.keys(SVC).filter(k=>k!==svc).map(k=>`<a class="link" href="${esc(SVC[k][1](q))}" target="_blank" rel="noopener">${SVC[k][0]}</a>`).join("")}</div>
       <div class="song-f">${ai?`<button class="link" data-act="songRe">別の曲にする</button>`:""}<button class="link" data-act="songPref">好みを変える</button></div>`
     :`<div class="wxp-h"><b>今日の1曲</b></div><p class="song-r">${taste?(state.songBusy?"ふたりの好みから選んでいます…":`選べませんでした${state.songErr?`（${esc(state.songErr)}）`:""}`):"設定 ›「今日の1曲」に、ふたりそれぞれの好きな音楽を入れると、毎日1曲選びます。"}</p><div class="song-f"><button class="link" data-act="songPref">好みを入れる</button>${taste&&!state.songBusy?`<button class="link" data-act="songRe">もう一度選ぶ</button>`:""}</div>`;
   const r=el.getBoundingClientRect(), pw=Math.min(340,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; pn.style.top=Math.round(r.bottom+8)+"px";
   if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px"; }
 $("song").addEventListener("click",e=>{ e.stopPropagation(); state.songOpen=!state.songOpen; if(state.songOpen){ state.wxOpen=false; wxRender(); } haptic("tick"); songRender(); });
-document.addEventListener("click",e=>{ if(state.songOpen&&!e.target.closest("#songp,#song")){ state.songOpen=false; songRender(); } });
+document.addEventListener("click",e=>{ if(state.songOpen&&e.target.isConnected&&!e.target.closest("head,#songp,#song")){ /* v162: 振動用の見えないボタン（head内）のクリックで閉じない */ state.songOpen=false; songRender(); } });
 addEventListener("scroll",()=>{ if(state.songOpen){ state.songOpen=false; songRender(); } },{passive:true});
 document.addEventListener("click",e=>{ const b=e.target.closest("#songp [data-act]"); if(!b) return; const a=b.dataset.act;
-  if(a==="songRe"){ const d=today(), x=songOf(d); songStop();
-    if(x&&Array.isArray(x.alts)&&x.alts.length){ const [n,...rest]=x.alts, doc={...n,alts:rest,url:null,preview:null,art:null,at:Date.now()}; Object.assign(x,doc); dset("music",d,doc); songRender(); songLookup(d); }
-    else { state.songTried={}; songEnsure(d,true); } }
+  if(a==="songRe"){ songNext(); }
   else if(a==="songPlay"){ songToggle(); }
   else if(a==="songPref"){ state.songOpen=false; songRender(); go("settings"); setTimeout(()=>{ const el=$("musicIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },200); } });
 
@@ -5967,7 +5984,7 @@ function recRow(x){ const [lb,icn]=REC_LB[x.kind]||["定期","loop"]; return `<l
     m.style.top=(r.bottom+8+mh<innerHeight-20?r.bottom+8:Math.max(12,r.top-mh-8))+"px";
     m.addEventListener("click",ev=>{ const b=ev.target.closest("[data-lp]"); if(!b) return; ev.stopPropagation(); const a=b.dataset.lp; close();
       if(a==="topic"){ makeTopicFrom(c,x); haptic("done"); } else if(a==="edit") startEdit(c,id); });
-    const t0=Date.now(); setTimeout(()=>document.addEventListener("click",function h(ev){ if(Date.now()-t0<600){ if(!ev.target.closest("#lpm")){ ev.stopPropagation(); ev.preventDefault(); } return; } if(!ev.target.closest("#lpm")){ close(); document.removeEventListener("click",h,true); } },true),0);
+    const t0=Date.now(); setTimeout(()=>document.addEventListener("click",function h(ev){ if(ev.target.closest&&ev.target.closest("head")) return; if(Date.now()-t0<600){ if(!ev.target.closest("#lpm")){ ev.stopPropagation(); ev.preventDefault(); } return; } if(!ev.target.closest("#lpm")){ close(); document.removeEventListener("click",h,true); } },true),0);
   } }
 
 /* ================= 勝手に拡大しないように（iPhone：入力欄の自動ズーム・ダブルタップ・ピンチ） ================= */
@@ -6061,7 +6078,7 @@ function wxRender(){
 }
 $("hfold").addEventListener("click",e=>{ e.stopPropagation(); prefs.hdrFold=prefs.hdrFold==="1"?"0":"1"; haptic("tick"); savePrefs(true); render(); });
 $("wx").addEventListener("click",e=>{ e.stopPropagation(); state.wxOpen=!state.wxOpen; haptic("tick"); wxRender(); });
-document.addEventListener("click",e=>{ if(state.wxOpen&&!e.target.closest("#wxp,#wx")){ state.wxOpen=false; wxRender(); } });
+document.addEventListener("click",e=>{ if(state.wxOpen&&!e.target.closest("head,#wxp,#wx")){ state.wxOpen=false; wxRender(); } });
 addEventListener("scroll",()=>{ if(state.wxOpen){ state.wxOpen=false; wxRender(); } },{passive:true});
 setInterval(()=>wxLoad(),30*60e3); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) wxLoad(); });
 setTimeout(()=>wxLoad(),600);
