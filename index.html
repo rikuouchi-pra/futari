@@ -1534,7 +1534,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 .ai-mic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .ai-mic.on{background:var(--danger);border-color:var(--danger);color:#fff;animation:micp 1.2s ease-in-out infinite}
 @keyframes micp{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--danger) 25%,transparent)}}
-.ai-lis{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--danger);font-weight:700}
+.ai-compose{display:grid;gap:8px}.ai-compose textarea{width:100%;min-height:88px;resize:vertical;font:inherit;line-height:1.6}.ai-voicebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ai-voicebar .btn{min-height:44px}.ai-voicebar .primary{margin-left:auto}.ai-voicebar .ai-mic{display:inline-flex;align-items:center;gap:6px}.ai-voice-status{font-size:12px;line-height:1.6;color:var(--muted);margin:0}.share-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.share-entry{padding:12px 0;border-top:1px solid var(--line)}.share-entry b{overflow-wrap:anywhere}.share-entry .edit-row{margin-top:8px}.share-shortcut{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}.share-shortcut.unread{color:var(--accent);font-weight:800}.ai-lis{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--danger);font-weight:700}
 .ai-wave{display:inline-flex;gap:2px;align-items:center;height:14px}.ai-wave i{width:3px;height:100%;border-radius:2px;background:var(--danger);animation:wv .9s ease-in-out infinite}.ai-wave i:nth-child(2){animation-delay:.15s}.ai-wave i:nth-child(3){animation-delay:.3s}.ai-wave i:nth-child(4){animation-delay:.45s}
 @keyframes wv{50%{transform:scaleY(.3)}}
 .fplan{display:grid;gap:4px;margin-top:6px}.fp-k{display:flex;flex-direction:column;padding:6px 10px;border-radius:10px;background:var(--ground)}.fp-k b{font-size:13px}
@@ -1571,7 +1571,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
     <div class="brand">
-      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="song" id="song" hidden aria-label="今日の1曲"></button><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
+      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="share-shortcut" id="shareNotice" aria-label="相手からの共有通知">共有</button><button class="song" id="song" hidden aria-label="今日の1曲"></button><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
       <div class="hr">
         <button class="hbtn plus" id="plus" aria-label="追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="hbtn" id="chkBtn" aria-label="未入力・未確認" style="position:relative"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg><span class="badge" id="b-chk" hidden></span></button>
@@ -1642,7 +1642,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="183";
+const APP_VERSION="184";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2318,19 +2318,24 @@ function talkCard(d){
     <div class="who">直近4週 ${done}/${req.length}日 実施${req.length?`（${Math.round(done/req.length*100)}%）`:""}・連続 ${streak}日</div>${heldEdit}
     <details class="tk-set"><summary>お休みの日の決め方</summary><div class="toffs"><span class="who">${w}さんのシフトがこの日はお休み：</span>${["入","明","早","日"].map(k=>`<button type="button" class="chip" data-toff="${k}" aria-pressed="${talkOffSet().has(k)}">${k}（${esc(SHIFT_NAME[k]||k)}）</button>`).join("")}</div></details></div>`;
 }
+/* Shared calendar has its own selection; browsing never changes the talk record date. */
+function talkCalendarDates(){const selected=state.talkCalDate||today(),month=state.talkCalMonth||selected.slice(0,7),m=parse(month+"-01"),offset=(m.getDay()+6)%7,start=addDays(month+"-01",-offset),count=Math.ceil((offset+new Date(m.getFullYear(),m.getMonth()+1,0).getDate())/7)*7;return {selected,month,m,days:Array.from({length:count},(_,i)=>addDays(start,i))};}
+const talkCalendarEvents=d=>state.events.filter(x=>x.date===d).sort((a,b)=>(a.start||"").localeCompare(b.start||"")||String(a.text||"").localeCompare(String(b.text||"")));
+function talkCalendarHTML(){const {selected,month,m,days}=talkCalendarDates(),events=talkCalendarEvents(selected);
+  return `<section class="card talk-calendar" id="talkCalendar" aria-label="ふたりの共有カレンダー"><h2>ふたりの共有カレンダー</h2><div class="dstrip"><button class="icon-btn" data-talk-cal-month="-1" aria-label="共有カレンダーの前の月">‹</button><div class="ttl">${m.getFullYear()}年${m.getMonth()+1}月</div><button class="icon-btn" data-talk-cal-month="1" aria-label="共有カレンダーの次の月">›</button></div><div class="edit-row" style="justify-content:space-between"><span class="who">${esc(nameOf('h'))}・${esc(nameOf('w'))}のシフトと共有予定</span><button class="pill" data-talk-cal-date="${today()}">今日へ</button></div><div class="grid" style="touch-action:pan-y">${'月火水木金土日'.split('').map(w=>`<span class="who" style="text-align:center">${w}</span>`).join('')}${days.map(d=>{const n=talkCalendarEvents(d).length;return `<button class="day ${d.slice(0,7)!==month?'out':''} ${d===today()?'today':''} ${d===selected?'sel':''} ${offState(d)==='both'?'both':''}" data-talk-cal-date="${d}" aria-pressed="${d===selected}" aria-label="${d} 共有予定${n}件 ${esc(nameOf('h'))} ${esc(shiftOf('h',d)||'未入力')} ${esc(nameOf('w'))} ${esc(shiftOf('w',d)||'未入力')}"><span class="num">${parse(d).getDate()}</span><span style="display:flex;gap:2px">${shiftBadge(shiftOf('h',d),'h')}${shiftBadge(shiftOf('w',d),'w')}</span><span class="who" style="font-size:10px">${n?n+'件':'・'}</span></button>`;}).join('')}</div><div class="legend lg2"><span>四角：${esc(nameOf('h'))}</span><span>丸：${esc(nameOf('w'))}</span><span>色付き：ふたり休み</span></div><h3 class="day-title">${jpDate(selected)}の共有予定</h3>${events.length?`<ul class="list">${events.map(eventRow).join('')}</ul>`:'<p class="who">この日の共有予定はありません</p>'}<p class="who">日付を選んで予定を確認できます。「じぶんだけ」の予定はここには表示されません。</p></section>`;
+}
+function talkCalendarMove(value,monthDelta){const input=$("talkNotes"),saved=talkOf(state.talkDate);if(input&&input.value!==(saved?.notes||""))saveTalkNotes();if(monthDelta){const {m}=talkCalendarDates(),next=ymd(new Date(m.getFullYear(),m.getMonth()+monthDelta,1));state.talkCalMonth=next.slice(0,7);state.talkCalDate=next;}else if(aiDate(value)){state.talkCalDate=value;state.talkCalMonth=value.slice(0,7);}render();}
 function viewTalk(){
   const d=state.talkDate, isT=d===today();
   const futT=isT?state.topics.filter(t=>t.status!=="done"&&t.on&&t.on>d).sort((a,b)=>a.on<b.on?-1:1):[];
   const tops=state.topics.filter(t=>isT?((t.status!=="done"&&!(t.on&&t.on>d))||t.doneDate===d):(t.doneDate===d)).sort((a,b)=>((a.status==="done")-(b.status==="done"))||(a.createdAt-b.createdAt));
   const doneN=tops.filter(t=>t.status==="done").length, note=(state.talks.find(x=>x.id===d)||{}).notes||"";
-  const sharedEvents=state.events.filter(x=>getWho(x)==="both"&&x.date>=d&&x.date<=addDays(d,30)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.start||"")<(b.start||"")?-1:1);
   let h=`<div class="dstrip" data-strip="talk"><button class="icon-btn" data-act="tprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="tnext" aria-label="次の日">›</button></div>
     <div class="tools"><span class="who">${tops.length?`話した ${doneN}/${tops.length}`:""}</span>${isT?"":'<button class="pill" data-act="ttoday">今日</button>'}</div>`+talkCard(d)+(isT?agendaHTML():(qaOf(d)?qaCardHTML(d):""));
   h+=`<div class="section-label">話すこと</div>`;
   h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目を長押し→「議題にする」":"この日の記録はありません"}</div>`;
   if(futT.length) h+=`<div class="section-label">これからの議題（話す日を指定）</div><ul class="list">${futT.map(topicRow).join("")}</ul>`;
-  h+=`<div class="section-label">ふたりの共有予定（30日）</div>`;
-  h+=sharedEvents.length?`<ul class="list">${sharedEvents.map(eventRow).join("")}</ul>`:`<div class="empty">30日以内の共有予定はありません</div>`;
+  h+=talkCalendarHTML();
   h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`+(isT?aiCardHTML("talk"):"");
   if(isT){
     const t=today(), in7=addDays(t,7), me=state.me||"local";
@@ -2732,11 +2737,14 @@ async function shareEntry(o,date){ if(state.shareBusy) return false; const inSch
     netMark(); await r.doc(id).set(doc); if(!state.events.some(x=>x.id===id)) state.events.push({id,...doc}); state.ttShare=null;state.shareSchedule=null;state.sharePendingId=null;toast("共有しました。相手のホームに通知が表示されます");return true;
   }catch(e){ err(e);toast("共有できませんでした。再度お試しください");return false; }finally{state.shareBusy=false;paint();}
 }
-const shareUnread=()=>state.events.filter(x=>x.notice&&x.notice.to===myRole()&&!x.notice.seenAt).sort((a,b)=>b.notice.at-a.notice.at);
-function shareInboxHTML(){ const rows=shareUnread(); if(!rows.length) return "";
-  return `<section class="card" id="shareInbox"><h2>相手からの共有 <span class="tag tc-blue">未読 ${rows.length}</span></h2><ul class="list">${rows.map(x=>`<li class="item"><div class="row" style="display:block"><b>${esc(x.text)}</b><div class="meta">${esc(x.date)} ${x.start?esc(x.start)+(x.end?"–"+esc(x.end):""):"終日"}・${esc(nameOf(x.notice.from))}から</div><div class="edit-row"><button class="btn" data-share-open="${esc(x.id)}">予定を見る</button><button class="btn" data-share-seen="${esc(x.id)}">確認した</button></div></div></li>`).join("")}</ul></section>`;
+const shareReceived=()=>state.events.filter(x=>x.notice&&x.notice.to===myRole()).sort((a,b)=>(b.notice.at||0)-(a.notice.at||0));
+const shareUnread=()=>shareReceived().filter(x=>!x.notice.seenAt);
+function shareInboxHTML(){ const all=shareReceived(),rows=all.filter(x=>!x.notice.seenAt),seen=all.filter(x=>x.notice.seenAt); if(!all.length&&!state.shareInboxOpen)return "";
+  const list=L=>L.map(x=>`<div class="share-entry"><b>${esc(x.text)}</b><div class="meta">${esc(x.date)} ${x.start?esc(x.start)+(x.end?"–"+esc(x.end):""):"終日"}・${esc(nameOf(x.notice.from))}から</div><div class="edit-row"><button class="btn" data-share-open="${esc(x.id)}">予定を見る</button>${!x.notice.seenAt?`<button class="btn primary" data-share-seen="${esc(x.id)}" ${state.shareSeenBusy===x.id?"disabled":""}>${state.shareSeenBusy===x.id?"保存中…":"確認した"}</button>`:'<span class="tag tc-muted">確認済み</span>'}</div></div>`).join("");
+  return `<section class="card" id="shareInbox" aria-label="相手からの共有通知"><div class="share-head"><h2>相手からの共有</h2><span class="tag ${rows.length?"tc-blue":"tc-muted"}">未読 ${rows.length}</span></div><p class="who">アプリ内の通知です。アプリを閉じている間のプッシュ通知は届きません。</p>${rows.length?list(rows):'<p class="who">未読の共有はありません</p>'}${seen.length?`<details class="tk-set" ${state.shareHistoryOpen?"open":""}><summary data-share-history>確認済み（${seen.length}件）</summary>${list(seen.slice(0,30))}${seen.length>30?'<p class="who">最近の30件を表示しています。予定はカレンダーで確認できます。</p>':""}</details>`:""}</section>`;
 }
-async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()) return;try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});x.notice=notice;requestRender();}catch(e){err(e);} }
+async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()||x.notice.seenAt||state.shareSeenBusy)return false;state.shareSeenBusy=id;requestRender();try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});const current=state.events.find(x=>x.id===id);if(current)current.notice=notice;return true;}catch(e){err(e);toast("確認済みにできませんでした。もう一度お試しください");return false;}finally{state.shareSeenBusy=null;requestRender();} }
+function shareArrived(){ const rows=shareUnread(),ids=new Set(rows.map(x=>x.id)),previous=state.shareKnown;if(previous&&state.shareKnownRole===myRole()){const added=rows.filter(x=>!previous.has(x.id));if(added.length)toast(`相手から新しい共有が${added.length}件届きました`);}state.shareKnown=ids;state.shareKnownRole=myRole();requestRender(); }
 function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
 function timetable(date){
   const S=Number(prefs.ttStart||4), E=24, H=46, ents=dayEntries(date), top=m=>(m/60-S)*H;
@@ -2976,7 +2984,18 @@ const AI_RELEASE={version:"181",throughVersion:180,at:Date.UTC(2026,8,28,6),fixe
   ["AI入力の精度を上げたい","明示した年・日時・担当・自分だけの指定を優先し、午前／午後12時の解釈を修正しました。実際のAI回答を用いた精度評価は確認待ちです。"]
 ]};
 const bugTextKey=t=>String(t||"").normalize("NFKC").replace(/\s+/g,"");
+const AI_RELEASE_184={version:"184",at:Date.UTC(2026,8,28,10),fixes:[
+  ["mul0h45lgni00","相手からの共有通知機能追加して","各画面の上部に共有通知の入口と未読件数を追加しました。ホームの通知から予定を開け、確認済みの履歴も見返せます。保存失敗時は未読を保持します。アプリ内通知の実装・模擬送受信テスト済み。閉じたアプリへのプッシュ通知は含みません。"],
+  ["mul0e5qfyv6bz","AI音声入力をしやすくしたい、見やすくわかりやすくかつ、音声入力精度や使い勝手もよくしたい","音声を複数行の入力欄へ反映し、確認・修正してから送れるようにしました。続けて話す、聞き取り終了、取消、エラー時の入力保持に対応。模擬音声で操作・再開・失敗を検証済みです。認識エンジンはブラウザーのものを使うため、実機の認識精度は未評価です。"],
+  ["mui9ttojgsbad","不具合の報告をClaudeが直接見に行けるようにして","ログイン済みアプリの「設定 → データ・アカウント・ヘルプ → 不具合の報告」から開発AIが保存済み要望と対応内容を読めます。今回、この経路で本番の6件を取得しました。ブラウザー連携がないAIへは全件書き出しを渡せます。Claude側にもブラウザー連携・ログインが必要です。無人巡回や自動デプロイは行いません。"]
+],pending:[
+  ["mukqxe1iznaxc","共有・通知の送信処理と確認履歴を実装し、架空データで送信→受信者切替→確認済み→履歴を検証しました。予定を開く際に日付が今日へ戻る不具合も修正しました。別の実端末での受信確認と、アプリ終了中のプッシュ通知は未対応です。"],
+  ["mujd3btg9uap6","写真の読み取り結果を現在の食材に追加する方式に改善しました。既存の食材を消さず、確認して保存できます。読み取り・保存失敗・主菜／副菜／汁物の記録を模擬テスト済み。実写真での認識精度は確認待ちです。"],
+  ["muids9ok6vmiy","登録アーティストだけに候補を制限し、音楽検索でも同名の別アーティスト・カバーを除外するよう修正しました。好みの変更でも再選曲します。日時・季節・天気の条件と候補の除外をテスト済み。実際のAI選曲品質は確認待ちです。"]
+]};
+function bugRelease184(b){if(Number(APP_VERSION)<184||b.reopenedAt||['fixed','rejected'].includes(b.status)||!Number(b.ver)||Number(b.ver)>183)return b;const fix=AI_RELEASE_184.fixes.find(([id,text])=>b.id===id&&bugTextKey(text)===bugTextKey(b.text));if(fix)return {...b,status:"fixed",resolvedBy:"ai",fixedVersion:"184",fixedAt:AI_RELEASE_184.at,fixNote:fix[2],releaseLinked:true,releaseNote:undefined};const pending=AI_RELEASE_184.pending.find(([id])=>id===b.id);return pending?{...b,releaseNote:pending[1]}:b;}
 function bugDisplay(b){
+  b=bugRelease184(b);
   if(Number(APP_VERSION)<Number(AI_RELEASE.version)||!Number(b.ver)||Number(b.ver)>AI_RELEASE.throughVersion||b.reopenedAt||!['new',undefined,null,''].includes(b.status))return b;
   const key=bugTextKey(b.text),fix=AI_RELEASE.fixes.find(([t])=>bugTextKey(t)===key);
   if(fix)return {...b,status:"fixed",resolvedBy:"ai",fixedVersion:AI_RELEASE.version,fixedAt:AI_RELEASE.at,fixNote:fix[1],releaseLinked:true};
@@ -3608,6 +3627,7 @@ function applyTabOrder(){ const L=tabOrder(), key=L.join(","); LAYER_TABS.us.spl
 function renderChrome(){ applyTabOrder();
   const v=state.view, n=counts();
   $("appTitle").textContent=prefs.appName||"ふたりのリスト";
+  {const b=$("shareNotice"),n=shareUnread().length;b.textContent=n?`共有 ${n}`:"共有";b.classList.toggle("unread",n>0);b.setAttribute("aria-label",`相手からの共有通知 ${n}件未読`);}
   { const off=$("offline"); if(state.guest){ off.textContent="このアカウントは登録されていません（設定 › ふたりの名前 を確認）"; off.hidden=false; } else if(state.needCode){ off.innerHTML=`合言葉の確認が必要です。<button class="link" data-act="openBind">入力する</button>`; off.hidden=false; } else if(state.connIssue){ off.textContent=state.connIssue; off.hidden=false; } }
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
@@ -3665,6 +3685,7 @@ function render(anim){
 }
 let editFocused=false;
 function go(v,anim){
+  if(state.aiListening&&v!==state.view){try{aiRec?.stop();}catch(e){}}
   if(v==="check"){ v="home"; setTimeout(()=>{ const el=document.querySelector(".tdo-card"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },120); } /* v173: 未確認はホームの「今日やること」に統合 */
   state.homeEdit=false; if(VIEW_ALIAS[v]) v=VIEW_ALIAS[v]; if(v==="pwish"){ state.fut="_mine"; v="future"; }
   if(v==="cal"||v==="psched"){ const t=today(), d=parse(t); state.sel=t; state.calMonth=new Date(d.getFullYear(),d.getMonth(),1); } /* タブを押したら今日へ */
@@ -3820,6 +3841,8 @@ function sendReply(){
 /* ================= clicks ================= */
 let suppressClick=false;
 $("main").addEventListener("click",e=>{
+  const talkCalDay=e.target.closest("[data-talk-cal-date]");if(talkCalDay){talkCalendarMove(talkCalDay.dataset.talkCalDate);return;}
+  const talkCalMonth=e.target.closest("[data-talk-cal-month]");if(talkCalMonth){talkCalendarMove(null,Number(talkCalMonth.dataset.talkCalMonth));return;}
   if(suppressClick){suppressClick=false;return;}
   const sg=e.target.closest("[data-seg] [data-sv]");
   if(sg){ const name=sg.closest("[data-seg]").dataset.seg, v=sg.dataset.sv;
@@ -3906,7 +3929,8 @@ $("main").addEventListener("click",e=>{
     else bugSetStatus(id,status==="saveFixed"?"fixed":status,status==="saveFixed"?($("bugFixNote")||{}).value:undefined);
     return; }
   const shareScheduleButton=e.target.closest("[data-schedule-share]");if(shareScheduleButton){if(state.shareBusy)return;const [c,id]=shareScheduleButton.dataset.scheduleShare.split("|");state.shareSchedule={c,id,date:shareScheduleButton.dataset.shareDate};state.sharePendingId=null;render();return;}
-  const shareOpenButton=e.target.closest("[data-share-open]"); if(shareOpenButton){const x=state.events.find(x=>x.id===shareOpenButton.dataset.shareOpen);if(x){state.sel=x.date;const p=parse(x.date);state.calMonth=new Date(p.getFullYear(),p.getMonth(),1);go("cal");}return;}
+  const shareHistory=e.target.closest("[data-share-history]");if(shareHistory)state.shareHistoryOpen=!shareHistory.closest("details").open;
+  const shareOpenButton=e.target.closest("[data-share-open]"); if(shareOpenButton){const x=state.events.find(x=>x.id===shareOpenButton.dataset.shareOpen);if(x){go("cal");state.sel=x.date;const p=parse(x.date);state.calMonth=new Date(p.getFullYear(),p.getMonth(),1);render();}return;}
   const shareSeenButton=e.target.closest("[data-share-seen]"); if(shareSeenButton){shareSeen(shareSeenButton.dataset.shareSeen);return;}
   const pk=e.target.closest("[data-ppk]"); if(pk&&state.prep&&state.prep.items){ state.prep.items[+pk.dataset.ppk].on=pk.checked; const bt=document.querySelector('[data-act="prepAdd"]'); if(bt) bt.textContent=`やることに追加（${state.prep.items.filter(i=>i.on).length}件）`; return; }
   const qk=e.target.closest("[data-qk]"); if(qk&&state.quick&&state.quick.r){ const r=state.quick.r; r.text=(($("qText")||{}).value||r.text); r.date=($("qDate")||{}).value||""; r.time=($("qTime")||{}).value||""; r.kind=qk.dataset.qk; render(); return; }
@@ -4125,7 +4149,9 @@ $("main").addEventListener("click",e=>{
     if(!canDelete(o.c,o.x)){ toast("この予定は削除できません"); render(); return; }
     removeWithUndo(o.c,[o.x.id],"削除しました"); render(); }
   else if(a==="ttmv"||a==="ttln"){ const o=ttSelEntry(state.sel); if(!o) return; const d=Number(b.dataset.d); if(a==="ttmv") ttApply(o,o.s+d,o.e+d); else ttApply(o,o.s,o.e+d,`長さを${Math.max(15,o.e+d-o.s)}分に`); }
+  else if(a==="shareInbox"){state.shareInboxOpen=true;go("home");requestAnimationFrame(() => $("shareInbox")?.scrollIntoView({block:"start",behavior:"smooth"}));}
   else if(a==="aiMic") aiMic();
+  else if(a==="aiVoiceCancel") aiVoiceCancel();
   else if(a==="aiAsk"){ aiAsk(($("aiIn")||{}).value); }
   else if(a==="refAi") refAiRun();
   else if(a==="tabOrderReset"){ prefs.tabOrder=""; savePrefs(); renderChrome(); }
@@ -4149,6 +4175,7 @@ $("main").addEventListener("click",e=>{
 });
 $("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
 $("main").addEventListener("input",e=>{
+  if(e.target.id==="aiIn"){state.ai.q=e.target.value.slice(0,2000);return;}
   if(e.target.id==="fridgeEdit"){ state.fridgeDraft=e.target.value; return; }
   if(e.target.id==="talkNotes"){ $("talkSave").textContent="入力中…"; clearTimeout(talkTimer); talkTimer=setTimeout(saveTalkNotes,900); return; }
   if(e.target.id==="thxIn"||e.target.id==="dinIn"){ $("xSave").textContent="入力中…"; clearTimeout(xTimer); xTimer=setTimeout(()=>{ xTimer=null; saveThanks(); saveDinner(); },900); return; }
@@ -4167,7 +4194,7 @@ $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.cgin){ e.preventDefault(); if(e.target.classList.contains("cgin")) e.target.blur(); else { const b=document.querySelector(`[data-cgsave="${e.target.dataset.cgin}"]`); b&&b.click(); } return; }
   if(e.key==="Enter"&&e.target.id==="aiMemEd"&&!e.isComposing){ e.preventDefault(); aiMemUpd(state.aiMemEdit,e.target.value,state.aiMemEsc); state.aiMemEdit=null; render(); return; }
   if(e.key==="Enter"&&e.target.id==="aiMemIn"&&!e.isComposing){ e.preventDefault(); if(aiMemAdd(e.target.value,state.aiMemSc==="me"?"me":"both")){ state.aiMemOpen=true; haptic("done"); render(); } return; }
-  if(e.key==="Enter"&&e.target.id==="aiIn"&&!e.isComposing){ e.preventDefault(); aiAsk(e.target.value); return; }
+  if(e.key==="Enter"&&e.target.id==="aiIn"&&(e.ctrlKey||e.metaKey)&&!e.isComposing&&!state.aiListening){ e.preventDefault(); aiAsk(e.target.value); return; }
   if(e.key==="Enter"&&e.target.id==="chNew"){ e.preventDefault(); choreAdd(e.target.value,($("chNewE")||{}).value); e.target.value=""; return; }
   if(e.key==="Enter"&&e.target.id==="replyText"){e.preventDefault();sendReply();return;}
   if(e.key==="Enter"&&e.target.id==="ckText"){e.preventDefault();checkOp("ckadd");return;}
@@ -4184,6 +4211,7 @@ $("dphIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.len
 $("rcptIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) rcptOpen(fs); });
 $("fridgeIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) fridgeRead(fs); e.target.value=""; });
 $("rhome").onclick=()=>{ if(railDrag.moved) return; go("home"); };
+$("shareNotice").addEventListener("click",()=>{state.shareInboxOpen=true;go("home");requestAnimationFrame(() => $("shareInbox")?.scrollIntoView({block:"start",behavior:"smooth"}));});
 $("lsw").addEventListener("click",e=>{ const b=e.target.closest("[data-layer]"); if(b) switchLayer(b.dataset.layer); });
 $("appTitle").style.cursor="pointer"; $("appTitle").onclick=()=>go("home"); $("title").onclick=()=>{ if(state.view!=="home") go("home"); };
 $("offline").addEventListener("click",e=>{ if(e.target.closest("[data-act=openBind]")) go("settings"); });
@@ -4222,7 +4250,7 @@ function dayExtrasHTML(d){
       <div class="rf"><label for="thxIn">${esc(nameOf(ot))}へのありがとう</label><textarea id="thxIn" rows="2" maxlength="300" placeholder="例：朝ごはんを作ってくれてありがとう">${esc(mine?mine.text:"")}</textarea></div>
       <div class="rf"><label>${esc(nameOf(ot))}からのありがとう</label><div id="thxGot" class="thx-got">${thxGotHTML(d)}</div></div>
       <div class="rf"><label for="dinIn">夕飯（ふたりで共有）</label><input type="text" id="dinIn" maxlength="80" placeholder="主菜（例：豚の生姜焼き）" value="${esc(dn?(dn.main||(!dn.side&&!dn.soup?dn.text:"")||""):"")}"><input class="dinExtra" type="text" id="dinSide" maxlength="80" placeholder="副菜（例：ほうれん草のおひたし）" value="${esc(dn?dn.side||"":"")}"><input class="dinExtra" type="text" id="dinSoup" maxlength="80" placeholder="汁物（例：玉ねぎの味噌汁）" value="${esc(dn?dn.soup||"":"")}">${dn&&dinnerText(dn)?`<div class="who" id="dinBy">${esc(nameOf(authorRole(dn)))}が記入</div>`:'<div class="who" id="dinBy"></div>'}</div>
-      <div class="rf"><label for="fridgeEdit">冷蔵庫から献立を考える</label><div class="edit-row"><button class="btn" data-act="fridgePick" ${state.fridgeBusy?"disabled":""}>冷蔵庫の写真を読み取る</button>${fridgeItems().length?'<button class="btn primary" data-act="fridgeSuggest">主菜・副菜・汁物を提案</button>':""}</div><p class="who">写真は設定済みAIへ送信します（最大3枚）。読み取り結果を確認して保存してください。保存した食材はふたりで共有されます。</p><textarea id="fridgeEdit" rows="3" maxlength="2000" placeholder="卵、にんじん、豆腐（読点か改行で区切る）">${esc(state.fridgeDraft??fridgeItems().join("、"))}</textarea><button class="btn" data-act="fridgeSave">食材を保存・更新</button><div class="who">${((state.kakei||{}).fridge||{}).at?`最終確認：${esc(new Date(state.kakei.fridge.at).toLocaleString("ja-JP"))}。使用後は食材を更新してください。`:"写真なしでも食材を直接入力できます"}</div></div>
+      <div class="rf"><label for="fridgeEdit">冷蔵庫から献立を考える</label><div class="edit-row"><button class="btn" data-act="fridgePick" ${state.fridgeBusy?"disabled":""}>冷蔵庫の写真を読み取る</button>${fridgeItems().length?'<button class="btn primary" data-act="fridgeSuggest">主菜・副菜・汁物を提案</button>':""}</div><p class="who">写真は設定済みAIへ送信します（最大3枚）。読み取った食材は現在の入力に追加します。使い終わった食材を消し、確認して保存してください。保存した食材はふたりで共有されます。</p><textarea id="fridgeEdit" rows="3" maxlength="2000" placeholder="卵、にんじん、豆腐（読点か改行で区切る）">${esc(state.fridgeDraft??fridgeItems().join("、"))}</textarea><button class="btn" data-act="fridgeSave">食材を保存・更新</button><div class="who">${((state.kakei||{}).fridge||{}).at?`最終確認：${esc(new Date(state.kakei.fridge.at).toLocaleString("ja-JP"))}。使用後は食材を更新してください。`:"写真なしでも食材を直接入力できます"}</div></div>
       <div class="paper-foot"><span id="xSave">入力すると自動で保存されます</span></div></div>`;
 }
 function thxGotHTML(d){ const g=thanksOf(d,otherRole()); return g&&g.text?esc(g.text):'<span class="who">まだありません</span>'; }
@@ -4261,7 +4289,7 @@ async function fridgeRead(files){
   try{ const results=[]; for(let i=0;i<fs.length;i++){ toast(`冷蔵庫を読み取り中（${i+1}/${fs.length}枚）`); results.push(await state.sample.json(`冷蔵庫・冷凍庫・食品棚の写真です。写っている食材を日本語の一般名でまとめ、JSONだけを返してください。数量、消費期限、鮮度、安全性は推測しないでください。重複はまとめます。\n{"items":["食材名"]}`,{images:fs[i],modelTier:"quick"})); }
     const items=[...new Set(results.flatMap(d=>Array.isArray(d&&d.items)?d.items:[]).filter(x=>typeof x==="string").map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60);
     if(!items.length){ toast("食材を読み取れませんでした"); return; }
-    state.fridgeDraft=items.join("、"); haptic("done"); toast(`${items.length}品を読み取りました。内容を確認して保存してください`); render();
+    const existing=String(state.fridgeDraft??fridgeItems().join("、")).split(/[、,\n]+/).map(x=>x.trim()).filter(Boolean);state.fridgeDraft=[...new Set([...existing,...items])].slice(0,60).join("、"); haptic("done"); toast(`${items.length}品を読み取りました。内容を確認して保存してください`); render();
   }catch(e){ toast("冷蔵庫の写真を読み取れませんでした"); }
   finally{ state.fridgeBusy=false; if(state.view==="diary") render(); }
 }
@@ -5380,19 +5408,25 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     else { toast("この操作はまだできません"); return; }
   }catch(err){ toast("実行できませんでした："+(err.message||"入力内容を確認してください")); return; }
   x.ok=true; aiLogSave(); haptic("done"); if(x.type!=="done"&&x.type!=="delete") toast(`${aiActText(x)} を実行しました`,undo,"done"); render(); }
-/* v175: AIに声で話しかける（音声認識。使えない画面ではキーボードのマイクを案内） */
+/* Voice is a draft: recognition never sends a question automatically. */
 let aiRec=null;
-function aiMicUI(){ document.querySelectorAll(".ai-mic").forEach(b=>b.classList.toggle("on",!!state.aiListening)); if(state.view==="home"||state.view==="talk") render(); }
-function aiMic(){ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(state.aiListening&&aiRec){ try{ aiRec.stop(); }catch(e){} return; }
-  if(!SR){ const i=$("aiIn"); if(i) i.focus(); toast("この画面では音声認識が使えません。キーボードのマイク🎤を押して話すと入力できます"); return; }
-  let fin="", R; try{ R=new SR(); }catch(e){ toast("音声認識を始められませんでした"); return; } aiRec=R;
-  R.lang="ja-JP"; R.interimResults=true; R.continuous=false; R.maxAlternatives=1;
-  R.onresult=e=>{ let tmp=""; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fin+=t; else tmp+=t; } const v=fin+tmp; state.ai.q=v; const el=$("aiIn"); if(el) el.value=v; };
-  R.onerror=e=>{ const c=e&&e.error; if(c==="not-allowed"||c==="service-not-allowed") toast("マイクが許可されていません。iPhoneの設定で許可するか、キーボードのマイク🎤で話してください"); else if(c==="no-speech") toast("声が聞こえませんでした"); else if(c!=="aborted") toast("うまく聞き取れませんでした（"+(c||"不明")+"）"); };
-  R.onend=()=>{ state.aiListening=false; aiRec=null; const v=fin.trim(); if(v){ haptic("done"); aiAsk(v); } else aiMicUI(); };
-  try{ R.start(); state.aiListening=true; haptic("arm"); aiMicUI(); }catch(e){ toast("音声認識を始められませんでした"); } }
-async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy) return; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
+function aiMicUI(){ if(state.view==="home"||state.view==="talk")render(); }
+function aiVoiceText(results){let final="",interim="";for(let i=0;i<results.length;i++){const r=results[i],t=String(r[0]?.transcript||"");if(r.isFinal)final+=t;else interim+=t;}return {final,interim};}
+function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean).join("\n").slice(0,2000);}
+function aiVoiceCancel(){const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
+function aiMic(){if(state.ai.busy)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(state.aiListening&&aiRec){state.aiVoiceStatus="聞き取りを終了しています…";try{aiRec.stop();}catch(e){aiRec=null;state.aiListening=false;}aiMicUI();return;}
+  if(!SR){state.aiVoiceStatus="このブラウザーでは直接の音声認識が使えません。入力欄をタップし、キーボードのマイクで入力してください。";aiMicUI();$("aiIn")?.focus();return;}
+  const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000);state.ai.q=base;state.aiVoiceBase=base;
+  let R,failed=false;try{R=new SR();}catch(e){state.aiVoiceStatus="音声認識を開始できません。キーボードのマイクも使えます。";aiMicUI();return;}aiRec=R;
+  R.lang="ja-JP";R.interimResults=true;R.continuous=true;R.maxAlternatives=1;
+  R.onresult=e=>{if(aiRec!==R)return;const text=aiVoiceText(e.results);state.ai.q=aiVoiceDraft(base,text.final+text.interim);const el=$("aiIn");if(el)el.value=state.ai.q;};
+  R.onerror=e=>{if(aiRec!==R)return;failed=true;const c=e?.error;state.aiVoiceStatus=c==="not-allowed"||c==="service-not-allowed"?"マイクを使えません。ブラウザーのマイク設定を確認するか、キーボードのマイクで入力してください。":c==="no-speech"?"声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。":c==="network"?"音声認識に接続できません。入力は残しています。通信を確認して再開してください。":"聞き取りが中断しました。入力を確認して、必要なら再開してください。";};
+  R.onend=()=>{if(aiRec!==R)return;aiRec=null;state.aiListening=false;if(!failed)state.aiVoiceStatus=state.ai.q!==base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して「送る」を押してください。":"聞き取りを終了しました。もう一度話すことができます。";haptic("done");aiMicUI();};
+  try{state.aiListening=true;state.aiVoiceStatus="聞き取り中です。話し終わったら「聞き取りを終了」を押してください。";R.start();haptic("arm");aiMicUI();}catch(e){aiRec=null;state.aiListening=false;state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。";aiMicUI();}
+}
+function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening;return `<div class="ai-compose"><label class="who" for="aiIn">AIへの相談・音声入力の確認</label><textarea id="aiIn" rows="3" maxlength="2000" enterkeyhint="enter" aria-describedby="aiVoiceStatus" placeholder="${talk?"例：今日の議題の順番は？":"例：明日の19時に、自分だけの予定で買い物を追加して"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><div class="ai-voicebar"><button class="btn ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>${listening?"聞き取りを終了":A.q?"続けて話す":"声で入力"}</button>${listening?'<button class="btn" data-act="aiVoiceCancel">取消</button>':""}<button class="btn primary" data-act="aiAsk" ${A.busy||listening?"disabled":""} aria-label="送る">送る</button></div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite">${esc(state.aiVoiceStatus||"声で入力 → 文字を確認・修正 → 送る。自動では送信しません。")}</p><details class="ai-mem"><summary>聞き取りのコツ</summary><p class="who">「明日・19時・自分だけ・買い物」のように、日付、時刻、だれの予定かを区切って話してください。認識結果は送信前に直せます。音声認識はブラウザーのサービスを使います。</p></details></div>`;}
+async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy||state.aiListening) return;state.aiVoiceStatus=""; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
   A.busy=true; A.q=""; A.lastQ=q; A.log.push({q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief}); if(A.log.length>6) A.log.shift(); render();
   const hist=A.log.slice(0,-1).filter(x=>x.a).slice(-3).map(x=>`Q：${String(x.q).slice(0,300)}\nA：${String(x.a.reply).slice(0,600)}`).join("\n\n");
   const prompt=`あなたは夫婦「${nameOf("h")}」と「${nameOf("w")}」の生活を手伝うアシスタントです。下の「いまの状況」をふまえて、質問に日本語でやさしく具体的に答えてください。
@@ -5507,7 +5541,7 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
   return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>${talk?"AIと話し合いの準備":"AIに相談"}</b><span class="who">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span>${A.log.length?`<button class="link" data-act="aiClear">クリア</button>`:""}</div>
     ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 時間を過ぎて終わっていない予定 ${od.length}件（${od.slice(0,2).map(o=>esc(o.t.slice(0,10))).join("・")}${od.length>2?"…":""}）</span><b>残りを組み直す</b></button>`:""}
     ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy"><span class="spin"></span>${x.brief?"今日の予定を組んでいます…":"考え中…"}</div>`}`).join("")}
-    <div class="ai-in"><input type="text" id="aiIn" maxlength="200" enterkeyhint="send" placeholder="${talk?"例：今日の議題の順番は？":"例：お昼なにがいい？"}" value="${esc(A.q||"")}" ${A.busy?"disabled":""}><button class="icon-btn ai-mic ${state.aiListening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-label="${state.aiListening?"聞き取りを止める":"声で話す"}"><svg viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></button><button class="btn primary" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る">送る</button></div>${state.aiListening?`<div class="ai-lis"><span class="ai-wave"><i></i><i></i><i></i><i></i></span>聞いています…話し終わると自動で送ります（もう一度🎤で止める）</div>`:""}
+    ${aiComposerHTML(talk)}
     <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${retry?"↻ もう一度："+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>
     <button class="link ai-prof" data-go2="aiprof">👤 基本情報を設定（${Object.keys(aiProfMe()).length}/${AIP_FIELDS.length}）</button>
     <details class="ai-mem" ${state.aiMemOpen?"open":""}><summary>🧠 AIが覚えていること（${mb.length+mp.length}）</summary>
@@ -6488,7 +6522,7 @@ const musicTaste=r=>(((state.kakei||{}).music||{})[r]||"").trim();
 const musicKey=s=>String(s||"").normalize("NFKC").toLowerCase().replace(/[\s・、,\/／\-]/g,"");
 const musicArtists=()=>[...new Set([musicTaste("h"),musicTaste("w")].flatMap(t=>t.split(/[、,，\n\/／]+/)).map(musicKey).filter(Boolean))];
 const songAllowed=o=>!!o&&!!musicKey(o.artist)&&musicArtists().includes(musicKey(o.artist));
-const songContext=d=>{ const w=wxToday(); return `${d}:${Math.floor(new Date().getHours()/6)}:${w?wxKind(w.code,1):"unknown"}`; };
+const songContext=d=>{ const w=wxToday(); return `${d}:${Math.floor(new Date().getHours()/6)}:${w?wxKind(w.code,1):"unknown"}:${musicArtists().sort().join("|")}`; };
 const SVC={apple:["Apple Music",q=>`https://music.apple.com/jp/search?term=${encodeURIComponent(q)}`],spotify:["Spotify",q=>`https://open.spotify.com/search/${encodeURIComponent(q)}`],youtube:["YouTube Music",q=>`https://music.youtube.com/search?q=${encodeURIComponent(q)}`]};
 /* v162: 候補をまとめて選び、Apple Musicの試聴も先に取っておく（押したらすぐ鳴る・別の曲もすぐ） */
 function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), T=typeof wxToday==="function"?wxToday():null, off=offState(d)==="both";
@@ -6527,7 +6561,7 @@ function itunesJsonp(term){ return new Promise((ok,ng)=>{ const cb="__it"+Date.n
   window[cb]=j=>fin(j||{}); sc.onerror=()=>fin(new Error("net")); const tm=setTimeout(()=>fin(new Error("timeout")),6000);
   sc.src=`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=JP&entity=song&limit=10&lang=ja_jp&callback=${cb}`; document.head.appendChild(sc); }); }
 async function songFind(title,artist){ const j=await itunesJsonp(`${title} ${artist}`), R=(j.results||[]); const nz=v=>String(v||"").toLowerCase().normalize("NFKC").replace(/[\s・\-‐（）()「」'’!！?？.,、。]/g,"");
-  const best=R.find(o=>nz(o.trackName).includes(nz(title))&&(nz(o.artistName).includes(nz(artist))||nz(artist).includes(nz(o.artistName))))||null; if(!best) return null;
+  const best=R.find(o=>nz(o.trackName).includes(nz(title))&&musicKey(o.artistName)===musicKey(artist))||null; if(!best) return null;
   return {url:best.trackViewUrl||null,preview:best.previewUrl||null,art:(best.artworkUrl100||"").replace("100x100","200x200")||null}; }
 async function songLookup(d){ const x=songOf(d); if(!x||!x.title||x.url||state.songLk===d+x.title) return; state.songLk=d+x.title;
   try{ const m=await songFind(x.title,x.artist); const cur=songOf(d); if(!m||!cur||cur.title!==x.title) return; Object.assign(cur,m); dupd("music",d,m); songPreload(); if(state.songPlayNext&&m.preview){ state.songPlayNext=false; songToggle(); } else songRender(); }catch(e){} }
@@ -7196,7 +7230,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
+  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",shareArrived); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
