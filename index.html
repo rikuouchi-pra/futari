@@ -1642,7 +1642,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="182";
+const APP_VERSION="183";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2381,17 +2381,21 @@ function toggleHabit(id,date,cycle){
 }
 const HFOL=["today","soon","over"];
 function hFollow(h){ const t=today();if(t<hSince(h))return false;if(tgtCode(h)==="7") return !habitLog(h)[t]&&!hMiss(h,t); const D=habitDue(h); return !!D&&HFOL.includes(D.status); }
-/* v126: 毎日以外の習慣は「繰り返しのタスク」として やること に表示（頻度の設定はそのまま） */
+/* v183: 種類で習慣とタスクを分離。旧データは習慣として保持し、編集で分類できる。 */
 const hDaily=h=>tgtCode(h)==="7";
 const isRecItem=x=>!!x&&x.list==="rtask";
 const recColl=h=>isRecItem(h)?"items":"habits";
-const recTasks=()=>[...state.habits.filter(h=>!hDaily(h)),...state.items.filter(isRecItem)];
+const isHabit=h=>!!h&&!isRecItem(h)&&h.entryKind!=="task";
+const habitItems=()=>state.habits.filter(isHabit);
+const privateRecTasks=()=>state.habits.filter(h=>h.entryKind==="task");
+const recTasks=()=>[...privateRecTasks(),...state.items.filter(isRecItem)];
+const ttRecurrences=()=>[...habitItems().filter(h=>h.showInTimetable!==false),...recMine()];
 const recMine=()=>recTasks().filter(h=>!isRecItem(h)||forMe(h));
 const recFind=id=>state.habits.find(x=>x.id===id)||state.items.find(x=>x.id===id&&isRecItem(x));
 const recOn=(h,d)=>{ const t=today(); if(habitLog(h)[d]||hMiss(h,d)) return true; if(hSch(h)) return d>=hSince(h)&&hOn(h,d); return d===t&&hFollow(h); };
 const recToday=h=>{ const t=today(); if(habitLog(h)[t]||hMiss(h,t)) return true; return hFollow(h); };
-function hTodayList(){ const t=today(); return state.habits.filter(h=>{if(t<hSince(h))return false;if(tgtCode(h)==="7"||hOn(h,t)) return true; const D=habitDue(h); return !!D&&(HFOL.includes(D.status)||D.status==="skip"||(D.status==="done"&&!!habitLog(h)[t])); }); }
-function hUpcoming(days){ const t=today(), out=[]; for(const h of state.habits){ if(!hSch(h)) continue; const nx=hNextOn(h,addDays(t,1)); if(nx&&dDiff(nx,t)<=days) out.push({h,d:nx}); } return out.sort((a,b)=>a.d<b.d?-1:1); }
+function hTodayList(){ const t=today(); return habitItems().filter(h=>{if(t<hSince(h))return false;if(tgtCode(h)==="7"||hOn(h,t)) return true; const D=habitDue(h); return !!D&&(HFOL.includes(D.status)||D.status==="skip"||(D.status==="done"&&!!habitLog(h)[t])); }); }
+function hUpcoming(days){ const t=today(), out=[]; for(const h of habitItems()){ if(!hSch(h)) continue; const nx=hNextOn(h,addDays(t,1)); if(nx&&dDiff(nx,t)<=days) out.push({h,d:nx}); } return out.sort((a,b)=>a.d<b.d?-1:1); }
 function hTodayHTML(compact){
   const t=today(), T=hTodayList(), dn=T.filter(x=>habitLog(x)[t]).length, ms=T.filter(x=>hMiss(x,t)).length, rest=T.length-dn-ms, up=[];
   const sub=h=>{ const D=habitDue(h); return tgtCode(h)==="7"?"毎日":D&&D.kind==="day"?tgtLabel(h):D&&D.kind==="iv"?(D.status==="over"?`${-D.left}日超過`:"今日が目安の日"):D&&D.P?`${D.P.cur}の最終日（${D.done}/${D.need}）`:tgtLabel(h); };
@@ -2413,7 +2417,7 @@ function habitStats(h){
 const TARGETS=[["7","毎日"],["wd","曜日で"],["mo","○か月ごと"],["iv","○日ごと"],["mn","毎月 第○曜"],["5","週5"],["3","週3"],["1","週1"],["2w","2週に1"],["m","月1"],["2m","2か月に1"],["3m","3か月に1"],["6m","半年に1"],["y","年1"]];
 /* v141: 選択肢（古い「2か月に1」などは使用中のときだけ表示） */
 /* v178: 習慣・繰り返しとも、用意している頻度を省略せず選べる */
-const tgtOpts=(rec,cur)=>TARGETS.filter(x=>!(rec&&x[0]==="7")).map(x=>[x[0],x[1]]);
+const tgtOpts=(rec,cur)=>TARGETS.map(x=>[x[0],x[1]]);
 const tgtCode=h=>String(h.target??7);
 const PER_WEEK={"2w":.5,m:7/30.44,"2m":7/60.9,"3m":7/91.3,"6m":7/182.6,y:7/365};
 const weekGoal=h=>{ const c=tgtCode(h); if(c==="wd") return (Array.isArray(h.wd)&&h.wd.length)||1; if(c==="mn") return ((Array.isArray(h.wd)&&h.wd.length)||1)*((Array.isArray(h.nth)&&h.nth.length)||1)*7/30.44; return c==="mo"?7/(30.44*moN(h)):c==="iv"?7/(Number(h.every)||30):PER_WEEK[c]||Number(c)||7; };
@@ -2519,14 +2523,16 @@ function moPick(id,n,st,show,cls){ return `<div class="edit-row" id="${id}Row" $
 const moRead=id=>{ const n=$(id+"N"), d=$(id+"S"); return {mEvery:Math.max(1,Math.min(12,Number(n&&n.value)||1)),mStart:(d&&d.value)||today()}; };
 const wdRead=id=>[...document.querySelectorAll(`#${id} [data-wdt][aria-pressed="true"]`)].map(b=>Number(b.dataset.wdt));
 /* v143: 時間に入れたものは時刻を表示 */
-const ttTag=x=>{ const d=state.view==="cal"?state.sel:today(), a=timeAt(x,d); if(!a) return ""; const e=hhmm(Math.min(tmin(a)+(Number(durAt(x,d))||30),1439)); return `<span class="tag ttime">${a}–${e}</span>`; };
+const ttTag=x=>{ if(isHabit(x)&&x.showInTimetable===false)return ""; const d=state.view==="cal"?state.sel:today(), a=timeAt(x,d); if(!a) return ""; const e=hhmm(Math.min(tmin(a)+(Number(durAt(x,d))||30),1439)); return `<span class="tag ttime">${a}–${e}</span>`; };
 function habitRow(h){
-  const L=habitLog(h), t=today(), st=habitStats(h), C=recColl(h), REC=!hDaily(h), rtag=REC?(C==="items"?whoTag(h):`<span class="tag tc-muted">${LKI}${esc(nameOf(myRole()))}だけ</span>`):"";
+  const L=habitLog(h), t=today(), st=habitStats(h), C=recColl(h), REC=!isHabit(h), rtag=REC?(C==="items"?whoTag(h):`<span class="tag tc-muted">${LKI}${esc(nameOf(myRole()))}だけ</span>`):"";
   if(isEditing(C,h.id)) return `<li class="item" data-c="${C}" data-id="${esc(h.id)}"><div class="edit">
-      <input type="text" id="editText" value="${esc(h.text)}" maxlength="60" aria-label="習慣">
+      <input type="text" id="editText" value="${esc(h.text)}" maxlength="60" aria-label="${REC?"やること":"習慣"}">
+      ${C==="habits"?`<div class="edit-row"><span class="who">表示先</span>${seg("hkind",isHabit(h)?"habit":"task",[["habit","習慣"],["task","やること"]])}</div>`:""}
       ${REC?`<div class="edit-row"><span class="who">だれが</span>${seg("ewho",C==="items"?getWho(h):"priv",[...WHO_OPTS(),["priv",LKI+"じぶん"]])}</div>`:""}<div class="edit-row"><span class="who">頻度</span>${seg("htarget",tgtCode(h),tgtOpts(C==="items",tgtCode(h)))}</div>
       ${wdPick("hWd",hWd(h),tgtCode(h)==="wd"||tgtCode(h)==="mn","who")}${moPick("hMo",h.mEvery||3,moS(h),tgtCode(h)==="mo","who")}${nthPick("hNth",hNth(h),tgtCode(h)==="mn","who")}<div class="edit-row" id="hEveryRow" ${tgtCode(h)==="iv"?"":"hidden"}><span class="who">前回から</span><input type="number" id="hEvery" min="1" max="730" value="${esc(h.every||30)}" style="width:80px"><span class="who">日ごと（例：散髪30、フィルター60）</span></div>
-      <div class="edit-row"><span class="who">時間</span><input type="time" id="hTime" value="${esc(myT(h)||"")}" aria-label="開始"><span class="who">〜</span><input type="time" id="hEnd" value="${myT(h)?esc(hhmm(Math.min(tmin(myT(h))+(Number(myD(h))||30),1439))):""}" aria-label="終わり"><span class="who">入れるとタイムテーブルに毎回のる</span></div>
+      ${C==="habits"?`<label class="edit-row"><input type="checkbox" id="hTimetable" ${h.showInTimetable!==false?"checked":""}>習慣をタイムテーブルに表示</label><div class="who">オフにしても実施記録・設定した時刻は残ります。「やること」の場合は時刻で表示します。</div>`:""}
+      <div class="edit-row"><span class="who">時間</span><input type="time" id="hTime" value="${esc(myT(h)||"")}" aria-label="開始"><span class="who">〜</span><input type="time" id="hEnd" value="${myT(h)?esc(hhmm(Math.min(tmin(myT(h))+(Number(myD(h))||30),1439))):""}" aria-label="終わり"><span class="who">表示する場合の時刻（任意）</span></div>
       <div class="edit-row"><span class="who">実施日を記録</span><input type="date" id="hRecDate" value="${today()}" max="${today()}"><button type="button" class="btn" data-act="hrec">記録／取消</button></div>
       ${tgtCode(h)==="7"||tgtCode(h)==="5"||tgtCode(h)==="3"?habitCharts(h):hPerCharts(h)}${editActions(C,h)}</div></li>`;
   if(!["7","5","3"].includes(tgtCode(h))){ const D=habitDue(h), S2=hPerStats(h), cells=hCells(h,7).filter(x=>x.cls!=="before");
@@ -2554,11 +2560,10 @@ document.addEventListener("click",e=>{
 },true);
 const HABIT_TPL=["早起き","運動30分","読書","ストレッチ","英語の勉強","資格の勉強","水を2L飲む","22時以降スマホを見ない"];
 function viewHabit(){
-  const t=today(), recN=recTasks().length, hs=state.habits.slice().sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
+  const t=today(), hs=habitItems().slice().sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
   let h=hs.length?hTodayHTML(false):"";
   const have=new Set(hs.map(x=>x.text)), tpl=HABIT_TPL.filter(x=>!have.has(x));
   h+=`<div class="section-label"><span>習慣（すべての頻度）</span></div>`;
-  if(recN) h+=`<button class="recnote" data-go2="task">繰り返しの項目は「やること」でも確認できます ›</button>`;
   h+=hs.length?`<ul class="list">${hs.map(habitRow).join("")}</ul>`:`<div class="empty">習慣にしたいことを追加しましょう<br>下の候補をタップ、または上から↓で追加</div>`;
   if(tpl.length) h+=`<div class="section-label">候補（タップで追加）</div><div class="chips">${tpl.slice(0,8).map(x=>`<button class="chip" data-htpl="${esc(x)}">＋ ${esc(x)}</button>`).join("")}</div>`;
   if(hs.length){
@@ -2649,7 +2654,7 @@ function timeChangeFor(c,x,d,time,dur,scope="day"){
 }
 function blockAt(b,d){ const o=dayTime(b,d); return o?{...b,start:o.time||"",end:o.time?hhmm((tmin(o.time)+(o.dur||60))%1440):"",allDay:!o.time}:b; }
 function ttInfo(o){ const x=o.x, privateItem=["blocks","habits","pitems"].includes(o.c), who=privateItem?myRole():o.c==="chores"?choreInfo(x).who:getWho(x);
-  const type=o.c==="chores"?"家事":o.c==="habits"?"習慣":isRecItem(x)?"繰り返しタスク":o.kind==="b"||o.kind==="e"?"予定":x.list==="shop"?"買い物":"タスク";
+  const type=o.c==="chores"?"家事":o.c==="habits"?(isHabit(x)?"習慣":"繰り返しタスク"):isRecItem(x)?"繰り返しタスク":o.kind==="b"||o.kind==="e"?"予定":x.list==="shop"?"買い物":"タスク";
   return {type,privateItem,who:who||myRole(),person:who==="both"?"ふたり":nameOf(who||myRole())};
 }
 function ttMeta(o){ const m=ttInfo(o); return `${m.type} · ${m.privateItem?"自分だけ":"共有"} · ${m.person}`; }
@@ -2664,7 +2669,7 @@ function dayEntries(date){
   for(const x of state.events) if(x.date===date&&x.start&&mine(x)){ const s0=tmin(x.start), e0=x.end?tmin(x.end):s0+60; out.push({kind:"e",c:"events",x,s:s0,e:e0<=s0?1440:e0,t:x.text,col:"cal"}); }
   for(const i of state.pitems) if(i.due===date&&i.time) out.push({kind:"i",c:"pitems",x:i,done:!!i.done,s:tmin(i.time),e:tmin(i.time)+(i.dur||30),t:i.text,col:i.list==="shop"?"shop":"task"});
   for(const c of state.chores||[]) if(timeAt(c,date)&&choreMine(c)&&choreOn(c,date)) out.push({kind:"i",c:"chores",x:c,done:!!(c.log||{})[date],s:tmin(timeAt(c,date)),e:tmin(timeAt(c,date))+(durAt(c,date)||30),t:c.text,col:"future"});
-  for(const h of [...state.habits.filter(hDaily),...recMine()]) if(date>=hSince(h)&&timeAt(h,date)&&(hDaily(h)||recOn(h,date))) out.push({kind:"i",c:recColl(h),x:h,done:!!habitLog(h)[date],s:tmin(timeAt(h,date)),e:tmin(timeAt(h,date))+(durAt(h,date)||30),t:h.text,col:"task"});
+  for(const h of ttRecurrences()) if(date>=hSince(h)&&timeAt(h,date)&&(hDaily(h)||recOn(h,date))) out.push({kind:"i",c:recColl(h),x:h,done:!!habitLog(h)[date],s:tmin(timeAt(h,date)),e:tmin(timeAt(h,date))+(durAt(h,date)||30),t:h.text,col:"task"});
   if(false) for(const g of (state.gEvents[date]||[])) if(!g.allDay) out.push({kind:"g",x:g,s:g.s,e:g.e,t:g.t,col:"muted"});
   out.sort((a,b)=>a.s-b.s||b.e-a.e);
   const lanes=[]; for(const o of out){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.lane=k; }
@@ -3182,7 +3187,7 @@ function viewList(list,c="items"){
     if(chips.length) h+=`<div class="section-label">よく買うもの（タップで追加）</div><div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}">＋ ${esc(c)}</button>`).join("")}</div>`;
   }
   const LB={task:["未完了","やることはありません","完了"],shop:["買うもの","買うものはありません","カゴに入れた"],wish:["やりたいこと","やりたいことはまだありません","叶った"]}[list];
-  if(list==="task"){ const t=today(), R=shared?[...((prefs.whoF==="all"||prefs.whoF===myRole())?state.habits.filter(h=>!hDaily(h)):[]),...byWho(state.items.filter(isRecItem))]:[], rT=R.filter(recToday), rO=R.filter(h=>!recToday(h));
+  if(list==="task"){ const t=today(), R=shared?[...((prefs.whoF==="all"||prefs.whoF===myRole())?privateRecTasks():[]),...byWho(state.items.filter(isRecItem))]:c==="pitems"?privateRecTasks():[], rT=R.filter(recToday), rO=R.filter(h=>!recToday(h));
     const oT=open.filter(i=>i.due&&i.due<=t), oL=open.filter(i=>!(i.due&&i.due<=t)), nT=oT.length+rT.filter(h=>!habitLog(h)[t]&&!hMiss(h,t)).length;
     h+=`<div class="section-label"><span>今日のタスク${nT?`（${nT}）`:""}</span><span class="who" style="font-weight:500">${jpDate(t)}</span></div>`;
     h+=oT.length||rT.length?`<ul class="list today-list">${oT.map(i=>itemRow(i,false,cOf(i))).join("")}${rT.map(habitRow).join("")}</ul>`:`<div class="empty">今日のタスクはありません ✓</div>`;
@@ -3581,8 +3586,8 @@ function counts(){
     diary:diaryC+(eve&&!myDiaryDone(t)?1:0),
     future:state.plans.filter(p=>(p.cat==="anniv"&&p.date&&annivInfo(p).days<=14&&!planDone(p))||(p.cat==="bousai"&&planSoon(p))).length,
     talk:talkBadge(), talkAll:state.topics.filter(t=>t.status!=="done").length,
-    habit:state.habits.filter(h=>hFollow(h)).length,
-    ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length+state.habits.filter(h=>!hDaily(h)&&hFollow(h)).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
+    habit:habitItems().filter(h=>hFollow(h)).length,
+    ptask:state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)).length+privateRecTasks().filter(hFollow).length, pshop:state.pitems.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)).length,
     psched:mySched(0).filter(o=>o.d<=today()).length};
 }
 /* 18時・日付の切り替わりでメニューバーの数字を更新 */
@@ -3735,7 +3740,7 @@ function goRel(n){ const i=ORDER.indexOf(state.view==="caution"?"trouble":state.
 /* ================= editing ================= */
 let editSeg={};
 /* v144: 編集欄を確実に開く（今の画面に出ていなければ、その項目のタブへ移動して開く） */
-function editHome(c,x){ if(c==="chores") return "chore"; if(c==="habits") return "habit"; if(c==="items") return isRecItem(x)?"task":(x.list==="shop"?"shop":"task"); if(c==="pitems") return x.list==="shop"?"shop":"task"; if(c==="topics") return "talk"; if(c==="troubles") return "trouble"; return state.view; }
+function editHome(c,x){ if(c==="chores") return "chore"; if(c==="habits") return isHabit(x)?"habit":"task"; if(c==="items") return isRecItem(x)?"task":(x.list==="shop"?"shop":"task"); if(c==="pitems") return x.list==="shop"?"shop":"task"; if(c==="topics") return "talk"; if(c==="troubles") return "trouble"; return state.view; }
 function openEdit(c,id){ const x=(state[c]||[]).find(i=>i.id===id); if(!x){ toast("元の項目が見つかりません"); return; }
   const focus=()=>setTimeout(()=>{ const el=document.querySelector(".edit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60);
   startEdit(c,id); if($("editText")){ focus(); return; }
@@ -3754,7 +3759,7 @@ function saveEdit(){
       if(c==="topics"){ const n=$("editNote").value.trim(); if(n!==(x.note||"")) ch.note=n; const on=$("editOn")?($("editOn").value||null):undefined; if(on!==undefined&&on!==(x.on||null)) ch.on=on; }
       if(c==="blocks"){ const a=$("bStart").value, b=$("bEnd").value, d=$("bDate").value; if(a&&a!==x.start){ ch.start=a; if(x.allDay) ch.allDay=false; } if(b!==(x.end||"")) ch.end=b; if(d&&d!==x.date) ch.date=d;
         if(editSeg.brep&&editSeg.brep!==(x.rep||"none")){ ch.rep=editSeg.brep; ch.from=editSeg.brep==="none"?null:(d||x.date); } if(editSeg.bcol) ch.color=editSeg.bcol; }
-      if(c==="habits"||(c==="items"&&isRecItem(x))){ if(editSeg.htarget) ch.target=tgtVal(editSeg.htarget); { const tc=String(editSeg.htarget||tgtCode(x)); if(tc==="wd"||tc==="mn"){ const w=wdRead("hWd"); if(w.length) ch.wd=w; if(tc==="mn"){ const n=wdRead("hNth"); if(n.length) ch.nth=n; } } if(tc==="mo"&&$("hMoN")) Object.assign(ch,moRead("hMo")); } const ev=$("hEvery")?Number($("hEvery").value)||30:null; if(ev&&(editSeg.htarget||tgtCode(x))==="iv"&&ev!==Number(x.every)) ch.every=ev;
+      if(c==="habits"||(c==="items"&&isRecItem(x))){ if(c==="habits"){ if(["habit","task"].includes(editSeg.hkind))ch.entryKind=editSeg.hkind; if($("hTimetable"))ch.showInTimetable=$("hTimetable").checked; delete ch.who; } if(editSeg.htarget) ch.target=tgtVal(editSeg.htarget); { const tc=String(editSeg.htarget||tgtCode(x)); if(tc==="wd"||tc==="mn"){ const w=wdRead("hWd"); if(w.length) ch.wd=w; if(tc==="mn"){ const n=wdRead("hNth"); if(n.length) ch.nth=n; } } if(tc==="mo"&&$("hMoN")) Object.assign(ch,moRead("hMo")); } const ev=$("hEvery")?Number($("hEvery").value)||30:null; if(ev&&(editSeg.htarget||tgtCode(x))==="iv"&&ev!==Number(x.every)) ch.every=ev;
         if($("hTime")){ const st=$("hTime").value||null, en=$("hEnd")&&$("hEnd").value, du=st&&en&&tmin(en)>tmin(st)?tmin(en)-tmin(st):null; if((st||"")!==(myT(x)||"")||(st&&du&&du!==Number(myD(x)||30))){ if(c==="items") Object.assign(ch,timeCh(x,st,du)); else { ch.time=st; ch.dur=st?du:null; } } } }
       if((c==="items"||c==="pitems")&&!isRecItem(x)){ const due=$("editDue").value, time=$("editTime").value;
         const mm=$("editMemo")?$("editMemo").value.trim():""; if(mm!==(x.memo||"")) ch.memo=mm;
@@ -3789,10 +3794,10 @@ function saveEdit(){
         if(ac!==(actOf(x)||null)){ ch.actual=ac; ch.actualAt=ac?(ad||x.actualAt||today()):null; if(x.price!=null) ch.price=null; if(x.spent!=null) ch.spent=null; }
         else if(ad!==undefined&&ad!==(x.actualAt||null)) ch.actualAt=ad; }
       if($("editMcat")){ const mc=$("editMcat").value||null; if(mc!==(x.mcat||null)) ch.mcat=mc; }
-      if((c==="habits"&&!hDaily(x))||(c==="items"&&isRecItem(x))){ const want=editSeg.ewho||(c==="habits"?"priv":getWho(x)); delete ch.who;
+      if((c==="habits"&&(ch.entryKind||x.entryKind)==="task")||(c==="items"&&isRecItem(x))){ const want=editSeg.ewho||(c==="habits"?"priv":getWho(x)); delete ch.who;
         if((c==="habits"&&want!=="priv")||(c==="items"&&want==="priv")){ const {id:_i,...rest}=JSON.parse(JSON.stringify({...x,...ch})), nid=newId();
-          if(want==="priv"){ delete rest.list; delete rest.who; delete rest.by; delete rest.updBy; delete rest.updAt; dset("habits",nid,rest); ddel("items",id); toast("じぶんだけの繰り返しにしました（相手には見えません）"); }
-          else { dset("items",nid,{...rest,list:"rtask",who:want,by:state.me||null}); ddel("habits",id); toast(`「${esc(nameOf(want))}」の繰り返しにしました（相手にも見えます）`); }
+          if(want==="priv"){ delete rest.list; delete rest.who; delete rest.by; delete rest.updBy; delete rest.updAt; rest.entryKind="task"; dset("habits",nid,rest); ddel("items",id); toast("じぶんだけの繰り返しにしました（相手には見えません）"); }
+          else { dset("items",nid,{...rest,entryKind:"task",list:"rtask",who:want,by:state.me||null}); ddel("habits",id); toast(`「${esc(nameOf(want))}」の繰り返しにしました（相手にも見えます）`); }
           editSeg={}; render(); return; }
         if(c==="items"&&want!==getWho(x)) ch.who=want; }
       const mv=c==="troubles"&&$("editMeasure")?$("editMeasure").value.trim():"";
@@ -3925,7 +3930,7 @@ $("main").addEventListener("click",e=>{
   const to=e.target.closest("[data-toff]"); if(to){ const S=talkOffSet(), k=to.dataset.toff; if(S.has(k)) S.delete(k); else S.add(k); state.kakei={...(state.kakei||{}),talkOff:[...S],updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("tick"); toast(`${nameOf("w")}さんが「${[...S].join("・")||"なし"}」の日は話し合いお休み`); render(); return; }
   const rp=e.target.closest("[data-rpay]"); if(rp){ toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
   const ck=e.target.closest("[data-chk]"); if(ck){ goCheck(ck.dataset.chk); return; }
-  const ht=e.target.closest("[data-htpl]"); if(ht){ const now=Date.now(); dset("habits",newId(),{text:ht.dataset.htpl,target:7,log:{},createdAt:now,updatedAt:now}); toast(`習慣「${ht.dataset.htpl}」を追加しました`); return; }
+  const ht=e.target.closest("[data-htpl]"); if(ht){ const now=Date.now(); dset("habits",newId(),{text:ht.dataset.htpl,entryKind:"habit",showInTimetable:false,target:7,log:{},createdAt:now,updatedAt:now}); toast(`習慣「${ht.dataset.htpl}」を追加しました`); return; }
   const md=e.target.closest("[data-mood]"); if(md){ const v=Number(md.dataset.mood); document.querySelectorAll("[data-mood]").forEach(b=>b.setAttribute("aria-pressed",String(b===md))); saveReflect({mood:v}); return; }
   const rd=e.target.closest("[data-rdate]"); if(rd){ state.refDate=rd.dataset.rdate; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   const pv=e.target.closest("[data-pv]"); if(pv){ state.paint.val=pv.dataset.pv; document.querySelectorAll("[data-pv]").forEach(x=>x.setAttribute("aria-pressed",String(x===pv))); return; }
@@ -4267,15 +4272,15 @@ async function fridgeSave(){ const el=$("fridgeEdit"); if(!el) return; const ite
 function learnLines(s){ return (s||"").split(/\n+/).map(x=>x.replace(/^[\s・\-*●○◯□■]+/,"").trim()).filter(x=>x.length>1).slice(0,5); }
 function learnChips(s){
   const L=learnLines(s); if(!L.length) return "";
-  const have=new Set(state.habits.map(h=>h.text));
+  const have=new Set(habitItems().map(h=>h.text));
   return `<div class="chips" style="margin-top:6px">${L.map(x=>{ const t=x.slice(0,60);
     return have.has(t)?`<span class="chip" style="opacity:.6">✓ 習慣に追加済み：${esc(t.slice(0,20))}</span>`:`<button type="button" class="chip" data-l2h="${esc(t)}">＋ 習慣にする：${esc(t.slice(0,20))}${t.length>20?"…":""}</button>`; }).join("")}</div>`;
 }
 function learnToHabit(t){
   if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); }
-  if(state.habits.some(h=>h.text===t)){ toast("同じ習慣がもうあります"); return; }
+  if(habitItems().some(h=>h.text===t)){ toast("同じ習慣がもうあります"); return; }
   const id=newId(), now=Date.now();
-  dset("habits",id,{text:t,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now,updatedAt:now}); haptic("done");
+  dset("habits",id,{text:t,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now,updatedAt:now}); haptic("done");
   toast(`習慣「${t.slice(0,16)}」を追加しました`,()=>ddel("habits",id),"done");
   setTimeout(()=>{ const el=$("learnHabit"); if(el) el.innerHTML=learnChips($("rfLearn")?$("rfLearn").value:""); },60);
 }
@@ -4442,12 +4447,12 @@ function checkList(){
   const add=(key,title,num,desc)=>out.push({key,title,num,desc});
   add("sharedNotice","相手からの共有",shareUnread().length,"予定・帰る時間などの未読通知");
   { const miss=talkMissing(), tn=talkTopicsN(); add("talk","話す",tn+miss.length,[tn?`議題 ${tn}件`:"",miss.length?`記録待ち ${miss.length}日`:""].filter(Boolean).join("・")); }
-  { const T=state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)), P=state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)), R=[...state.items.filter(i=>isRecItem(i)&&forMe(i)&&hFollow(i)),...state.habits.filter(h=>!hDaily(h)&&hFollow(h))];
+  { const T=state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)), P=state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)), R=[...state.items.filter(i=>isRecItem(i)&&forMe(i)&&hFollow(i)),...privateRecTasks().filter(hFollow)];
     const ov=[...T,...P].filter(i=>i.due&&i.due<t).length, by=r=>T.filter(i=>getWho(i)===r).length;
     add("task","今日までのやること",tabN("task",n),[...[["both","ふたり"],[me,nameOf(me)]].filter(([r])=>by(r)).map(([r,l])=>`${l} ${by(r)}`),P.length?`🔒じぶん ${P.length}`:"",R.length?`くり返し ${R.length}`:"",ov?`うち期限切れ ${ov}`:""].filter(Boolean).join("・")); }
   add("shop","今日までの買い物",tabN("shop",n),state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)&&forMe(i)).slice(0,3).map(i=>i.text).join("、"));
   { const ch=(state.chores||[]).filter(c=>choreMine(c)&&choreInfo(c).diff<=0&&!(c.log||{})[t]&&!chSkip(c,t)); add("chore","今日の家事",n.chore,ch.slice(0,3).map(c=>c.text).join("、")+(ch.length>3?` ほか${ch.length-3}`:"")); }
-  { const hf=state.habits.filter(h=>hFollow(h)); add("habit","今日の習慣",n.habit,hf.slice(0,3).map(x=>x.text).join("、")); }
+  { const hf=habitItems().filter(h=>hFollow(h)); add("habit","今日の習慣",n.habit,hf.slice(0,3).map(x=>x.text).join("、")); }
   add("trouble","気になること・注意",tabN("trouble",n),[n.trouble?`困りごと ${n.trouble}`:"",n.caution?`相手からの注意 ${n.caution}（未確認）`:""].filter(Boolean).join("・"));
   { const m=shiftMissing(me); add("shift","シフトの入力",m.length?1:0,m.length?`${m.length}日分（${rangeTxt(m)}）`:""); }
   { const miss=[]; if(eve&&!myDiaryDone(t)) miss.push("日記"); const th=thanksOf(t,me); if(eve&&!(th&&th.text)) miss.push("ありがとう"); const dn=dinnerOf(t); if(eve&&!(dn&&dn.text)) miss.push("夕飯メモ"); if(eve&&!myReflectDone(t)) miss.push("内省");
@@ -4566,7 +4571,7 @@ function weekRingsData(){
   const W=weekRange(), inW=ts=>ts&&ymd(new Date(ts))>=W.s&&ymd(new Date(ts))<W.e, me=myRole();
   const tasks=state.items.filter(i=>i.list==="task");
   const tDone=tasks.filter(i=>inW(i.doneAt)||inW(i.doneAt_h)||inW(i.doneAt_w)).length, tOpen=tasks.filter(i=>!i.done&&i.due&&i.due<W.e).length;
-  const daily=state.habits.filter(x=>tgtCode(x)==="7"); let hD=0; for(const x of daily) for(const d of W.days) if(habitLog(x)[d]) hD++;
+  const daily=habitItems().filter(x=>tgtCode(x)==="7"); let hD=0; for(const x of daily) for(const d of W.days) if(habitLog(x)[d]) hD++;
   const tk=W.days.map(d=>talkState(d)), tkN=tk.filter(v=>v!=="off").length, tkD=tk.filter(v=>v==="done").length;
   const dy=W.days.filter(d=>{ const a=myPriv(d), b=myShared(d); return (a&&a.text)||(b&&b.text); }).length;
   return [
@@ -4657,7 +4662,7 @@ function paceHTML(){
 }
 /* 1年のヒートマップ（毎日の習慣） */
 function habitHeatHTML(){
-  const daily=state.habits.filter(x=>tgtCode(x)==="7"); if(!daily.length) return "";
+  const daily=habitItems().filter(x=>tgtCode(x)==="7"); if(!daily.length) return "";
   const t=today(), end=parse(t), start=new Date(end); start.setDate(end.getDate()-7*52-end.getDay());
   let cols="", d=new Date(start), cnt=0, full=0;
   while(d<=end){ let col=""; for(let k=0;k<7;k++){ const s=ymd(d); if(d>end){ col+=`<i class="hm0 fut"></i>`; } else { const n=daily.filter(x=>habitLog(x)[s]).length, r=n/daily.length, lv=n===0?0:r<.34?1:r<.67?2:r<1?3:4; if(n) cnt++; if(r===1) full++;
@@ -4829,7 +4834,7 @@ function buildOfflineHTML(withMe){
     b+=`<h1 class="me">じぶん（${E(nameOf(myRole()))}だけ）</h1>`;
     b+=sec("じぶんのタスク",ul(state.pitems.filter(i=>i.list==="task"&&!i.done).map(i=>`<li>${E(i.text)}${i.due?` <small>${E(i.due)}</small>`:""}</li>`)));
     b+=sec("じぶんの買い物",ul(state.pitems.filter(i=>i.list==="shop"&&!i.done).map(i=>`<li>${E(i.text)}</li>`)));
-    b+=sec("習慣",ul(state.habits.map(h=>`<li>${E(h.text)}</li>`)));
+    b+=sec("習慣",ul(habitItems().map(h=>`<li>${E(h.text)}</li>`)))+sec("自分の繰り返しタスク",ul(privateRecTasks().map(h=>`<li>${E(h.text)}</li>`)));
   }
   const css=`:root{color-scheme:light dark;--bg:#faf8f4;--fg:#222;--mut:#666;--ln:#ddd;--ac:#2f6d5a}@media (prefers-color-scheme:dark){:root{--bg:#161616;--fg:#eee;--mut:#aaa;--ln:#333;--ac:#7cc4a8}}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,"Hiragino Sans",sans-serif;padding:16px;max-width:760px;margin:auto}
@@ -4855,7 +4860,7 @@ const TT_H=46, ttS=()=>Number(prefs.ttStart||4);
 const ttMine=x=>["both",myRole()].includes(getWho(x));
 function ttUntimed(d){ return [...state.items.filter(i=>!isRecItem(i)&&i.due===d&&!myT(i)&&!myDone(i)&&i.list!=="wish"&&ttMine(i)).map(x=>({c:"items",x})),
   ...state.pitems.filter(i=>i.due===d&&!i.time&&!i.done&&i.list!=="wish").map(x=>({c:"pitems",x})),
-  ...[...state.habits.filter(hDaily),...recMine()].filter(h=>!timeAt(h,d)&&(hDaily(h)||recOn(h,d))&&!habitLog(h)[d]&&!hMiss(h,d)).map(x=>({c:recColl(x),x})),
+  ...ttRecurrences().filter(h=>d>=hSince(h)&&!timeAt(h,d)&&(hDaily(h)||recOn(h,d))&&!habitLog(h)[d]&&!hMiss(h,d)).map(x=>({c:recColl(x),x})),
   ...(state.chores||[]).filter(c=>!timeAt(c,d)&&choreMine(c)&&choreOn(c,d)&&!(c.log||{})[d]).map(x=>({c:"chores",x}))]; }
 function ttOthers(d){ return [...state.pitems.filter(i=>!i.done&&i.list==="task"&&(!i.due||i.due<d)).map(x=>({c:"pitems",x})),
   ...state.items.filter(i=>!myDone(i)&&i.list==="task"&&ttMine(i)&&(!i.due||i.due<d)).map(x=>({c:"items",x}))].slice(0,20); }
@@ -5260,7 +5265,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   sec("今日完了したやること",state.items.filter(i=>i.list==="task"&&!isRecItem(i)&&myDone(i)&&i.due===t).map(i=>itemRowT(i,"items")),10);
   sec("やること（未完了）",[...state.items.filter(i=>i.list==="task"&&!isRecItem(i)&&!myDone(i)).sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="task"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
   sec("買い物リスト（未購入）",[...state.items.filter(i=>i.list==="shop"&&!myDone(i)).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="shop"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
-  sec("繰り返しのタスク・習慣",recMine().map(h=>`[${ref(recColl(h),h.id)}] ${cut(h.text,30)} ${tgtLabel(h)}${recColl(h)==="habits"?" 🔒":""}${habitLog(h)[t]?" 今日✓済":recOn(h,t)?" 今日の日":""}`),20);
+  sec("繰り返しのタスク・習慣",[...habitItems(),...recMine()].map(h=>`[${ref(recColl(h),h.id)}] ${cut(h.text,30)} ${tgtLabel(h)} ${isHabit(h)?"種類:習慣":"種類:やること"}${recColl(h)==="habits"?" 🔒":""}${habitLog(h)[t]?" 今日✓済":recOn(h,t)?" 今日の日":""}`),20);
   sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${chFqLabel(c)} 担当:${I.who==="both"?"ふたり":nm(I.who)} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
   sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
   sec("気になること・困りごと",state.troubles.filter(x=>x.status!=="done").map(x=>`[${ref("troubles",x.id)}] ${cut(x.text,40)} ${x.status==="doing"?"対応中":"未対応"}`),15);
@@ -5314,7 +5319,7 @@ function aiRecurring(x){
   return out;
 }
 function aiActText(x){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id);
-  if(x.type==="add_recurring"){try{const h=aiRecurring(x),w=aiWho(x.who);return `繰り返し：${cut2(x.text)}・${tgtLabel({...h,createdAt:Date.now()})}${x.date?"・"+(aiDate(x.date)||x.date)+"から":""}${x.time||x.start?"・"+(x.time||x.start)+(x.end?"–"+x.end:""):""}・${w==="priv"?"自分だけ":w==="both"?"ふたり（共有）":w?nameOf(w)+"（共有）":"担当を確認"}`;}catch(e){return `繰り返し：${cut2(x.text)}（${e.message}）`;}}
+  if(x.type==="add_recurring"){try{const h=aiRecurring(x),w=aiWho(x.who);return `${x.kind==="habit"?"習慣":"繰り返しタスク"}：${cut2(x.text)}・${tgtLabel({...h,createdAt:Date.now()})}${x.date?"・"+(aiDate(x.date)||x.date)+"から":""}${x.time||x.start?"・"+(x.time||x.start)+(x.end?"–"+x.end:""):""}・${w==="priv"?"自分だけ":w==="both"?"ふたり（共有）":w?nameOf(w)+"（共有）":"担当を確認"}`;}catch(e){return `繰り返し：${cut2(x.text)}（${e.message}）`;}}
   if(x.type==="open_view") return `画面を開く：${TITLES[x.view]||"不明"}${x.cat&&PCATS[x.cat]?" › "+PCATS[x.cat].label:""}`;
   if(x.type==="set_pref") return `設定：${AI_PREFS[x.key]?AI_PREFS[x.key][0]:"変更できない項目"} → ${String(x.value||"")}`;
   if(x.type==="report_bug") return `改善要望を送信：${cut2(x.text)}`;
@@ -5342,7 +5347,7 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     if(x.type==="open_view"){ if(!Object.prototype.hasOwnProperty.call(TITLES,x.view)){ toast("その画面は開けません"); return; } x.ok=true; aiLogSave(); if(x.view==="cal") state.sel=d||t; if(x.view==="reflect") state.refDate=d||t; if(x.view==="diary") state.diaryDate=d||t; if(x.view==="talk") state.talkDate=d||t; if(x.view==="future") state.fut=PCATS[x.cat]?x.cat:null; go(x.view); return; }
     else if(x.type==="set_pref"){ const spec=AI_PREFS[x.key], value=String(x.value); if(!spec||!spec[1].includes(value)){ toast("その設定変更はできません。設定画面で確認してください"); return; } const old=prefs[x.key]; prefs[x.key]=value; savePrefs(); undo=()=>{prefs[x.key]=old;savePrefs();}; }
     else if(x.type==="report_bug"){ const text=String(x.text||"").trim().slice(0,1200); if(!text){ toast("要望の内容がありません"); return; } dset("bugs",id,{text,view:state.view,ver:APP_VERSION,role:me,by:state.me||null,at:now,status:"new",source:"ai"}); undo=()=>ddel("bugs",id); }
-    else if(x.type==="add_recurring"){const hv={text:String(x.text).trim().slice(0,120),...aiRecurring(x),log:{},since:d||t,createdAt:now,updatedAt:now};if(tm){hv.time=tm;hv.dur=x.end?(x.end==="00:00"?1440:tmin(x.end))-tmin(tm):30;}const c=who==="priv"?"habits":"items";if(c==="items")Object.assign(hv,{list:"rtask",who,by:state.me||null});dset(c,id,hv);undo=()=>ddel(c,id);}
+    else if(x.type==="add_recurring"){if(x.kind!=null&&!["habit","task"].includes(x.kind))throw Error("習慣かやることかを指定してください");if(x.kind==="habit"&&who!=="priv")throw Error("習慣は自分だけを指定してください");const hv={entryKind:x.kind==="habit"?"habit":"task",...(x.kind==="habit"?{showInTimetable:x.showInTimetable===true||(!!tm&&x.showInTimetable!==false)}:{}),text:String(x.text).trim().slice(0,120),...aiRecurring(x),log:{},since:d||t,createdAt:now,updatedAt:now};if(tm){hv.time=tm;hv.dur=x.end?(x.end==="00:00"?1440:tmin(x.end))-tmin(tm):30;}const c=who==="priv"?"habits":"items";if(c==="items")Object.assign(hv,{list:"rtask",who,by:state.me||null});dset(c,id,hv);undo=()=>ddel(c,id);}
     else if(x.type==="add_task"||x.type==="add_shop"){ const L=x.type==="add_task"?"task":"shop", dd=d||(tm?t:""), en=x.end?(x.end==="00:00"?1440:tmin(x.end)):null, dur=tm&&en!=null&&en>tmin(tm)?en-tmin(tm):null;
       if(who==="priv"){ const it=baseItem(L,cut2(x.text),dd,tm); delete it.who; delete it.by; if(dur&&it.time) it.dur=dur; dset("pitems",id,it); undo=()=>ddel("pitems",id); }
       else { const it=baseItem(L,cut2(x.text),dd,tm,who); if(dur&&it.time) it.dur=dur; dset("items",id,it); undo=()=>ddel("items",id); } }
@@ -5417,8 +5422,8 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 - 🔒の付いた情報は相談している本人だけのもの。答えに出してよいが、相手に伝える前提の書き方はしない
 - アプリで実際にできる操作があれば "acts" に入れる（実行するのは本人がボタンを押したときだけ。頼まれていない大きな変更は入れない。ふだんは最大5個）。使える操作：
   {"type":"add_task","text":"","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}
-  {"type":"add_recurring","text":"","target":"7|wd|mn|mo|iv|5|3|1|2w|m|2m|3m|6m|y","wd":[0,1],"nth":[1],"every":30,"mEvery":3,"mStart":"YYYY-MM-DD","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}（毎日=7、曜日=wdのwdは日0〜土6、毎月第何曜=mnのwdとnthが必須、日ごと=ivのevery、月ごと=moのmEveryとmStartを指定。不要なキーは省略）
-  繰り返し依頼は単発add_taskにせずadd_recurringを使う。不明な頻度・担当・曖昧な時刻は質問し、推測で追加しない。既存繰り返しの時刻編集はscope:"day"（指定日）かscope:"all"（全体）を付ける。全体は本人が明示した場合のみ。午前12時=00:00、午後12時=12:00。明示された年・日付・担当を変更しない。
+  {"type":"add_recurring","text":"","kind":"habit|task","showInTimetable":false,"target":"7|wd|mn|mo|iv|5|3|1|2w|m|2m|3m|6m|y","wd":[0,1],"nth":[1],"every":30,"mEvery":3,"mStart":"YYYY-MM-DD","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}（毎日=7、曜日=wdのwdは日0〜土6、毎月第何曜=mnのwdとnthが必須、日ごと=ivのevery、月ごと=moのmEveryとmStartを指定。不要なキーは省略）
+  繰り返し依頼は単発add_taskにせずadd_recurringを使う。習慣はkind:"habit"かつwho:"priv"、やることはkind:"task"にする。習慣のタイムテーブル表示は明示された場合だけshowInTimetable:trueにする（時刻指定があれば表示する、表示しない指定を優先）。不明な頻度・担当・曖昧な時刻は質問し、推測で追加しない。既存繰り返しの時刻編集はscope:"day"（指定日）かscope:"all"（全体）を付ける。全体は本人が明示した場合のみ。午前12時=00:00、午後12時=12:00。明示された年・日付・担当を変更しない。
   {"type":"add_shop","text":"","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}
   {"type":"add_event","text":"","date":"YYYY-MM-DD","start":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}
   {"type":"add_block","text":"","date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM"}（自分だけの時間の予定）
@@ -5783,7 +5788,7 @@ function openSheet(kind){
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
   if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
   S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
-  S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
+  S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
   $("input").focus({preventScroll:true});
@@ -5814,7 +5819,7 @@ function renderSheet(){
       <div class="edit-row"><span class="lbl">共有</span>${seg("sbs",S.bshare?"1":"0",[["0","じぶんだけ"],["1",`ふたりの予定にも出す`]])}</div>
       ${S.bshare?`<div class="who sharenote">${S.brep!=="none"?"くり返しの予定は共有できません（じぶんだけで登録します）":`${esc(nameOf(otherRole()))}のカレンダー・予定にも「${esc(nameOf(myRole()))}の予定」として表示されます`}</div>`:""}
       <div class="edit-row"><span class="lbl">色</span><div class="seg" data-seg="sbc">${BCOLORS.map(([k,l])=>`<button type="button" data-sv="${k}" aria-pressed="${S.bcol===k}" style="--sc:var(--${k})" class="colbtn">${l}</button>`).join("")}</div></div>`; }
-  else if(S.kind==="habit"||S.kind==="rtask") o=`<div class="edit-row"><span class="lbl">時間</span><input type="time" id="sTime" value="${esc(S.time||"")}" aria-label="開始"><span class="lbl">〜</span><input type="time" id="sEnd" value="${esc(S.end||"")}" aria-label="終わり"><span class="who">任意</span></div><div class="edit-row"><span class="lbl">頻度</span>${seg("sht",S.htarget,tgtOpts(S.kind==="rtask",S.htarget))}</div>${S.htarget==="mo"?moPick("sMo",S.hmoN||3,S.hmoS||today(),true,"lbl"):""}${wdPick("sWd",S.hwd||(S.hwd=[parse(today()).getDay()]),S.htarget==="wd"||S.htarget==="mn","lbl")}${nthPick("sNth",S.hnth||(S.hnth=[Math.min(4,nthOfD(today()))]),S.htarget==="mn","lbl")}${S.htarget==="wd"||S.htarget==="mn"?`<div class="who hnext" id="sHNext">${esc(sHNextTxt())}</div>`:""}${S.htarget==="iv"?`<div class="edit-row"><span class="lbl">前回から</span><input type="number" id="sEvery" min="1" max="730" value="${esc(S.hevery||30)}" style="width:80px"><span class="lbl">日ごと</span></div>`:""}`;
+  else if(S.kind==="habit"||S.kind==="rtask") o=`${S.kind==="habit"?`<label class="edit-row"><input type="checkbox" id="sHTimetable" ${S.hTimetable?"checked":""}>タイムテーブルに表示</label><div class="who">表示する場合は時刻を設定できます。時刻なしなら「時間未定」に表示します。</div>`:""}<div class="edit-row"><span class="lbl">時間</span><input type="time" id="sTime" value="${esc(S.time||"")}" aria-label="開始"><span class="lbl">〜</span><input type="time" id="sEnd" value="${esc(S.end||"")}" aria-label="終わり"><span class="who">任意</span></div><div class="edit-row"><span class="lbl">頻度</span>${seg("sht",S.htarget,tgtOpts(S.kind==="rtask",S.htarget))}</div>${S.htarget==="mo"?moPick("sMo",S.hmoN||3,S.hmoS||today(),true,"lbl"):""}${wdPick("sWd",S.hwd||(S.hwd=[parse(today()).getDay()]),S.htarget==="wd"||S.htarget==="mn","lbl")}${nthPick("sNth",S.hnth||(S.hnth=[Math.min(4,nthOfD(today()))]),S.htarget==="mn","lbl")}${S.htarget==="wd"||S.htarget==="mn"?`<div class="who hnext" id="sHNext">${esc(sHNextTxt())}</div>`:""}${S.htarget==="iv"?`<div class="edit-row"><span class="lbl">前回から</span><input type="number" id="sEvery" min="1" max="730" value="${esc(S.hevery||30)}" style="width:80px"><span class="lbl">日ごと</span></div>`:""}`;
   else if(S.kind==="ptask") o=dateRow("期限")+budRow;
   else if(S.kind==="pshop") o=dateRow("納期")+budRow;
   else if(S.kind==="pwish") o=dateRow("やる日（任意）")+budRow;
@@ -5858,6 +5863,7 @@ $("sheet").addEventListener("click",e=>{
 });
 $("sheet").addEventListener("input",e=>{ if(e.target.id==="sBudget") state.sheet.budget=e.target.value; if(e.target.id==="sAmount") state.sheet.amount=e.target.value; if(e.target.id==="sDay") state.sheet.rday=e.target.value; if(e.target.id==="sEvery") state.sheet.hevery=e.target.value; });
 $("sheet").addEventListener("change",e=>{ const S=state.sheet;
+  if(e.target.id==="sHTimetable"){ S.hTimetable=e.target.checked; return; }
   if(e.target.id==="sBudget"){ S.budget=e.target.value; }
   if(e.target.id==="sDate"){ S.date=e.target.value; if(!S.date) S.time=""; renderSheet(); }
   if(e.target.id==="sEnd"){ S.end=e.target.value; return; }
@@ -5896,7 +5902,7 @@ $("form").addEventListener("submit",e=>{
   else if(S.kind==="spend"){ const am=money(S.amount); if(!am){ toast("金額を入れてください"); $("sAmount")&&$("sAmount").focus(); return; }
     dset("spend",newId(),{cat:S.mcat||"other",amount:am,text:t,date:S.date||today(),who:S.who||"both",by:state.me||null,role:myRole(),createdAt:now}); S.amount=""; renderSheet(); }
   else if(S.kind==="task"&&S.trep&&S.trep!=="none"){ /* v164: くり返しのやること（時間つきならタイムテーブルに毎回のる） */
-    const tg=S.trep==="daily"?"wd":S.htarget, hv={text:t,target:tgtVal(tg),log:{},createdAt:now,updatedAt:now};
+    const tg=S.trep==="daily"?"wd":S.htarget, hv={text:t,entryKind:"task",target:tgtVal(tg),log:{},createdAt:now,updatedAt:now};
     if(tg==="wd"||tg==="mn"){ hv.wd=(S.trep==="daily"?[0,1,2,3,4,5,6]:(S.hwd||[])).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(tg==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } }
     if(tg==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(tg==="mo") Object.assign(hv,moRead("sMo"));
     const st=($("sTime")&&$("sTime").value)||S.time||"", en=($("sEnd")&&$("sEnd").value)||S.end||""; if(st){ hv.time=st; if(en&&tmin(en)>tmin(st)) hv.dur=tmin(en)-tmin(st); }
@@ -5908,7 +5914,7 @@ $("form").addEventListener("submit",e=>{
   else if(S.kind==="block"){ const st=($("sTime")&&$("sTime").value)||S.time||"09:00", en=($("sEnd")&&$("sEnd").value)||S.end||hhmm(Math.min(tmin(st)+60,1439)); const d=($("sDate")&&$("sDate").value)||S.date||state.sel;
     if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); if(state.view==="cal"){ closeSheet(); return; } closeSheet(); /* v140: 追加したら閉じる */ return; }
     dset("blocks",newId(),{text:t,date:d,from:S.brep==="none"?null:d,start:st,end:en,rep:S.brep,color:S.bcol,createdAt:now,updatedAt:now}); }
-  else if(S.kind==="habit"||S.kind==="rtask"){ if(S.kind==="rtask"&&String(S.htarget)==="7") S.htarget="wd"; const hv={text:t,target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(S.htarget==="mo") Object.assign(hv,moRead("sMo")); { const st=($("sTime")&&$("sTime").value)||S.time||"", en=($("sEnd")&&$("sEnd").value)||S.end||""; if(st){ hv.time=st; if(en&&tmin(en)>tmin(st)) hv.dur=tmin(en)-tmin(st); } } if(S.kind==="rtask"&&S.who!=="priv") dset("items",newId(),{...hv,list:"rtask",who:S.who||"both",by:state.me||null}); else dset("habits",newId(),hv); if(String(S.htarget)!=="7") setTimeout(()=>toast(S.kind==="habit"?"習慣に追加しました（対象日は「やること」にも表示）":"繰り返しタスクを追加しました"),300); }
+  else if(S.kind==="habit"||S.kind==="rtask"){ if(S.kind==="rtask"&&String(S.htarget)==="7") S.htarget="wd"; const hv={text:t,entryKind:S.kind==="habit"?"habit":"task",...(S.kind==="habit"?{showInTimetable:!!S.hTimetable}:{}),target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(S.htarget==="mo") Object.assign(hv,moRead("sMo")); { const st=($("sTime")&&$("sTime").value)||S.time||"", en=($("sEnd")&&$("sEnd").value)||S.end||""; if(st){ hv.time=st; if(en&&tmin(en)>tmin(st)) hv.dur=tmin(en)-tmin(st); } } if(S.kind==="rtask"&&S.who!=="priv") dset("items",newId(),{...hv,list:"rtask",who:S.who||"both",by:state.me||null}); else dset("habits",newId(),hv); if(String(S.htarget)!=="7") setTimeout(()=>toast(S.kind==="habit"?"習慣に追加しました":"繰り返しタスクを追加しました"),300); }
   else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,...(S.date?{on:S.date}:{}),by:state.me||null,createdAt:now,updatedAt:now});
   else if(S.kind==="trouble") dset("troubles",newId(),{text:t,detail:"",level:S.tlevel,status:"open",assignee:null,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,replies:[]});
   else if(S.kind==="caution"){ const c={text:t,level:S.clevel,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,ack:{}}; if(S.date) c.date=S.date; dset("cautions",newId(),c); }
@@ -5968,7 +5974,7 @@ function exportXlsx(){ const me=!!($("bkMe")&&$("bkMe").checked), t=today(), R=m
   const info=[];
   info.push(add("やること","ふたり・それぞれのやること。アプリでは期限の日にホームとタイムテーブルに出て、→スワイプで完了",["内容","だれ","期限","時刻","状態","予算","実績","作成日"],state.items.filter(i=>i.list==="task"&&!isRecItem(i)).map(i=>[i.text,whoOf(i),ds(i.due),myT(i)||"",i.done?"済":"",i.budget||"",actOf(i)||"",i.createdAt?ymd(new Date(i.createdAt)):""])));
   info.push(add("買い物","買うもの。買ったら完了にすると出費の実績に入る",["内容","だれ","期限","状態","予算","実績"],state.items.filter(i=>i.list==="shop").map(i=>[i.text,whoOf(i),ds(i.due),i.done?"済":"",i.budget||"",actOf(i)||""])));
-  info.push(add("くり返し","曜日・○日ごと・○か月ごとなどでくり返すやること（時間を入れるとタイムテーブルに毎回のる）",["内容","だれ","頻度","時刻","最近30日の実施"],[...state.items.filter(isRecItem),...(me?state.habits.filter(h=>!hDaily(h)):[])].map(h=>[h.text,isRecItem(h)?whoOf(h):"🔒自分",tgtLabel(h),myT(h)||"",Object.keys(habitLog(h)).filter(d=>habitLog(h)[d]&&d>=addDays(t,-30)).length])));
+  info.push(add("くり返し","曜日・○日ごと・○か月ごとなどでくり返すやること（時間を入れるとタイムテーブルに毎回のる）",["内容","だれ","頻度","時刻","最近30日の実施"],[...state.items.filter(isRecItem),...(me?privateRecTasks():[])].map(h=>[h.text,isRecItem(h)?whoOf(h):"🔒自分",tgtLabel(h),myT(h)||"",Object.keys(habitLog(h)).filter(d=>habitLog(h)[d]&&d>=addDays(t,-30)).length])));
   info.push(add("家事","家事の分担。やった人にポイントが付き、ホームの「分担」で偏りを確認",["家事","頻度","担当","ポイント","前回","次回"],(state.chores||[]).map(c=>{ const I=choreInfo(c), L=choreLast(c); return [c.text,chFqLabel(c),c.who==="alt"?"交代":N(c.who||"both"),Number(c.pts||1),L?`${L.d}（${nameOf(L.r)}）`:"",I.due]; })));
   info.push(add("予定","ふたりで共有する予定（カレンダーに表示）",["日付","開始","終了","内容","だれ"],state.events.slice().sort((a,b)=>(a.date||"")<(b.date||"")?-1:1).map(x=>[ds(x.date),x.start||"",x.end||"",x.text,whoOf(x)])));
   { const days=[...new Set(state.shifts.flatMap(x=>Object.keys(x.days||{}).map(dd=>`${x.month}-${String(dd).padStart(2,"0")}`)))].sort();
@@ -5982,7 +5988,7 @@ function exportXlsx(){ const me=!!($("bkMe")&&$("bkMe").checked), t=today(), R=m
   info.push(add("貯金の目標","目標金額と、いま貯まっている額",["目標","目標額","いまの額","期限"],state.goals.map(g=>[g.text,Number(g.target)||0,goalSaved(g),ds(g.due)])));
   info.push(add("日記（ふたり）","「ふたりで見る」にした日記・ありがとう・夕飯メモ",["日付","種類","書いた人","内容"],[...state.diary.filter(x=>x.text).map(x=>[x.date,"日記",nameOf(authorRole(x)),x.text]),...state.thanks.filter(x=>x.text).map(x=>[x.date,"ありがとう",nameOf(x.role||authorRole(x)),x.text]),...state.dinner.filter(x=>x.text).map(x=>[x.id,"夕飯",nameOf(x.role||""),x.text])].sort((a,b)=>a[0]<b[0]?-1:1)));
   if(me){ info.push(add("🔒自分のやること","自分だけのやること・買い物（相手には見えない）",["種類","内容","期限","時刻","状態"],state.pitems.map(i=>[i.list==="shop"?"買い物":i.list==="wish"?"やりたい":"やること",i.text,ds(i.due),i.time||"",i.done?"済":""])));
-    info.push(add("🔒習慣","毎日の習慣と最近の実施",["習慣","最近30日の実施","連続"],state.habits.filter(hDaily).map(h=>{ const st=habitStats(h); return [h.text,st.count,st.streak]; })));
+    info.push(add("🔒習慣","すべての頻度の習慣と最近の実施",["習慣","最近30日の実施","連続"],habitItems().map(h=>{ const st=habitStats(h); return [h.text,st.count,st.streak]; })));
     info.push(add("🔒時間の予定","自分の時間の予定（タイムテーブル）",["日付","開始","終了","内容","くり返し"],state.blocks.map(b=>[ds(b.date),b.start||"",b.end||"",b.text,b.rep&&b.rep!=="none"?b.rep:""])));
     info.push(add("🔒日記・内省","自分だけの日記と内省",["日付","種類","内容"],[...state.priv.filter(x=>x.text).map(x=>[x.id,"日記",x.text]),...state.reflect.map(x=>[x.id,"内省",[x.mood?`気分${x.mood}`:"",x.good?"良かった："+x.good:"",x.bad?"うまくいかなかった："+x.bad:"",x.learn?"学び："+x.learn:""].filter(Boolean).join(" / ")])].sort((a,b)=>a[0]<b[0]?-1:1))); }
   const intro={name:"はじめに",rows:[["ふたりのリスト　バックアップ",""],["書き出した日時",bkStamp()],["書き出した人",nameOf(R)],["自分だけの項目",me?"含む（このファイルを見られる人には見えます）":"含まない"],["",""],["シート","このシートの中身と、アプリでの使い方","件数"],...info.map(([n,d,c])=>[n,d,c]),["",""],["アプリの主な機能",""],
@@ -6641,7 +6647,7 @@ function searchResults(q){
   for(const x of state.cautions) add("cautions",x,"caution","注意",x.text,"");
   for(const x of state.plans) add("plans",x,"future","将来",x.text,x.date?short(x.date):"");
   for(const x of state.chores||[]) add("chores",x,"chore","家事",x.text,"");
-  for(const x of state.habits) add("habits",x,"habit","習慣",x.text,"");
+  for(const x of state.habits) add("habits",x,isHabit(x)?"habit":"task",isHabit(x)?"習慣":"繰り返しタスク",x.text,"");
   const open=it.filter(o=>!o.x.done&&o.x.status!=="done"), rest=it.filter(o=>o.x.done||o.x.status==="done"), L=[...open,...rest].slice(0,20);
   if(!tabs.length&&!L.length) return `<div class="srch-none">見つかりませんでした</div>`;
   return (tabs.length?`<div class="srch-g">タブ</div><div class="srch-tabs">${tabs.map(o=>`<button class="srch-tab v-${o.v}" data-sgo="${o.v}" ${o.sub?`data-ssub="${o.sub}"`:""}>${fIcon(o.v)||ic("spark")}<span>${esc(o.l)}</span></button>`).join("")}</div>`:"")
