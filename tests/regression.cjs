@@ -169,3 +169,17 @@ test('auto rules create private tasks, retain completed items and honor skips', 
   c.state.pitems=[{id:'auto_rule_2026-09-28',auto:'rule',done:true,text:'完了済み',due:'2026-09-28'}];run(c,'autoCook()');
   assert.ok(c.writes.every(x=>x.c==='pitems'));assert.ok(c.writes.every(x=>!['auto_rule_2026-09-28','auto_rule_2026-09-29'].includes(x.id)));assert.equal(c.writes.length,58);
 });
+test('timetable badges reuse tags and a line lock without redundant private assignee', () => {
+  const c=env(['isRecItem','ttInfo','ttMeta','ttBadges'],{LKI:'<svg class="lk-i"></svg>'});c.o={c:'blocks',kind:'b',x:{}};
+  const html=run(c,'ttBadges(o)');assert.match(html,/tag tt-kind/);assert.match(html,/tag lk/);assert.match(html,/class="lk-i"/);assert.doesNotMatch(html,/🔒|tt-person/);
+  assert.equal(run(c,'ttMeta(o)'),'予定 · 自分だけ · h');
+});
+test('shared badges retain assignee, escape names and provide an inline accessibility mode', () => {
+  const c=env(['isRecItem','ttInfo','ttMeta','ttBadges'],{LKI:'',nameOf:()=>'<long name>'});c.o={c:'items',kind:'i',x:{list:'rtask',who:'w'}};
+  const html=run(c,'ttBadges(o,true)');assert.match(html,/くり返し/);assert.match(html,/共有/);assert.match(html,/w-w/);assert.match(html,/&lt;long name&gt;/);assert.match(html,/aria-hidden="true"/);
+});
+test('compact timetable cards omit metadata and selected details separate title from time', () => {
+  assert.match(declaration('timetable'),/ht>=60\?ttBadges\(o,true\):""/);
+  assert.match(declaration('ttBarHTML'),/class="tb-title"/);assert.match(declaration('ttBarHTML'),/class="tb-time"/);
+  assert.doesNotMatch(declaration('ttBarHTML'),/esc\(ttMeta\(o\)\)/);
+});

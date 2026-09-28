@@ -11,7 +11,7 @@
   function collection(p){return {doc:id=>doc(p+'/'+id),get:async()=>collectionSnapshot(p),onSnapshot:cb=>listen(p,cb,true)};}
   const d=today(), tomorrow=addDays(d,1), now=Date.now(), put=(c,id,x)=>docs.set(c+'/'+id,x);
   Object.assign(state,{me:'preview-h',owner:true,acctRole:'h',emailRole:'h',fam:{h:'テストA',w:'テストB'},roles:{h:'preview-h',w:'preview-w'},rolesLoaded:true});
-  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0'});
+  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0',theme:new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light'});
   db={doc,collection};privBase=doc('private');prefsDoc=doc('meta/prefs');histDoc=doc('meta/history');kakeiDoc=doc('meta/kakei');famDoc=doc('meta/family');
   put('meta','prefs',prefs);put('meta','family',state.fam);put('meta','history',{names:['牛乳','卵']});
   put('meta','kakei',{fridge:{items:['卵','豆腐','にんじん'],at:now},music:{h:'スピッツ',w:'宇多田ヒカル'}});
@@ -25,7 +25,7 @@
   put('private/habits','daily-habit',{text:'毎日ストレッチ',target:7,time:'07:00',dur:15,log:{},createdAt:now});
   put('private/habits','weekly-habit',{text:'週1回の習慣',target:'wd',wd:[parse(d).getDay()],log:{},createdAt:now});
   put('private/blocks','daily-block',{text:'毎日の読書',date:d,rep:'daily',start:'21:00',end:'21:30',createdAt:now});
-  put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:00',who:'both',createdAt:now});
+  put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:30',who:'both',createdAt:now});
   put('events','partner-event',{text:'相手だけの予定',date:d,start:'17:00',end:'18:00',who:'w',createdAt:now});
   put('talks',d,{date:d,status:'done',held:true,heldAt:now,notes:'話し合いのテスト記録',at:now});
   put('dinner',d,{date:d,text:'旧形式のカレー',at:now,role:'h'});
