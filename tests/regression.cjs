@@ -118,6 +118,19 @@ test('music lookup rejects similarly named cover artists and accepts exact norma
 test('music context changes when favorites change, and prompts include season/weather/time',()=>{
   const c=env(['musicKey','musicArtists','songContext','songPrompt'],{musicTaste:()=> 'スピッツ',wxToday:()=>({code:61}),wxKind:()=> 'rain',WXN:{rain:'雨'},offState:()=> 'both'});const key=run(c,"songContext('2026-09-28')");c.musicTaste=()=> '宇多田ヒカル';assert.notEqual(run(c,"songContext('2026-09-28')"),key);const prompt=run(c,"songPrompt('2026-09-28',3,[])");assert.match(prompt,/季節秋/);assert.match(prompt,/天気雨/);assert.match(prompt,/現在\d+時/);
 });
+test('another song skips repeated and already seen candidates',()=>{
+  const c=env(['musicKey','songId','songFresh','songNext'],{songOf:d=>c.state.music[0],songAllowed:()=>true,songStop(){},songLookup(){},songPreload(){},songToggle(){},songRender(){},songRefill(){}});
+  c.state.music=[{id:'2026-09-28',title:'夜の東側',artist:'サカナクション',context:'today',alts:[{title:'夜の東側',artist:'サカナクション'},{title:'既聴',artist:'サカナクション',seen:true},{title:'新曲',artist:'サカナクション'},{title:'新曲',artist:'サカナクション'}]}];
+  run(c,'songNext()');assert.equal(c.state.music[0].title,'新曲');assert.equal(c.writes.at(-1).data.title,'新曲');assert.equal(c.state.music[0].context,'today');
+});
+test('catalog fallback accepts only registered artist and a different track',async()=>{
+  const c=env(['musicKey','songId','songFresh','songCatalogAlternative'],{musicTaste:r=>r==='h'?'サカナクション':'',itunesJsonp:async()=>({results:[{trackName:'夜の東側',artistName:'サカナクション'},{trackName:'別曲',artistName:'サカナクション tribute'},{trackName:'次の曲',artistName:'サカナクション',trackViewUrl:'https://example.com/song'}]})});
+  c.used=[{title:'夜の東側',artist:'サカナクション'}];const result=await run(c,'songCatalogAlternative(used)');assert.equal(result.title,'次の曲');assert.equal(result.artist,'サカナクション');
+});
+test('another song reports failure and retains the current track when no alternative exists',async()=>{
+  const c=env(['musicKey','songId','songFresh','songEnsure'],{songOf:()=>c.state.music[0],songAllowed:()=>true,songContext:()=> 'today',aiText:()=>({json:async()=>{throw Error('offline')}}),songPrompt:()=>'',songPast:()=>[],songCatalogAlternative:async()=>null,songRender(){},songPreload(){},musicTaste:()=> 'サカナクション'});
+  c.state.music=[{id:'2026-09-28',title:'夜の東側',artist:'サカナクション',context:'today'}];await run(c,"songEnsure('2026-09-28',true)");assert.equal(c.state.music[0].title,'夜の東側');assert.equal(c.state.songErr,'offline');assert.equal(c.state.songBusy,false);assert.equal(c.writes.length,0);
+});
 test('v184 release matches reviewed IDs and text, respects reopen/reject, and retains pending notes',()=>{
   const c=env(['bugTextKey','bugDisplay','AI_RELEASE']);c.b={id:'mul0h45lgni00',text:'相手からの共有通知機能追加して',ver:'183',status:'working'};assert.equal(run(c,'bugDisplay(b).fixedVersion'),'184');assert.equal(c.b.status,'working');for(const patch of [{id:'new-report'},{text:'別の問題'},{reopenedAt:1},{status:'rejected'},{ver:'184'}]){c.other={...c.b,...patch};assert.notEqual(run(c,'bugDisplay(other).resolvedBy'),'ai');}c.b={id:'mujd3btg9uap6',text:'food',status:'working',ver:'180'};assert.match(run(c,'bugDisplay(b).releaseNote'),/確認待ち/);assert.equal(run(c,'bugDisplay(b).status'),'working');
 });
