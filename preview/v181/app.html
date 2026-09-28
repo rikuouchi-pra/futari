@@ -2642,7 +2642,7 @@ const dayTime=(x,d)=>(x[dayTimeKey(x)]||{})[d];
 const timeAt=(x,d)=>{ const o=dayTime(x,d); return o&&Object.prototype.hasOwnProperty.call(o,"time")?o.time:myT(x); };
 const durAt=(x,d)=>{ const o=dayTime(x,d); return o&&o.dur!=null?o.dur:myD(x); };
 function timeChangeFor(c,x,d,time,dur,scope="day"){
-  if(scope==="all"&&hasDayTime(c,x)){ const key=dayTimeKey(x); return {...(c==="blocks"?{start:time||"",end:time?hhmm(tmin(time)+(dur||60)):"",allDay:!time}:timeCh(x,time,dur)),[key]:null,...(x.auto?{touched:true}:{})}; }
+  if(scope==="all"&&hasDayTime(c,x)){ const key=dayTimeKey(x); return {...(c==="blocks"?{start:time||"",end:time?hhmm(Math.min(1440,tmin(time)+(dur||60))%1440):"",allDay:!time}:timeCh(x,time,dur)),[key]:null,...(x.auto?{touched:true}:{})}; }
   if(!hasDayTime(c,x)) return c==="blocks"||c==="events"?{start:time,end:time?hhmm(Math.min(1440,tmin(time)+(dur||60))%1440):null,...(x.auto?{touched:true}:{})}:{...timeCh(x,time,dur),...(x.auto?{touched:true}:{})};
   const key=dayTimeKey(x), prev=dayTime(x,d), baseDur=c==="blocks"?Math.max(15,((tmin(x.end)||tmin(x.start)+60)-tmin(x.start)+1440)%1440):Number(myD(x))||30;
   return {[key]:{...(x[key]||{}),[d]:{time:time||null,dur:time?(dur||prev&&prev.dur||baseDur):null}}};
@@ -2729,7 +2729,7 @@ async function shareEntry(o,date){ if(state.shareBusy) return false; const inSch
 }
 const shareUnread=()=>state.events.filter(x=>x.notice&&x.notice.to===myRole()&&!x.notice.seenAt).sort((a,b)=>b.notice.at-a.notice.at);
 function shareInboxHTML(){ const rows=shareUnread(); if(!rows.length) return "";
-  return `<section class="card" id="shareInbox"><h2>相手からの共有 <span class="tag tc-blue">未読 ${rows.length}</span></h2><ul class="list">${rows.map(x=>`<li class="item"><div class="row" style="display:block"><b>${esc(x.text)}</b><div class="meta">${esc(x.date)} ${esc(x.start||"")}–${esc(x.end||"")}・${esc(nameOf(x.notice.from))}から</div><div class="edit-row"><button class="btn" data-share-open="${esc(x.id)}">予定を見る</button><button class="btn" data-share-seen="${esc(x.id)}">確認した</button></div></div></li>`).join("")}</ul></section>`;
+  return `<section class="card" id="shareInbox"><h2>相手からの共有 <span class="tag tc-blue">未読 ${rows.length}</span></h2><ul class="list">${rows.map(x=>`<li class="item"><div class="row" style="display:block"><b>${esc(x.text)}</b><div class="meta">${esc(x.date)} ${x.start?esc(x.start)+(x.end?"–"+esc(x.end):""):"終日"}・${esc(nameOf(x.notice.from))}から</div><div class="edit-row"><button class="btn" data-share-open="${esc(x.id)}">予定を見る</button><button class="btn" data-share-seen="${esc(x.id)}">確認した</button></div></div></li>`).join("")}</ul></section>`;
 }
 async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()) return;try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});x.notice=notice;requestRender();}catch(e){err(e);} }
 function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
@@ -3017,7 +3017,7 @@ function bugCard(){
       </div></li>`; }).join("")}</ul>`;
   return `<section class="card" id="bugCard"><h2>不具合の報告</h2>
     <p>おかしな動きや要望をメモしておけます（ふたりで共有）。対応済みは通常非表示です。「AI対応済み」は実装・検証した内容と反映版を表示します。下の「対応済み」から確認できます。</p>
-    ${fixed.some(b=>b.resolvedBy==="ai")?`<div class="meta"><span class="tag tc-task">AI対応済み ${fixed.filter(b=>b.resolvedBy==="ai").length}件</span><span>対応内容は下の履歴から確認</span></div>`:""}
+    ${fixed.some(b=>b.resolvedBy==="ai")?`<div class="edit-row"><button class="btn" data-act="bugShowAI">AI対応済み ${fixed.filter(b=>b.resolvedBy==="ai").length}件 · 内容を見る</button></div>`:""}
     <textarea id="bugText" rows="3" maxlength="1200" placeholder="例：カレンダーで←スワイプしても月が変わらない（どの画面で・何をしたら・どうなったか）">${esc(state.bugDraft||"")}</textarea>
     <div class="edit-row" style="justify-content:space-between"><span class="who">画面：${esc(TITLES[prefs.view]||"")}・版 ${APP_VERSION}</span><button class="btn primary" data-act="bugsend">送信</button></div>
     <div class="edit-row"><button class="btn" data-act="bugExport">全要望と対応内容を書き出す</button><span class="who">開発担当AIは、ログイン後この欄で保存済みの全件を確認できます</span></div>
@@ -4002,6 +4002,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="fridgePick"){ const i=$("fridgeIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgeSave") fridgeSave();
   else if(a==="fridgeSuggest"){ const items=fridgeItems(); if(!items.length){ toast("先に冷蔵庫の食材を保存してください"); return; } go("home"); aiAsk("冷蔵庫の食材を優先して、初心者でも作れる夕飯を主菜・副菜・汁物の組み合わせで3案提案して。足りない物は買い物として分けて"); }
+  else if(a==="bugShowAI"){state.bugShowFixed=true;refreshBugCard();document.querySelector('[data-bug-history="fixed"]')?.scrollIntoView({block:"center",behavior:"smooth"});}
   else if(a==="bugExport") saveFile("futari-requests.json",new Blob([JSON.stringify(bugExportData(),null,2)],{type:"application/json"}));
   else if(a==="bshare"){ const ed=state.editing, x=ed&&state.blocks.find(q=>q.id===ed.id); if(!x) return; saveEdit(); const y=state.blocks.find(q=>q.id===x.id)||x, id=newId(), now=Date.now(), {id:_i,...rest}=JSON.parse(JSON.stringify(y));
     dset("events",id,{text:y.text,date:y.date||state.sel,start:y.start,end:y.end||null,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); ddel("blocks",y.id); haptic("done");
