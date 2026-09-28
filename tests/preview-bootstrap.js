@@ -57,7 +57,12 @@
   kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
   histDoc.onSnapshot(s=>state.history=s.data().names||[]);
   /* Deterministic fake response tests the UI/action path, not language understanding. */
-  const mockAI={limits:async()=>({images:{mediaTypes:['image/png','image/jpeg']}}),json:async(p,o)=>{
+  let previewAiMode="normal";
+  const mockAI={resetConnection:()=>{},limits:async()=>({images:{mediaTypes:['image/png','image/jpeg']}}),json:async(p,o)=>{
+    const mode=previewAiMode;
+    if(mode==='access')throw Object.assign(new Error('Apps Scriptがログイン画面を返しました（検証用）'),{code:'gas_access'});
+    if(mode==='hang')return new Promise(()=>{});
+    if(mode==='slow'){await new Promise(resolve=>setTimeout(resolve,12000));return {reply:'【遅延応答】リフレッシュ前の古い回答',acts:[],next:[]};}
     if(o?.images)return {items:['卵','豆腐','にんじん']};
     if(String(p).includes('改善依頼を開発者向けに整理')){await new Promise(resolve=>setTimeout(resolve,1200));return {summary:'【検証用】要望を既存の画面に合わせて実装する',changes:['対象画面の操作を確認して必要な変更を絞る','既存の保存データと公開範囲を保って追加する'],tests:['スマホ幅で入力・保存・再表示できる','保存失敗時に入力を残して再試行できる'],questions:[]};}
     const q=String(p).match(/【今回の質問】([^\n]*)/)?.[1]||String(p);
@@ -66,7 +71,7 @@
   }};
   state.sample=mockAI;state.sampleTxt=mockAI;state.sampleNote='検証用の模擬AI（外部送信なし）';
   const banner=document.createElement('div');banner.textContent='検証専用：架空データ・本番接続なし・AIは固定応答';banner.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#173b31;color:white;text-align:center;padding:5px;font-size:11px;pointer-events:none';document.body.appendChild(banner);
-  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(e.data.fontSize&&['m','l','xl'].includes(e.data.fontSize)){prefs.fs=e.data.fontSize;applyPrefs();render();}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
+  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(['normal','slow','access','hang'].includes(e.data.aiMode))previewAiMode=e.data.aiMode;if(e.data.fontSize&&['m','l','xl'].includes(e.data.fontSize)){prefs.fs=e.data.fontSize;applyPrefs();render();}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
   if(new URLSearchParams(location.search).get('view')==='requests'){ state.view='settings';prefs.view='settings';state.setOpen={data:1}; }
   $('syncText').textContent='検証データ';$('offline').hidden=true;applyPrefs();render();
   if(new URLSearchParams(location.search).get('view')==='requests') requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));
