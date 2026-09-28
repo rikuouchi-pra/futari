@@ -30,7 +30,7 @@ function env(names, overrides = {}) {
     snapUndo: () => () => {}, aiActText: () => 'test', APP_VERSION: source.match(/APP_VERSION="(\d+)"/)[1],
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
-    ...overrides });
+    bugAIPanel:()=>'',...overrides });
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of names) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -298,4 +298,56 @@ test('quick commit keeps a private event private and rejects invalid dates',()=>
   const values={qText:{value:'秘密の予定'},qDate:{value:'2027-02-01'},qTime:{value:'10:00'},qEnd:{value:'11:00'}};
   const c=env([...quickFns,'quickCommit'],{$:id=>values[id],short:x=>x});c.state.quick={r:{kind:'block',text:'秘密の予定',who:'priv'}};run(c,'quickCommit()');assert.equal(c.writes[0].c,'blocks');assert.equal(c.writes[0].data.who,undefined);assert.equal(c.writes[0].data.end,'11:00');
   c.state.quick={r:{kind:'block',text:'秘密の予定',invalidDate:true}};values.qDate.value='';run(c,'quickCommit()');assert.equal(c.writes.length,1);assert.ok(c.state.quick);
+});
+const requestFns=['AI_RELEASE','bugTextKey','bugDisplay','bugCanRequest','bugNormalizePlan','bugPlanOf','bugHandoffOf','bugPlanPrompt','bugDevPrompt','bugAIProgress','bugSavePlan','bugGeneratePlan','bugRecordHandoff','bugCopyRequest','bugShareRequest','bugAIPanel','bugSubmit'];
+function requestEnv(extra={}){const fields={bugText:{value:'保存済み要望'}};const c=env(requestFns,{$:id=>fields[id]||null,refreshBugCard(){},netMark(){},setInterval:()=>1,clearInterval(){},navigator:{},...extra});c.fields=fields;c.state.bugs=[{id:'request',text:'操作を改善して',status:'new',ver:'181',view:'cal'}];c.colRef=()=>({doc:id=>({update:async data=>c.writes.push({op:'update',id,data}),set:async data=>c.writes.push({op:'set',id,data})})});return c;}
+const planFixture={summary:'カレンダー操作を改善する',changes:['スワイプ判定を調整する'],tests:['スワイプすると翌月へ移動する'],questions:[]};
+test('AI improvement prompt includes only the chosen request, not account or private data',()=>{
+  const c=requestEnv();c.state.me='SECRET_UID';c.state.events=[{text:'PRIVATE_EVENT'}];c.state.fam={h:'PRIVATE_NAME'};c.state.bugs[0].ua='PRIVATE_UA';c.state.bugs[0].err='SECRET_TOKEN';c.state.bugs[0].by='AUTHOR_UID';const prompt=run(c,'bugPlanPrompt(state.bugs[0])');assert.ok(prompt.includes('操作を改善して'));assert.doesNotMatch(prompt,/SECRET|PRIVATE|AUTHOR/);assert.ok(prompt.length<20000);
+  const handoff=run(c,'bugDevPrompt(state.bugs[0])');assert.match(handoff,/rikuouchi-pra\/futari/);assert.match(handoff,/要望ID：request/);assert.doesNotMatch(handoff,/SECRET|PRIVATE|AUTHOR/);
+});
+test('AI plan requires bounded structured fields and ignores executable actions/status',()=>{
+  const c=requestEnv();c.raw={...planFixture,summary:'a'.repeat(800),changes:Array(10).fill('b'.repeat(600)),status:'fixed',acts:[{type:'delete'}],html:'<script>'};const p=run(c,'bugNormalizePlan(raw)');assert.equal(p.summary.length,500);assert.equal(p.changes.length,6);assert.equal(p.changes[0].length,300);assert.equal(p.status,undefined);assert.equal(p.acts,undefined);
+  for(const raw of [{},{summary:'x',changes:[],tests:['t']},{...planFixture,tests:'bad'}]){c.raw=raw;assert.throws(()=>run(c,'bugNormalizePlan(raw)'));}
+});
+test('AI improvement generation saves a plan without changing request status',async()=>{
+  let prompt;const c=requestEnv({aiText:()=>({json:async p=>{prompt=p;return {...planFixture,status:'fixed'};}})});assert.equal(await run(c,"bugGeneratePlan('request')"),true);assert.equal(c.state.bugs[0].status,'new');assert.equal(c.state.bugs[0].aiPlan.appVersion,c.APP_VERSION);assert.equal(c.writes[0].data.status,undefined);assert.equal(c.writes[0].data.fixedVersion,undefined);assert.ok(prompt);assert.equal(c.state.bugAIJob,null);
+});
+test('double plan clicks make one AI call and do not indicate completion while waiting',async()=>{
+  let resolve,calls=0;const c=requestEnv({aiText:()=>({json:async()=>{calls++;return await new Promise(r=>resolve=r);}})});const first=run(c,"bugGeneratePlan('request')");assert.equal(await run(c,"bugGeneratePlan('request')"),false);assert.equal(c.writes.length,0);assert.equal(c.state.bugAIJob.phase,'asking');resolve(planFixture);await first;assert.equal(calls,1);assert.equal(c.state.bugs[0].status,'new');
+});
+test('AI/save failures are retryable without regenerating a successful plan',async()=>{
+  let calls=0;const c=requestEnv({aiText:()=>({json:async()=>{calls++;return planFixture;}})});c.colRef=()=>({doc:()=>({update:async data=>{c.state.bugs[0].aiPlan=data.aiPlan;throw Error('offline');}})});assert.equal(await run(c,"bugGeneratePlan('request')"),false);assert.equal(c.state.bugs[0].aiPlan,undefined);assert.ok(c.state.bugAIUnsaved.plan);assert.match(c.state.bugAIError,/保存/);
+  c.colRef=()=>({doc:()=>({update:async data=>c.writes.push(data)})});assert.equal(await run(c,"bugSavePlan('request',state.bugAIUnsaved.plan)"),true);assert.equal(calls,1);assert.equal(c.state.bugAIUnsaved,null);assert.equal(c.state.bugs[0].status,'new');
+});
+test('disabled AI and failed model response preserve the manual handoff path',async()=>{
+  const c=requestEnv({aiText:()=>null});assert.equal(await run(c,"bugGeneratePlan('request')"),false);assert.equal(c.writes.length,0);assert.match(c.state.bugAIError,/原文/);assert.ok(run(c,'bugDevPrompt(state.bugs[0])'));
+  c.aiText=()=>({json:async()=>{throw Error('model unavailable');}});assert.equal(await run(c,"bugGeneratePlan('request')"),false);assert.equal(c.state.bugAIJob,null);assert.equal(c.writes.length,0);
+});
+test('response arriving after request closure or changes cannot store a stale plan',async()=>{
+  for(const change of ['closed','edited']){const c=requestEnv({aiText:()=>({json:async()=>{if(change==='closed')c.state.bugs[0].status='fixed';else c.state.bugs[0].text='別の要望';return planFixture;}})});assert.equal(await run(c,"bugGeneratePlan('request')"),false);assert.equal(c.writes.length,0);}
+});
+test('copying prepares a handoff but never claims AI delivery or code completion',async()=>{
+  let copied;const c=requestEnv({navigator:{clipboard:{writeText:async t=>copied=t}}});assert.equal(await run(c,"bugCopyRequest('request')"),true);assert.match(copied,/操作を改善して/);assert.equal(c.state.bugs[0].devHandoff.stage,'prepared');assert.equal(c.state.bugs[0].devHandoff.confirmedAt,undefined);assert.equal(c.state.bugs[0].status,'new');
+  assert.equal(await run(c,"bugRecordHandoff('request','requested')"),true);assert.equal(c.state.bugs[0].devHandoff.stage,'requested');assert.ok(c.state.bugs[0].devHandoff.confirmedAt);assert.equal(c.state.bugs[0].status,'new');await run(c,"bugCopyRequest('request')");assert.equal(c.state.bugs[0].devHandoff.stage,'requested');
+});
+test('clipboard denial, cancelled share and failed persistence never mark a request sent',async()=>{
+  const c=requestEnv({navigator:{clipboard:{writeText:async()=>{throw Error('denied');}},share:async()=>{const e=Error('cancel');e.name='AbortError';throw e;}}});assert.equal(await run(c,"bugCopyRequest('request')"),false);assert.equal(c.writes.length,0);assert.equal(await run(c,"bugShareRequest('request')"),false);assert.equal(c.writes.length,0);assert.equal(c.state.bugTransferring,false);
+  c.colRef=()=>({doc:()=>({update:async data=>{c.state.bugs[0].devHandoff=data.devHandoff;throw Error('offline');}})});assert.equal(await run(c,"bugRecordHandoff('request','prepared')"),false);assert.equal(c.state.bugs[0].devHandoff,undefined);
+});
+test('share success records preparation only because native share cannot prove delivery',async()=>{
+  const c=requestEnv({navigator:{share:async()=>{}}});assert.equal(await run(c,"bugShareRequest('request')"),true);assert.equal(c.state.bugs[0].devHandoff.stage,'prepared');assert.equal(c.state.bugs[0].status,'new');
+});
+test('reopened or revised requests do not reuse old plans and handoff labels',()=>{
+  const c=requestEnv();c.state.bugs[0].aiPlan={...planFixture,requestText:c.state.bugs[0].text,appVersion:c.APP_VERSION,at:1};c.state.bugs[0].devHandoff={requestText:c.state.bugs[0].text,appVersion:c.APP_VERSION,at:1,stage:'requested'};assert.ok(run(c,'bugPlanOf(state.bugs[0])'));c.state.bugs[0].reopenedAt=2;assert.equal(run(c,'bugPlanOf(state.bugs[0])'),null);assert.equal(run(c,'bugHandoffOf(state.bugs[0])'),null);
+  delete c.state.bugs[0].reopenedAt;c.state.bugs[0].text='new';assert.equal(run(c,'bugPlanOf(state.bugs[0])'),null);assert.equal(run(c,'bugHandoffOf(state.bugs[0])'),null);
+});
+test('request panel escapes model text and hides actions for fixed/anonymous records',()=>{
+  const c=requestEnv();c.state.bugAIOpen='request';c.state.bugs[0].aiPlan={...planFixture,summary:'<img onerror=alert(1)>',requestText:c.state.bugs[0].text,appVersion:c.APP_VERSION,at:1};const html=run(c,'bugAIPanel(state.bugs[0])');assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);assert.match(html,/改善案・未実装/);assert.match(html,/依頼文をコピー/);assert.match(html,/リンクを開くだけでは送信されません/);c.state.bugs[0].status='fixed';assert.equal(run(c,'bugAIPanel(state.bugs[0])'),'');c.state.bugs[0].status='new';c.state.me=null;assert.equal(run(c,'bugAIPanel(state.bugs[0])'),'');
+});
+test('save-and-request opens the correct persisted request without invoking AI',async()=>{
+  const c=requestEnv();assert.equal(await run(c,'bugSubmit(true)'),true);assert.equal(c.state.bugAIOpen,'new-id');assert.equal(c.writes[0].op,'set');assert.equal(c.writes[0].data.status,'new');assert.equal(c.state.bugDraft,'');assert.equal(c.state.bugDraftId,null);
+});
+test('failed request submission keeps its text and ID for retry and deduplicates clicks',async()=>{
+  const c=requestEnv();let reject,calls=0;c.colRef=()=>({doc:()=>({set:async()=>{calls++;await new Promise((_r,j)=>reject=j);}})});const first=run(c,'bugSubmit(true)');assert.equal(await run(c,'bugSubmit(true)'),false);reject(Error('offline'));assert.equal(await first,false);assert.equal(calls,1);assert.equal(c.state.bugDraft,'保存済み要望');assert.equal(c.state.bugDraftId,'new-id');assert.equal(c.state.bugAIOpen,undefined);assert.match(c.state.bugSaveError,/保存できません/);
 });
