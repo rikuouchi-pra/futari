@@ -31,6 +31,7 @@ function env(names, overrides = {}) {
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
     ...overrides });
+  if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of names) vm.runInContext(declaration(name), c, {filename: name});
   return c;
 }
@@ -68,7 +69,7 @@ test('edited auto tasks are protected against regeneration', () => {
   assert.equal(run(c,"timeChangeFor('pitems',x,'2026-09-28','11:00',45).touched"),true);
 });
 test('calendar block rows show daily overrides but edit the standard time', () => {
-  const c=env([...core,'REPS','blockRow'],{isEditing:()=>false,wrapRow:(_c,_b,_s,_icon,html)=>html});
+  const c=env([...core,'REPS','blockRow'],{scheduleShareHTML:()=>'',isEditing:()=>false,wrapRow:(_c,_b,_s,_icon,html)=>html});
   c.state.view='cal';c.state.sel='2026-09-28';c.x={id:'block',text:'読書',rep:'daily',start:'21:00',end:'21:30',dayTimes:{'2026-09-28':{time:'20:00',dur:30}}};
   assert.match(run(c,'blockRow(x)'),/20:00–20:30/);
   c.isEditing=()=>true;c.seg=()=>'';c.editActions=()=>'';c.BCOLORS=[];
@@ -87,7 +88,7 @@ test('AI dates preserve explicit years and reject nonexistent dates', () => {
   for(const d of ['2026-02-29','2026-04-31','2026-13-10']) assert.equal(run(c,`aiDate(${JSON.stringify(d)})`),'');
   assert.equal(run(c,"aiDate('明日')"),'2026-09-29'); assert.equal(run(c,"aiTime('24:00')"),'');
 });
-const ai = [...core,'aiDate','aiTime','AI_PREFS','cut2','aiDoAct','applyLocal'];
+const ai = [...core,'aiDate','aiTime','aiWho','TARGETS','tgtVal','aiRecurring','AI_PREFS','cut2','aiDoAct','applyLocal'];
 test('AI private event uses private collection with exact date/time', () => {
   const c=env(ai); const w=act(c,{type:'add_event',text:'歯医者',date:'2027-02-01',start:'10:30',end:'11:15',who:'priv'});
   assert.equal(w.c,'blocks'); assert.equal(w.data.date,'2027-02-01'); assert.equal(w.data.start,'10:30'); assert.equal(w.data.end,'11:15'); assert.equal(w.data.who,undefined);
@@ -126,8 +127,8 @@ test('fridge save preserves other shared metadata', async () => {
   let patch;const c=env(['fridgeSave'],{$:()=>({value:'卵、卵\n豆腐'}),kakeiDoc:{update:async x=>{patch=x;}}});c.state.kakei={budget:20000};
   await run(c,'fridgeSave()');assert.deepEqual(plain(patch.fridge.items),['卵','豆腐']);assert.equal(c.state.kakei.budget,20000);assert.equal(patch.budget,undefined);
 });
-test('favorite template remains after original task is removed and prefs reload', () => {
-  const c=env(['itemFavorites','itemFavorite','toggleItemFavorite']);c.state.pitems=[{id:'x',text:'買う',list:'shop'}];run(c,"toggleItemFavorite('pitems','x')");c.state.pitems=[];
+test('favorite template remains after original task is removed and prefs reload', async () => {
+  const c=env(['parseFavorites','itemFavorites','itemFavorite','saveItemFavorites','toggleItemFavorite'],{favoritesDoc:null,prefsDoc:null,store:{set(){}},err(){}});c.state.pitems=[{id:'x',text:'買う',list:'shop'}];await run(c,"toggleItemFavorite('pitems','x')");c.state.pitems=[];
   const saved=JSON.stringify(c.prefs);c.prefs=JSON.parse(saved);assert.equal(run(c,'itemFavorites()[0].text'),'買う');assert.equal(run(c,'itemFavorites()[0].private'),true);
 });
 test('automatic rule AND/OR combinations and empty conditions', () => {
@@ -212,4 +213,89 @@ test('compact timetable cards omit metadata and selected details separate title 
   assert.match(declaration('timetable'),/ht>=60\?ttBadges\(o,true\):""/);
   assert.match(declaration('ttBarHTML'),/class="tb-title"/);assert.match(declaration('ttBarHTML'),/class="tb-time"/);
   assert.doesNotMatch(declaration('ttBarHTML'),/esc\(ttMeta\(o\)\)/);
+});
+test('all recurrence scope resets own overrides and preserves partner time and logs',()=>{
+  const c=env(core);c.x={list:'rtask',who:'both',time:'09:00',dayTimes_h:{'2026-09-28':{time:'10:00'}},dayTimes_w:{'2026-09-28':{time:'08:00'}},log:{'2026-09-27':true}};
+  run(c,"Object.assign(x,timeChangeFor('items',x,'2026-09-28','12:00',60,'all'))");
+  assert.equal(c.x.dayTimes_h,null);assert.equal(c.x.dayTimes_w['2026-09-28'].time,'08:00');assert.equal(c.x.time_w,'09:00');assert.equal(c.x.time_h,'12:00');assert.equal(c.x.log['2026-09-27'],true);
+  assert.equal(run(c,"timeAt(x,'2026-09-29')"),'12:00');
+});
+test('AI recurring creation supports every frequency and explicit private/shared assignees',()=>{
+  const c=env(ai);const targets=run(c,'TARGETS.map(x=>x[0])');
+  for(const target of targets){c.writes.length=0;const w=act(c,{type:'add_recurring',text:'routine',target,wd:[1,3],nth:[1,-1],every:4,mEvery:2,mStart:'2026-10-01',date:'2026-10-01',time:'23:30',end:'00:00',who:'priv'});assert.equal(w.c,'habits');assert.equal(String(w.data.target),target);assert.equal(w.data.since,'2026-10-01');assert.equal(w.data.dur,30);assert.equal(w.data.who,undefined);}
+  const w=act(c,{type:'add_recurring',text:'shared',target:'wd',wd:[2],who:'妻'});assert.equal(w.c,'items');assert.equal(w.data.who,'w');assert.equal(w.data.list,'rtask');
+});
+test('AI refuses invalid recurrence parameters and unknown people without writes',()=>{
+  for(const bad of [{target:'unknown'},{target:'wd',wd:[]},{target:'wd',wd:[8]},{target:'mn',wd:[1],nth:[0]},{target:'iv',every:0},{target:'iv',every:1.5},{target:'mo',mEvery:13},{target:'7',who:'unknown'}]){const c=env(ai);act(c,{type:'add_recurring',text:'test',...bad});assert.equal(c.writes.length,0,JSON.stringify(bad));}
+});
+test('future daily habits are absent before their explicit start date',()=>{
+  const c=env(['aiDate','hSince','tgtCode','hOn','hTodayList'],{habitDue:()=>null,HFOL:[],habitLog:()=>({})});
+  c.state.habits=[{id:'future',target:7,since:'2026-10-01',createdAt:1},{id:'current',target:7,since:'2026-09-01'}];
+  assert.deepEqual(plain(run(c,'hTodayList().map(x=>x.id)')),['current']);assert.equal(run(c,"hOn(state.habits[0],'2026-09-30')"),false);assert.equal(run(c,"hOn(state.habits[0],'2026-10-01')"),true);
+});
+test('AI recurrence changes do not overwrite completion logs',()=>{
+  const c=env(ai);c.state.habits=[{id:'h1',target:'wd',wd:[1],log:{'2026-09-28':true}}];
+  act(c,{type:'edit',_r:{c:'habits',id:'h1'},target:'wd',wd:[2]});assert.equal(c.state.habits[0].log['2026-09-28'],true);
+});
+const shareFns=['aiDate','tmin','hhmm','sharePayload','shareEntry','shareUnread','shareSeen'];
+test('sharing copies only explicit title and occurrence and targets the other person',()=>{
+  const c=env(shareFns);c.o={t:'帰宅',s:1080,e:1140,x:{text:'帰宅',memo:'secret',log:{},rep:'daily',dayTimes:{}}};
+  const p=plain(run(c,"sharePayload(o,'2026-09-28',1000)"));assert.equal(p.start,'18:00');assert.equal(p.notice.to,'w');assert.equal(p.who,'both');for(const key of ['memo','log','rep','dayTimes','id'])assert.equal(p[key],undefined);
+  c.o={t:'終日予定',x:{allDay:true}};const a=run(c,"sharePayload(o,'2026-09-28')");assert.equal(a.start,undefined);assert.equal(a.end,undefined);
+});
+test('sharing waits for save, suppresses double clicks and retains a retry ID on failure',async()=>{
+  const c=env(shareFns,{netMark(){},err(){}});c.o={t:'帰宅',s:1080,e:1140,x:{}};let resolve,count=0;c.colRef=()=>({doc:()=>({set:async()=>{count++;await new Promise(r=>resolve=r);}})});
+  const first=run(c,"shareEntry(o,'2026-09-28')");assert.equal(c.state.events.length,0);assert.equal(await run(c,"shareEntry(o,'2026-09-28')"),false);resolve();assert.equal(await first,true);assert.equal(count,1);assert.equal(c.state.events.length,1);
+  c.colRef=()=>({doc:()=>({set:async()=>{throw Error('offline');}})});assert.equal(await run(c,"shareEntry(o,'2026-09-29')"),false);assert.ok(c.state.sharePendingId);assert.equal(c.state.events.length,1);assert.equal(c.state.shareBusy,false);
+});
+test('only recipients see and acknowledge share notifications',async()=>{
+  const c=env(shareFns,{err(){}});c.state.events=[{id:'a',notice:{to:'w',from:'h',at:5,seenAt:0}},{id:'b',notice:{to:'h',from:'w',at:3,seenAt:0}}];c.colRef=()=>({doc:id=>({update:async data=>c.writes.push({id,data})})});
+  assert.deepEqual(plain(run(c,'shareUnread().map(x=>x.id)')),['b']);await run(c,"shareSeen('a')");assert.equal(c.writes.length,0);await run(c,"shareSeen('b')");assert.equal(c.writes.length,1);assert.equal(run(c,'shareUnread().length'),0);
+});
+test('favorite document survives legacy preference resets and failed optimistic writes',async()=>{
+  const c=env(['parseFavorites','itemFavorites','saveItemFavorites'],{store:{set(){}},err(){},prefsDoc:null});c.state.favoritesLoaded=true;c.state.favorites=[{text:'keep',list:'task'}];c.prefs.itemFavorites='[]';assert.equal(run(c,'itemFavorites()[0].text'),'keep');
+  c.favoritesDoc={set:async()=>{c.state.favorites=[{text:'optimistic',list:'task'}];throw Error('offline');}};assert.equal(await run(c,"saveItemFavorites([{text:'new',list:'task'}])"),false);assert.equal(run(c,'itemFavorites()[0].text'),'keep');assert.equal(c.state.favoriteSaving,false);
+});
+test('favorite migration uses a separate per-user document and loads its saved list',()=>{
+  let cb,written,path;const c=env(['parseFavorites','itemFavorites','bindFavorites'],{favoritesDoc:null,store:{set(){}},err(){},db:{doc:p=>{path=p;return {onSnapshot:f=>cb=f,set:async x=>written=x};}}});c.prefs.itemFavorites='[{"text":"migrated","list":"shop"}]';run(c,'bindFavorites()');assert.equal(path,'data/users/test-user/favorites');cb({exists:false,fromCache:false});assert.equal(written.items[0].text,'migrated');cb({exists:true,data:()=>written});assert.equal(c.state.favoritesLoaded,true);assert.equal(run(c,'itemFavorites()[0].text'),'migrated');
+});
+const quickFns=['tmin','hhmm','aiDate','aiTime','aiWho','QK','qNames','nextDow','quickRule','quickParse'];
+test('quick input preserves full years, normalizes digits and handles noon and midnight',()=>{
+  const c=env(quickFns,{nameOf:r=>r==='h'?'りく':'のり'});
+  c.src='２０２７年２月１日 午前１２時３０分 自分だけ 会議';let r=run(c,'quickRule(src)');assert.equal(r.date,'2027-02-01');assert.equal(r.time,'00:30');assert.equal(r.kind,'block');assert.equal(r.who,'priv');
+  assert.equal(run(c,"quickRule('今日 午後12時 会議').time"),'12:00');assert.equal(run(c,"quickRule('今日 午後11時〜午前12時 会議').end"),'00:00');assert.equal(run(c,"quickRule('2026年2月30日 会議').invalidDate"),true);
+  assert.equal(run(c,"quickRule('のりを買う').who"),'both');assert.equal(run(c,"quickRule('のり 明日 牛乳を買う').who"),'w');
+});
+test('weekday references use the correct week even on Sunday',()=>{
+  const c=env(quickFns);assert.equal(run(c,"nextDow('2026-09-27',1,'next')"),'2026-09-28');assert.equal(run(c,"nextDow('2026-09-27',0,'current')"),'2026-09-27');assert.equal(run(c,"nextDow('2026-09-28',1,'next')"),'2026-10-05');
+});
+test('AI cannot override explicit quick-input date, time, or privacy',async()=>{
+  const c=env(quickFns,{aiText:()=>({json:async()=>({kind:'event',text:'会議',date:'2028-05-03',time:'10:00',end:'11:00',who:'both'})})});
+  const r=await run(c,"quickParse('2027年2月1日 午前12時〜午前1時 自分だけ 会議')");assert.equal(r.date,'2027-02-01');assert.equal(r.time,'00:00');assert.equal(r.end,'01:00');assert.equal(r.kind,'block');assert.equal(r.who,'priv');
+  c.aiText=()=>({json:async()=>({kind:'topic',text:'private',who:'both'})});assert.equal((await run(c,"quickParse('自分だけ 秘密のメモ')")).kind,'ptask');
+});
+test('malformed AI quick dates and times remain explicit errors',async()=>{
+  const c=env(quickFns,{aiText:()=>({json:async()=>({kind:'event',text:'会議',date:'2026-02-30',time:'25:00'})})});const r=await run(c,"quickParse('会議を追加')");assert.equal(r.invalidDate,true);assert.equal(r.invalidTime,true);
+});
+test('AI completion labels only the reviewed old request and never mutates source data',()=>{
+  const c=env(['AI_RELEASE','bugTextKey','bugDisplay','bugExportData']);const text=run(c,'AI_RELEASE.fixes[0][0]');c.b={id:'old',text,status:'new',ver:'180'};
+  const shown=run(c,'bugDisplay(b)');assert.equal(shown.status,'fixed');assert.equal(shown.resolvedBy,'ai');assert.equal(c.b.status,'new');assert.ok(shown.fixNote);assert.equal(shown.fixedVersion,'181');
+  for(const patch of [{ver:'181'},{ver:undefined},{text:text+' まだ直らない'},{reopenedAt:1},{status:'working'},{status:'rejected'}]){c.other={...c.b,...patch};assert.notEqual(run(c,'bugDisplay(other).resolvedBy'),'ai');}
+  c.state.bugs=[c.b];assert.equal(run(c,'bugExportData().requests[0].resolvedBy'),'ai');assert.equal(run(c,'AI_RELEASE.fixes.length'),19);
+});
+test('AI completion can be reopened without closing again and retains release history',async()=>{
+  const c=bugEnv();c.state.bugs=[{id:'request',text:run(c,'AI_RELEASE.fixes[0][0]'),ver:'180',status:'new'}];
+  assert.match(run(c,'bugCard()'),/AI対応済み 1件/);assert.equal(await run(c,"bugSetStatus('request','new')"),true);assert.equal(run(c,'bugDisplay(state.bugs[0]).status'),'new');assert.equal(c.state.bugs[0].fixedVersion,'181');assert.ok(c.state.bugs[0].fixNote);assert.doesNotMatch(run(c,'bugCard()'),/AI対応済み 1件/);
+});
+test('partially tested AI features remain active with a specific remaining-work note',()=>{
+  const c=bugEnv();c.state.bugs=run(c,"AI_RELEASE.pending.map(([text])=>({text,ver:'180',status:'new'}))");const html=run(c,'bugCard()');assert.match(html,/未対応・対応中（5件）/);assert.match(html,/一部対応・確認待ち/);assert.match(html,/対応済み（0件）/);
+});
+test('recurrence edits ending at midnight preserve valid 00:00 and duration',()=>{
+  const c=env(ai);c.x={rep:'daily',start:'21:00',end:'22:00'};assert.equal(run(c,"timeChangeFor('blocks',x,'2026-09-28','23:30',30,'all').end"),'00:00');
+  c.state.habits=[{id:'h1',target:7,time:'21:00',dur:60}];act(c,{type:'edit',_r:{c:'habits',id:'h1'},date:'2026-09-28',time:'23:30',end:'00:00'});assert.equal(c.state.habits[0].dayTimes['2026-09-28'].dur,30);
+});
+test('quick commit keeps a private event private and rejects invalid dates',()=>{
+  const values={qText:{value:'秘密の予定'},qDate:{value:'2027-02-01'},qTime:{value:'10:00'},qEnd:{value:'11:00'}};
+  const c=env([...quickFns,'quickCommit'],{$:id=>values[id],short:x=>x});c.state.quick={r:{kind:'block',text:'秘密の予定',who:'priv'}};run(c,'quickCommit()');assert.equal(c.writes[0].c,'blocks');assert.equal(c.writes[0].data.who,undefined);assert.equal(c.writes[0].data.end,'11:00');
+  c.state.quick={r:{kind:'block',text:'秘密の予定',invalidDate:true}};values.qDate.value='';run(c,'quickCommit()');assert.equal(c.writes.length,1);assert.ok(c.state.quick);
 });
