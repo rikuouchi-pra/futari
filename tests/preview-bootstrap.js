@@ -30,9 +30,11 @@
   put('talks',d,{date:d,status:'done',held:true,heldAt:now,notes:'話し合いのテスト記録',at:now});
   put('dinner',d,{date:d,text:'旧形式のカレー',at:now,role:'h'});
   put('bugs','active-request',{text:'検証用の未対応要望',status:'new',role:'h',at:now});
-  put('bugs','closed-request',{text:'検証用の過去要望',status:'fixed',role:'h',at:now,fixNote:'テスト用の対応内容'});
+  put('bugs','closed-request',{text:'検証用の過去要望',status:'fixed',role:'h',at:now,fixNote:'テスト用の対応内容',fixedAt:now,fixedVersion:'179'});
+  put('bugs','approved-request',{text:'検証用の承認済み要望',status:'approved',role:'h',at:now});
+  put('bugs','rejected-request',{text:'検証用の見送り要望',status:'rejected',role:'h',at:now});
   state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
-  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
+  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
   for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
   kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
   histDoc.onSnapshot(s=>state.history=s.data().names||[]);
@@ -45,5 +47,7 @@
   }};
   state.sample=mockAI;state.sampleTxt=mockAI;state.sampleNote='検証用の模擬AI（外部送信なし）';
   const banner=document.createElement('div');banner.textContent='検証専用：架空データ・本番接続なし・AIは固定応答';banner.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#173b31;color:white;text-align:center;padding:5px;font-size:11px;pointer-events:none';document.body.appendChild(banner);
+  if(new URLSearchParams(location.search).get('view')==='requests'){ state.view='settings';prefs.view='settings'; }
   $('syncText').textContent='検証データ';$('offline').hidden=true;applyPrefs();render();
+  if(new URLSearchParams(location.search).get('view')==='requests') requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));
 }
