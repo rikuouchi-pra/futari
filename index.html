@@ -595,6 +595,7 @@ ol.steps{margin:0;padding-left:20px;font-size:13px;line-height:1.8;color:var(--m
 .tk.future,.tk.before{opacity:.45}.tk.sel{outline:2px solid var(--ink);outline-offset:1px}
 .tk-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-bottom:4px}.tk-leg span{display:flex;align-items:center;gap:4px}.tk-leg .tk{width:14px;height:14px;border-radius:4px;font-size:9px}
 .tk-set{margin-top:6px}.tk-set summary{font-size:12px;color:var(--muted);cursor:pointer;padding:4px 0}
+.bug-history{border-top:1px solid var(--line);margin-top:14px}.bug-history summary{padding:14px 0;font-weight:700;color:var(--ink);font-size:14px}.bug-history summary .who{font-weight:400}.bug-finish textarea{box-sizing:border-box;width:100%;margin-top:5px}
 .mlbl{width:6.2em;flex:none}.minp{width:130px;flex:none}
 .rsub{display:flex;align-items:center;gap:8px;padding:0 14px 12px 56px;background:var(--surface)}.rsub .who{white-space:nowrap}
 .gdep{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}.gdep .minp,#kLimit{width:110px}
@@ -1640,7 +1641,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="179";
+const APP_VERSION="180";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2910,27 +2911,53 @@ async function gsyncRun(){
   state.gEvents={}; requestRender(); if(state.view==="cal") loadGoogleDay(state.sel,true);
 }
 
-/* ================= bug reports (approve → Claude applies the fix) ================= */
-const BUG_ST={new:["受付","tc-blue"],working:["対応中","tc-amber"],proposed:["修正案あり","tc-amber"],approved:["承認済み・修正待ち","tc-task"],fixed:["修正済み","tc-muted"],rejected:["見送り","tc-muted"]};
+/* ================= bug reports and completion history ================= */
+const BUG_ST={new:["受付","tc-blue"],working:["対応中","tc-amber"],proposed:["修正案あり","tc-amber"],approved:["承認済み・修正待ち","tc-task"],fixed:["対応済み","tc-task"],rejected:["見送り","tc-muted"]};
+const bugOwner=()=>state.owner===true||myRole()==="h";
+function bugDate(at){ return Number(at)>0?new Date(Number(at)).toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"numeric",day:"numeric"}):""; }
+function refreshBugCard(keepNote=true){ const c=$("bugCard"); if(!c) return;
+  if($("bugText")) state.bugDraft=$("bugText").value;
+  if(keepNote&&state.bugClosing&&$("bugFixNote")) state.bugFixDraft=$("bugFixNote").value;
+  c.outerHTML=bugCard();
+}
+async function bugSetStatus(id,status,note){
+  const b=state.bugs.find(x=>x.id===id); if(!b||!bugOwner()||state.bugSaving||!["new","working","approved","fixed","rejected"].includes(status)) return false;
+  const now=Date.now(), ch={status,decidedAt:now,updatedAt:now};
+  if(status==="fixed"){ ch.fixNote=String(note||"").trim().slice(0,1200); if(!ch.fixNote){ toast("対応内容を入力してください"); return false; } ch.fixedAt=now; ch.fixedVersion=APP_VERSION; }
+  if(status==="new") ch.reopenedAt=now;
+  const previous={...b}; state.bugSaving=id; state.bugSaveError=""; refreshBugCard();
+  try{ const r=colRef("bugs"); if(!r) throw new Error("要望の保存先に接続されていません");
+    netMark(); await r.doc(id).update(ch);
+    const current=state.bugs.find(x=>x.id===id); if(current) Object.assign(current,ch);
+    state.bugClosing=null; state.bugFixDraft=""; if(status==="fixed") state.bugShowFixed=false;
+    toast(status==="fixed"?"対応済みにしました。「対応済み」から確認できます":status==="new"?"未対応の一覧に戻しました":`状態を「${BUG_ST[status][0]}」にしました`);
+    return true;
+  }catch(e){ const i=state.bugs.findIndex(x=>x.id===id); if(i>=0) state.bugs[i]=previous;
+    state.bugSaveError="保存できませんでした。通信状況を確認して再度お試しください。"; err(e); return false;
+  }finally{ state.bugSaving=null; refreshBugCard(); }
+}
 function bugCard(){
-  const all=state.bugs.slice().sort((a,b)=>(b.at||0)-(a.at||0)), active=all.filter(b=>!["fixed","rejected"].includes(b.status)), closed=all.filter(b=>["fixed","rejected"].includes(b.status)), owner=state.owner===true||myRole()==="h";
-  const rows=list=>`<ul class="list">${list.map(b=>{ const st=BUG_ST[b.status]||BUG_ST.new;
+  const all=state.bugs.slice().sort((a,b)=>(b.at||0)-(a.at||0)), active=all.filter(b=>!["fixed","rejected"].includes(b.status)), fixed=all.filter(b=>b.status==="fixed").sort((a,b)=>(b.fixedAt||b.decidedAt||b.at||0)-(a.fixedAt||a.decidedAt||a.at||0)), rejected=all.filter(b=>b.status==="rejected"), owner=bugOwner(), disabled=state.bugSaving?"disabled":"";
+  const rows=list=>`<ul class="list">${list.map(b=>{ const status=b.status||"new", st=BUG_ST[status]||BUG_ST.new, closed=["fixed","rejected"].includes(status), date=status==="fixed"?bugDate(b.fixedAt||b.decidedAt):"";
       return `<li class="item"><div class="row" style="flex-direction:column;align-items:stretch;gap:6px;touch-action:auto">
         <div class="text">${esc(b.text)}</div>
         <div class="meta"><span class="tag ${st[1]}">${st[0]}</span><span>${esc(nameOf(b.role||"h"))}・${ago(b.at)}</span>${b.view?`<span>${esc(TITLES[b.view]||b.view)}</span>`:""}</div>
+        ${status==="fixed"?`<div class="meta">${date?`<span>完了 ${esc(date)}</span>`:""}${b.fixedVersion?`<span>v${esc(b.fixedVersion)}</span>`:""}</div>`:""}
         ${b.proposal?`<div class="reply"><div class="who">修正案</div>${esc(b.proposal)}</div>`:""}
-        ${b.fixNote?`<div class="reply"><div class="who">対応内容</div>${esc(b.fixNote)}</div>`:""}
-        ${owner&&b.status==="new"?`<div class="edit-row"><button class="btn" data-bug="${esc(b.id)}" data-bst="working">対応を始める</button><button class="btn" data-bug="${esc(b.id)}" data-bst="rejected">見送る</button></div>`:""}
-        ${owner&&b.status==="working"?`<div class="edit-row"><button class="btn primary" data-bug="${esc(b.id)}" data-bst="fixed">対応済みにする</button><button class="btn" data-bug="${esc(b.id)}" data-bst="rejected">見送る</button></div>`:""}
-        ${b.status==="proposed"&&owner?`<div class="edit-row"><button class="btn primary" data-bug="${esc(b.id)}" data-bst="approved">承認して修正する</button><button class="btn" data-bug="${esc(b.id)}" data-bst="rejected">見送る</button></div>`:""}
+        ${b.fixNote?`<div class="reply" style="white-space:pre-wrap"><div class="who">${closed?"対応内容":"前回の対応内容"}</div>${esc(b.fixNote)}</div>`:""}
+        ${owner&&state.bugClosing===b.id?`<div class="bug-finish"><label class="who" for="bugFixNote">対応した内容</label><textarea id="bugFixNote" rows="2" maxlength="1200" placeholder="例：種類と公開範囲をタグで表示するように修正" ${disabled}>${esc(state.bugFixDraft||"")}</textarea><div class="edit-row"><button class="btn primary" data-bug="${esc(b.id)}" data-bst="saveFixed" ${disabled}>${state.bugSaving===b.id?"保存中…":"完了して非表示"}</button><button class="btn" data-bug="${esc(b.id)}" data-bst="cancel" ${disabled}>キャンセル</button></div></div>`:
+        owner?`<div class="edit-row" style="flex-wrap:wrap">${closed?`<button class="btn" data-bug="${esc(b.id)}" data-bst="new" ${disabled}>未対応に戻す</button>`:`<button class="btn" data-bug="${esc(b.id)}" data-bst="fixed" ${disabled}>対応済みにする</button>${status==="new"?`<button class="btn" data-bug="${esc(b.id)}" data-bst="working" ${disabled}>対応を始める</button>`:""}${status==="proposed"?`<button class="btn" data-bug="${esc(b.id)}" data-bst="approved" ${disabled}>承認して修正する</button>`:""}<button class="btn" data-bug="${esc(b.id)}" data-bst="rejected" ${disabled}>見送る</button>`}</div>`:""}
       </div></li>`; }).join("")}</ul>`;
   return `<section class="card" id="bugCard"><h2>不具合の報告</h2>
-    <p>おかしな動きや要望をメモしておけます（ふたりで共有）。対応状況と内容はここで確認できます。</p>
+    <p>おかしな動きや要望をメモしておけます（ふたりで共有）。対応済みは通常非表示です。下の「対応済み」を開くと内容を確認できます。</p>
     <textarea id="bugText" rows="3" maxlength="1200" placeholder="例：カレンダーで←スワイプしても月が変わらない（どの画面で・何をしたら・どうなったか）">${esc(state.bugDraft||"")}</textarea>
     <div class="edit-row" style="justify-content:space-between"><span class="who">画面：${esc(TITLES[prefs.view]||"")}・版 ${APP_VERSION}</span><button class="btn primary" data-act="bugsend">送信</button></div>
     <div class="edit-row"><button class="btn" data-act="bugExport">全要望と対応内容を書き出す</button><span class="who">開発担当AIは、ログイン後この欄で保存済みの全件を確認できます</span></div>
+    ${state.bugSaveError?`<p role="alert">${esc(state.bugSaveError)}</p>`:""}
+    <div class="section-label">未対応・対応中（${active.length}件）</div>
     ${active.length?rows(active):'<div class="empty">対応待ちはありません</div>'}
-    ${closed.length?`<details class="tk-set"><summary>過去の対応（${closed.length}件）</summary>${rows(closed)}</details>`:""}</section>`;
+    <details class="tk-set bug-history" ${state.bugShowFixed?"open":""}><summary data-bug-history="fixed">対応済み（${fixed.length}件）<span class="who">・タップで表示／非表示</span></summary>${fixed.length?rows(fixed):'<div class="empty">対応済みの要望はありません</div>'}</details>
+    ${rejected.length?`<details class="tk-set bug-history" ${state.bugShowRejected?"open":""}><summary data-bug-history="rejected">見送り（${rejected.length}件）</summary>${rows(rejected)}</details>`:""}</section>`;
 }
 /* ================= 初期設定 & チュートリアル ================= */
 const ONB={step:0,mode:"setup"}; /* mode: setup (first run: all steps) | tour (tutorial only) */
@@ -3736,7 +3763,13 @@ $("main").addEventListener("click",e=>{
   if(tt&&state.ttSel&&!e.target.closest(".tt-b")){ state.ttSel=null; state.ttDelArm=false; } /* v164: 選択中でも1回のタップで新しい枠を出す */
   if(e.target.closest("#ttNew")&&!e.target.closest("[data-nh]")){ const N=state.ttNew; state.pendTime=hhmm(N.s); state.pendEnd=hhmm(N.e%1440); state.pendPrivate=true; state.ttNew=null; openSheet("task"); return; } /* v178: タイムテーブルから追加＝時間つき・じぶんだけを初期値 */
   if(tt){ /* v164: 枠があっても、別の場所をタップしたらそこへ枠を移す（空振りのタップをなくす） */ const S0=ttS(), m=Math.min(Math.max(ttY2mF(tt,e.clientY,30),S0*60),23*60+30); state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; haptic("tick"); renderTT(); return; }
-  const bg=e.target.closest("[data-bug]"); if(bg){ const status=bg.dataset.bst, ch={status,decidedAt:Date.now()}; if(status==="fixed"){ const note=prompt("対応した内容を入力してください"); if(note===null) return; ch.fixNote=String(note).trim().slice(0,1200)||"対応済みとして確認"; } dupd("bugs",bg.dataset.bug,ch); toast(`状態を「${(BUG_ST[status]||BUG_ST.new)[0]}」にしました`); return; }
+  const bh=e.target.closest("[data-bug-history]"); if(bh){ state[bh.dataset.bugHistory==="fixed"?"bugShowFixed":"bugShowRejected"]=!bh.closest("details").open; return; }
+  const bg=e.target.closest("[data-bug]"); if(bg){ if(!bugOwner()||state.bugSaving) return;
+    const status=bg.dataset.bst, id=bg.dataset.bug;
+    if(status==="fixed"){ state.bugClosing=id; state.bugFixDraft=""; state.bugSaveError=""; refreshBugCard(false); if($("bugFixNote")) $("bugFixNote").focus(); }
+    else if(status==="cancel"){ state.bugClosing=null; state.bugSaveError=""; refreshBugCard(); }
+    else bugSetStatus(id,status==="saveFixed"?"fixed":status,status==="saveFixed"?($("bugFixNote")||{}).value:undefined);
+    return; }
   const pk=e.target.closest("[data-ppk]"); if(pk&&state.prep&&state.prep.items){ state.prep.items[+pk.dataset.ppk].on=pk.checked; const bt=document.querySelector('[data-act="prepAdd"]'); if(bt) bt.textContent=`やることに追加（${state.prep.items.filter(i=>i.on).length}件）`; return; }
   const qk=e.target.closest("[data-qk]"); if(qk&&state.quick&&state.quick.r){ const r=state.quick.r; r.text=(($("qText")||{}).value||r.text); r.date=($("qDate")||{}).value||""; r.time=($("qTime")||{}).value||""; r.kind=qk.dataset.qk; render(); return; }
   const wk=e.target.closest("[data-wcwk]"); if(wk){ const r=state.paint.who||myRole(), C=wcCfg(r), i=wk.dataset.wcwk, nx=C.wk.includes(i)?C.wk.replace(i,""):C.wk+i; wcSave(r,{wk:nx.split("").sort().join("")}); state.wcDay=null; if(r===myRole()&&C.on) wcRun(r,true); render(); return; }
@@ -3888,7 +3921,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="fridgePick"){ const i=$("fridgeIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgeSave") fridgeSave();
   else if(a==="fridgeSuggest"){ const items=fridgeItems(); if(!items.length){ toast("先に冷蔵庫の食材を保存してください"); return; } go("home"); aiAsk("冷蔵庫の食材を優先して、初心者でも作れる夕飯を主菜・副菜・汁物の組み合わせで3案提案して。足りない物は買い物として分けて"); }
-  else if(a==="bugExport") saveFile("futari-requests.json",new Blob([JSON.stringify({version:APP_VERSION,exportedAt:new Date().toISOString(),requests:state.bugs.map(({id,text,status,view,ver,at,proposal,fixNote})=>({id,text,status:status||"new",view,ver,at,proposal,fixNote}))},null,2)],{type:"application/json"}));
+  else if(a==="bugExport") saveFile("futari-requests.json",new Blob([JSON.stringify({version:APP_VERSION,exportedAt:new Date().toISOString(),requests:state.bugs.map(({id,text,status,view,ver,at,proposal,fixNote,fixedAt,fixedVersion,decidedAt,reopenedAt})=>({id,text,status:status||"new",view,ver,at,proposal,fixNote,fixedAt,fixedVersion,decidedAt,reopenedAt}))},null,2)],{type:"application/json"}));
   else if(a==="bshare"){ const ed=state.editing, x=ed&&state.blocks.find(q=>q.id===ed.id); if(!x) return; saveEdit(); const y=state.blocks.find(q=>q.id===x.id)||x, id=newId(), now=Date.now(), {id:_i,...rest}=JSON.parse(JSON.stringify(y));
     dset("events",id,{text:y.text,date:y.date||state.sel,start:y.start,end:y.end||null,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); ddel("blocks",y.id); haptic("done");
     toast("ふたりの予定に共有しました",()=>{ ddel("events",id); dset("blocks",y.id,rest); },"done"); render(); }
@@ -6990,7 +7023,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.view==="settings"){ const c=$("bugCard"); if(c&&!typingInMain()) c.outerHTML=bugCard(); } else requestRender(); });
+  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",requestRender); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });

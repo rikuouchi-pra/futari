@@ -27,7 +27,7 @@ function env(names, overrides = {}) {
     newId: () => 'new-id', nameOf: r => r, toast: (...a) => notices.push(a), haptic() {}, render() {}, renderTT() {}, requestRender() {}, savePrefs() {}, aiLogSave() {},
     dset: (c,id,data) => writes.push({op:'set',c,id,data}), dupd: (c,id,data) => writes.push({op:'update',c,id,data}), ddel: (c,id) => writes.push({op:'delete',c,id}),
     esc: s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
-    snapUndo: () => () => {}, aiActText: () => 'test', APP_VERSION: '178',
+    snapUndo: () => () => {}, aiActText: () => 'test', APP_VERSION: source.match(/APP_VERSION="(\d+)"/)[1],
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
     ...overrides });
@@ -135,8 +135,38 @@ test('automatic rule AND/OR combinations and empty conditions', () => {
   assert.equal(run(c,"arMatch(r,'2026-09-28')"),false);c.r.mode='or';assert.equal(run(c,"arMatch(r,'2026-09-28')"),true);c.r.groups=[];assert.equal(run(c,"arMatch(r,'2026-09-28')"),false);
 });
 test('bug list includes all active requests and folds closed ones', () => {
-  const c=env(['BUG_ST','bugCard'],{ago:()=>''});c.state.owner=true;c.state.bugs=Array.from({length:25},(_,i)=>({id:'b'+i,text:'request-'+i,status:'new'}));c.state.bugs.push({id:'closed',text:'closed-request',status:'fixed'});
-  const html=run(c,'bugCard()');assert.equal((html.match(/request-\d+/g)||[]).length,25);assert.match(html,/<details[^>]*><summary>過去の対応（1件）/);assert.match(html,/closed-request/);
+  const c=env(['BUG_ST','bugOwner','bugDate','bugCard'],{ago:()=>''});c.state.owner=true;c.state.bugs=Array.from({length:25},(_,i)=>({id:'b'+i,text:'request-'+i,status:'new'}));c.state.bugs.push({id:'closed',text:'closed-request',status:'fixed'});
+  const html=run(c,'bugCard()');assert.equal((html.match(/request-\d+/g)||[]).length,25);assert.match(html,/<details[^>]*><summary data-bug-history="fixed">対応済み（1件）/);assert.match(html,/closed-request/);assert.doesNotMatch(html,/<details[^>]*\bopen\b/);
+});
+const bugFns=['BUG_ST','bugOwner','bugDate','bugCard','bugSetStatus'];
+function bugEnv(extra={}){ const c=env(bugFns,{ago:()=>'',refreshBugCard(){},netMark(){},err(){},...extra});c.state.owner=true;c.state.bugs=[{id:'request',text:'改善要望',status:'new'}];c.colRef=()=>({doc:id=>({update:async data=>c.writes.push({id,data})})});return c; }
+test('completion records note, date and version; reopening preserves history',async()=>{
+  const c=bugEnv();c.state.bugShowFixed=true;
+  assert.equal(await run(c,"bugSetStatus('request','fixed',' 表示を修正 ')"),true);
+  assert.equal(c.state.bugs[0].status,'fixed');assert.equal(c.state.bugs[0].fixNote,'表示を修正');assert.ok(c.state.bugs[0].fixedAt>0);assert.equal(c.state.bugs[0].fixedVersion,c.APP_VERSION);assert.equal(c.state.bugShowFixed,false);
+  assert.match(run(c,'bugCard()'),/未対応・対応中（0件）/);
+  assert.equal(await run(c,"bugSetStatus('request','new')"),true);assert.equal(c.state.bugs[0].status,'new');assert.equal(c.state.bugs[0].fixNote,'表示を修正');assert.ok(c.state.bugs[0].reopenedAt>0);
+});
+test('completion refuses blank notes, unknown requests and unauthorized callers',async()=>{
+  const c=bugEnv();await run(c,"bugSetStatus('request','fixed','  ')");await run(c,"bugSetStatus('missing','fixed','fix')");await run(c,"bugSetStatus('request','invented','fix')");
+  c.state.owner=false;c.myRole=()=> 'w';await run(c,"bugSetStatus('request','fixed','fix')");assert.equal(c.writes.length,0);assert.equal(c.state.bugs[0].status,'new');assert.doesNotMatch(run(c,'bugCard()'),/data-bst=/);
+});
+test('failed save retains active request and note and never reports success',async()=>{
+  const c=bugEnv();c.state.bugClosing='request';c.state.bugFixDraft='修正内容';c.colRef=()=>({doc:()=>({update:async()=>{c.state.bugs[0]={...c.state.bugs[0],status:'fixed'};throw Error('offline');}})});
+  assert.equal(await run(c,"bugSetStatus('request','fixed','修正内容')"),false);assert.equal(c.state.bugs[0].status,'new');assert.equal(c.state.bugFixDraft,'修正内容');assert.equal(c.state.bugSaving,null);assert.equal(c.notices.length,0);assert.match(run(c,'bugCard()'),/role="alert"/);
+});
+test('duplicate completion clicks issue only one write and wait for persistence',async()=>{
+  const c=bugEnv();let resolve;const saved=new Promise(r=>resolve=r);let calls=0;c.colRef=()=>({doc:()=>({update:async()=>{calls++;await saved;}})});
+  const first=run(c,"bugSetStatus('request','fixed','fix')");assert.equal(c.state.bugs[0].status,'new');assert.equal(await run(c,"bugSetStatus('request','fixed','fix')"),false);resolve();await first;assert.equal(calls,1);assert.equal(c.state.bugs[0].status,'fixed');
+});
+test('fixed and rejected histories are separate, escaped and reopenable',()=>{
+  const c=bugEnv();c.state.bugs=[{id:'f',text:'done',status:'fixed',fixedAt:Date.UTC(2026,8,27,16),fixedVersion:'180',fixNote:'<script>bad</script>'},{id:'r',text:'later',status:'rejected'}];
+  let html=run(c,'bugCard()');assert.match(html,/対応済み（1件）/);assert.match(html,/見送り（1件）/);assert.match(html,/完了 2026\/9\/28/);assert.match(html,/&lt;script&gt;bad/);assert.doesNotMatch(html,/<script>/);assert.equal((html.match(/未対応に戻す/g)||[]).length,2);
+  c.state.bugShowFixed=true;html=run(c,'bugCard()');assert.match(html,/<details[^>]*\bopen><summary data-bug-history="fixed"/);assert.doesNotMatch(html,/<details[^>]*\bopen><summary data-bug-history="rejected"/);
+});
+test('all active statuses including legacy requests can complete directly',()=>{
+  const c=bugEnv();c.state.bugs=['new','working','proposed','approved',undefined].map((status,i)=>({id:String(i),text:'item',status}));
+  assert.equal((run(c,'bugCard()').match(/data-bst="fixed"/g)||[]).length,5);
 });
 test('music rejects artists not registered in either profile', () => {
   const c=env(['musicKey','musicArtists','songAllowed'],{musicTaste:r=>r==='h'?'星野源、スピッツ':'宇多田ヒカル'});c.a={artist:'星野源'};c.b={artist:'未登録アーティスト'};
