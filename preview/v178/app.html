@@ -2660,6 +2660,7 @@ function applyLocal(c,id,ch){ const x=(state[c]||[]).find(i=>i.id===id); if(!x) 
 /* タイムテーブルと調整バーだけを描き直す（全体の再描画より速い） */
 function renderTT(){ const tt=$("tt"); if(!tt||state.view!=="cal") return false; const d=tt.dataset.ttdate;
   const w=document.createElement("div"); w.innerHTML=timetable(d); const nt=w.firstElementChild; tt.replaceWith(nt);
+  const blockList=$("ttBlocks"); if(blockList) blockList.innerHTML=blocksListHTML(d);
   const html=ttBarHTML(d), old=document.querySelector(".tt-bar");
   if(!html){ if(old) old.remove(); return true; }
   const w2=document.createElement("div"); w2.innerHTML=html; const nb=w2.firstElementChild;
@@ -2732,9 +2733,11 @@ function blockRow(b){
     ${(b.rep||"none")==="none"?`<div class="edit-row"><button type="button" class="btn" data-act="bshare">ふたりの予定に共有する</button><span class="who">${esc(nameOf(otherRole()))}にも表示されます</span></div>`:""}
     <div class="edit-row"><span class="who">色</span><div class="seg" data-seg="bcol">${BCOLORS.map(([k,l])=>`<button type="button" data-sv="${k}" aria-pressed="${(b.color||"cal")===k}" style="--sc:var(--${k})" class="colbtn">${l}</button>`).join("")}</div></div>
     ${editActions("blocks",b)}</div></li>`;
+  if(state.view==="cal"||state.view==="psched") b=blockAt(b,state.sel);
   return wrapRow("blocks",b,"",`<span class="swatch" style="--bc:var(--${b.color||"cal"})"></span>`,
     `<div class="text">${esc(b.text)}</div><div class="meta"><span class="due">${b.allDay||!b.start?"終日":esc(b.start)+(b.end?"–"+esc(b.end):"")}</span><span>${(REPS.find(r=>r[0]===(b.rep||"none"))||REPS[0])[1]}</span></div>`);
 }
+function blocksListHTML(date){ const bs=blocksFor(date).sort((a,b)=>tmin(blockAt(a,date).start)-tmin(blockAt(b,date).start)); return bs.length?`<div class="section-label">この日の時間の予定（${bs.length}）</div><ul class="list">${bs.map(b=>blockRow(b)).join("")}</ul>`:""; }
 async function loadGoogleDay(date,force){
   if(true||!state.mcp) return;
   if(!force&&state.gEvents[date]) return;
@@ -2799,15 +2802,14 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
     ${state.ttPick?`<div class="banner" style="background:color-mix(in srgb,var(--accent) 14%,var(--surface))">入れたい時間をタイムテーブルでタップ　<button class="link" data-act="ttpickx">やめる</button></div>`:""}</div>`;
   const gAll=false?(state.gEvents[d]||[]).filter(g=>g.allDay):[];
   h+=`<div class="subttl"><span>タイムテーブル</span><span style="display:flex;gap:12px;white-space:nowrap">${false&&state.mcp?'<button class="link" data-act="addgev">＋ Google</button>':""}<button class="link" data-act="addblock">＋ 予定</button></span></div>`;
-  const bAll=blocksFor(d).filter(b=>b.allDay||!b.start);
+  const bAll=blocksFor(d).map(b=>blockAt(b,d)).filter(b=>b.allDay||!b.start);
   if(gAll.length||bAll.length) h+=`<div class="gall">${bAll.map(b=>`<button class="gchip mine" data-tb="blocks" data-tid="${esc(b.id)}">終日｜${esc(b.text)}</button>`).join("")}${gAll.map(g=>`<button class="gchip" data-gid="${esc(g.id)}">終日｜${esc(g.t)}</button>`).join("")}</div>`;
   h+=timetable(d)+ttBarHTML(d)+gEditHTML(d);
   if(evTimed.length) h+=`<div class="section-label">ふたりの予定（${evTimed.length}）</div><ul class="list">${evTimed.map(o=>eventRow(o.x)).join("")}</ul>`;
   if(timed.length) h+=`<div class="section-label">時間に入れたタスク（${timed.length}）</div><ul class="list">${timed.map(o=>o.c==="chores"?choreRow(o.x):(o.c==="habits"||isRecItem(o.x))?habitRow(o.x):itemRow(o.x,true,o.c)).join("")}</ul>`;
   const dayItems=(byDay[d]||[]).filter(o=>!(o.x&&myT(o.x))&&o.c!=="items"&&o.c!=="pitems"&&!(o.c==="events"&&o.x.start)&&!(o.c==="rec"&&o.x&&o.x.kind==="chore")); /* v143: 家事は上の「この日のタスク」「時間に入れたタスク」に出るので重ねない */
   if(dayItems.length) h+=`<div class="section-label">時間なしの予定</div><ul class="list">${dayItems.map(schedRow).join("")}</ul>`;
-  const bl=blocksFor(d).map(b=>blockAt(b,d)).sort((a,b)=>tmin(a.start)-tmin(b.start));
-  if(bl.length) h+=`<div class="section-label">この日の時間の予定（${bl.length}）</div><ul class="list">${bl.map(blockRow).join("")}</ul>`;
+  h+=`<div id="ttBlocks">${blocksListHTML(d)}</div>`;
   return h; }
 function mySchedRange(from,to){
   const mine=x=>state.psFilter==="all"||["both",myRole()].includes(getWho(x)), out=[], inR=d=>d&&d>=from&&d<=to;

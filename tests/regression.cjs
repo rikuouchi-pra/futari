@@ -67,6 +67,20 @@ test('edited auto tasks are protected against regeneration', () => {
   const c=env(core); c.x={auto:'cook',time:'09:00'};
   assert.equal(run(c,"timeChangeFor('pitems',x,'2026-09-28','11:00',45).touched"),true);
 });
+test('calendar block rows show daily overrides but edit the standard time', () => {
+  const c=env([...core,'REPS','blockRow'],{isEditing:()=>false,wrapRow:(_c,_b,_s,_icon,html)=>html});
+  c.state.view='cal';c.state.sel='2026-09-28';c.x={id:'block',text:'読書',rep:'daily',start:'21:00',end:'21:30',dayTimes:{'2026-09-28':{time:'20:00',dur:30}}};
+  assert.match(run(c,'blockRow(x)'),/20:00–20:30/);
+  c.isEditing=()=>true;c.seg=()=>'';c.editActions=()=>'';c.BCOLORS=[];
+  assert.match(run(c,'blockRow(x)'),/id="bStart" value="21:00"/);
+});
+test('preview allows form handlers but forbids outbound form navigation', () => {
+  const wrapper=fs.readFileSync(path.join(root,'preview/v178/index.html'),'utf8');
+  const build=fs.readFileSync(path.join(root,'tests/build-preview.cjs'),'utf8');
+  assert.match(wrapper,/sandbox="allow-scripts allow-forms allow-downloads"/);
+  assert.match(build,/form-action 'none'/);
+  assert.doesNotMatch(wrapper,/allow-same-origin/);
+});
 test('AI dates preserve explicit years and reject nonexistent dates', () => {
   const c=env(['aiDate','aiTime']);
   for(const d of ['2027-01-01','2024-02-29','2025-12-31']) assert.equal(run(c,`aiDate(${JSON.stringify(d)})`),d);
