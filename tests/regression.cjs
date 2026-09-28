@@ -32,12 +32,73 @@ function env(names, overrides = {}) {
     go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
     bugAIPanel:()=>'',...overrides });
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
-  for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks',...names])) vm.runInContext(declaration(name), c, {filename: name});
+  for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
 }
 const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
+
+const voiceFns=['aiRec','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
+const talkCalFns=['aiDate','talkCalendarDates','talkCalendarEvents','talkCalendarHTML','talkCalendarMove'];
+test('talk calendar month handles leap February and year boundaries',()=>{
+  const c=env(talkCalFns,{$:()=>null,talkOf:()=>null});c.state.talkCalDate='2024-02-29';const grid=run(c,'talkCalendarDates()');assert.equal(grid.days[0],'2024-01-29');assert.ok(grid.days.includes('2024-02-29'));assert.equal(grid.days.length%7,0);c.state.talkCalMonth='2026-12';run(c,'talkCalendarMove(null,1)');assert.equal(c.state.talkCalDate,'2027-01-01');run(c,'talkCalendarMove(null,-1)');assert.equal(c.state.talkCalDate,'2026-12-01');
+});
+test('talk calendar selects shared events only without exposing private entries',()=>{
+  const c=env(talkCalFns,{shiftOf:()=> '日',shiftBadge:()=> '日',offState:()=>'',jpDate:String,eventRow:x=>`<li>${c.esc(x.text)}</li>`});c.state.talkCalDate='2026-09-29';c.state.events=[{date:'2026-09-29',text:'<会議>',start:'12:00',who:'w'},{date:'2026-09-29',text:'帰宅',start:'19:00',who:'both'},{date:'2026-09-30',text:'別の日'}];c.state.blocks=[{date:'2026-09-29',text:'秘密の予定'}];const html=run(c,'talkCalendarHTML()');assert.match(html,/&lt;会議&gt;/);assert.match(html,/帰宅/);assert.doesNotMatch(html,/秘密の予定|別の日/);assert.match(html,/2026-09-29 共有予定2件/);
+});
+test('talk calendar navigation saves a pending note without changing its talk date',()=>{
+  let saves=0;const c=env(talkCalFns,{$:()=>({value:'編集中のメモ'}),talkOf:()=>({notes:'前のメモ'}),saveTalkNotes:()=>saves++});c.state.talkDate='2026-09-27';run(c,"talkCalendarMove('2026-10-05')");assert.equal(c.state.talkDate,'2026-09-27');assert.equal(c.state.talkCalDate,'2026-10-05');assert.equal(saves,1);
+});
+function voiceEnv(options={}){let rec;const input={value:'元の入力',focus(){}};class Recognition{constructor(){rec=this;}start(){}stop(){this.onend();}abort(){this.onend();}}
+  const c=env(voiceFns,{$:()=>input,window:{SpeechRecognition:Recognition},aiMicUI(){},...options});c.input=input;return {c,get rec(){return rec;}};
+}
+test('voice result updates replace interim text without duplication and never send',()=>{
+  const v=voiceEnv();v.c.sent=0;v.c.aiAsk=()=>v.c.sent++;run(v.c,'aiMic()');
+  v.rec.onresult({resultIndex:0,results:[{0:{transcript:'明日の'},isFinal:false}]});
+  v.rec.onresult({resultIndex:0,results:[{0:{transcript:'明日の19時'},isFinal:true},{0:{transcript:'買い物'},isFinal:false}]});
+  assert.equal(v.c.state.ai.q,'元の入力\n明日の19時買い物');v.rec.stop();assert.equal(v.c.sent,0);assert.equal(v.c.state.aiListening,false);assert.match(v.c.state.aiVoiceStatus,/確認/);
+});
+test('voice restart appends to edited draft and cancellation ignores late callbacks',()=>{
+  const v=voiceEnv();run(v.c,'aiMic()');const old=v.rec;old.onresult({results:[{0:{transcript:'買い物'},isFinal:true}]});old.stop();v.c.input.value='修正した入力';run(v.c,'aiMic()');
+  v.rec.onresult({results:[{0:{transcript:'自分だけ'},isFinal:true}]});assert.equal(v.c.state.ai.q,'修正した入力\n自分だけ');run(v.c,'aiVoiceCancel()');assert.equal(v.c.state.ai.q,'修正した入力');
+  old.onresult({results:[{0:{transcript:'遅れて届いた結果'},isFinal:true}]});assert.equal(v.c.state.ai.q,'修正した入力');
+});
+test('voice permission/network failures preserve draft and offer recovery',()=>{
+  for(const error of ['not-allowed','network','no-speech']){const v=voiceEnv();run(v.c,'aiMic()');v.rec.onerror({error});v.rec.onend();assert.equal(v.c.state.ai.q,'元の入力');assert.equal(v.c.state.aiListening,false);assert.match(v.c.state.aiVoiceStatus,/マイク|接続|聞き取/);}
+  const v=voiceEnv({window:{}});run(v.c,'aiMic()');assert.match(v.c.state.aiVoiceStatus,/キーボード/);
+});
+test('failed recognition start releases session so retry works',()=>{
+  const v=voiceEnv({window:{SpeechRecognition:class {start(){throw Error('busy');}}}});run(v.c,'aiMic()');assert.equal(run(v.c,'aiRec'),null);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力');
+});
+test('voice composer escapes text, disables send during recognition and supports long drafts',()=>{
+  const c=voiceEnv().c;c.state.ai.q='<script>alert(1)</script>';c.state.aiListening=true;const html=run(c,'aiComposerHTML()');assert.match(html,/maxlength="2000"/);assert.match(html,/readonly/);assert.match(html,/data-act="aiAsk" disabled/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);assert.equal(run(c,"aiVoiceDraft('', 'あ'.repeat(2100)).length"),2000);
+});
+test('notification inbox separates unread and history and excludes sender-only records',()=>{
+  const c=env(['shareReceived','shareUnread','shareInboxHTML']);c.state.events=[{id:'mine',text:'<img>',date:'2026-09-29',notice:{to:'h',from:'w',at:2}},{id:'old',text:'確認した予定',date:'2026-09-27',notice:{to:'h',from:'w',at:1,seenAt:3}},{id:'sent',text:'相手宛のみ',notice:{to:'w',from:'h',at:4}}];
+  const html=run(c,'shareInboxHTML()');assert.match(html,/未読 1/);assert.match(html,/確認済み（1件）/);assert.match(html,/&lt;img&gt;/);assert.doesNotMatch(html,/相手宛のみ/);assert.doesNotMatch(html,/data-share-seen="old"/);
+});
+test('failed or repeated acknowledgement keeps unread state and prevents duplicate writes',async()=>{
+  let reject;const c=env(['shareReceived','shareUnread','shareSeen'],{err(){},colRef:()=>({doc:()=>({update:()=>new Promise((_,r)=>reject=r)})})});c.state.events=[{id:'a',notice:{to:'h',seenAt:0}}];const p=run(c,"shareSeen('a')");assert.equal(await run(c,"shareSeen('a')"),false);reject(Error('offline'));assert.equal(await p,false);assert.equal(run(c,'shareUnread().length'),1);assert.equal(c.state.shareSeenBusy,null);
+});
+test('new notification alerts occur once after initial load and never on account switch',()=>{
+  const c=env(['shareReceived','shareUnread','shareArrived']);c.state.events=[{id:'a',notice:{to:'h',at:1}}];run(c,'shareArrived()');assert.equal(c.notices.length,0);c.state.events.push({id:'b',notice:{to:'h',at:2}});run(c,'shareArrived()');run(c,'shareArrived()');assert.equal(c.notices.length,1);c.myRole=()=> 'w';c.state.events.push({id:'c',notice:{to:'w',at:3}});run(c,'shareArrived()');assert.equal(c.notices.length,1);
+});
+test('photo recognition merges into the latest draft, preserving existing food',async()=>{
+  let resolve;const c=env(['fridgeItems','fridgeRead'],{flushExtras(){}});c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:()=>new Promise(r=>resolve=r)};const p=run(c,'fridgeRead([{}])');c.state.fridgeDraft='牛乳、米';resolve({items:['卵','牛乳']});await p;assert.equal(c.state.fridgeDraft,'牛乳、米、卵');assert.equal(c.writes.length,0);
+});
+test('photo and save failures preserve food input and previous saved stock',async()=>{
+  const c=env(['fridgeItems','fridgeRead','fridgeSave'],{flushExtras(){},$:()=>({value:'米、卵'}),kakeiDoc:{update:async()=>{throw Error('offline');}}});c.state.fridgeDraft='米、卵';c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:async()=>{throw Error('offline');}};await run(c,'fridgeRead([{}])');await run(c,'fridgeSave()');assert.equal(c.state.fridgeDraft,'米、卵');assert.deepEqual(plain(c.state.kakei.fridge.items),['牛乳']);assert.equal(c.state.fridgeBusy,false);
+});
+test('music lookup rejects similarly named cover artists and accepts exact normalized artist',async()=>{
+  const c=env(['musicKey','songFind'],{itunesJsonp:async()=>({results:[{trackName:'テスト曲',artistName:'スピッツ tribute',trackViewUrl:'wrong'},{trackName:'テスト曲',artistName:'スピッツ',trackViewUrl:'correct'}]})});assert.equal((await run(c,"songFind('テスト曲','スピッツ')")).url,'correct');c.itunesJsonp=async()=>({results:[{trackName:'テスト曲',artistName:'スピ',trackViewUrl:'wrong'}]});assert.equal(await run(c,"songFind('テスト曲','スピッツ')"),null);
+});
+test('music context changes when favorites change, and prompts include season/weather/time',()=>{
+  const c=env(['musicKey','musicArtists','songContext','songPrompt'],{musicTaste:()=> 'スピッツ',wxToday:()=>({code:61}),wxKind:()=> 'rain',WXN:{rain:'雨'},offState:()=> 'both'});const key=run(c,"songContext('2026-09-28')");c.musicTaste=()=> '宇多田ヒカル';assert.notEqual(run(c,"songContext('2026-09-28')"),key);const prompt=run(c,"songPrompt('2026-09-28',3,[])");assert.match(prompt,/季節秋/);assert.match(prompt,/天気雨/);assert.match(prompt,/現在\d+時/);
+});
+test('v184 release matches reviewed IDs and text, respects reopen/reject, and retains pending notes',()=>{
+  const c=env(['bugTextKey','bugDisplay','AI_RELEASE']);c.b={id:'mul0h45lgni00',text:'相手からの共有通知機能追加して',ver:'183',status:'working'};assert.equal(run(c,'bugDisplay(b).fixedVersion'),'184');assert.equal(c.b.status,'working');for(const patch of [{id:'new-report'},{text:'別の問題'},{reopenedAt:1},{status:'rejected'},{ver:'184'}]){c.other={...c.b,...patch};assert.notEqual(run(c,'bugDisplay(other).resolvedBy'),'ai');}c.b={id:'mujd3btg9uap6',text:'food',status:'working',ver:'180'};assert.match(run(c,'bugDisplay(b).releaseNote'),/確認待ち/);assert.equal(run(c,'bugDisplay(b).status'),'working');
+});
 function act(c,x) { c.state.ai.log=[{a:{acts:[x]}}]; run(c,'aiDoAct(0,0)'); return c.writes.at(-1); }
 
 test('all inline scripts, shim and service worker parse', () => {
@@ -120,7 +181,7 @@ test('AI recurring time edits preserve future template', () => {
   assert.equal(c.state.habits[0].time,'09:00');assert.equal(c.state.habits[0].dayTimes['2026-09-29'].dur,60);
 });
 test('fridge reads at most three photos individually, deduplicates, awaits confirmation', async () => {
-  let calls=0;const c=env(['fridgeRead'],{flushExtras(){}});c.state.sample={json:async(p,o)=>{calls++;assert.ok(!Array.isArray(o.images));return {items:['卵',calls===1?'豆腐':'にんじん']};}};
+  let calls=0;const c=env(['fridgeItems','fridgeRead'],{flushExtras(){}});c.state.sample={json:async(p,o)=>{calls++;assert.ok(!Array.isArray(o.images));return {items:['卵',calls===1?'豆腐':'にんじん']};}};
   c.files=[{id:1},{id:2},{id:3},{id:4}];await run(c,'fridgeRead(files)');assert.equal(calls,3);assert.equal(c.state.fridgeDraft,'卵、豆腐、にんじん');assert.equal(c.writes.length,0);assert.equal(c.state.fridgeBusy,false);
 });
 test('fridge save preserves other shared metadata', async () => {
@@ -237,7 +298,7 @@ test('AI recurrence changes do not overwrite completion logs',()=>{
   const c=env(ai);c.state.habits=[{id:'h1',target:'wd',wd:[1],log:{'2026-09-28':true}}];
   act(c,{type:'edit',_r:{c:'habits',id:'h1'},target:'wd',wd:[2]});assert.equal(c.state.habits[0].log['2026-09-28'],true);
 });
-const shareFns=['aiDate','tmin','hhmm','sharePayload','shareEntry','shareUnread','shareSeen'];
+const shareFns=['aiDate','tmin','hhmm','sharePayload','shareEntry','shareReceived','shareUnread','shareSeen'];
 test('sharing copies only explicit title and occurrence and targets the other person',()=>{
   const c=env(shareFns);c.o={t:'帰宅',s:1080,e:1140,x:{text:'帰宅',memo:'secret',log:{},rep:'daily',dayTimes:{}}};
   const p=plain(run(c,"sharePayload(o,'2026-09-28',1000)"));assert.equal(p.start,'18:00');assert.equal(p.notice.to,'w');assert.equal(p.who,'both');for(const key of ['memo','log','rep','dayTimes','id'])assert.equal(p[key],undefined);

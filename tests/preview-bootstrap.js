@@ -38,9 +38,13 @@
   put('bugs','rejected-request',{text:'検証用の見送り要望',status:'rejected',role:'h',at:now});
   for(const [i,[text]] of AI_RELEASE.fixes.entries())put('bugs','ai-fixed-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
   for(const [i,[text]] of AI_RELEASE.pending.entries())put('bugs','ai-pending-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
+  for(const [id,text] of AI_RELEASE_184.fixes)put('bugs',id,{text,status:'working',role:'h',at:now,ver:'183'});
+  put('events','received-notice',{text:'帰宅は19時です',date:tomorrow,start:'19:00',end:'19:30',who:'both',notice:{from:'w',to:'h',at:now,seenAt:0}});
+  put('events','seen-notice',{text:'先週共有した予定',date:addDays(d,-7),who:'both',notice:{from:'w',to:'h',at:now-604800000,seenAt:now-600000000}});
+  window.SpeechRecognition=class {start(){this.timer=setTimeout(()=>{const r=[{0:{transcript:'明日の19時に自分だけの予定で買い物'},isFinal:true}];this.onresult?.({results:r,resultIndex:0});},400);}stop(){clearTimeout(this.timer);this.onend?.();}abort(){clearTimeout(this.timer);this.onend?.();}};
   bindFavorites();
   state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
-  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
+  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
   for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
   kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
   histDoc.onSnapshot(s=>state.history=s.data().names||[]);
