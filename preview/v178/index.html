@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ふたり v178 検証専用</title>
+<style>body{margin:0;background:#e9eeeb;color:#173b31;font:15px system-ui}header{padding:12px 16px;background:#fff;display:flex;gap:12px;align-items:center;flex-wrap:wrap}h1{font-size:17px;margin:0}p{margin:0;font-size:12px}button{padding:8px;border:1px solid #aac2b7;border-radius:8px;background:white;color:inherit}main{display:flex;justify-content:center;padding:12px}iframe{width:390px;max-width:100%;height:calc(100vh - 126px);min-height:580px;border:1px solid #afc1b9;border-radius:16px;background:white}</style>
+<header><div><h1>v178 検証専用</h1><p>架空データのみ・本番接続なし・AIは模擬応答。再読み込みで初期状態に戻ります。</p></div><button id="mobile">スマホ幅 390px</button><button id="desktop">PC幅 100%</button></header>
+<main><iframe id="app" title="検証用アプリ" src="app.html" sandbox="allow-scripts allow-downloads"></iframe></main>
+<script>document.getElementById('mobile').onclick=()=>document.getElementById('app').style.width='390px';document.getElementById('desktop').onclick=()=>document.getElementById('app').style.width='100%';</script>
+</html>
