@@ -24,6 +24,8 @@
   put('private/pitems','private-task',item('自分だけのタスク',{due:d,time:'13:00',dur:30,who:'h'}));
   put('private/habits','daily-habit',{text:'毎日ストレッチ',target:7,time:'07:00',dur:15,log:{},createdAt:now});
   put('private/habits','weekly-habit',{text:'週1回の習慣',target:'wd',wd:[parse(d).getDay()],log:{},createdAt:now});
+  put('private/habits','hidden-habit',{text:'時間割に出さない習慣',entryKind:'habit',showInTimetable:false,target:7,time:'08:00',dur:30,log:{[addDays(d,-1)]:1},createdAt:now-86400000});
+  put('private/habits','private-recurring-task',{text:'自分だけの繰り返しタスク',entryKind:'task',target:'wd',wd:[parse(d).getDay()],time:'09:00',dur:30,log:{},createdAt:now});
   put('private/blocks','daily-block',{text:'毎日の読書',date:d,rep:'daily',start:'21:00',end:'21:30',createdAt:now});
   put('private/blocks','all-day-block',{text:'自分だけの終日予定',date:d,rep:'none',allDay:true,memo:'共有されない非公開メモ',createdAt:now});
   put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:30',who:'both',createdAt:now});

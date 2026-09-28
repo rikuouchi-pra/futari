@@ -32,7 +32,7 @@ function env(names, overrides = {}) {
     go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
     bugAIPanel:()=>'',...overrides });
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
-  for(const name of names) vm.runInContext(declaration(name), c, {filename: name});
+  for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
 }
 const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
@@ -350,4 +350,69 @@ test('save-and-request opens the correct persisted request without invoking AI',
 });
 test('failed request submission keeps its text and ID for retry and deduplicates clicks',async()=>{
   const c=requestEnv();let reject,calls=0;c.colRef=()=>({doc:()=>({set:async()=>{calls++;await new Promise((_r,j)=>reject=j);}})});const first=run(c,'bugSubmit(true)');assert.equal(await run(c,'bugSubmit(true)'),false);reject(Error('offline'));assert.equal(await first,false);assert.equal(calls,1);assert.equal(c.state.bugDraft,'保存済み要望');assert.equal(c.state.bugDraftId,'new-id');assert.equal(c.state.bugAIOpen,undefined);assert.match(c.state.bugSaveError,/保存できません/);
+});
+
+const separatedFns=[...core,'recColl','recTasks','recMine','ttRecurrences','tgtCode','hDaily'];
+function separatedEnv(names=[],extra={}){return env([...separatedFns,...names],{forMe:x=>!x.who||x.who==='both'||x.who==='h',hFollow:()=>true,recToday:()=>true,recOn:()=>true,hSince:h=>h.since||'2020-01-01',habitLog:h=>h.log||{},hMiss:()=>false,...extra});}
+function mixedHabits(c){c.state.habits=[{id:'daily',text:'毎日の習慣',target:7,time:'07:00',log:{}},{id:'weekly',text:'週1の習慣',target:'wd',wd:[1],time:'08:00',log:{}},{id:'private-rec',text:'自分の繰り返しタスク',entryKind:'task',target:7,time:'09:00',log:{}}];c.state.items=[{id:'shared-rec',text:'共有の繰り返しタスク',list:'rtask',who:'both',target:'wd',wd:[1],time:'10:00',log:{}},{id:'partner-rec',text:'相手の繰り返しタスク',list:'rtask',who:'w',target:7,time:'11:00',log:{}}];}
+test('habit/task classification follows kind rather than daily or weekly frequency',()=>{
+  const c=separatedEnv();mixedHabits(c);const before=JSON.stringify(c.state.habits);
+  assert.deepEqual(plain(run(c,'habitItems().map(x=>x.id)')),['daily','weekly']);
+  assert.deepEqual(plain(run(c,'recMine().map(x=>x.id)')),['private-rec','shared-rec']);
+  assert.equal(JSON.stringify(c.state.habits),before);
+});
+test('task view includes private and shared recurring tasks but no habits',()=>{
+  const c=separatedEnv(['viewList','sortItems'],{byWho:x=>x.filter(y=>!y.who||y.who==='both'||y.who==='h'),whoBar:()=>'',itemFavorites:()=>[],jpDate:x=>x,habitRow:x=>x.text,itemRow:x=>x.text,PULL_HINT:'',LKI:''});mixedHabits(c);c.prefs.whoF='all';
+  const html=run(c,'viewList("task")');assert.match(html,/自分の繰り返しタスク/);assert.match(html,/共有の繰り返しタスク/);assert.doesNotMatch(html,/毎日の習慣|週1の習慣|相手の繰り返しタスク/);
+  assert.match(run(c,'viewList("task","pitems")'),/自分の繰り返しタスク/);
+  c.prefs.whoF='w';c.byWho=x=>x.filter(y=>y.who==='w');const partner=run(c,'viewList("task")');assert.match(partner,/相手の繰り返しタスク/);assert.doesNotMatch(partner,/自分の繰り返しタスク/);
+});
+test('habit view includes every habit frequency and excludes private tasks',()=>{
+  const c=separatedEnv(['viewHabit'],{weekGoal:()=>1,habitStats:()=>({count:0}),hTodayHTML:()=>'',HABIT_TPL:[],habitRow:x=>x.text,weekStarts:()=>[],barChart:()=>'',short:x=>x,habitHeatHTML:()=>''});mixedHabits(c);
+  const html=run(c,'viewHabit()');assert.match(html,/毎日の習慣/);assert.match(html,/週1の習慣/);assert.doesNotMatch(html,/繰り返しタスク|やること」でも/);
+});
+test('habit reminders never include private recurring tasks',()=>{
+  const c=separatedEnv(['hTodayList'],{hOn:()=>true,habitDue:()=>null,HFOL:[]});mixedHabits(c);
+  assert.deepEqual(plain(run(c,'hTodayList().map(x=>x.id)')),['daily','weekly']);
+});
+test('menu badges count habits and recurring tasks in separate totals',()=>{
+  const c=separatedEnv(['counts'],{isEve:()=>false,choreDueCount:()=>0,dueNow:()=>true,shiftMissing:()=>[],talkBadge:()=>0,mySched:()=>[]});mixedHabits(c);Object.assign(c.state,{comments:[],troubles:[],cautions:[],topics:[]});
+  const n=run(c,'counts()');assert.equal(n.habit,2);assert.equal(n.task,1);assert.equal(n.ptask,1);
+});
+test('timetable hides opted-out habits including their saved daily overrides',()=>{
+  const c=separatedEnv(['dayEntries'],{blocksFor:()=>[],choreMine:()=>false});mixedHabits(c);
+  c.state.habits[1].showInTimetable=false;c.state.habits[1].dayTimes={'2026-09-28':{time:'12:00',dur:30}};
+  assert.deepEqual(plain(run(c,'dayEntries(today()).map(o=>o.x.id)')),['daily','private-rec','shared-rec']);
+  c.state.habits[1].showInTimetable=true;
+  assert.deepEqual(plain(run(c,'dayEntries(today()).map(o=>o.x.id)')),['daily','private-rec','shared-rec','weekly']);
+  assert.equal(c.state.habits[1].time,'08:00');assert.equal(c.state.habits[1].dayTimes['2026-09-28'].time,'12:00');
+});
+test('untimed tray respects habit opt-in and explicit start date',()=>{
+  const c=separatedEnv(['ttMine','ttUntimed'],{choreMine:()=>false});mixedHabits(c);c.state.habits.forEach(x=>{delete x.time;});c.state.items=[];
+  c.state.habits[1].showInTimetable=false;assert.deepEqual(plain(run(c,'ttUntimed(today()).map(o=>o.x.id)')),['daily','private-rec']);
+  c.state.habits[1].showInTimetable=true;c.state.habits[0].since='2026-10-01';assert.deepEqual(plain(run(c,'ttUntimed(today()).map(o=>o.x.id)')),['weekly','private-rec']);
+});
+test('private recurring tasks are labeled as tasks in timetable and edit navigation',()=>{
+  const c=separatedEnv(['ttInfo','editHome']);mixedHabits(c);c.x=c.state.habits[2];assert.equal(run(c,'ttInfo({c:"habits",x,kind:"i"}).type'),'繰り返しタスク');assert.equal(run(c,'editHome("habits",x)'),'task');
+  c.x=c.state.habits[1];assert.equal(run(c,'ttInfo({c:"habits",x,kind:"i"}).type'),'習慣');assert.equal(run(c,'editHome("habits",x)'),'habit');
+});
+function habitEditEnv(kind='habit'){const fields={editText:{value:'保つ記録'},hTime:{value:'07:00'},hEnd:{value:'07:30'},hTimetable:{checked:false}};const c=separatedEnv(['saveEdit','tgtVal'],{$:id=>fields[id]||null,editSeg:{},syncItemSpend(){}});c.state.habits=[{id:'h',text:'保つ記録',entryKind:kind,target:7,time:'07:00',dur:30,log:{'2026-09-27':1},dayTimes:{'2026-09-28':{time:'08:00',dur:30}}}];c.state.editing={c:'habits',id:'h'};c.fields=fields;return c;}
+test('habit opt-out editing retains history, times and collection without moving records',()=>{
+  const c=habitEditEnv();run(c,'saveEdit()');assert.equal(c.writes.length,1);assert.equal(c.writes[0].op,'update');assert.equal(c.writes[0].c,'habits');assert.deepEqual(plain(c.writes[0].data),{showInTimetable:false});assert.equal(c.state.habits[0].log['2026-09-27'],1);
+});
+test('legacy habit can be reclassified as a private task without rewriting history',()=>{
+  const c=habitEditEnv();delete c.state.habits[0].entryKind;c.editSeg.hkind='task';run(c,'saveEdit()');assert.equal(c.writes.length,1);assert.equal(c.writes[0].data.entryKind,'task');assert.equal(c.writes[0].data.log,undefined);assert.equal(c.writes[0].data.dayTimes,undefined);assert.equal(c.writes[0].data.who,undefined);
+});
+test('changing a private task into a habit cannot publish it through a stale assignee selection',()=>{
+  const c=habitEditEnv('task');c.editSeg={hkind:'habit',ewho:'both'};run(c,'saveEdit()');assert.equal(c.writes.length,1);assert.equal(c.writes[0].c,'habits');assert.equal(c.writes[0].data.entryKind,'habit');assert.equal(c.writes[0].data.who,undefined);
+});
+function submitSheet(c,S){const fields={input:{value:'新規の記録'},form:{addEventListener:(_event,fn)=>{c.submitSheet=fn;}}};c.$=id=>fields[id]||null;c.state.sheet=S;c.KINDS={habit:{label:'習慣'},task:{label:'やること'}};c.closeSheet=()=>{};c.setTimeout=()=>{};c.tgtLabel=()=>'';c.money=()=>0;c.renderSheet=()=>{};c.document={querySelector:()=>null};const start=source.indexOf('$("form").addEventListener("submit",e=>{'),end=source.indexOf('\n});',start)+4;vm.runInContext(source.slice(start,end),c);c.submitSheet({preventDefault(){}});}
+test('habit creation persists explicit timetable choice while private recurring tasks get a task kind',()=>{
+  for(const show of [false,true]){const c=separatedEnv(['tgtVal']);submitSheet(c,{kind:'habit',htarget:'7',hTimetable:show,time:'07:00',end:'07:30'});assert.equal(c.writes[0].c,'habits');assert.equal(c.writes[0].data.entryKind,'habit');assert.equal(c.writes[0].data.showInTimetable,show);assert.equal(c.writes[0].data.time,'07:00');}
+  const c=separatedEnv(['tgtVal']);submitSheet(c,{kind:'task',who:'priv',trep:'daily',htarget:'wd'});assert.equal(c.writes[0].data.entryKind,'task');assert.equal(c.writes[0].c,'habits');
+});
+test('AI recurring additions preserve explicit type and reject shared habit requests',()=>{
+  let c=env(ai);let w=act(c,{type:'add_recurring',text:'運動',kind:'habit',target:'7',who:'priv',showInTimetable:false,time:'07:00'});assert.equal(w.data.entryKind,'habit');assert.equal(w.data.showInTimetable,false);
+  c=env(ai);w=act(c,{type:'add_recurring',text:'掃除',kind:'task',target:'7',who:'priv'});assert.equal(w.data.entryKind,'task');assert.equal(w.c,'habits');
+  c=env(ai);act(c,{type:'add_recurring',text:'運動',kind:'habit',target:'7',who:'both'});assert.equal(c.writes.length,0);
 });
