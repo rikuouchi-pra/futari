@@ -16,5 +16,7 @@ const isolated=`<meta http-equiv="Content-Security-Policy" content="default-src 
 html=html.replace('<meta charset="utf-8">','<meta charset="utf-8">'+isolated);
 if(/<script src=|serviceWorker\.register|claude\.use\("db"\)/.test(html))throw new Error('Production connector leaked into preview');
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
-fs.writeFileSync(path.join(root,'preview/v178/app.html'),html);
+const version=html.match(/APP_VERSION="(\d+)"/)[1], destination=path.join(root,'preview/v'+version);
+fs.mkdirSync(destination,{recursive:true});
+fs.writeFileSync(path.join(destination,'app.html'),html);
 console.log('Built isolated preview:',Buffer.byteLength(html),'bytes');

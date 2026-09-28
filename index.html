@@ -1547,7 +1547,19 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 .ug-hr{display:grid;grid-template-columns:2.4em repeat(24,1fr);gap:2px;align-items:center}.ug-hr i{display:block;aspect-ratio:1;border-radius:3px}.ug-hr i.h{background:var(--ch-h)}.ug-hr i.w{background:var(--ch-w)}.ug-hn{font-size:10.5px;font-weight:700}.ug-hn.h{color:var(--ch-h)}.ug-hn.w{color:var(--ch-w)}.ug-hr small{font-size:9px;color:var(--muted)}
 .ug-pre{white-space:pre-wrap;font-size:11px;line-height:1.5;background:var(--ground);border-radius:10px;padding:10px;max-height:320px;overflow:auto}
 .ug-list{display:grid;gap:4px;margin-top:8px}.ug-li{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:10px;background:var(--ground)}.ug-li span{display:flex;flex-direction:column}.ug-li small{font-size:11px;color:var(--muted)}
-.tt-meta{display:block;font-size:10px;line-height:1.25;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tt-b.short .tt-meta{display:none}
+/* v179: タイムテーブルも既存の丸いタグと線画アイコンに統一 */
+.tt-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0}
+.tt-meta .tag{display:inline-flex;align-items:center;gap:3px;max-width:100%;box-sizing:border-box;font-size:11px;line-height:1.5;padding:1px 7px;border-radius:99px;white-space:nowrap}
+.tt-meta .tt-kind{--tc:var(--bc,var(--accent))}.tt-meta .tt-scope{--tc:var(--muted)}
+.tt-meta .tt-person{overflow:hidden;text-overflow:ellipsis;display:block}.tt-meta .lk-i{width:11px;height:11px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
+.tt-b .tt-meta{margin-top:3px;flex-wrap:nowrap;overflow:hidden;flex-shrink:0}
+.tt-b .tt-meta .tag{font-size:10px;line-height:1.4;padding:1px 5px;color:var(--tc,var(--muted));flex-shrink:0}
+.tt-b .tt-meta .tt-person{flex-shrink:1;min-width:0}.tt-b.short .tt-meta{display:none}
+@container (max-width:180px){.tt-meta-inline{display:none!important}}
+.tt-bar .tb-h{align-items:flex-start}.tt-bar .tb-title{flex:1;min-width:0;display:grid;gap:3px}
+.tt-bar .tb-title b{font-size:14px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.tt-bar .tb-time{font-size:12px;line-height:1.5;color:var(--muted);font-variant-numeric:tabular-nums}
+.tt-bar>.tt-meta{padding-bottom:2px;gap:5px}.tt-bar .tb-tip{line-height:1.6;text-align:left}
 </style>
 <style id="palStyle"></style>
 
@@ -1628,7 +1640,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="178";
+const APP_VERSION="179";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2633,9 +2645,13 @@ function timeChangeFor(c,x,d,time,dur){
   return {[key]:{...(x[key]||{}),[d]:{time:time||null,dur:time?(dur||prev&&prev.dur||baseDur):null}}};
 }
 function blockAt(b,d){ const o=dayTime(b,d); return o?{...b,start:o.time||"",end:o.time?hhmm((tmin(o.time)+(o.dur||60))%1440):"",allDay:!o.time}:b; }
-function ttMeta(o){ const x=o.x, privateItem=["blocks","habits","pitems"].includes(o.c), who=privateItem?myRole():o.c==="chores"?choreInfo(x).who:getWho(x);
+function ttInfo(o){ const x=o.x, privateItem=["blocks","habits","pitems"].includes(o.c), who=privateItem?myRole():o.c==="chores"?choreInfo(x).who:getWho(x);
   const type=o.c==="chores"?"家事":o.c==="habits"?"習慣":isRecItem(x)?"繰り返しタスク":o.kind==="b"||o.kind==="e"?"予定":x.list==="shop"?"買い物":"タスク";
-  return `${type} · ${privateItem?"🔒自分だけ":"共有"} · ${who==="both"?"ふたり":nameOf(who||myRole())}`;
+  return {type,privateItem,who:who||myRole(),person:who==="both"?"ふたり":nameOf(who||myRole())};
+}
+function ttMeta(o){ const m=ttInfo(o); return `${m.type} · ${m.privateItem?"自分だけ":"共有"} · ${m.person}`; }
+function ttBadges(o,inline=false){ const m=ttInfo(o), wc=["h","w","both"].includes(m.who)?" w-"+m.who:"";
+  return `<div class="tt-meta${inline?" tt-meta-inline":""}" ${inline?'aria-hidden="true"':'aria-label="種類・公開範囲・担当"'}><span class="tag tt-kind">${esc(m.type==="繰り返しタスク"?"くり返し":m.type)}</span><span class="tag ${m.privateItem?"lk":"tt-scope"}">${m.privateItem?LKI:""}${m.privateItem?"自分だけ":"共有"}</span>${m.privateItem?"":`<span class="tag tt-person${wc}">${esc(m.person)}</span>`}</div>`;
 }
 function dayEntries(date){
   const out=[];
@@ -2675,7 +2691,7 @@ function ttBarHTML(date){
   const o=ttSelEntry(date); if(!o){ return ""; }
   const len=o.e-o.s;
   return `<div class="tt-bar" role="toolbar" aria-label="選んだ予定の調整">
-    <div class="tb-h"><b>${esc(o.t)}</b><span>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}（${len}分）・${esc(ttMeta(o))}</span><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>
+    <div class="tb-h"><div class="tb-title"><b>${esc(o.t)}</b><small class="tb-time">${hhmm(o.s%1440)}–${hhmm(o.e%1440)}　${len}分</small></div><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>${ttBadges(o)}
     <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button>`}</div>
     <div class="tb-tip">予定をつかんで移動・上下のつまみで開始／終了を変更${hasDayTime(o.c,o.x)?"（この日だけ変更。標準時刻は詳しく編集から）":""}</div></div>`;
 }
@@ -2697,7 +2713,7 @@ function timetable(date){
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
     const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.done?"done":""} ${ht<40?"short":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span><small class="tt-meta">${esc(ttMeta(o))}</small>${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.done?"done":""} ${ht<40?"short":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
   }
   return h+ttNewHTML(date)+`</div>`;
 }
