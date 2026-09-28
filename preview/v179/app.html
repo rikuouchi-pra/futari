@@ -6967,7 +6967,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   function collection(p){return {doc:id=>doc(p+'/'+id),get:async()=>collectionSnapshot(p),onSnapshot:cb=>listen(p,cb,true)};}
   const d=today(), tomorrow=addDays(d,1), now=Date.now(), put=(c,id,x)=>docs.set(c+'/'+id,x);
   Object.assign(state,{me:'preview-h',owner:true,acctRole:'h',emailRole:'h',fam:{h:'テストA',w:'テストB'},roles:{h:'preview-h',w:'preview-w'},rolesLoaded:true});
-  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0',theme:new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light'});
+  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0',mode:new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light'});
   db={doc,collection};privBase=doc('private');prefsDoc=doc('meta/prefs');histDoc=doc('meta/history');kakeiDoc=doc('meta/kakei');famDoc=doc('meta/family');
   put('meta','prefs',prefs);put('meta','family',state.fam);put('meta','history',{names:['牛乳','卵']});
   put('meta','kakei',{fridge:{items:['卵','豆腐','にんじん'],at:now},music:{h:'スピッツ',w:'宇多田ヒカル'}});
