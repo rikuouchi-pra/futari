@@ -40,19 +40,40 @@ function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 
 const voiceFns=['aiRec','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
-const talkCalFns=['aiDate','talkCalendarDates','talkCalendarEvents','talkCalendarHTML','talkCalendarMove'];
+const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
+function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
-  const c=env(talkCalFns,{$:()=>null,talkOf:()=>null});c.state.talkCalDate='2024-02-29';const grid=run(c,'talkCalendarDates()');assert.equal(grid.days[0],'2024-01-29');assert.ok(grid.days.includes('2024-02-29'));assert.equal(grid.days.length%7,0);c.state.talkCalMonth='2026-12';run(c,'talkCalendarMove(null,1)');assert.equal(c.state.talkCalDate,'2027-01-01');run(c,'talkCalendarMove(null,-1)');assert.equal(c.state.talkCalDate,'2026-12-01');
+  const c=talkCalEnv({$:()=>null,talkOf:()=>null});c.state.talkCalDate='2024-02-29';const grid=run(c,'talkCalendarDates()');assert.equal(grid.days[0],'2024-01-29');assert.ok(grid.days.includes('2024-02-29'));assert.equal(grid.days.length%7,0);c.state.talkCalMonth='2026-12';run(c,'talkCalendarMove(null,1)');assert.equal(c.state.talkCalDate,'2027-01-01');run(c,'talkCalendarMove(null,-1)');assert.equal(c.state.talkCalDate,'2026-12-01');
 });
 test('talk calendar selects shared events only without exposing private entries',()=>{
-  const c=env(talkCalFns,{shiftOf:()=> '日',shiftBadge:()=> '日',offState:()=>'',jpDate:String,eventRow:x=>`<li>${c.esc(x.text)}</li>`});c.state.talkCalDate='2026-09-29';c.state.events=[{date:'2026-09-29',text:'<会議>',start:'12:00',who:'w'},{date:'2026-09-29',text:'帰宅',start:'19:00',who:'both'},{date:'2026-09-30',text:'別の日'}];c.state.blocks=[{date:'2026-09-29',text:'秘密の予定'}];const html=run(c,'talkCalendarHTML()');assert.match(html,/&lt;会議&gt;/);assert.match(html,/帰宅/);assert.doesNotMatch(html,/秘密の予定|別の日/);assert.match(html,/2026-09-29 共有予定2件/);
+  const c=talkCalEnv({shiftOf:()=> '日',shiftBadge:()=> '日',offState:()=>'',jpDate:String,eventRow:x=>`<li>${c.esc(x.text)}</li>`});c.state.talkCalDate='2026-09-29';c.state.events=[{id:'a',date:'2026-09-29',text:'<会議>',start:'12:00',who:'w'},{id:'b',date:'2026-09-29',text:'帰宅',start:'19:00',who:'both'},{id:'c',date:'2026-09-30',text:'別の日'}];c.state.blocks=[{date:'2026-09-29',text:'秘密の予定'}];const html=run(c,'talkCalendarHTML()');assert.match(html,/&lt;会議&gt;/);assert.match(html,/帰宅/);assert.doesNotMatch(html,/秘密の予定|別の日/);assert.match(html,/2026-09-29 共有2件/);
 });
 test('talk calendar navigation saves a pending note without changing its talk date',()=>{
-  let saves=0;const c=env(talkCalFns,{$:()=>({value:'編集中のメモ'}),talkOf:()=>({notes:'前のメモ'}),saveTalkNotes:()=>saves++});c.state.talkDate='2026-09-27';run(c,"talkCalendarMove('2026-10-05')");assert.equal(c.state.talkDate,'2026-09-27');assert.equal(c.state.talkCalDate,'2026-10-05');assert.equal(saves,1);
+  let saves=0;const c=talkCalEnv({$:()=>({value:'編集中のメモ'}),talkOf:()=>({notes:'前のメモ'}),saveTalkNotes:()=>saves++});c.state.talkDate='2026-09-27';run(c,"talkCalendarMove('2026-10-05')");assert.equal(c.state.talkDate,'2026-09-27');assert.equal(c.state.talkCalDate,'2026-10-05');assert.equal(saves,1);
 });
 function voiceEnv(options={}){let rec;const input={value:'元の入力',focus(){}};class Recognition{constructor(){rec=this;}start(){}stop(){this.onend();}abort(){this.onend();}}
   const c=env(voiceFns,{$:()=>input,window:{SpeechRecognition:Recognition},aiMicUI(){},...options});c.input=input;return {c,get rec(){return rec;}};
 }
+test('shared calendar includes both assignees, purchases and completed tasks while excluding every private collection',()=>{
+  const c=talkCalEnv();c.prefs.whoF='h';c.state.items=[{id:'h',list:'task',due:'2026-09-28',who:'h'},{id:'w',list:'task',due:'2026-09-28',who:'w',done:true},{id:'s',list:'shop',due:'2026-09-28',who:'both'},{id:'p',list:'task',due:'2026-09-28',who:'priv'},{id:'p2',list:'shop',due:'2026-09-28',private:true}];
+  for(const key of ['pitems','blocks','habits','priv'])c.state[key]=[{id:'private-'+key,list:'task',due:'2026-09-28',date:'2026-09-28',target:7}];
+  const rows=run(c,"talkCalendarData(['2026-09-28']).byDay['2026-09-28']");assert.deepEqual(plain(rows.map(o=>o.x.id).sort()),['h','s','w']);assert.equal(rows.find(o=>o.x.id==='w').x.done,true);assert.match(run(c,"talkCalendarSummary(talkCalendarData(['2026-09-28']).byDay['2026-09-28'])"),/買い物1件/);
+});
+test('calendar undated shared items remain visible without being assigned an invented date',()=>{
+  const c=talkCalEnv();c.state.items=[{id:'task',list:'task'},{id:'shop',list:'shop',who:'w'}];c.state.plans=[{id:'plan'}];c.state.cautions=[{id:'caution'},{id:'hidden',visibility:'private'}];const data=run(c,"talkCalendarData(['2026-09-28'])");assert.equal(data.byDay['2026-09-28'].length,0);assert.deepEqual(plain(data.undated.map(o=>o.x.id).sort()),['caution','plan','shop','task']);
+});
+test('shared daily and weekly recurrences expand across the displayed month, including partner assignments',()=>{
+  const c=talkCalEnv();c.state.items=[{id:'daily',list:'rtask',target:7,since:'2026-09-29',who:'w'},{id:'weekly',list:'rtask',target:'wd',wd:[1],since:'2026-09-01',who:'both',log:{'2026-09-28':1}},{id:'private',list:'rtask',target:7,since:'2026-09-01',who:'priv'}];const data=run(c,"talkCalendarData(['2026-09-28','2026-09-29','2026-10-05'])");assert.deepEqual(plain(data.byDay['2026-09-28'].map(o=>o.x.id)),['weekly']);assert.equal(data.byDay['2026-09-28'][0].status,'実施済み');assert.deepEqual(plain(data.byDay['2026-10-05'].map(o=>o.x.id).sort()),['daily','weekly']);
+});
+test('monthly, quota and interval recurrence dates stay grounded in schedule and logs',()=>{
+  const c=talkCalEnv();c.state.items=[{id:'monthly',list:'rtask',target:'mo',mStart:'2026-01-31',since:'2026-01-31',mEvery:1},{id:'quota',list:'rtask',target:3,since:'2026-09-01'},{id:'interval',list:'rtask',target:'iv',every:7,since:'2026-09-01',log:{'2026-09-22':1}}];const data=run(c,"talkCalendarData(['2026-02-28','2026-09-27','2026-09-29'])");assert.ok(data.byDay['2026-02-28'].some(o=>o.x.id==='monthly'));assert.ok(data.byDay['2026-09-27'].some(o=>o.x.id==='quota'));assert.ok(data.byDay['2026-09-29'].some(o=>o.x.id==='interval'));
+});
+test('shared calendar includes chores, plans, annual anniversaries, cautions and monthly payments',()=>{
+  const c=talkCalEnv();c.state.chores=[{id:'chore',target:'wd',wd:[3],since:'2026-09-01',createdAt:Date.UTC(2026,8,1),who:'w'}];c.state.plans=[{id:'plan',date:'2026-09-30'},{id:'anniv',cat:'anniv',date:'2020-09-30'}];c.state.cautions=[{id:'caution',date:'2026-09-30'}];c.state.recur=[{id:'bill',day:31,from:'2026-09',until:'2026-10',paid:{'2026-09':{amount:1}}},{id:'disabled',day:30,active:false}];const data=run(c,"talkCalendarData(['2026-09-30','2026-10-31','2026-11-30','2027-09-30'])");assert.deepEqual(plain(data.byDay['2026-09-30'].map(o=>o.x.id).sort()),['anniv','bill','caution','chore','plan']);assert.equal(data.byDay['2026-09-30'].find(o=>o.kind==='pay').status,'支払い済み');assert.ok(data.byDay['2026-10-31'].some(o=>o.x.id==='bill'));assert.ok(!data.byDay['2026-11-30'].some(o=>o.x.id==='bill'));assert.ok(data.byDay['2027-09-30'].some(o=>o.x.id==='anniv'));
+});
+test('recurring rows show selected-day times for both people and never toggle today by mistake',()=>{
+  const c=talkCalEnv();c.o={c:'items',kind:'repeat',d:'2026-09-29',x:{id:'rec',text:'<掃除>',who:'both',time:'09:00',dayTimes_h:{'2026-09-29':{time:null}},dayTimes_w:{'2026-09-29':{time:'18:00'}}}};const html=run(c,'talkCalendarRow(o)');assert.match(html,/w 18:00/);assert.doesNotMatch(html,/09:00|data-act="right"|data-htc/);assert.match(html,/&lt;掃除&gt;/);assert.match(html,/詳細・編集/);
+});
 test('voice result updates replace interim text without duplication and never send',()=>{
   const v=voiceEnv();v.c.sent=0;v.c.aiAsk=()=>v.c.sent++;run(v.c,'aiMic()');
   v.rec.onresult({resultIndex:0,results:[{0:{transcript:'明日の'},isFinal:false}]});

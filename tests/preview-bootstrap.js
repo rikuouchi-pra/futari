@@ -17,9 +17,13 @@
   put('meta','kakei',{fridge:{items:['卵','豆腐','にんじん'],at:now},music:{h:'スピッツ',w:'宇多田ヒカル'}});
   const item=(text,extra={})=>({text,list:'task',done:false,who:'both',createdAt:now,updatedAt:now,...extra});
   put('items','shared-task',item('共有タスク（ふたり）',{due:d,time:'10:00',dur:30}));
+  put('items','partner-task',item('テストB担当の共有タスク',{due:d,who:'w',time_w:'12:00'}));
+  put('items','completed-task',item('完了した共有タスク',{due:d,done:true}));
   put('items','shop-today',item('今日の牛乳',{list:'shop',due:d}));
   put('items','shop-future',item('明日のパン',{list:'shop',due:tomorrow}));
   put('items','shop-undated',item('日付なしの洗剤',{list:'shop'}));
+  put('items','partner-shop',item('テストB担当の買い物',{list:'shop',due:d,who:'w'}));
+  put('private/pitems','private-shop',item('非公開の買い物テスト',{list:'shop',due:d,who:'h'}));
   put('items','weekly',item('共有の毎週タスク',{list:'rtask',target:'wd',wd:[parse(d).getDay()],log:{},time:'11:00',dur:30}));
   put('private/pitems','private-task',item('自分だけのタスク',{due:d,time:'13:00',dur:30,who:'h'}));
   put('private/habits','daily-habit',{text:'毎日ストレッチ',target:7,time:'07:00',dur:15,log:{},createdAt:now});
@@ -30,6 +34,10 @@
   put('private/blocks','all-day-block',{text:'自分だけの終日予定',date:d,rep:'none',allDay:true,memo:'共有されない非公開メモ',createdAt:now});
   put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:30',who:'both',createdAt:now});
   put('events','partner-event',{text:'相手だけの予定',date:d,start:'17:00',end:'18:00',who:'w',createdAt:now});
+  put('plans','shared-plan',{text:'共有の将来計画',cat:'future',date:d,who:'both',createdAt:now});
+  put('cautions','shared-caution',{text:'共有の注意事項',date:d,who:'both',createdAt:now});
+  put('chores','shared-chore',{text:'共有の掃除',who:'w',target:'wd',wd:[parse(d).getDay()],since:d,log:{},createdAt:now});
+  put('recur','shared-payment',{text:'共有の定期支払い',day:parse(d).getDate(),amount:1200,from:d.slice(0,7),who:'both'});
   put('talks',d,{date:d,status:'done',held:true,heldAt:now,notes:'話し合いのテスト記録',at:now});
   put('dinner',d,{date:d,text:'旧形式のカレー',at:now,role:'h'});
   put('bugs','active-request',{text:'検証用の未対応要望',status:'new',role:'h',at:now});
@@ -44,7 +52,7 @@
   window.SpeechRecognition=class {start(){this.timer=setTimeout(()=>{const r=[{0:{transcript:'明日の19時に自分だけの予定で買い物'},isFinal:true}];this.onresult?.({results:r,resultIndex:0});},400);}stop(){clearTimeout(this.timer);this.onend?.();}abort(){clearTimeout(this.timer);this.onend?.();}};
   bindFavorites();
   state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
-  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
+  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','cautions','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
   for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
   kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
   histDoc.onSnapshot(s=>state.history=s.data().names||[]);
@@ -58,7 +66,7 @@
   }};
   state.sample=mockAI;state.sampleTxt=mockAI;state.sampleNote='検証用の模擬AI（外部送信なし）';
   const banner=document.createElement('div');banner.textContent='検証専用：架空データ・本番接続なし・AIは固定応答';banner.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#173b31;color:white;text-align:center;padding:5px;font-size:11px;pointer-events:none';document.body.appendChild(banner);
-  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
+  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(e.data.fontSize&&['m','l','xl'].includes(e.data.fontSize)){prefs.fs=e.data.fontSize;applyPrefs();render();}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
   if(new URLSearchParams(location.search).get('view')==='requests'){ state.view='settings';prefs.view='settings';state.setOpen={data:1}; }
   $('syncText').textContent='検証データ';$('offline').hidden=true;applyPrefs();render();
   if(new URLSearchParams(location.search).get('view')==='requests') requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));
