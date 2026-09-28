@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=177"></script>
+<script src="shim.js?v=186"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1466,7 +1466,7 @@ html[data-cardl] :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary
 .item.tpk .row{box-shadow:inset 4px 0 0 var(--kc)}
 .tag.tpk-tag{color:var(--kc);background:color-mix(in srgb,var(--kc) 16%,transparent);font-weight:700}
 .aicard{background:var(--surface);border-radius:18px;padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:8px}
-.ai-h{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}.ai-h b{font-size:15px;flex:1}.ai-h .who{order:3;flex:1 1 100%;font-size:11.5px}
+.ai-h{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}.ai-refresh{min-height:44px;padding:6px 0 6px 8px;font-size:12px;white-space:nowrap}.ai-error-details{margin-top:10px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}.ai-error-details p{margin:8px 0 0}.ai-h b{font-size:15px;flex:1}.ai-h .who{order:3;flex:1 1 100%;font-size:11.5px}
 .ai-q{align-self:flex-end;max-width:85%;background:color-mix(in srgb,var(--accent) 18%,transparent);padding:6px 10px;border-radius:14px 14px 4px 14px;font-size:14px}
 .ai-a{align-self:flex-start;max-width:95%;background:var(--ground);padding:8px 11px;border-radius:14px 14px 14px 4px;font-size:14px;line-height:1.65}
 .ai-a.busy{display:flex;align-items:center;gap:8px;color:var(--muted)}.ai-a.err{color:var(--danger)}
@@ -1642,7 +1642,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="185";
+const APP_VERSION="186";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4184,7 +4184,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="kindReset"){ prefs.kindOrder=""; prefs.kindHide=""; savePrefs(); toast("最初の並びに戻しました"); }
   else if(a==="updCheck"){ updCheck(true); }
   else if(a==="updNow"){ updNow(); }
-  else if(a==="aiClear"){ state.ai.log=[]; aiLogSave(); render(); }
+  else if(a==="aiClear"||a==="aiRefresh"){ aiRefresh(); }
   else if(a==="aiReplan"){ aiAsk(AI_REPLAN_Q,{brief:true}); }
   else if(a==="aiMemAdd"){ const i=$("aiMemIn"); if(aiMemAdd(i&&i.value,state.aiMemSc==="me"?"me":"both")){ state.aiMemOpen=true; haptic("done"); render(); } }
   else if(a==="shUndo"||a==="shRedo"){ shiftUndo(a==="shRedo"); }
@@ -5449,9 +5449,29 @@ function aiMic(){if(state.ai.busy)return;const SR=window.SpeechRecognition||wind
   try{state.aiListening=true;state.aiVoiceStatus="聞き取り中です。話し終わったら「聞き取りを終了」を押してください。";R.start();haptic("arm");aiMicUI();}catch(e){aiRec=null;state.aiListening=false;state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。";aiMicUI();}
 }
 function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening;return `<div class="ai-compose"><label class="who" for="aiIn">AIへの相談・音声入力の確認</label><textarea id="aiIn" rows="3" maxlength="2000" enterkeyhint="enter" aria-describedby="aiVoiceStatus" placeholder="${talk?"例：今日の議題の順番は？":"例：明日の19時に、自分だけの予定で買い物を追加して"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><div class="ai-voicebar"><button class="btn ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>${listening?"聞き取りを終了":A.q?"続けて話す":"声で入力"}</button>${listening?'<button class="btn" data-act="aiVoiceCancel">取消</button>':""}<button class="btn primary" data-act="aiAsk" ${A.busy||listening?"disabled":""} aria-label="送る">送る</button></div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite">${esc(state.aiVoiceStatus||"声で入力 → 文字を確認・修正 → 送る。自動では送信しません。")}</p><details class="ai-mem"><summary>聞き取りのコツ</summary><p class="who">「明日・19時・自分だけ・買い物」のように、日付、時刻、だれの予定かを区切って話してください。認識結果は送信前に直せます。音声認識はブラウザーのサービスを使います。</p></details></div>`;}
+/* AI requests own their response slot; refresh invalidates in-flight work immediately. */
+function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
+function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
+function aiRefresh(){const A=state.ai,input=$("aiIn"),last=A.log[A.log.length-1],draft=(input?input.value:A.q)||((A.busy||last?.a?.err)?A.lastQ||last?.q||"":"");
+  A.runId=(A.runId||0)+1;const ctl=A.ctl;A.ctl=null;A.busy=false;clearInterval(A.waitTimer);A.waitTimer=null;ctl?.abort();
+  const R=aiRec;aiRec=null;state.aiListening=false;try{R?.abort();}catch(e){}state.aiVoiceStatus="";
+  A.log=[];A.refs={};A.q=draft;A.autoTried=true;A.phase="";A.startedAt=0;try{state._smt?.resetConnection?.();}catch(e){}
+  aiLogSave();render();toast("AIをリフレッシュしました。入力と保存済みの内容は残っています");
+}
+function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,reject)=>{let done=false,timer;const finish=(err,value)=>{if(done)return;done=true;clearTimeout(timer);ctl.signal.removeEventListener('abort',abort);err?reject(err):resolve(value);},abort=()=>finish(Object.assign(new Error('AIをリフレッシュしました'),{code:'ai_cancelled'}));
+  if(ctl.signal.aborted){abort();return;}ctl.signal.addEventListener('abort',abort,{once:true});
+  timer=setTimeout(()=>{finish(Object.assign(new Error('応答が時間内に届きませんでした'),{code:'ai_timeout'}));ctl.abort();},ms);
+  Promise.resolve().then(()=>{if(ctl.signal.aborted)throw Object.assign(new Error('cancelled'),{code:'ai_cancelled'});return provider.json(prompt,{...options,signal:ctl.signal,timeoutMs:ms});}).then(v=>finish(null,v),e=>finish(e));
+});}
+function aiFailure(e,q){const code=String(e?.code||''),detail=String(e?.detail||e?.message||code||'接続エラー').slice(0,700),config=/gas_access|gas_response|no_gas/.test(code)||/ログイン画面|デプロイ/.test(detail),busy=/busy|rate_limited|混み合|回数制限|混雑/.test(code+detail);
+  return {reply:code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
+}
 async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy||state.aiListening) return;state.aiVoiceStatus=""; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
-  A.busy=true; A.q=""; A.lastQ=q; A.log.push({q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief}); if(A.log.length>6) A.log.shift(); render();
-  const hist=A.log.slice(0,-1).filter(x=>x.a).slice(-3).map(x=>`Q：${String(x.q).slice(0,300)}\nA：${String(x.a.reply).slice(0,600)}`).join("\n\n");
+  const runId=A.runId=(A.runId||0)+1,ctl=A.ctl=new AbortController(),entry={q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief};
+  if(A.log.at(-1)?.a?.err&&A.log.at(-1).q===entry.q)A.log.pop();
+  A.busy=true;A.q="";A.lastQ=q;A.startedAt=Date.now();A.phase="送信を準備しています";A.log.push(entry);if(A.log.length>6)A.log.shift();render();A.waitTimer=setInterval(aiWaitPaint,1000);
+  try{
+  const hist=A.log.slice(0,-1).filter(x=>x.a&&!x.a.err).slice(-3).map(x=>`Q：${String(x.q).slice(0,300)}\nA：${String(x.a.reply).slice(0,600)}`).join("\n\n");
   const prompt=`あなたは夫婦「${nameOf("h")}」と「${nameOf("w")}」の生活を手伝うアシスタントです。下の「いまの状況」をふまえて、質問に日本語でやさしく具体的に答えてください。
 【今回の質問】${q}
 - 状況に関係する点（シフト・天気・最近の夕飯とかぶらない・買い物リストにある食材・予定の時間など）を理由に入れる
@@ -5502,12 +5522,15 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 ${aiCtx().slice(0,8000)}
 ${hist?`\n【これまでの会話】\n${hist}\n`:""}
 ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフト・天気・大事な予定・期限・話す議題）を3〜5行で。そのあと今日のタイムテーブルを組んだ結果を時刻順に書き、acts で並べ替え・追加を出す（最大15個）\n":""}【質問】${q}`;
-  try{ const d=await state._smt.json(prompt,{modelTier:"quick"}); const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
-    const RF=state.ai.refs||{}, acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null}));
-    A.log[A.log.length-1].a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]}; haptic("done"); }
-  catch(e){ const c=String((e&&(e.code||e.message))||"エラー"), busy=/busy|rate_limited|混み合|回数制限|混雑/.test(c+String(e&&e.detail||""));
-    A.log[A.log.length-1].a={reply:busy?"AIが混み合っていて答えられませんでした。少し待ってから「もう一度」を押してください。":`相談できませんでした（${c}）`,next:[q],err:true,retry:true}; }
-  A.busy=false; aiLogSave(); if(state.view==="home"||state.view==="talk") render(); else toast("AIの答えがホームに届きました"); }
+  const RF={...(state.ai.refs||{})},d=await aiRequest(state._smt,prompt,{modelTier:"quick",onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},ctl,opt.brief?60000:30000);
+    if(A.runId!==runId)return;
+    const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
+    const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null}));
+    entry.a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]};haptic("done");
+  }catch(e){if(A.runId!==runId)return;entry.a=aiFailure(e,q);A.q=q;}
+  finally{if(A.runId===runId){clearInterval(A.waitTimer);A.waitTimer=null;A.ctl=null;A.busy=false;aiLogSave();if(state.view==="home"||state.view==="talk")render();else toast("AIの結果をホームで確認できます");}}
+}
+
 /* v159: 覚え書き（ふたり共通＝共有データ／🔒自分＝自分の設定）・朝のブリーフ・遅れたら組み直し・話し合いの準備と片付け */
 const aiMemB=()=>Array.isArray((state.kakei||{}).aiMem)?state.kakei.aiMem:[];
 /* v161: 自分の覚え書きは設定（文字列で保存。設定の同期は決まった形の項目しか残さないため） */
@@ -5561,9 +5584,9 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
   const base=talk?["話し合いの準備をして","メモからやることを作って","今日決まったことを整理して"]:["☀ 今日を組む",...AIQ];
   const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:base), retry=last&&last.a&&last.a.retry;
   const od=!talk&&!A.busy?aiOverdue():[], mb=aiMemB(), mp=aiMemP();
-  return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>${talk?"AIと話し合いの準備":"AIに相談"}</b><span class="who">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span>${A.log.length?`<button class="link" data-act="aiClear">クリア</button>`:""}</div>
+  return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>${talk?"AIと話し合いの準備":"AIに相談"}</b><span class="who">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="link ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話と接続状態をリフレッシュ。入力と保存済みの内容は残します">↻ リフレッシュ</button></div>
     ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 時間を過ぎて終わっていない予定 ${od.length}件（${od.slice(0,2).map(o=>esc(o.t.slice(0,10))).join("・")}${od.length>2?"…":""}）</span><b>残りを組み直す</b></button>`:""}
-    ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy"><span class="spin"></span>${x.brief?"今日の予定を組んでいます…":"考え中…"}</div>`}`).join("")}
+    ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`).join("")}
     ${aiComposerHTML(talk)}
     <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${retry?"↻ もう一度："+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>
     <button class="link ai-prof" data-go2="aiprof">👤 基本情報を設定（${Object.keys(aiProfMe()).length}/${AIP_FIELDS.length}）</button>

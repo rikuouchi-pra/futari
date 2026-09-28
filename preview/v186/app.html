@@ -5465,7 +5465,7 @@ function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,r
   Promise.resolve().then(()=>{if(ctl.signal.aborted)throw Object.assign(new Error('cancelled'),{code:'ai_cancelled'});return provider.json(prompt,{...options,signal:ctl.signal,timeoutMs:ms});}).then(v=>finish(null,v),e=>finish(e));
 });}
 function aiFailure(e,q){const code=String(e?.code||''),detail=String(e?.detail||e?.message||code||'接続エラー').slice(0,700),config=/gas_access|gas_response|no_gas/.test(code)||/ログイン画面|デプロイ/.test(detail),busy=/busy|rate_limited|混み合|回数制限|混雑/.test(code+detail);
-  return {reply:code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:true};
+  return {reply:code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
 }
 async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy||state.aiListening) return;state.aiVoiceStatus=""; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
   const runId=A.runId=(A.runId||0)+1,ctl=A.ctl=new AbortController(),entry={q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief};

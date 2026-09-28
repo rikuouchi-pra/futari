@@ -20,7 +20,7 @@ function declaration(name) {
 function env(names, overrides = {}) {
   const state = { ai: { log: [], refs: {} }, view: 'home', me: 'test-user', items: [], pitems: [], habits: [], blocks: [], events: [], chores: [], plans: [], bugs: [], dinner: [], kakei: {} };
   const writes = [], notices = [];
-  const c = vm.createContext({ state, prefs: {}, writes, notices, Date, Set, Map, console,
+  const c = vm.createContext({ state, prefs: {}, writes, notices, Date, Set, Map, console, AbortController, setTimeout, clearTimeout, setInterval, clearInterval,
     today: () => '2026-09-28', myRole: () => 'h', otherRole: () => 'w', getWho: x => x.who || 'both',
     parse: d => new Date(d + 'T00:00:00'), ymd: d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
     addDays: (d,n) => { const x=new Date(d+'T00:00:00Z'); x.setUTCDate(x.getUTCDate()+n); return x.toISOString().slice(0,10); },
@@ -29,8 +29,9 @@ function env(names, overrides = {}) {
     esc: s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
     snapUndo: () => () => {}, aiActText: () => 'test', APP_VERSION: source.match(/APP_VERSION="(\d+)"/)[1],
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
-    go: v => { state.view=v; }, document:{querySelector:()=>null}, CSS:{escape:String},
+    go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',...overrides });
+  if(names.includes('aiAsk'))names=['aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -497,4 +498,40 @@ test('AI recurring additions preserve explicit type and reject shared habit requ
   let c=env(ai);let w=act(c,{type:'add_recurring',text:'運動',kind:'habit',target:'7',who:'priv',showInTimetable:false,time:'07:00'});assert.equal(w.data.entryKind,'habit');assert.equal(w.data.showInTimetable,false);
   c=env(ai);w=act(c,{type:'add_recurring',text:'掃除',kind:'task',target:'7',who:'priv'});assert.equal(w.data.entryKind,'task');assert.equal(w.c,'habits');
   c=env(ai);act(c,{type:'add_recurring',text:'運動',kind:'habit',target:'7',who:'both'});assert.equal(c.writes.length,0);
+});
+
+function aiChatEnv(overrides={}){return env(['AI_PREFS','AI_ACT_L','aiRec','aiRefresh','aiAsk'],{aiCan:()=>true,aiCtx:()=>'',aiMemB:()=>[],aiMemP:()=>[],$:()=>null,...overrides});}
+const microtasks=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
+test('AI refresh immediately releases busy state, retains draft, and ignores a late old answer',async()=>{
+  const c=aiChatEnv();let first,second,calls=0,resets=0;
+  c.state._smt={resetConnection:()=>resets++,json:()=>new Promise(r=>{if(++calls===1)first=r;else second=r;})};
+  const old=run(c,"aiAsk('古い質問')");await microtasks();const oldSignal=c.state.ai.ctl.signal;
+  run(c,'aiRefresh()');assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.q,'古い質問');assert.equal(oldSignal.aborted,true);assert.equal(resets,1);
+  const next=run(c,"aiAsk('新しい質問')");await microtasks();first({reply:'古い答え',acts:[]});await old;
+  assert.equal(c.state.ai.busy,true);assert.equal(c.state.ai.log.length,1);assert.equal(c.state.ai.log[0].a,null);
+  second({reply:'新しい答え',acts:[]});await next;assert.equal(c.state.ai.log[0].a.reply,'新しい答え');assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.waitTimer,null);
+});
+test('AI timeout releases a provider that ignores cancellation and keeps the question editable',async()=>{
+  const timers=[];const c=aiChatEnv({setTimeout:(fn,ms)=>(timers.push({fn,ms}),timers.length),clearTimeout(){},setInterval:()=>1,clearInterval(){}});
+  c.state._smt={json:()=>new Promise(()=>{})};const p=run(c,"aiAsk('質問を残す')");await microtasks();assert.equal(timers[0].ms,30000);timers[0].fn();await p;
+  assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.q,'質問を残す');assert.match(c.state.ai.log[0].a.reply,/時間内/);
+});
+test('AI failures are excluded from context and a retry does not duplicate the failed question',async()=>{
+  const c=aiChatEnv();let prompt;c.state._smt={json:async()=>{throw Object.assign(Error('login html'),{code:'gas_access'});}};
+  await run(c,"aiAsk('買い物の日付変更')");assert.equal(c.state.ai.q,'買い物の日付変更');assert.equal(c.state.ai.log.length,1);
+  c.state._smt={json:async p=>(prompt=p,{reply:'変更案',acts:[]})};await run(c,"aiAsk('買い物の日付変更')");
+  assert.equal(c.state.ai.log.length,1);assert.doesNotMatch(prompt,/接続設定の確認が必要/);assert.equal(c.writes.length,0);
+});
+test('AI preparation errors also release busy state and preserve the question',async()=>{
+  const c=aiChatEnv({aiCtx:()=>{throw Error('context failed');}});c.state._smt={json:async()=>{throw Error('must not call');}};
+  await run(c,"aiAsk('下書き')");assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.q,'下書き');assert.equal(c.state.ai.log[0].a.err,true);
+});
+test('AI refresh keeps unsent edits and saved memories, without sending or changing stored items',()=>{
+  const c=aiChatEnv({$:()=>({value:'書きかけを残す'})});c.state.ai.log=[{q:'以前の質問',a:{reply:'答え'}}];c.state.kakei={aiMem:[{t:'記憶'}]};c.state.items=[{id:'keep'}];
+  run(c,'aiRefresh()');assert.equal(c.state.ai.q,'書きかけを残す');assert.equal(c.state.kakei.aiMem.length,1);assert.equal(c.state.items.length,1);assert.equal(c.writes.length,0);
+});
+test('AI replies retain their own item references across context changes',async()=>{
+  const c=aiChatEnv({aiCtx:()=>{c.state.ai.refs={r1:{c:'items',id:'original'}};return '';}});let reply;c.state._smt={json:()=>new Promise(r=>reply=r)};
+  const p=run(c,"aiAsk('日付変更')");await microtasks();c.state.ai.refs={r1:{c:'items',id:'unrelated'}};reply({reply:'変更案',acts:[{type:'edit',ref:'r1',date:'2026-10-03'}]});await p;
+  assert.equal(c.state.ai.log[0].a.acts[0]._r.id,'original');assert.equal(c.writes.length,0);
 });

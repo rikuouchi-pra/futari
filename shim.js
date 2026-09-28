@@ -179,24 +179,52 @@
       if(out.size <= MAX_ONE) return out; max = Math.round(max * 0.82); q = Math.max(0.55, q - 0.06); }
     var e = new Error("too large"); e.code = "写真が大きすぎます"; throw e;
   }
+  function aiAbortError_(){ var e=new Error("AI request cancelled"); e.name="AbortError"; e.code="ai_cancelled"; return e; }
+  function waitAbort_(promise, signal){
+    return new Promise(function(ok,ng){
+      var done=false, finish=function(err,value){if(done)return;done=true;if(signal)signal.removeEventListener("abort",abort);err?ng(err):ok(value);};
+      var abort=function(){finish(aiAbortError_());};
+      Promise.resolve(promise).then(function(v){finish(null,v);},function(e){finish(e);});
+      if(signal){if(signal.aborted)abort();else signal.addEventListener("abort",abort,{once:true});}
+    });
+  }
+  var aiConnectionIssue=null;
   async function aiAsk(prompt, o){
-    var G = gasUrl(); if(!G){ var e0 = new Error("no_gas"); e0.code = "no_gas"; throw e0; }
-    var imgs = o && o.images ? (Array.isArray(o.images) ? o.images : [o.images]) : [], id = "ai" + rid(), doc = { prompt: String(prompt).slice(0, 20000), at: Date.now(), by: me.uid };
-    if(imgs[0]){ var b = await aiShrink(imgs[0]); doc.img = M.Bytes.fromUint8Array(new Uint8Array(await b.arrayBuffer())); doc.mime = "image/jpeg"; }
-    await M.setDoc(M.doc(fs, "aitmp", id), doc);
+    o=o||{}; var signal=o.signal, G=gasUrl();
+    if(signal&&signal.aborted)throw aiAbortError_();
+    if(!G){var e0=new Error("no_gas");e0.code="no_gas";throw e0;}
+    if(aiConnectionIssue&&aiConnectionIssue.url===G&&Date.now()<aiConnectionIssue.until)throw aiConnectionIssue.error;
+    var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[], id="ai"+rid(), ref=M.doc(fs,"aitmp",id), doc={prompt:String(prompt).slice(0,20000),at:Date.now(),by:me.uid};
+    var ctl=new AbortController(), expired=false, budget=Math.max(1000,Math.min(150000,Number(o.timeoutMs)||(imgs.length?90000:30000)));
+    var cancel=function(){ctl.abort();}, timer=setTimeout(function(){expired=true;ctl.abort();},budget), written=null;
+    if(signal)signal.addEventListener("abort",cancel,{once:true});
+    var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
     try{
-      var tok = await me.getIdToken();
-      var j = await gasCall_(G, { idToken: tok, tool: "ai", args: { doc: id } }, 90000);
-      if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
-      return j.payload;
-    } finally { M.deleteDoc(M.doc(fs, "aitmp", id)).catch(function(){}); }
+      phase("送信を準備しています");
+      if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0]),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
+      if(ctl.signal.aborted)throw aiAbortError_();
+      written=M.setDoc(ref,doc);await waitAbort_(written,ctl.signal);
+      var tok=await waitAbort_(me.getIdToken(),ctl.signal);
+      phase("AIに問い合わせています");
+      var j=await gasCall_(G,{idToken:tok,tool:"ai",args:{doc:id}},budget,ctl.signal);
+      if(j.error){var z=new Error(j.error.message||j.error.code);z.code=j.error.code||"tool_error";z.detail=j.error.message;throw z;}
+      aiConnectionIssue=null;return j.payload;
+    }catch(e){
+      if(expired){var t=new Error("AIの応答が時間内に届きませんでした");t.code="ai_timeout";throw t;}
+      if(e.code==="gas_access"||e.code==="gas_response")aiConnectionIssue={url:G,until:Date.now()+60000,error:e};
+      throw e;
+    }finally{
+      clearTimeout(timer);if(signal)signal.removeEventListener("abort",cancel);
+      if(written)Promise.resolve(written).then(function(){return M.deleteDoc(ref);}).catch(function(){});
+    }
   }
   var SAMPLE = {
+    resetConnection: function(){gasMode=null;aiConnectionIssue=null;},
     limits: function(){ return gasUrl() ? { images: { mediaTypes: ["image/*"] }, ai: "gemini" } : {}; },
     json: async function(prompt, o){
       if(!gasUrl()){ if(o && o.images){ var e = new Error("no_ai"); e.code = "no_ai"; throw e; } return parseReceipt(prompt); }
       try{ return await aiAsk(prompt, o); }
-      catch(x){ if(!(o && o.images) && /レシート/.test(String(prompt))) return parseReceipt(prompt); throw x; }
+      catch(x){ if(x.name==="AbortError"||(o&&o.signal&&o.signal.aborted))throw x; if(!(o && o.images) && /レシート/.test(String(prompt))) return parseReceipt(prompt); throw x; }
     },
     get local(){ return !gasUrl(); }
   };
@@ -206,37 +234,42 @@
   /* v151: まず普通の通信（POST）で呼び、だめなときだけ従来の方法（JSONP）に切り替える。
      どちらも、返事がJSONでない（ログイン画面など）ときは待ち続けずにすぐ理由を出す */
   var gasMode = null; /* "post" | "jsonp"：一度うまくいった方を使い続ける */
-  async function gasCall_(url, req, ms){
-    if(gasMode !== "jsonp"){
-      var ctl = new AbortController(), tm = setTimeout(function(){ ctl.abort(); }, ms || 30000), r = null;
-      var post = function(){ return fetch(url, { method: "POST", body: JSON.stringify(req), headers: { "Content-Type": "text/plain;charset=utf-8" }, redirect: "follow", signal: ctl.signal, credentials: "omit" }); };
-      try{ r = await post(); }
-      catch(x){
-        if(ctl.signal.aborted){ clearTimeout(tm); var e1 = new Error("timeout"); e1.code = "Apps Scriptの処理が時間内に終わりませんでした。もう一度試してください"; throw e1; }
-        r = null;
-        if(gasMode === "post"){ /* 前はこの方法で動いていた＝一時的なエラー（混雑など）。少し待って1回だけやり直す */
-          await new Promise(function(ok){ setTimeout(ok, 2500); });
-          try{ r = await post(); }catch(x2){ clearTimeout(tm); var e3 = new Error("busy"); e3.code = "Apps Script／Geminiが一時的に混み合っています。少し待ってもう一度試してください"; throw e3; }
+  function gasError_(code,message){var e=new Error(message);e.code=code;return e;}
+  async function gasCall_(url, req, ms, signal){
+    var ctl=new AbortController(), expired=false, deadline=Date.now()+(ms||30000);
+    var cancel=function(){ctl.abort();}, tm=setTimeout(function(){expired=true;ctl.abort();},ms||30000);
+    if(signal){if(signal.aborted)cancel();else signal.addEventListener("abort",cancel,{once:true});}
+    try{
+      if(ctl.signal.aborted)throw aiAbortError_();
+      if(gasMode!=="jsonp"){
+        var r=null;
+        try{r=await waitAbort_(fetch(url,{method:"POST",body:JSON.stringify(req),headers:{"Content-Type":"text/plain;charset=utf-8"},redirect:"follow",signal:ctl.signal,credentials:"omit"}),ctl.signal);}
+        catch(e){if(ctl.signal.aborted)throw e;/* Transport failure only: try JSONP once within the same deadline. */}
+        if(r){
+          var txt=await waitAbort_(r.text(),ctl.signal), j;
+          try{j=JSON.parse(txt);}catch(e){throw gasError_(/<html|<!doctype/i.test(txt)?"gas_access":"gas_response",/<html|<!doctype/i.test(txt)?"Apps Scriptがログイン画面などを返しました。接続先URLとデプロイのアクセス設定を確認してください":"Apps Scriptの返事を読み取れませんでした（"+r.status+"）");}
+          if(!j||typeof j!=="object"||(!Object.prototype.hasOwnProperty.call(j,"payload")&&!j.error))throw gasError_("gas_response","Apps Scriptの応答形式が違います。接続設定を確認してください");
+          gasMode="post";return j;
         }
       }
-      clearTimeout(tm);
-      if(r){ var txt = await r.text(); try{ var j = JSON.parse(txt); gasMode = "post"; return j; }
-        catch(x){ var e2 = new Error("not_json"); e2.code = /<html|<!doctype/i.test(txt) ? "Apps Scriptがログイン画面などを返しました。デプロイの「アクセスできるユーザー」を「全員」にして、新しいバージョンでデプロイしてください" : "Apps Scriptの返事を読み取れませんでした（" + r.status + "）"; throw e2; } }
-    }
-    var j2 = await jsonp_(url, req, ms); gasMode = "jsonp"; return j2;
+      if(ctl.signal.aborted)throw aiAbortError_();
+      var j2=await jsonp_(url,req,Math.max(1,deadline-Date.now()),ctl.signal);gasMode="jsonp";return j2;
+    }catch(e){if(expired)throw gasError_("ai_timeout","Apps Scriptの応答が時間内に届きませんでした");throw e;}
+    finally{clearTimeout(tm);if(signal)signal.removeEventListener("abort",cancel);}
   }
-  function jsonp_(url, req, ms){
-    return new Promise(function(ok, ng){
-      var cb = "__fjp" + Date.now().toString(36) + (jpN++), sc = document.createElement("script"), done = false;
-      var fail = function(code){ if(done) return; done = true; cleanup(); var e = new Error(code); e.code = code; ng(e); };
-      var cleanup = function(){ clearTimeout(t); try{ delete window[cb]; }catch(x){ window[cb] = undefined; } sc.remove(); };
-      window[cb] = function(res){ if(done) return; done = true; cleanup(); ok(res || {}); };
-      var q = encodeURIComponent(JSON.stringify(req));
-      if(q.length > 7000){ fail("送る内容が長すぎます"); return; }
-      sc.src = url + (url.indexOf("?") < 0 ? "?" : "&") + "cb=" + cb + "&q=" + q;
-      sc.onerror = function(){ fail(navigator.onLine === false ? "server_unavailable" : "Apps Scriptに接続できません（URLと公開設定を確認）"); };
-      sc.onload = function(){ setTimeout(function(){ fail("Apps Scriptが正しい返事を返しませんでした。デプロイの「アクセスできるユーザー」が「全員」か確認し、新しいバージョンでデプロイしてください"); }, 2500); };
-      var t = setTimeout(function(){ fail("Apps Scriptから返事がありません。Safariで …/exec?diag=1 を開いて結果を確認してください"); }, ms || 30000);
+  function jsonp_(url, req, ms, signal){
+    return new Promise(function(ok,ng){
+      var cb="__fjp"+Date.now().toString(36)+(jpN++),sc=document.createElement("script"),done=false,t=null,loadTimer=null;
+      var cleanup=function(){clearTimeout(t);clearTimeout(loadTimer);if(signal)signal.removeEventListener("abort",abort);sc.onload=null;sc.onerror=null;sc.remove();try{delete window[cb];}catch(e){window[cb]=undefined;}};
+      var fail=function(code,message){if(done)return;done=true;cleanup();ng(code==="ai_cancelled"?aiAbortError_():gasError_(code,message||code));};
+      var abort=function(){fail("ai_cancelled");};
+      window[cb]=function(res){if(done)return;if(!res||typeof res!=="object"||(!Object.prototype.hasOwnProperty.call(res,"payload")&&!res.error)){fail("gas_response","Apps Scriptの応答形式が違います");return;}done=true;cleanup();ok(res);};
+      if(signal){if(signal.aborted){abort();return;}signal.addEventListener("abort",abort,{once:true});}
+      var q=encodeURIComponent(JSON.stringify(req));if(q.length>7000){fail("request_too_large","送る内容が長すぎます");return;}
+      sc.src=url+(url.indexOf("?")<0?"?":"&")+"cb="+cb+"&q="+q;
+      sc.onerror=function(){fail(navigator.onLine===false?"server_unavailable":"gas_connection","Apps Scriptに接続できません。通信状態と接続設定を確認してください");};
+      sc.onload=function(){if(!done)loadTimer=setTimeout(function(){fail("gas_response","Apps Scriptが正しい返事を返しませんでした。接続先URLとデプロイ設定を確認してください");},100);};
+      t=setTimeout(function(){fail("ai_timeout","Apps Scriptから時間内に返事が届きませんでした");},ms||30000);
       document.head.appendChild(sc);
     });
   }
