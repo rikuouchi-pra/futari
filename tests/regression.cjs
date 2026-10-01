@@ -658,3 +658,8 @@ test('v198 shared kakei writes merge instead of overwriting and wait for the fir
   c.state.kakeiLoaded=false; run(c,'kakeiPut({aiProf:{h:{a:1}}})'); assert.equal(ups.length,0);
   c.state.kakeiLoaded=true; run(c,'kakeiPut({music:{h:"x"}})'); assert.deepEqual(plain(ups),[{music:{h:'x'}}]);
 });
+test('v199 hubs group views by time and couple axes; unknown views fall into その他', () => {
+  const c = env(['HUBS','hubOf']);
+  assert.equal(run(c,'hubOf("task").k'),'today'); assert.equal(run(c,'hubOf("cal").k'),'plan');
+  assert.equal(run(c,'hubOf("caution").k'),'us'); assert.equal(run(c,'hubOf("money").k'),'fut'); assert.equal(run(c,'hubOf("log").k'),'more');
+});

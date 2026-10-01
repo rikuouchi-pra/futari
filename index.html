@@ -457,6 +457,14 @@ body.nav-tab:has(.sheet.open) #plus,body.nav-tab:has(.tt-bar) #plus,body.nav-tab
 .ai-fab[hidden]{display:none}
 body:not(.nav-tab) .ai-fab{bottom:calc(96px + env(safe-area-inset-bottom,0px));right:calc(96px + env(safe-area-inset-right,0px))}
 body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([hidden])) .ai-fab{display:none}
+
+.hubbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.hubbar::-webkit-scrollbar{display:none}
+.hubbar button{flex:none;border:0;background:transparent;padding:8px 14px;border-radius:999px;font:inherit;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px}
+.hubbar button.on{background:var(--accent);color:var(--on-accent)}
+.hubbar i{font-style:normal;font-size:10.5px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:8px;background:var(--danger);color:#fff}
+.dec-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.dec-sum div{background:var(--surface);border-radius:14px;padding:12px;text-align:center}.dec-sum b{display:block;font-family:var(--font-display);font-size:22px;color:var(--accent)}.dec-sum small{color:var(--muted);font-size:11px}
+.dec-l .item{padding:10px 14px;display:block}.dec-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:3px;padding:2px 0;cursor:pointer}.dec-r span{color:var(--future);font-weight:600;font-size:13px;white-space:pre-wrap}.dec-r small{color:var(--muted);font-size:11px}.dec-r .dec-n{color:var(--ink);font-weight:400}
 body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
 body.mini .htile{min-height:0}
 
@@ -1697,7 +1705,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
 const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
-  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況"};
+  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
@@ -1711,7 +1719,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="198";
+const APP_VERSION="199";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1787,7 +1795,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -3642,6 +3650,7 @@ function viewSettings(){
     <h2>夜に書くもの（日記・内省・ありがとう・夕飯メモ）</h2><div class="opts">${["17","18","19","20","21"].map(v=>opt("eveH",v,v+"時から")).join("")}</div>
     <h2>シフト未入力のリマインド</h2><div class="opts">${opt("shRem","on","する")}${opt("shRem","off","しない")}</div><p class="who">空いている日の3日前に「やること」へ追加し、ホームとカレンダーにも表示します。</p>
     <h2>今日の質問をポップアップで出す</h2><div class="opts">${opt("qaPop","on","出す")}${opt("qaPop","off","出さない")}</div><p class="who">その日まだ答えていないとき、ホームを開くと1回だけ出ます。ふたりとも答えたら答え合わせも出ます。</p>
+    <h2>下のタブの分け方</h2><div class="opts">${opt("hubs","on","今日・予定・ふたり・将来（おすすめ）")}${opt("hubs","off","よく使う3つ＋その他")}</div>
     <h2>表示</h2><div class="opts">${opt("mini","on","すっきり（説明を減らす）")}${opt("mini","off","くわしく")}</div>
     <h2>各タブの説明文</h2><div class="opts">${opt("hintsAlways","0","初回だけ")}${opt("hintsAlways","1","いつも表示")}</div></section>
   <section class="card"><h2>今日の1曲</h2><div class="opts">${opt("music","on","表示する")}${opt("music","off","表示しない")}</div>
@@ -3825,11 +3834,11 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="usage"?viewUsage(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="usage"?viewUsage(): v==="dec"?viewDecisions(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
-  aiDock();
+  aiDock(); hubMount();
   document.querySelectorAll("#main .heat").forEach(h=>{ h.scrollLeft=h.scrollWidth; });
   if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
   if(anim){ const m=$("main"); m.style.setProperty("--sx",anim+"px"); m.classList.remove("slide"); void m.offsetWidth; m.classList.add("slide"); }
@@ -7092,15 +7101,47 @@ function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在
   navigator.geolocation.getCurrentPosition(p=>{ prefs.wxLat=String(p.coords.latitude.toFixed(3)); prefs.wxLon=String(p.coords.longitude.toFixed(3)); prefs.wxName="現在地"; savePrefs(); state.wx=null; wxLoad(true); toast("現在地の天気にしました"); },()=>toast("現在地を取得できませんでした（位置情報の許可を確認）"),{timeout:10000,maximumAge:3600e3}); }
 
 
+
+/* v199: 全体の構成＝時間軸＋ふたり軸。下のタブは「今日／予定／ふたり／将来／その他」、それぞれの中を上の切り替えで移動 */
+const HUBS=[
+  {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["chore","家事"],["habit","習慣"]]},
+  {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"],["psched","じぶんの予定"]]},
+  {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
+  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["money","お金"]]},
+  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
+function hubOf(v){ if(v==="caution") v="trouble"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
+function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0); }
+function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"); if(items.length<2) return "";
+  return `<nav class="hubbar" aria-label="${h.l}の中">${items.map(([k,l])=>{ const b=k==="home"?"":tabBadge(k); return `<button data-hub="${k}" class="${(v===k||(v==="caution"&&k==="trouble"))?"on":""}">${l}${b?`<i>${b}</i>`:""}</button>`; }).join("")}</nav>`; }
+function hubMount(){ const main=$("main"); let el=$("hubBar"); if(prefs.nav!=="tab"){ if(el) el.remove(); return; } const html=hubBarHTML(state.view); if(!html){ if(el) el.remove(); return; }
+  if(!el||el.parentNode!==main){ el=document.createElement("div"); el.id="hubBar"; main.prepend(el); } else if(main.firstElementChild!==el) main.prepend(el); el.innerHTML=html; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#hubBar [data-hub]"); if(!b) return; haptic("tick"); const k=b.dataset.hub; if(k===state.view) return; state.hubLast=state.hubLast||{}; state.hubLast[hubOf(k).k]=k; go(k); });
+/* ふたりで決めたこと：話し合いで終わった議題・話し合いメモ・将来の項目に書いた決定を1か所で見返す */
+function viewDecisions(){ const P=[], T=[], N=[];
+  for(const p of state.plans) for(const c of p.checks||[]) if(c.m) P.push({p,c});
+  P.sort((a,b)=>(b.c.mAt||0)-(a.c.mAt||0));
+  for(const t of state.topics||[]) if(t.status==="done") T.push(t);
+  T.sort((a,b)=>String(b.doneDate||"")<String(a.doneDate||"")?-1:1);
+  for(const k of state.talks||[]) if(k.notes&&String(k.notes).trim()) N.push(k);
+  N.sort((a,b)=>a.id<b.id?1:-1);
+  let h=`<div class="dec-sum"><div><b>${P.length}</b><small>将来の決定</small></div><div><b>${T.length}</b><small>話し終えた議題</small></div><div><b>${N.length}</b><small>話し合いの記録</small></div></div>`;
+  h+=`<div class="section-label">将来（防災・子育てなど）で決めたこと</div>`+(P.length?`<ul class="list dec-l">${P.slice(0,60).map(({p,c})=>`<li class="item"><button class="dec-r" data-decp="${esc(p.id)}" data-cat="${esc(p.cat)}"><span class="tag" style="--tc:var(--future)">${esc((PCATS[p.cat]||PCATS.wish).label)}</span><b>${esc(p.text)} › ${esc(c.t)}</b><span>→ ${esc(c.m)}</span><small>${c.mAt?short(ymd(new Date(c.mAt))):""}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}</small></button></li>`).join("")}</ul>`:`<div class="empty">将来の項目のチェックリストで ✎ を押すと、決めたことを書けます</div>`);
+  h+=`<div class="section-label">話し合いで決まったこと</div>`+(T.length?`<ul class="list dec-l">${T.slice(0,60).map(t=>`<li class="item"><button class="dec-r" data-dect="${esc(t.doneDate||"")}"><b>${esc(t.text)}</b>${t.note?`<span>→ ${esc(t.note)}</span>`:""}<small>${t.doneDate?short(t.doneDate):""}</small></button></li>`).join("")}</ul>`:`<div class="empty">「話す」で議題を話し終えると、ここに残ります</div>`);
+  h+=`<div class="section-label">話し合いの記録</div>`+(N.length?`<ul class="list dec-l">${N.slice(0,30).map(k=>`<li class="item"><button class="dec-r" data-dect="${esc(k.id)}"><small>${esc(jpDate(k.id))}</small><span class="dec-n">${esc(String(k.notes).slice(0,200))}${String(k.notes).length>200?"…":""}</span></button></li>`).join("")}</ul>`:`<div class="empty">まだありません</div>`);
+  return h; }
+document.addEventListener("click",e=>{ const p=e.target.closest("#main [data-decp]"); if(p){ state.fut=p.dataset.cat; state.editing={c:"plans",id:p.dataset.decp}; go("future"); return; }
+  const t=e.target.closest("#main [data-dect]"); if(t){ if(t.dataset.dect) state.talkDate=t.dataset.dect; go("talk"); } });
 /* v194: 下のタブバー（いまどきのスマホアプリの形）。ホーム＋よく使う3つ＋「その他」。並びは 設定 › メニュー の並び順 */
 function tbarTabs(){ const hs=hiddenTabs(); return tabOrder().filter(k=>!hs.has(k)); }
 function tabIcon(k){ const b=document.querySelector(`#rail .rtab[data-v="${k}"] svg`); return b?b.outerHTML:""; }
 function tabBadge(k){ const b=$("b-"+k); return b&&!b.hidden&&b.textContent?b.textContent:""; }
-function tbarRender(){
+function tbarRender(){ if(prefs.hubs!=="off"&&prefs.nav==="tab"){ state.hubLast=state.hubLast||{}; const h=hubOf(state.view); state.hubLast[h.k]=state.view; }
   let bar=$("tbar"); if(prefs.nav!=="tab"){ if(bar) bar.hidden=true; const m=$("tmore"); if(m) m.hidden=true; return; }
   if(!bar){ bar=document.createElement("nav"); bar.id="tbar"; bar.className="tabbar"; bar.setAttribute("aria-label","メニュー"); document.body.appendChild(bar);
-    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
+    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k.startsWith("hub:")){ const H=HUBS.find(h=>"hub:"+h.k===k); tmoreToggle(false); const last=(state.hubLast||{})[H.k]; const dest=hubOf(state.view)===H?H.v[0][0]:(last||H.v[0][0]); go(dest); return; } if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
   bar.hidden=false;
+  if(prefs.hubs!=="off"){ const cur=hubOf(state.view).k;
+    bar.innerHTML=HUBS.map(h=>{ const b=hubBadge(h); return `<button data-tb="hub:${h.k}" class="${cur===h.k?"on":""}" aria-current="${cur===h.k?"page":"false"}"><span class="tb-i">${h.ic}${b?`<i class="tb-b">${b}</i>`:""}</span><span class="tb-l">${h.l}</span></button>`; }).join(""); return; }
   const v=state.view, main=tbarTabs().slice(0,3), inMore=v!=="home"&&!main.includes(v), moreN=tbarTabs().slice(3).reduce((s,k)=>s+(Number(tabBadge(k))||0),0);
   const btn=(k,label,icon,badge,on)=>`<button data-tb="${k}" class="${on?"on":""}" aria-current="${on?"page":"false"}"><span class="tb-i">${icon}${badge?`<i class="tb-b">${badge}</i>`:""}</span><span class="tb-l">${label}</span></button>`;
   const homeI='<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>';
