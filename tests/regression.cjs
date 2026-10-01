@@ -602,3 +602,10 @@ test('v190 release notes close garbage and childcare requests, keep fridge pendi
   const re = d({id:'mulo3ezqkaf6q',text:'カレンダーにゴミの日を出すようにして',status:'new',ver:'187',reopenedAt:1});
   assert.equal(re.status,'new');
 });
+test('v191 plan result log renders newest first, escaped, with author', () => {
+  const c = env(['planLogHTML'], { short: d => d.slice(5).replace('-', '/') });
+  const h = run(c, `planLogHTML({log:[{at:Date.UTC(2026,9,1,3),by:'h',t:'水を12L'},{at:Date.UTC(2026,9,2,3),by:'w',t:'<b>避難所</b>確認'}]})`);
+  assert.ok(h.indexOf('避難所') < h.indexOf('水を12L'));
+  assert.ok(h.includes('&lt;b&gt;')); assert.ok(!h.includes('<b>避難所'));
+  assert.match(run(c, 'planLogHTML({})'), /まだ記録はありません/);
+});

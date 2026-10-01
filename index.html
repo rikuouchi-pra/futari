@@ -415,6 +415,18 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .dinfo .di-wx{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--cal) 12%,var(--surface))}
 .dinfo .di-wx svg{width:18px;height:18px}.dinfo .di-gm{display:inline-flex;flex-wrap:wrap;gap:5px}.dinfo .gm{padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--habit) 15%,var(--surface));font-weight:700}
 .dinfo .di-gm.none{color:var(--muted)}
+.fut-list{display:flex;flex-direction:column;gap:6px}
+.fut-row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.fr-ic{font-size:22px;width:32px;text-align:center;flex:none}.fr-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.fr-b b{font-size:15px}.fr-b small{color:var(--muted);font-size:12px;line-height:1.4}
+.fr-n{font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--future);white-space:nowrap}.fr-n small{font-size:11px;color:var(--muted);font-weight:500}
+.fut-row .prog,.fut-sum .prog{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden}.fut-row .prog i,.fut-sum .prog i{display:block;height:100%;background:var(--future)}
+.fut-row .chev{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;flex:none}
+.fut-soon{display:flex;flex-direction:column;gap:6px}.fut-up{display:flex;align-items:center;gap:8px;border:0;background:transparent;padding:4px 0;font:inherit;color:var(--ink);text-align:left;cursor:pointer}.fut-up b{flex:1;font-weight:600}
+.fut-sum{display:flex;flex-direction:column;gap:10px}.fs-h{display:flex;align-items:center;gap:10px}.fs-h>div{flex:1;display:flex;flex-direction:column}.fs-h small{color:var(--muted);font-size:12px}
+.fut-add{display:flex;gap:6px}.fut-add input{flex:1;min-width:0}.fut-tpl summary{cursor:pointer;color:var(--future);font-size:13px;font-weight:600}.fut-tpl .chips{margin-top:8px}
+.plog{display:flex;flex-direction:column;gap:4px}.pl-e{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:6px 8px;border-radius:10px;background:var(--ground)}.pl-d{color:var(--muted);white-space:nowrap;font-size:12px}.pl-t{flex:1;white-space:pre-wrap}.pl-e .x{border:0;background:transparent;color:var(--muted);cursor:pointer}
+.meta.plg{color:var(--ink)}
+.shrem.sm{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 10px;font-size:13px}.shrem.sm .shrem-t{flex:1 1 auto;display:block;white-space:nowrap;font-weight:600}
 .gmbar{display:flex;gap:8px;align-items:center;font-size:13px;width:100%;border:0;background:color-mix(in srgb,var(--habit) 12%,var(--surface));border-radius:12px;padding:8px 10px;margin-top:8px;text-align:left;font:inherit;color:inherit;cursor:pointer}.gmbar small{display:block;color:var(--muted);font-size:11px}
 .evl{display:block;max-width:calc(100% - 4px);box-sizing:border-box;font-size:9px;line-height:13px;height:13px;padding:0 3px;border-radius:4px;background:var(--cal);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
 .evl.more{background:transparent;color:var(--cal);padding:0;height:11px;line-height:11px}
@@ -1652,12 +1664,14 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="190";
+const APP_VERSION="191";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
 /* long-term plans: one data model for every category, layered by theme */
-const LAYERS=[["fun","ふたりの楽しみ"],["safe","暮らしの備え"],["family","家族の未来"]];
+const LAYERS=[["safe","備える（期限のあるもの）"],["family","家族・子育て"],["fun","ふたりの楽しみ"]];
+/* v191: 将来の各リストの「何を入れるところか」を一言で */
+const PDESC={wish:["⭐","やってみたいこと・欲しいもの"],travel:["✈️","行きたい場所・旅行の計画"],anniv:["🎂","毎年お祝いする日（あと何日か表示）"],bousai:["🧯","備蓄・点検・避難の準備。結果や点検日を記録"],prep:["🍼","出産・育児の前に準備すること"],care:["🧺","赤ちゃんのお世話の分担と準備の状況"],kids:["🎈","子どもとやりたいこと・行事"]};
 const PCATS={
   wish:{label:"やりたい・欲しい",layer:"fun",dateL:"目標日",doneL:"叶った",tpl:[]},
   travel:{label:"旅行",layer:"fun",dateL:"出発日",doneL:"行った",tpl:["温泉旅行","海外旅行","帰省"]},
@@ -2160,7 +2174,8 @@ function planMeta(p,showCat){
   else if(p.date){ const over=!p.done&&p.date<today(); bits.push(`<span class="due ${over?"over":p.date===today()?"today":""}">${p.cat==="bousai"?"期限 ":""}${dayLabel(p.date)}${over?" 過ぎています":""}</span>`); }
   { const mt=moneyTag(p); if(mt) bits.push(mt); }
   const cs=p.checks||[]; if(cs.length) bits.push(`<span>チェック ${cs.filter(c=>c.done).length}/${cs.length}</span>`);
-  return `<div class="meta">${bits.join("")}</div>${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
+  const lg=(p.log||[]).slice().sort((a,b)=>b.at-a.at)[0];
+  return `<div class="meta">${bits.join("")}</div>${lg?`<div class="meta plg">📝 ${short(ymd(new Date(lg.at)))} ${esc(lg.t.slice(0,50))}${lg.t.length>50?"…":""}${(p.log||[]).length>1?`（記録${p.log.length}）`:""}</div>`:""}${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
 }
 function planRow(p,showCat){
   if(isEditing("plans",p.id)) return planEdit(p);
@@ -2179,12 +2194,23 @@ function planEdit(p){
     ${editWho(p)}
     ${p.cat!=="anniv"?`<div class="edit-row"><span class="who">いつ頃</span>${seg("phz",p.horizon||"someday",HORIZON)}</div>`:""}
     <div class="edit-row"><span class="who">${C.dateL}</span><input type="date" id="editDue" value="${esc(p.date||"")}" aria-label="${C.dateL}"></div>
-    ${moneyFields(p)}
-    <textarea id="editMemo" rows="2" maxlength="600" placeholder="メモ（場所・リンク・サイズなど）">${esc(p.memo||"")}</textarea>
+    ${p.budget||actOf(p)||p.cat==="wish"||p.cat==="travel"?moneyFields(p):`<details class="mny"><summary class="who">お金（予算・実際にかかった額）</summary>${moneyFields(p)}</details>`}
+    <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="2" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
+    <div class="who">結果・記録（やったこと・確認した内容を日付つきで残す）</div><div class="plog" id="pLog">${planLogHTML(p)}</div>
+    <div class="edit-row"><input type="text" id="pLogText" maxlength="300" placeholder="例：水を12L買い足した／避難所は○○小学校と確認" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="plogadd">記録</button></div>
     <div class="who">チェックリスト</div><div class="cklist" id="ckList">${checksHTML(p)}</div>
     <div class="edit-row"><input type="text" id="ckText" maxlength="80" placeholder="項目を追加（持ち物・準備など）" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="ckadd">追加</button></div>
     ${editActions("plans",p,gdate?`<a class="glink" href="${esc(gcalUrl({due:gdate,text:(p.cat==="anniv"?"記念日: ":"")+p.text,list:"task"}))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
 }
+/* v191: 将来の項目ごとに「結果・記録」を日付・記入者つきで残す（防災の点検結果、子育ての準備の内容など） */
+function planLogHTML(p){ const L=(p.log||[]).slice().sort((a,b)=>b.at-a.at);
+  return L.length?L.map(e=>`<div class="pl-e"><span class="pl-d">${short(ymd(new Date(e.at)))}${e.by?`・${esc(nameOf(e.by))}`:""}</span><span class="pl-t">${esc(e.t)}</span><button type="button" class="x" data-act="plogdel" data-at="${e.at}" aria-label="この記録を削除">×</button></div>`).join(""):`<div class="who">まだ記録はありません</div>`; }
+function planLogOp(act,at){
+  const ed=state.editing; if(!ed||ed.c!=="plans") return; const x=state.plans.find(p=>p.id===ed.id); if(!x) return;
+  let log=(x.log||[]).map(e=>({...e}));
+  if(act==="plogdel") log=log.filter(e=>e.at!==at);
+  else { const inp=$("pLogText"), t=inp?inp.value.trim().slice(0,300):""; if(!t) return; log.push({at:Date.now(),by:myRole(),t}); inp.value=""; inp.focus(); }
+  log=log.slice(-50); x.log=log; dupd("plans",x.id,{log}); const el=$("pLog"); if(el) el.innerHTML=planLogHTML(x); haptic("tick"); }
 function checkOp(act,i){
   const ed=state.editing; if(!ed||ed.c!=="plans") return; const x=state.plans.find(p=>p.id===ed.id); if(!x) return;
   let checks=(x.checks||[]).map(c=>({...c}));
@@ -2198,31 +2224,26 @@ function viewFuture(){ if(state.fut==="_mine") return `<button class="link" data
 function viewFutHome(){
   const P=state.plans; let h="";
   const annivs=P.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).sort((x,y)=>x.a.days-y.a.days);
-  if(annivs.length){ const {p,a}=annivs[0]; h+=`<button class="banner" data-fc="anniv" style="border:0;width:100%;text-align:left;cursor:pointer;background:color-mix(in srgb,var(--future) 18%,var(--surface))">次の記念日：${esc(p.text)}　${a.days===0?"今日！":`あと${a.days}日（${short(a.occ)}）`}</button>`; }
-  const soon=P.filter(planSoon);
-  if(soon.length) h+=`<div class="banner" style="background:var(--danger-soft);color:var(--danger)">30日以内の期限・予定が${soon.length}件あります</div>`;
+  const soon=P.filter(planSoon).sort((a,b)=>a.date<b.date?-1:1);
+  /* 期限が近いもの・次の記念日を1枚にまとめる */
+  const up=[...soon.slice(0,3).map(p=>`<button class="fut-up" data-fc="${p.cat}"><span>${PDESC[p.cat]?PDESC[p.cat][0]:"・"}</span><b>${esc(p.text)}</b><span class="due ${p.date<today()?"over":""}">${dayLabel(p.date)}</span></button>`),
+    ...(annivs[0]&&annivs[0].a.days<=30?[`<button class="fut-up" data-fc="anniv"><span>🎂</span><b>${esc(annivs[0].p.text)}</b><span class="due today">${annivs[0].a.days===0?"今日！":`あと${annivs[0].a.days}日`}</span></button>`]:[])];
+  if(up.length) h+=`<section class="card fut-soon"><div class="who">30日以内</div>${up.join("")}${soon.length>3?`<div class="who">ほか ${soon.length-3}件</div>`:""}</section>`;
   for(const [lk,ln] of LAYERS){
-    h+=`<div class="section-label">${ln}</div><div class="cards">`;
+    h+=`<div class="section-label">${ln}</div><div class="fut-list">`;
     for(const k of FCATS.filter(k=>PCATS[k].layer===lk)){
-      const C=PCATS[k], list=P.filter(p=>p.cat===k), done=list.filter(planDone).length, open=list.length-done;
-      let sub="", warn=false;
-      if(k==="anniv"){ const n=annivs[0]; sub=n?`次：${esc(n.p.text)} あと${n.a.days}日`:"大切な日を登録"; }
-      else { const dated=list.filter(p=>p.date&&!p.done).sort((a,b)=>a.date<b.date?-1:1)[0];
-        const bud=list.filter(p=>!p.done&&p.budget).reduce((s,p)=>s+Number(p.budget||0),0);
-        const bits=[]; if(k==="wish"){ bits.push(`やりたい${list.filter(p=>!p.done&&p.kind!=="buy").length}・欲しい${list.filter(p=>!p.done&&p.kind==="buy").length}`); }
-        if(dated){ bits.push(`次：${esc(dated.text)} ${dayLabel(dated.date)}`); warn=planSoon(dated); }
-        if(bud) bits.push(`予算 ${yen(bud)}`);
-        if(!list.length) bits.push(C.tpl.length?"候補から追加できます":"下に引っぱって追加");
-        sub=bits.join("<br>"); }
-      h+=`<button class="card2" data-fc="${k}"><span class="nm">${C.label}</span><span class="big">${k==="anniv"?list.length:open}<small>${k==="anniv"?"件":"件"}</small></span>
-        ${k!=="anniv"&&list.length?`<span class="prog" aria-label="${C.doneL}${done}/${list.length}"><i style="width:${Math.round(done/list.length*100)}%"></i></span><span class="sub">${C.doneL} ${done}/${list.length}</span>`:""}
-        <span class="sub ${warn?"warn":""}">${sub}</span></button>`;
+      const C=PCATS[k], D=PDESC[k]||["・",""], list=P.filter(p=>p.cat===k), done=list.filter(planDone).length, open=list.length-done;
+      let sub=D[1];
+      if(k==="anniv"){ const n=annivs[0]; if(n) sub=`次：${esc(n.p.text)}（あと${n.a.days}日）`; }
+      else { const dated=list.filter(p=>p.date&&!p.done).sort((a,b)=>a.date<b.date?-1:1)[0]; if(dated) sub=`次：${esc(dated.text)}（${dayLabel(dated.date)}）`; }
+      const pct=list.length&&k!=="anniv"?Math.round(done/list.length*100):-1;
+      h+=`<button class="fut-row" data-fc="${k}"><span class="fr-ic">${D[0]}</span><span class="fr-b"><b>${C.label}</b><small>${sub}</small>${pct>=0?`<span class="prog"><i style="width:${pct}%"></i></span>`:""}</span><span class="fr-n">${k==="anniv"?`${list.length}<small>件</small>`:list.length?`${done}<small>/${list.length}</small>`:`<small>未登録</small>`}</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>`;
     }
     h+=`</div>`;
   }
   { const W=state.pitems.filter(i=>i.list==="wish"), o=W.filter(i=>!i.done).length;
-    h+=`<div class="section-label">${LKI} じぶんだけ</div><div class="cards"><button class="card2" data-fc="_mine"><span class="nm">じぶんのやりたいこと</span><span class="big">${o}<small>件</small></span><span class="sub">${esc(nameOf(myRole()))}だけに見えます</span></button></div>`; }
-  return h+hint("カードをタップで開く・もう一度「将来」をタップで一覧へ");
+    h+=`<div class="section-label">${LKI} じぶんだけ</div><div class="fut-list"><button class="fut-row" data-fc="_mine"><span class="fr-ic">🔒</span><span class="fr-b"><b>じぶんのやりたいこと</b><small>${esc(nameOf(myRole()))}だけに見えます</small></span><span class="fr-n">${o}<small>件</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></div>`; }
+  return h+hint("右の数字は「済んだ数／全部」");
 }
 function viewFutCat(k){
   const C=PCATS[k]; let list=byWho(state.plans.filter(p=>p.cat===k));
@@ -2230,8 +2251,11 @@ function viewFutCat(k){
   let h=`<div class="dstrip" data-strip="fut"><button class="icon-btn" data-act="fprev" aria-label="前のカテゴリ">‹</button><div class="ttl" style="font-size:16px">${C.label}</div><button class="icon-btn" data-act="fnext" aria-label="次のカテゴリ">›</button></div>
     <div class="tools"><button class="pill" data-act="futhome">‹ 一覧</button>${k==="wish"?seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]]):""}</div>${whoBar()}`;
   const have=new Set(state.plans.filter(p=>p.cat===k).map(p=>p.text));
-  const tpl=C.tpl.filter(t=>!have.has(t));
-  if(tpl.length) h+=`<div class="section-label">候補（タップで追加）</div><div class="chips">${tpl.map(t=>`<button class="chip" data-tpl="${esc(t)}">＋ ${esc(t)}</button>`).join("")}</div>`;
+  const tpl=C.tpl.filter(t=>!have.has(t)), all=state.plans.filter(p=>p.cat===k), dn=all.filter(planDone).length, D=PDESC[k]||["・",""];
+  h+=`<section class="card fut-sum"><div class="fs-h"><span class="fr-ic">${D[0]}</span><div><small>${D[1]}</small></div>${k!=="anniv"&&all.length?`<span class="fr-n">${dn}<small>/${all.length} ${C.doneL}</small></span>`:""}</div>
+    ${k!=="anniv"&&all.length?`<span class="prog"><i style="width:${Math.round(dn/all.length*100)}%"></i></span>`:""}
+    <div class="fut-add"><input type="text" id="futAddIn" maxlength="120" placeholder="${esc(C.label)}に追加（例：${esc(C.tpl[0]||"やりたいこと")}）" enterkeyhint="done"><button class="btn primary" data-act="futAdd">追加</button></div>
+    ${tpl.length?`<details class="fut-tpl" ${all.length?"":"open"}><summary>よくある項目から選ぶ（${tpl.length}）</summary><div class="chips">${tpl.map(t=>`<button class="chip" data-tpl="${esc(t)}">＋ ${esc(t)}</button>`).join("")}</div></details>`:""}</section>`;
   const sect=(label,arr)=>arr.length?`<div class="section-label">${label}（${arr.length}）</div><ul class="list">${arr.map(p=>planRow(p)).join("")}</ul>`:"";
   if(k==="anniv"){
     const arr=list.filter(p=>p.date).sort((a,b)=>annivInfo(a).days-annivInfo(b).days).concat(list.filter(p=>!p.date));
@@ -2242,8 +2266,8 @@ function viewFutCat(k){
   const soon=open.filter(planSoon).sort((a,b)=>a.date<b.date?-1:1), rest=open.filter(p=>!planSoon(p));
   const byH=hz=>rest.filter(p=>(p.horizon||"someday")===hz).sort((a,b)=>((a.date||"9")<(b.date||"9")?-1:(a.date||"9")>(b.date||"9")?1:b.createdAt-a.createdAt));
   let body=sect("30日以内",soon)+HORIZON.map(([hz,l])=>sect(l,byH(hz))).join("")+sect(C.doneL,done);
-  if(!list.length) body=`<div class="section-label">リスト</div><div class="empty">まだありません<br>${tpl.length?"候補をタップするか、":""}下に引っぱって追加</div>`;
-  return h+body+hint(`項目：→で${C.doneL}・←で削除・タップで詳細（チェックリスト・予算・メモ）<br>カテゴリ名の帯を←→で切替`);
+  if(!list.length) body=`<div class="empty">まだありません。上の欄に書くか、よくある項目から選んでください</div>`;
+  return h+body+hint(`項目をタップ：メモ・チェックリスト・結果の記録／○で${C.doneL}`);
 }
 function shiftFut(n){ const i=FCATS.indexOf(state.fut); state.fut=FCATS[(i+n+FCATS.length)%FCATS.length]; state.futFilter="all"; render(n>0?40:-40); }
 function newPlan(cat,text,o={}){
@@ -3327,9 +3351,8 @@ function shiftMissing(r){ if(prefs.shRem==="off") return []; const W=shiftWin(),
 const rangeTxt=ds=>{ if(!ds.length) return ""; const g=[]; let a=ds[0],b=ds[0]; for(const d of ds.slice(1)){ if(d===addDays(b,1)) b=d; else { g.push([a,b]); a=b=d; } } g.push([a,b]); return g.slice(0,3).map(([x,y])=>x===y?short(x):`${short(x)}〜${short(y)}`).join("・")+(g.length>3?" ほか":""); };
 function shiftRemindHTML(){ const me=myRole(), ot=otherRole(), m=shiftMissing(me), o=shiftMissing(ot); if(!m.length&&!o.length) return "";
   const W=shiftWin(), lim=parse(W.e).getDate()===new Date(parse(W.e).getFullYear(),parse(W.e).getMonth()+1,0).getDate()&&parse(W.e).getMonth()!==parse(W.s).getMonth()?`${parse(W.e).getMonth()+1}月末まで`:"これから2週間";
-  return `<div class="shrem">${ic("moon")}<div class="shrem-t"><b>シフトが未入力の日があります（${lim}）</b>
-    ${m.length?`<span>${esc(nameOf(me))}：${m.length}日（${esc(rangeTxt(m))}）</span>`:""}${o.length?`<span class="who">${esc(nameOf(ot))}：${o.length}日（${esc(rangeTxt(o))}）</span>`:""}</div>
-    <span class="shrem-b">${m.length?`<button class="btn primary" data-act="shremGo" data-r="${me}">入力する</button>`:""}${o.length?`<button class="btn ${m.length?"":"primary"}" data-act="shremGo" data-r="${ot}">${esc(nameOf(ot))}の分を入力</button>`:""}</span></div>`; }
+  /* v191: 1行にまとめる（カレンダーの上を占領しない） */
+  return `<div class="shrem sm">${ic("moon")}<span class="shrem-t">シフト未入力（${lim}）</span>${m.length?`<button class="chip mini" data-act="shremGo" data-r="${me}">${esc(nameOf(me))} ${m.length}日</button>`:""}${o.length?`<button class="chip mini" data-act="shremGo" data-r="${ot}">${esc(nameOf(ot))} ${o.length}日</button>`:""}</div>`; }
 /* v119: ホーム用。先5日にシフトの空きがあればリマインド */
 function shiftSoonHTML(){ if(prefs.shRem==="off") return ""; const t=today(), me=myRole(), ot=otherRole(), days=[...Array(5)].map((_,i)=>addDays(t,i));
   const m=days.filter(d=>!shiftOf(me,d)), o=days.filter(d=>!shiftOf(ot,d)); if(!m.length&&!o.length) return "";
@@ -4044,6 +4067,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="openref"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t&&t.ref) openRef(t.ref); }
   else if(a==="totask"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t){ dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); } }
   else if(a==="ck"||a==="ckdel"||a==="ckadd") checkOp(a,Number(b.dataset.i));
+  else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
+  else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(state.fut,t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
   else if(a==="fprev"||a==="fnext") shiftFut(a==="fprev"?-1:1);
   else if(a==="qaSave") qaSave(b.dataset.qd);
   else if(a==="qaRe"){ state.qaRe=true; qaEnsure(b.dataset.qd,true).then(()=>{ state.qaRe=false; }); }
@@ -4248,6 +4273,8 @@ $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.id==="chNew"){ e.preventDefault(); choreAdd(e.target.value,($("chNewE")||{}).value); e.target.value=""; return; }
   if(e.key==="Enter"&&e.target.id==="replyText"){e.preventDefault();sendReply();return;}
   if(e.key==="Enter"&&e.target.id==="ckText"){e.preventDefault();checkOp("ckadd");return;}
+  if(e.key==="Enter"&&e.target.id==="pLogText"){e.preventDefault();planLogOp("plogadd");return;}
+  if(e.key==="Enter"&&e.target.id==="futAddIn"){e.preventDefault();const t=e.target.value.trim(); if(t){ newPlan(state.fut,t); e.target.value=""; toast(`「${t.slice(0,20)}」を追加しました`); } return;}
   if(e.key==="Enter"&&e.target.dataset.centry){e.preventDefault();sendComment(e.target.dataset.centry);return;}
   if(e.key==="Enter"&&e.target.id==="editText"&&e.target.tagName==="INPUT"){e.preventDefault();saveEdit();}
   if(state.editing&&e.key==="Escape"){state.editing=null;render();}
@@ -5360,7 +5387,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
     const rows=[]; for(const cat of FCATS){ const ps=state.plans.filter(x=>x.cat===cat&&!planDone(x)); if(!ps.length) continue;
       rows.push(`〈${PCATS[cat].label}〉`); for(const x of ps.slice(0,deep?25:12)){ const cs=x.checks||[], un=cs.filter(c=>!c.done);
         const a=cat==="anniv"?annivInfo(x):null;
-        rows.push(`[${ref("plans",x.id)}] ${cut(x.text,40)}${a?` 毎年${Number(x.date.slice(5,7))}/${Number(x.date.slice(8))}・あと${a.days}日${a.years>0?`（${a.years}回目）`:""}`:x.date?` ${PCATS[cat].dateL}${x.date}`:""}${x.horizon&&cat!=="anniv"?` ${HL[x.horizon]||""}`:""}${x.kind==="buy"?" 買う":x.kind==="do"?" する":""}${x.budget?` 予算${Number(x.budget).toLocaleString()}円`:""} ${wh(x)}${x.memo?` メモ:${cut(x.memo,deep?120:40)}`:""}${cs.length?` チェック${cs.length-un.length}/${cs.length}${un.length?`（残り：${un.slice(0,deep?8:3).map(c=>cut(c.t,15)).join("・")}）`:""}`:""}`); } }
+        rows.push(`[${ref("plans",x.id)}] ${cut(x.text,40)}${a?` 毎年${Number(x.date.slice(5,7))}/${Number(x.date.slice(8))}・あと${a.days}日${a.years>0?`（${a.years}回目）`:""}`:x.date?` ${PCATS[cat].dateL}${x.date}`:""}${x.horizon&&cat!=="anniv"?` ${HL[x.horizon]||""}`:""}${x.kind==="buy"?" 買う":x.kind==="do"?" する":""}${x.budget?` 予算${Number(x.budget).toLocaleString()}円`:""} ${wh(x)}${x.memo?` メモ:${cut(x.memo,deep?120:40)}`:""}${(x.log||[]).length?` 記録:${(x.log||[]).slice(-(deep?3:1)).map(e=>`${ymd(new Date(e.at)).slice(5)} ${cut(e.t,deep?60:30)}`).join("／")}`:""}${cs.length?` チェック${cs.length-un.length}/${cs.length}${un.length?`（残り：${un.slice(0,deep?8:3).map(c=>cut(c.t,15)).join("・")}）`:""}`:""}`); } }
     sec("将来（やりたいこと・旅行・記念日・防災・子育てなど）",rows,deep?80:45);
     const doneP=state.plans.filter(x=>x.cat!=="anniv"&&x.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0)).slice(0,6).map(x=>`${PCATS[x.cat]?PCATS[x.cat].label:""}：${cut(x.text,30)}`); sec("最近叶ったこと・済んだこと",doneP,6);
     const wl=state.pitems.filter(i=>i.list==="wish"&&!i.done).map(i=>`${cut(i.text,30)}${i.budget?` 予算${i.budget}円`:""}（🔒自分だけ）`); sec("自分の欲しいもの・やりたいこと（🔒）",wl,10);
@@ -5693,7 +5720,7 @@ function homeEditHTML(){ const L=homeOrder(), H=homeHidden();
     <div class="opts"><button class="opt" data-act="homeReset">最初の並びに戻す</button></div></section>`; }
 function viewHome(){
   const t=today();
-  let h=`<div class="hhero hh2"><div class="hdate">${jpDate(t)}</div><button class="link" data-act="homeEdit" aria-label="ホームの並び・表示を変える">✎ 並び替え</button></div>`+shareInboxHTML()+shiftSoonHTML();
+  let h=`<div class="hhero hh2"><div class="hdate">${jpDate(t)}</div><button class="link" data-act="homeEdit" aria-label="ホームの並び・表示を変える">✎ 並び替え</button></div>`+shareInboxHTML()+(homeHidden().has("today")?shiftSoonHTML():""); /* v191: 「今日やること」にシフト入力が出るので、表示中は重ねて出さない */
   if(state.homeEdit) return h+homeEditHTML();
   const H=homeHidden(); for(const k of homeOrder()) if(!H.has(k)) h+=homeWidget(k);
   h+=`<div style="text-align:center;margin:14px 0 4px"><button class="link" data-act="homeEdit">✎ ホームの並び・表示を変える</button></div>`;
@@ -6977,7 +7004,7 @@ function briefHTML(withChecks){
   for(let i=0;i<7;i++){ const d=addDays(t,i); for(const x of state.events.filter(e=>e.date===d&&e.start)){ const rs=x.who==="h"||x.who==="w"?[x.who]:["h","w"];
       for(const r of rs){ const s=shiftOf(r,d), m=tmin(x.start); if(s==="入"&&m>=15*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤入りと重なりそう`); else if(s==="明"&&m<12*60) wn.push(`${short(d)} ${x.start}「${x.text}」は${nameOf(r)}の夜勤明け（休息中）`); } } }
   const prep=prepCands();
-  const pc=withChecks?pendingChecks():[];
+  const pc=withChecks?pendingChecks().filter(x=>!(x.key==="sharedNotice"&&shareInboxHTML())):[]; /* v191: 共有通知は上のカードで見られるのでタイルは出さない */
   if(withChecks){ /* v173: 今日やること＝未確認の一覧と統合。色つきのタイルで一目で分かるように */
     const all=checkList(), done=all.filter(x=>!x.num).length, N=all.length, pct=N?done/N:1, R=22, C=2*Math.PI*R;
     const ring=`<svg class="tdo-ring" viewBox="0 0 56 56" aria-label="済み ${done}/${N}"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--task)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 28 28)"/><text x="28" y="32" text-anchor="middle">${pc.length}</text></svg>`;
