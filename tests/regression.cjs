@@ -548,3 +548,34 @@ test('AI replies retain their own item references across context changes',async(
   const p=run(c,"aiAsk('日付変更')");await microtasks();c.state.ai.refs={r1:{c:'items',id:'unrelated'}};reply({reply:'変更案',acts:[{type:'edit',ref:'r1',date:'2026-10-03'}]});await p;
   assert.equal(c.state.ai.log[0].a.acts[0]._r.id,'original');assert.equal(c.writes.length,0);
 });
+
+test('v189 garbage rules: weekly, nth weekday, holiday range and date overrides', () => {
+  const c = env(['GOMI_EX','GWD','gomiTxt','gomiCache','gomiRules','gomiOn']);
+  c.state.kakei = { gomi: '可燃ごみ: 月 木\nプラ: 水\n不燃ごみ: 第2金\n休み: 12/29-1/3\n2027-01-07: なし\n2027-01-09: 可燃ごみ' };
+  assert.deepEqual([...run(c, 'gomiOn("2026-10-05")')], ['可燃ごみ']);          // Mon
+  assert.deepEqual([...run(c, 'gomiOn("2026-10-07")')], ['プラ']);              // Wed
+  assert.deepEqual([...run(c, 'gomiOn("2026-10-09")')], ['不燃ごみ']);          // 2nd Fri
+  assert.deepEqual([...run(c, 'gomiOn("2026-10-16")')], []);                    // 3rd Fri
+  assert.deepEqual([...run(c, 'gomiOn("2026-12-31")')], []);                    // year-end off (Thu)
+  assert.deepEqual([...run(c, 'gomiOn("2027-01-04")')], ['可燃ごみ']);          // Mon after break
+  assert.deepEqual([...run(c, 'gomiOn("2027-01-07")')], []);                    // override none
+  assert.deepEqual([...run(c, 'gomiOn("2027-01-09")')], ['可燃ごみ']);          // added
+  c.state.kakei = {}; assert.ok(run(c, 'gomiOn("2026-10-05")').includes('燃やせるごみ'));  // 未設定なら公式データ
+});
+
+test('v189 garbage default is Kariya open data for 井ケ谷町 (A) incl. January paper swap', () => {
+  const c = env(['GOMI_EX','GWD','gomiTxt','gomiCache','gomiRules','gomiOn']);
+  c.state.kakei = {};
+  const g = d => [...run(c, `gomiOn("${d}")`)];
+  assert.deepEqual(g('2026-10-05'), ['燃やせるごみ','不燃ごみ','空きビン']);   // 1st Mon
+  assert.deepEqual(g('2026-10-07'), ['ペットボトル','プラ容器']);           // 1st Wed
+  assert.deepEqual(g('2026-10-12'), ['燃やせるごみ','空き缶・金属類']);       // 2nd Mon
+  assert.deepEqual(g('2026-10-02'), ['紙容器']);                          // 1st Fri
+  assert.deepEqual(g('2026-10-09'), ['古紙類']);                          // 2nd Fri
+  assert.deepEqual(g('2026-11-30'), ['燃やせるごみ','アルミ缶']);           // 5th Mon
+  assert.deepEqual(g('2027-01-01'), []);                                  // 年末年始
+  assert.deepEqual(g('2027-01-08'), ['紙容器']);                          // Jan: 2nd Fri = 紙容器
+  assert.deepEqual(g('2027-01-15'), ['古紙類']);                          // Jan: 3rd Fri = 古紙類
+  assert.deepEqual(g('2027-01-29'), ['古紙類']);                          // Jan: 5th Fri
+  assert.deepEqual(g('2026-10-03'), []);                                  // Sat
+});
