@@ -415,6 +415,32 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .dinfo .di-wx{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--cal) 12%,var(--surface))}
 .dinfo .di-wx svg{width:18px;height:18px}.dinfo .di-gm{display:inline-flex;flex-wrap:wrap;gap:5px}.dinfo .gm{padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--habit) 15%,var(--surface));font-weight:700}
 .dinfo .di-gm.none{color:var(--muted)}
+body.nav-tab .fbar{display:none!important}
+.tabbar{position:fixed;z-index:20;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border-top:1px solid var(--line)}
+.tabbar[hidden]{display:none}
+.tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;color:var(--muted);font:inherit;font-size:10.5px;font-weight:600;cursor:pointer;min-width:0}
+.tabbar .tb-l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-i{position:relative;display:grid;place-items:center;width:52px;height:28px;border-radius:14px;transition:background .2s}
+.tb-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.tb-i svg .f{fill:none}
+.tabbar button.on{color:var(--ink)}.tabbar button.on .tb-i{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.tb-b{position:absolute;top:-3px;right:6px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--danger);color:#fff;font-size:10px;font-style:normal;line-height:16px;font-weight:700}
+body.nav-tab .app{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+body.nav-tab #toast{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+body.nav-tab:has(.sheet.open) .tabbar,body.nav-tab:has(.tt-bar) .tabbar{display:none}
+.tabmore{position:fixed;inset:0;z-index:19;background:rgba(0,0,0,.28);display:flex;align-items:flex-end}
+.tabmore[hidden]{display:none}
+.tm-in{width:100%;background:var(--surface);border-radius:22px 22px 0 0;padding:16px 14px calc(92px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+.tm-g{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 4px}
+.tm-g button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;padding:6px 0}
+.tm-g .tb-i{width:52px;height:52px;border-radius:16px;background:var(--ground)}.tm-g button.on .tb-i{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.tm-edit{display:block;margin:14px auto 0}
+html body.nav-tab.nav-flick .brand .hr{display:contents!important}html body.nav-tab.nav-flick #gear{display:none!important}
+html body.nav-tab.nav-flick #plus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:18px;z-index:21;background:var(--accent);color:var(--on-accent);box-shadow:0 6px 20px rgba(0,0,0,.22)}
+html body.nav-tab.nav-flick #plus svg{width:26px;height:26px}
+body.nav-tab:has(.sheet.open) #plus,body.nav-tab:has(.tt-bar) #plus,body.nav-tab:has(.tabmore:not([hidden])) #plus{display:none!important}
+body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
+body.mini .htile{min-height:0}
+
 .fut-list{display:flex;flex-direction:column;gap:6px}
 .fut-row{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--surface);border-radius:14px;padding:12px;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
 .fr-ic{font-size:22px;width:32px;text-align:center;flex:none}.fr-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.fr-b b{font-size:15px}.fr-b small{color:var(--muted);font-size:12px;line-height:1.4}
@@ -1664,7 +1690,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="193";
+const APP_VERSION="194";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1740,10 +1766,10 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={voiceAI:"on",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={mini:"on",navMig:"",voiceAI:"on",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2829,7 +2855,7 @@ const shareReceived=()=>state.events.filter(x=>x.notice&&x.notice.to===myRole())
 const shareUnread=()=>shareReceived().filter(x=>!x.notice.seenAt);
 function shareInboxHTML(){ const all=shareReceived(),rows=all.filter(x=>!x.notice.seenAt),seen=all.filter(x=>x.notice.seenAt); if(!all.length&&!state.shareInboxOpen)return "";
   const list=L=>L.map(x=>`<div class="share-entry"><b>${esc(x.text)}</b><div class="meta">${esc(x.date)} ${x.start?esc(x.start)+(x.end?"–"+esc(x.end):""):"終日"}・${esc(nameOf(x.notice.from))}から</div><div class="edit-row"><button class="btn" data-share-open="${esc(x.id)}">予定を見る</button>${!x.notice.seenAt?`<button class="btn primary" data-share-seen="${esc(x.id)}" ${state.shareSeenBusy===x.id?"disabled":""}>${state.shareSeenBusy===x.id?"保存中…":"確認した"}</button>`:'<span class="tag tc-muted">確認済み</span>'}</div></div>`).join("");
-  return `<section class="card" id="shareInbox" aria-label="相手からの共有通知"><div class="share-head"><h2>相手からの共有</h2><span class="tag ${rows.length?"tc-blue":"tc-muted"}">未読 ${rows.length}</span></div><p class="who">アプリ内の通知です。アプリを閉じている間のプッシュ通知は届きません。</p>${rows.length?list(rows):'<p class="who">未読の共有はありません</p>'}${seen.length?`<details class="tk-set" ${state.shareHistoryOpen?"open":""}><summary data-share-history>確認済み（${seen.length}件）</summary>${list(seen.slice(0,30))}${seen.length>30?'<p class="who">最近の30件を表示しています。予定はカレンダーで確認できます。</p>':""}</details>`:""}</section>`;
+  return `<section class="card" id="shareInbox" aria-label="相手からの共有通知"><div class="share-head"><h2>相手からの共有</h2><span class="tag ${rows.length?"tc-blue":"tc-muted"}">未読 ${rows.length}</span></div><p class="who mx">アプリ内の通知です。アプリを閉じている間のプッシュ通知は届きません。</p>${rows.length?list(rows):'<p class="who">未読の共有はありません</p>'}${seen.length?`<details class="tk-set" ${state.shareHistoryOpen?"open":""}><summary data-share-history>確認済み（${seen.length}件）</summary>${list(seen.slice(0,30))}${seen.length>30?'<p class="who">最近の30件を表示しています。予定はカレンダーで確認できます。</p>':""}</details>`:""}</section>`;
 }
 async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()||x.notice.seenAt||state.shareSeenBusy)return false;state.shareSeenBusy=id;requestRender();try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});const current=state.events.find(x=>x.id===id);if(current)current.notice=notice;return true;}catch(e){err(e);toast("確認済みにできませんでした。もう一度お試しください");return false;}finally{state.shareSeenBusy=null;requestRender();} }
 function shareArrived(){ const rows=shareUnread(),ids=new Set(rows.map(x=>x.id)),previous=state.shareKnown;if(previous&&state.shareKnownRole===myRole()){const added=rows.filter(x=>!previous.has(x.id));if(added.length)toast(`相手から新しい共有が${added.length}件届きました`);}state.shareKnown=ids;state.shareKnownRole=myRole();requestRender(); }
@@ -2932,7 +2958,7 @@ function execHTML(d){ if(d!==today()) return ""; const nowM=new Date().getHours(
   return `<div class="exec"><div class="ex-top"><svg class="tdo-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="${R}" fill="none" stroke="var(--line)" stroke-width="5"/><circle cx="24" cy="24" r="${R}" fill="none" stroke="var(--task)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 24 24)"/><text x="24" y="28" text-anchor="middle">${done}/${N}</text></svg>
     <div class="ex-s"><b>今日の実行</b><span class="who">${N?`完了 ${done}・残り ${N-done}${left?`（予定 ${Math.floor(left/60)?Math.floor(left/60)+"時間":""}${left%60?left%60+"分":""}）`:""}`:"タスクを時間に入れると、ここで進み具合が分かります"}</span></div></div>
     <div class="ex-row">${card("いま",cur,"now")}${card("次",nx,"next")}</div>
-    ${late.length||un?`<div class="ex-w">${late.length?`<button class="chip mini warn" data-act="aiReplan">⏰ 遅れ ${late.length}件 → 残りを組み直す</button>`:""}${un?`<span class="who">時間未定 ${un}件は下から⋮⋮でタイムテーブルへ</span>`:""}</div>`:""}</div>`; }
+    ${late.length||un?`<div class="ex-w">${late.length?`<button class="chip mini warn" data-act="aiReplan">⏰ 遅れ ${late.length}件 → 残りを組み直す</button>`:""}${un?`<span class="who mx">時間未定 ${un}件は下から⋮⋮でタイムテーブルへ</span>`:""}</div>`:""}</div>`; }
 function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let h="";
   const d=state.sel, sm=shiftOf(me,d), so=shiftOf(ot,d), off=offState(d);
   h+=`<div class="day-nav"><button class="icon-btn" data-act="ttday" data-n="-1" aria-label="前の日">‹</button><div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="ttday" data-n="1" aria-label="次の日">›</button>${d!==t?`<button class="pill" data-act="ttday" data-n="0">今日</button>`:""}</div>
@@ -2941,7 +2967,7 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   h+=execHTML(d);
   const un=ttUntimed(d), others=ttOthers(d), timed=ttTimed(d);
   const evTimed=(byDay[d]||[]).filter(o=>o.c==="events"&&o.x.start);
-  h+=`<div class="tt-tray"><div class="subttl"><span>この日のタスク（時間なし ${un.length}）</span><span class="who">⋮⋮を長押しで持ってタイムテーブルへ</span></div>
+  h+=`<div class="tt-tray"><div class="subttl"><span>この日のタスク（時間なし ${un.length}）</span><span class="who mx">⋮⋮を長押しで持ってタイムテーブルへ</span></div>
     ${un.length?`<ul class="list">${un.map(o=>dragRow(o.c,o.x)).join("")}</ul>`:`<div class="empty" style="padding:14px">時間の決まっていないタスクはありません${others.length?"<br>下の「ほかのタスク」からも入れられます":""}</div>`}
     ${others.length?`<details class="tt-more" ${state.ttMore?"open":""}><summary>ほかのタスク（期限なし・期限切れ ${others.length}）</summary><ul class="list">${others.map(o=>dragRow(o.c,o.x)).join("")}</ul></details>`:""}
     ${state.ttPick?`<div class="banner" style="background:color-mix(in srgb,var(--accent) 14%,var(--surface))">入れたい時間をタイムテーブルでタップ　<button class="link" data-act="ttpickx">やめる</button></div>`:""}</div>`;
@@ -3575,7 +3601,7 @@ function viewSettings(){
     <h2>メニューのアイコンの大きさ</h2><div class="opts">${opt("micSz","s","小")}${opt("micSz","m","中")}${opt("micSz","l","大")}${opt("micSz","xl","特大")}</div>
     <h2>メニューのアイコンの色</h2><div class="opts">${opt("micCol","mono","グレー（選択中だけ色）")}${opt("micCol","tab","タブごとの色")}${opt("micCol","accent","テーマカラー")}</div>
     <h2>メニューの文字</h2><div class="opts">${opt("rlabel","1","アイコン＋文字")}${opt("rlabel","0","アイコンだけ（すっきり）")}</div>
-    <h2>メニューの形</h2><div class="opts">${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
+    <h2>メニューの形</h2><div class="opts">${opt("nav","tab","下のタブ（おすすめ）")}${opt("nav","rail","縦メニュー")}${opt("nav","railc","縦メニュー（たくさん表示）")}${opt("nav","railf","縦メニュー（フリック）")}${opt("nav","flick","横メニュー（フリック）")}</div>
     <h2>メニューの位置</h2><p class="who">${prefs.nav==="flick"||prefs.nav==="railf"?"メニューの上の短い線（つまみ）を押したまま動かすと、好きな場所に置けます。":"メニューの上の2本線（つまみ）を押したまま動かすと、上下・左右に移動できます。"}</p><div class="opts"><button class="opt" data-act="navPosReset">位置を元に戻す</button>${prefs.nav==="flick"||prefs.nav==="railf"?"":'<button class="opt" data-act="railRight">右下に戻す</button><button class="opt" data-act="railLeft">左下に置く</button>'}</div><p class="who">動かした位置はアカウントに保存され、別の端末でも同じ位置で開きます。</p>
     <h2>並び順</h2><div class="opts">${opt("navRev","0",prefs.nav==="flick"?"ふつう（左から）":"ふつう（上から）")}${opt("navRev","1",prefs.nav==="flick"?"逆（右から）":"逆（下から）")}</div>
     ${prefs.nav==="flick"||prefs.nav==="railf"?`<h2>利き手（${prefs.nav==="railf"?"メニューを置く側":"フリックの並び"}）</h2><div class="opts">${opt("hand","right","右手")}${opt("hand","left","左手")}</div>`:""}
@@ -3592,6 +3618,7 @@ function viewSettings(){
     <h2>夜に書くもの（日記・内省・ありがとう・夕飯メモ）</h2><div class="opts">${["17","18","19","20","21"].map(v=>opt("eveH",v,v+"時から")).join("")}</div>
     <h2>シフト未入力のリマインド</h2><div class="opts">${opt("shRem","on","する")}${opt("shRem","off","しない")}</div><p class="who">空いている日の3日前に「やること」へ追加し、ホームとカレンダーにも表示します。</p>
     <h2>今日の質問をポップアップで出す</h2><div class="opts">${opt("qaPop","on","出す")}${opt("qaPop","off","出さない")}</div><p class="who">その日まだ答えていないとき、ホームを開くと1回だけ出ます。ふたりとも答えたら答え合わせも出ます。</p>
+    <h2>表示</h2><div class="opts">${opt("mini","on","すっきり（説明を減らす）")}${opt("mini","off","くわしく")}</div>
     <h2>各タブの説明文</h2><div class="opts">${opt("hintsAlways","0","初回だけ")}${opt("hintsAlways","1","いつも表示")}</div></section>
   <section class="card"><h2>今日の1曲</h2><div class="opts">${opt("music","on","表示する")}${opt("music","off","表示しない")}</div>
     <p>登録したアーティストの曲だけから、時間帯・季節・天気に合わせてAIが選びます（ふたりとも同じ曲）。タップで音楽アプリを開けます。</p>
@@ -3733,7 +3760,7 @@ function renderChrome(){ applyTabOrder();
   $("greet").hidden=prefs.greet!=="1"; if(prefs.greet==="1") $("greet").innerHTML=greetLine();
   const layer=(v==="settings"||v==="check"||v==="log"||v==="home")?(v==="home"?(state.homeLayer||layerOf(prefs.view)):layerOf(prefs.view)):layerOf(v);
   const NV=prefs.nav, side=NV==="railf"?(prefs.hand==="left"?"left":"right"):prefs.railSide;
-  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":""}${prefs.navRev==="1"?" nav-rev":""} mic-${prefs.micSz||"m"} micc-${prefs.micCol||"mono"} lsz-${prefs.logoSz||"m"} hdr-${prefs.hdrPos||"top"} hs-${prefs.hdrSize||"m"}${prefs.hdrFold==="1"?" hdr-fold":""}${(prefs.hdrHide||"").split(",").filter(Boolean).map(k=>" hh-"+k).join("")}`;
+  document.body.className=`v-${v} rail-${side} layer-${layer}${NV==="flick"?` nav-flick hand-${prefs.hand==="left"?"l":"r"}`:NV==="railf"?" nav-railf":NV==="railc"?" nav-railc":NV==="tab"?" nav-flick nav-tab":""}${prefs.mini!=="off"?" mini":""}${prefs.navRev==="1"?" nav-rev":""} mic-${prefs.micSz||"m"} micc-${prefs.micCol||"mono"} lsz-${prefs.logoSz||"m"} hdr-${prefs.hdrPos||"top"} hs-${prefs.hdrSize||"m"}${prefs.hdrFold==="1"?" hdr-fold":""}${(prefs.hdrHide||"").split(",").filter(Boolean).map(k=>" hh-"+k).join("")}`;
   { const O=(prefs.hdrOrder||"brand,greet,title,layer").split(","), bd=document.querySelector(".brand>div:not(.hr)"); if(bd) ["brand","greet","title","layer"].forEach(k=>{ bd.style.setProperty("--o-"+k,String(Math.max(0,O.indexOf(k)))); bd.style.setProperty("--z-"+k,String(HZ[hdrZ(k)]||1)); }); }
   const hs=hiddenTabs();
   ORDER=LAYER_TABS[layer].filter(k=>!hs.has(k)||k===v);
@@ -3743,6 +3770,7 @@ function renderChrome(){ applyTabOrder();
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
   { const pc=pendingChecks().length, bc=$("b-chk"), bh=$("b-home"); bc.hidden=!pc; bc.textContent=pc; if(bh){ bh.hidden=!pc; bh.textContent=pc; } $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
+  setTimeout(tbarRender,0);
   const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?null: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
   $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
@@ -5761,7 +5789,7 @@ function homeWeekHTML(){ const t=today(), me=myRole(), ot=otherRole(), mine=x=>[
   const mx=Math.max(3,...days.map(cnt)), an=state.plans.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).filter(o=>o.a.days<=6);
   return homeCard("この先7日",`<div class="hweek">${days.map(d=>{ const n=cnt(d), off=offState(d), dw=parse(d).getDay(), A=an.find(o=>o.a.occ===d);
     return `<button class="hwd ${off} ${d===t?"now":""}" data-wkday="${d}" aria-label="${jpDate(d)} 予定${n}件"><span class="hwd-w ${dw===0?"sun":dw===6?"sat":""}">${d===t?"今日":WD[dw]}</span><span class="hwd-d">${parse(d).getDate()}</span><span class="hwd-s">${shiftBadge(shiftOf(me,d),me)}${shiftBadge(shiftOf(ot,d),ot)}</span><span class="hwd-bar"><i style="height:${Math.round(n/mx*100)}%"></i></span><span class="hwd-n">${n||""}${A?"💍":""}</span></button>`; }).join("")}</div>
-    <div class="cap" style="text-align:left">上：${esc(nameOf(me))}／下：${esc(nameOf(ot))}のシフト・棒＝その日の予定とやることの数・緑＝ふたり休み</div>`,"cal"); }
+    <div class="cap mx" style="text-align:left">上：${esc(nameOf(me))}／下：${esc(nameOf(ot))}のシフト・棒＝その日の予定とやることの数・緑＝ふたり休み</div>`,"cal"); }
 function homeSchedHTML(){ const t=today(), me=myRole(), S=6*60, E=24*60, ents=dayEntries(t).filter(o=>o.kind!=="g"), nowM=new Date().getHours()*60+new Date().getMinutes();
   const pos=m=>Math.max(0,Math.min(100,(m-S)/(E-S)*100));
   const bars=ents.map(o=>`<i class="${o.done?"dn":""}" style="left:${pos(o.s)}%;width:${Math.max(1.2,pos(o.e)-pos(o.s))}%;--bc:var(--${o.col})" title="${esc(hhmm(o.s%1440)+" "+o.t)}"></i>`).join("");
@@ -6987,6 +7015,29 @@ setTimeout(()=>wxLoad(),600);
 function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在地を使えません"); return; }
   navigator.geolocation.getCurrentPosition(p=>{ prefs.wxLat=String(p.coords.latitude.toFixed(3)); prefs.wxLon=String(p.coords.longitude.toFixed(3)); prefs.wxName="現在地"; savePrefs(); state.wx=null; wxLoad(true); toast("現在地の天気にしました"); },()=>toast("現在地を取得できませんでした（位置情報の許可を確認）"),{timeout:10000,maximumAge:3600e3}); }
 
+
+/* v194: 下のタブバー（いまどきのスマホアプリの形）。ホーム＋よく使う3つ＋「その他」。並びは 設定 › メニュー の並び順 */
+function tbarTabs(){ const hs=hiddenTabs(); return tabOrder().filter(k=>!hs.has(k)); }
+function tabIcon(k){ const b=document.querySelector(`#rail .rtab[data-v="${k}"] svg`); return b?b.outerHTML:""; }
+function tabBadge(k){ const b=$("b-"+k); return b&&!b.hidden&&b.textContent?b.textContent:""; }
+function tbarRender(){
+  let bar=$("tbar"); if(prefs.nav!=="tab"){ if(bar) bar.hidden=true; const m=$("tmore"); if(m) m.hidden=true; return; }
+  if(!bar){ bar=document.createElement("nav"); bar.id="tbar"; bar.className="tabbar"; bar.setAttribute("aria-label","メニュー"); document.body.appendChild(bar);
+    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
+  bar.hidden=false;
+  const v=state.view, main=tbarTabs().slice(0,3), inMore=v!=="home"&&!main.includes(v), moreN=tbarTabs().slice(3).reduce((s,k)=>s+(Number(tabBadge(k))||0),0);
+  const btn=(k,label,icon,badge,on)=>`<button data-tb="${k}" class="${on?"on":""}" aria-current="${on?"page":"false"}"><span class="tb-i">${icon}${badge?`<i class="tb-b">${badge}</i>`:""}</span><span class="tb-l">${label}</span></button>`;
+  const homeI='<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>';
+  const moreI='<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.8"/><circle cx="12" cy="6" r="1.8"/><circle cx="18" cy="6" r="1.8"/><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/><circle cx="6" cy="18" r="1.8"/><circle cx="12" cy="18" r="1.8"/><circle cx="18" cy="18" r="1.8"/></svg>';
+  bar.innerHTML=btn("home","ホーム",homeI,tabBadge("home"),v==="home")+main.map(k=>btn(k,TITLES[k],tabIcon(k),tabBadge(k),v===k)).join("")+btn("more",inMore?TITLES[v]||"その他":"その他",inMore?tabIcon(v)||moreI:moreI,moreN||"",inMore||state.tmoreOpen);
+  const m=$("tmore"); if(m&&!m.hidden) tmoreFill(); }
+function tmoreFill(){ const m=$("tmore"); if(!m) return; const rest=tbarTabs().slice(3), hidden=[...hiddenTabs()].filter(k=>TITLES[k]);
+  m.innerHTML=`<div class="tm-in"><div class="tm-g">${rest.map(k=>`<button data-tm="${k}" class="${state.view===k?"on":""}"><span class="tb-i">${tabIcon(k)}${tabBadge(k)?`<i class="tb-b">${tabBadge(k)}</i>`:""}</span><span>${TITLES[k]}</span></button>`).join("")}
+    <button data-tm="settings"><span class="tb-i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg></span><span>設定</span></button></div>
+    <button class="link tm-edit" data-tm="order">並び順・表示するタブを変える ›</button></div>`; }
+function tmoreToggle(on){ let m=$("tmore"); if(!m){ m=document.createElement("div"); m.id="tmore"; m.className="tabmore"; m.hidden=true; document.body.appendChild(m);
+    m.addEventListener("click",e=>{ const b=e.target.closest("[data-tm]"); if(e.target===m){ tmoreToggle(false); return; } if(!b) return; const k=b.dataset.tm; tmoreToggle(false); if(k==="order"){ state.setOpen={menu:1}; go("settings"); } else go(k); }); }
+  const open=on===undefined?m.hidden:on; state.tmoreOpen=open; m.hidden=!open; if(open) tmoreFill(); tbarRender(); }
 /* ================= E：なんでも一行で追加 ================= */
 const QK={task:["やること","--task"],shop:["買い物","--shop"],event:["予定","--cal"],block:["じぶんの予定","--cal"],ptask:["じぶんのタスク","--task"],pshop:["じぶんの買い物","--shop"],topic:["話すこと","--talk"],trouble:["困りごと","--trouble"],caution:["注意","--caution"]};
 function qNames(){ const o=[]; for(const r of ["h","w"]){ const n=nameOf(r)||""; if(n) o.push([n,r]); if(n.length>=2) o.push([n.slice(0,2),r]); } if(prefs.nick) o.push([prefs.nick,myRole()]); return o.sort((a,b)=>b[0].length-a[0].length); }
@@ -7174,7 +7225,7 @@ function agendaHTML(){
   if(first){ const pw=addDays(W,-7), pe=contribEvents().filter(e=>e.d>=pw&&e.d<W), pH=pe.filter(e=>e.r==="h").reduce((a,e)=>a+e.p,0), pW=pe.filter(e=>e.r==="w").reduce((a,e)=>a+e.p,0);
     const tk=[...Array(7)].map((_,i)=>talkState(addDays(pw,i))), tn=tk.filter(v=>v!=="off"&&v!=="before").length, td=tk.filter(v=>v==="done").length;
     add("loop","先週のふりかえり",`話し合い ${td}/${tn}回・家事 ${nameOf("h")} ${pH}pt / ${nameOf("w")} ${pW}pt`,"","先週のふりかえり：よかったこと・困ったこと・今週変えること"); }
-  return `<section class="agenda"><div class="ag-h"><b>今日の議題（自動）</b><span class="who">アプリの記録から</span></div>${qaCardHTML(t,"in-ag")}
+  return `<section class="agenda"><div class="ag-h"><b>今日の議題</b><span class="who mx">アプリの記録から</span></div>${qaCardHTML(t,"in-ag")}
     <ul class="ag-l">${rows.map(r=>`<li class="${r.warn?"warn":""}"><button class="ag-go" ${r.go?`data-go2="${r.go}"`:"disabled"}>${ic(r.ic,r.warn?"--danger":undefined)}<span class="ag-b"><b>${esc(r.title)}</b>${r.sub?`<small>${esc(r.sub)}</small>`:""}</span></button>${r.topic?`<button class="ag-add" data-act="agTopic" data-t="${esc(r.topic)}" aria-label="「${esc(r.topic)}」を議題に追加" title="議題に追加"><svg viewBox="0 0 24 24">${ICP.plus}</svg></button>`:""}</li>`).join("")}</ul></section>`;
 }
 function addTopicText(text){ if(state.topics.some(t=>t.text===text&&t.status!=="done")){ toast("すでに議題にあります"); return; }
@@ -7493,6 +7544,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
     if(next.autoRules!==prefs.autoRules) AR=null;
     const first=firstPrefs; firstPrefs=false;
     if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
+    if(!s.fromCache&&next.navMig!=="194"){ next.navMig="194"; if(next.nav!=="tab"){ next.navPrev=next.nav; next.nav="tab"; } setTimeout(()=>savePrefs(true),500); } /* v194: 一度だけ下のタブメニューへ（設定で戻せる） */
     if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
       if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
       render(); placeRail(false); }
