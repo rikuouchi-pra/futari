@@ -40,7 +40,7 @@ const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDa
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 
-const voiceFns=['aiRec','aiRecM','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
+const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
@@ -79,12 +79,12 @@ test('voice result updates replace interim text without duplication and never se
   const v=voiceEnv();v.c.sent=0;v.c.aiAsk=()=>v.c.sent++;run(v.c,'aiMic()');
   v.rec.onresult({resultIndex:0,results:[{0:{transcript:'明日の'},isFinal:false}]});
   v.rec.onresult({resultIndex:0,results:[{0:{transcript:'明日の19時'},isFinal:true},{0:{transcript:'買い物'},isFinal:false}]});
-  assert.equal(v.c.state.ai.q,'元の入力\n明日の19時買い物');v.rec.stop();assert.equal(v.c.sent,0);assert.equal(v.c.state.aiListening,false);assert.match(v.c.state.aiVoiceStatus,/確認/);
+  assert.equal(v.c.state.ai.q,'元の入力\n明日の19時買い物');run(v.c,'aiMic()');assert.equal(v.c.sent,0);assert.equal(v.c.state.aiListening,false);assert.match(v.c.state.aiVoiceStatus,/確認/);
 });
 test('voice restart appends to edited draft and cancellation ignores late callbacks',()=>{
-  const v=voiceEnv();run(v.c,'aiMic()');const old=v.rec;old.onresult({results:[{0:{transcript:'買い物'},isFinal:true}]});old.stop();v.c.input.value='修正した入力';run(v.c,'aiMic()');
-  v.rec.onresult({results:[{0:{transcript:'自分だけ'},isFinal:true}]});assert.equal(v.c.state.ai.q,'修正した入力\n自分だけ');run(v.c,'aiVoiceCancel()');assert.equal(v.c.state.ai.q,'修正した入力');
-  old.onresult({results:[{0:{transcript:'遅れて届いた結果'},isFinal:true}]});assert.equal(v.c.state.ai.q,'修正した入力');
+  const v=voiceEnv();run(v.c,'aiMic()');const old=v.rec;old.onresult({results:[{0:{transcript:'買い物'},isFinal:true}]});run(v.c,'aiMic()');v.c.input.value='修正した入力';run(v.c,'aiMic()');
+  v.rec.onresult({results:[{0:{transcript:'自分だけ'},isFinal:true}]});assert.equal(v.c.state.ai.q,'修正した入力\n自分だけ');run(v.c,'aiVoiceCancel()');assert.equal(v.c.state.ai.q,'');
+  old.onresult({results:[{0:{transcript:'遅れて届いた結果'},isFinal:true}]});assert.equal(v.c.state.ai.q,'');
 });
 test('voice permission/network failures preserve draft and offer recovery',()=>{
   for(const error of ['not-allowed','network','no-speech']){const v=voiceEnv();run(v.c,'aiMic()');v.rec.onerror({error});v.rec.onend();assert.equal(v.c.state.ai.q,'元の入力');assert.equal(v.c.state.aiListening,false);assert.match(v.c.state.aiVoiceStatus,/マイク|接続|聞き取/);}
@@ -642,4 +642,19 @@ test('v196 checklist items keep a decision with author and the AI can fill it', 
   const c = env(['checksHTML'], { CHECK:'✓', short: d => d.slice(5) });
   const h = run(c, 'checksHTML({checks:[{t:"夜中の当番を決める",done:false,m:"平日は<b>りく</b>",mAt:Date.UTC(2026,9,1),mBy:"h"}]})');
   assert.match(h, /→ 平日は&lt;b&gt;りく/); assert.match(h, /data-act="cknote"/);
+});
+
+test('v198 voice keeps listening after an automatic stop and keeps earlier words', async () => {
+  const v=voiceEnv(); run(v.c,'aiMic()'); const first=v.rec;
+  first.onresult({results:[{0:{transcript:'明日の19時に'},isFinal:true}]});
+  first.onend(); assert.equal(v.c.state.aiListening,true);
+  await new Promise(r=>setTimeout(r,200)); assert.notEqual(v.rec,first);
+  v.rec.onresult({results:[{0:{transcript:'買い物を追加'},isFinal:false}]});
+  assert.equal(v.c.state.ai.q,'元の入力\n明日の19時に\n買い物を追加');
+  run(v.c,'aiMic()'); assert.equal(v.c.state.aiListening,false);
+});
+test('v198 shared kakei writes merge instead of overwriting and wait for the first load', () => {
+  const ups=[]; const c=env(['kakeiPut'],{kakeiDoc:{update:o=>{ups.push(o);return Promise.resolve();}}});
+  c.state.kakeiLoaded=false; run(c,'kakeiPut({aiProf:{h:{a:1}}})'); assert.equal(ups.length,0);
+  c.state.kakeiLoaded=true; run(c,'kakeiPut({music:{h:"x"}})'); assert.deepEqual(plain(ups),[{music:{h:'x'}}]);
 });

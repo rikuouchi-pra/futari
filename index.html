@@ -1711,7 +1711,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="197";
+const APP_VERSION="198";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4107,7 +4107,7 @@ $("main").addEventListener("click",e=>{
   const cgc=e.target.closest("[data-cgclr]"); if(cgc){ setCatGoal(cgc.dataset.cgclr,null); state.cgEdit=null; render(); return; }
   const cge=e.target.closest("[data-cge]"); if(cge&&!e.target.closest(".cr-edit")){ const k=cge.dataset.cge; state.cgEdit=state.cgEdit===k?null:k; render(); setTimeout(()=>{ const i=document.querySelector(`.cr-edit [data-cgin="${k}"]`); if(i) i.focus(); },50); return; }
   const arb=e.target.closest("[data-ar]"); if(arb){ arAct(arb); return; }
-  const to=e.target.closest("[data-toff]"); if(to){ const S=talkOffSet(), k=to.dataset.toff; if(S.has(k)) S.delete(k); else S.add(k); state.kakei={...(state.kakei||{}),talkOff:[...S],updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("tick"); toast(`${nameOf("w")}さんが「${[...S].join("・")||"なし"}」の日は話し合いお休み`); render(); return; }
+  const to=e.target.closest("[data-toff]"); if(to){ const S=talkOffSet(), k=to.dataset.toff; if(S.has(k)) S.delete(k); else S.add(k); state.kakei={...(state.kakei||{}),talkOff:[...S],updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("tick"); toast(`${nameOf("w")}さんが「${[...S].join("・")||"なし"}」の日は話し合いお休み`); render(); return; }
   const rp=e.target.closest("[data-rpay]"); if(rp){ toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
   const ck=e.target.closest("[data-chk]"); if(ck){ goCheck(ck.dataset.chk); return; }
   const ht=e.target.closest("[data-htpl]"); if(ht){ const now=Date.now(); dset("habits",newId(),{text:ht.dataset.htpl,entryKind:"habit",showInTimetable:false,target:7,log:{},createdAt:now,updatedAt:now}); toast(`習慣「${ht.dataset.htpl}」を追加しました`); return; }
@@ -4256,14 +4256,15 @@ $("main").addEventListener("click",e=>{
   else if(a==="addgoal"){ openSheet("goal"); }
   else if(a==="hapTestN"){ lastHap=0; haptic("tick"); toast(`ふだんの経路で鳴らしました（設定:${prefs.haptic}／方式${hapticWay()}／振動API:${navigator.vibrate?"あり":"なし"}）`); return; }
   else if(a==="hapTestA"||a==="hapTestB"){ const w=a.slice(-1); (w==="B"?iosTapB:iosTap)(); prefs.hapWay=w; savePrefs(); toast(`方式${w}に切り替えました。コツッと来ましたか？`); const y=window.scrollY; render(); window.scrollTo(0,y); return; }
-  else if(a==="klimit"){ const L=money($("kLimit").value); state.kakei={...(state.kakei||{}),limit:L,updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("done"); toast(L?`毎月の上限を ${yen(L)} にしました`:"上限を外しました"); render(); }
+  else if(a==="klimit"){ const L=money($("kLimit").value); state.kakei={...(state.kakei||{}),limit:L,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); toast(L?`毎月の上限を ${yen(L)} にしました`:"上限を外しました"); render(); }
   else if(a==="gdep"){ const id=b.dataset.g, inp=document.querySelector(`[data-gdep="${CSS.escape(id)}"]`), v=money(inp&&inp.value); if(!v){ toast("入金額を入れてください"); inp&&inp.focus(); return; }
     const g=state.goals.find(x=>x.id===id); if(!g) return; const u=snapUndo("goals",id), deps=[...(g.deposits||[]),{a:v,d:today(),by:state.me||null}]; g.deposits=deps; dupd("goals",id,{deposits:deps}); haptic("done"); celebrate(); toast(`${g.text} に ${yen(v)} 入金`,u,"done"); render(); }
   else if(a==="bkHtml") exportOffline();
   else if(a==="bkXlsx") exportXlsx();
   else if(a==="bkRestore"){ $("bkFile")&&$("bkFile").click(); }
   else if(a==="ttpickx"){ state.ttPick=null; render(); }
-  else if(a==="aiDockClose"){ aiDockToggle(false); }
+  else if(a==="aiDockClose"){ if(state.aiListening) aiVoiceCancel(); state.ai.q=""; state.aiVoiceStatus=""; state.aiVoiceRaw=""; aiDockToggle(false); }
+  else if(a==="aiClear"){ state.ai.q=""; state.aiVoiceStatus=""; state.aiVoiceRaw=""; render(); const n=$("aiIn"); if(n) n.focus(); }
   else if(a==="aiVoiceRaw"){ if(state.aiVoiceRaw){ state.ai.q=aiVoiceDraft(state.aiVoiceBase||"",state.aiVoiceRaw); state.aiVoiceRaw=""; state.aiVoiceStatus="元の聞き取りに戻しました。"; render(); } }
   else if(a==="futhome"){ state.fut=null; render(-40); }
   else if(a==="cprev"||a==="cnext") shiftCal(a==="cprev"?-1:1);
@@ -4337,7 +4338,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
-$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
+$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
 $("main").addEventListener("input",e=>{
   if(e.target.id==="aiIn"){state.ai.q=e.target.value.slice(0,2000);return;}
   if(e.target.id==="fridgeEdit"){ state.fridgeDraft=e.target.value; return; }
@@ -4817,8 +4818,8 @@ function phAct(a){ const [op,src,id,key,v]=a.split("|");
   if(op==="mon"){ const ym=state.phMonth||today().slice(0,7); state.phMonth=ymAdd(ym,Number(src)); if(state.phMonth>today().slice(0,7)) state.phMonth=today().slice(0,7); state.phOpen=true; render(); return; }
   if(op==="add"){ const t=($("phText")||{}).value||"", d=($("phDate")||{}).value||today(); if(!t.trim()){ toast("やったことを入れてください"); return; }
     const b={id:newId(),d,r:state.phWho||myRole(),p:Number(state.phPt||1),text:t.trim().slice(0,30),by:myRole(),at:Date.now()};
-    state.kakei={...(state.kakei||{}),bonus:[...((state.kakei||{}).bonus||[]),b],updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("done"); toast(`「${b.text}」${b.p}pt を追加しました`); state.phOpen=true; render(); return; }
-  const setBonus=f=>{ state.kakei={...(state.kakei||{}),bonus:((state.kakei||{}).bonus||[]).map(x=>x.id===id?f(x):x).filter(Boolean),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); };
+    state.kakei={...(state.kakei||{}),bonus:[...((state.kakei||{}).bonus||[]),b],updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); toast(`「${b.text}」${b.p}pt を追加しました`); state.phOpen=true; render(); return; }
+  const setBonus=f=>{ state.kakei={...(state.kakei||{}),bonus:((state.kakei||{}).bonus||[]).map(x=>x.id===id?f(x):x).filter(Boolean),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); };
   const ev=contribEvents().find(e=>e.src===src&&e.id===id&&e.key===key); if(!ev) return;
   if(op==="who"){ const nr=v==="h"?"w":"h";
     if(src==="chores"){ const c=state.chores.find(x=>x.id===id); if(c){ c.log={...(c.log||{}),[key]:nr}; dupd("chores",id,{log:{[key]:nr}}); } }
@@ -4984,7 +4985,7 @@ async function importMove(file){
     if(state.me) for(const c of MOVE_SHARED) for(const x of state[c]||[]) if(x.ack&&x.ack.local){ jobs.push(dupd(c,x.id,{ack:{[state.me]:x.ack.local,local:null}})); }
   }
   const M=D.meta||{};
-  if(M.kakei&&Object.keys(M.kakei).length&&!Object.keys(state.kakei||{}).length&&kakeiDoc){ state.kakei=M.kakei; jobs.push(kakeiDoc.set(M.kakei)); }
+  if(M.kakei&&Object.keys(M.kakei).length&&!Object.keys(state.kakei||{}).length&&kakeiDoc){ state.kakei=M.kakei; jobs.push(kakeiDoc.update(M.kakei)); }
   if(M.fam&&famDoc&&(M.fam.h||M.fam.w)) jobs.push(famDoc.set({h:M.fam.h||state.fam.h,w:M.fam.w||state.fam.w,updatedAt:Date.now()}));
   if(Array.isArray(M.history)&&M.history.length&&histDoc&&!(state.history||[]).length) jobs.push(histDoc.set({names:M.history}));
   toast(`読み込み中…（${n}件）`);
@@ -5228,7 +5229,7 @@ function goalRow(g){
 /* 分類ごとの毎月の目標額（週は日割り、年は12か月分で表示） */
 const catGoals=()=>((state.kakei||{}).catGoals)||{};
 function goalFor(k,p){ const g=Number(catGoals()[k]||0); if(!g) return 0; return p==="week"?Math.round(g*7/30.44):p==="year"?g*12:g; }
-function setCatGoal(k,v){ const G={...catGoals()}; if(v) G[k]=v; else delete G[k]; state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); haptic("done"); }
+function setCatGoal(k,v){ const G={...catGoals()}; G[k]=v||0; /* v198: 合わせて保存するので、消すときは 0 */ state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); }
 function catRowsHTML(acts0,buds0,p){
   const G=catGoals(), unit=p==="week"?"週":p==="year"?"年":"月";
   const rows=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>{ const a=acts0.filter(e=>e.cat===k).reduce((s,e)=>s+e.actual,0), b=buds0.filter(e=>e.cat===k).reduce((s,e)=>s+e.budget,0), g=goalFor(k,p); return {k,o,a,b,g}; })
@@ -5604,7 +5605,7 @@ function aiFab(){ let b=$("aiFab"); if(!aiCan()){ if(b) b.hidden=true; return; }
 function aiDockToggle(on){ state.aiOpen=on===undefined?!state.aiOpen:on; render(); if(state.aiOpen){ window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>{ const n=$("aiIn"); if(n) n.focus({preventScroll:true}); },250); } }
 function aiVoiceText(results){let final="",interim="";for(let i=0;i<results.length;i++){const r=results[i],t=String(r[0]?.transcript||"");if(r.isFinal)final+=t;else interim+=t;}return {final,interim};}
 function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean).join("\n").slice(0,2000);}
-function aiVoiceCancel(){ if(aiRecM){ const M=aiRecM; clearInterval(M._tick); M.onstop=()=>{ try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }; aiRecM=null; try{ M.stop(); }catch(e){} } const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
+function aiVoiceCancel(){ if(aiRecM){ const M=aiRecM; clearInterval(M._tick); M.onstop=()=>{ try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }; aiRecM=null; try{ M.stop(); }catch(e){} } const R=aiRec;aiRec=null;aiSRS=null;state.aiListening=false;state.ai.q="";state.aiVoiceBase="";state.aiVoiceRaw="";state.aiVoiceStatus="";try{R?.abort();}catch(e){}aiMicUI();} /* v198: ✕ は入力をすべて消す */
 /* v193: 高精度の音声入力。録音した声をAI（Gemini）で文字起こしする。名前・よく使う言葉を手がかりとして渡す */
 let aiRecM=null;
 function aiVoiceAIOk(){ return prefs.voiceAI==="on"&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
@@ -5655,18 +5656,27 @@ JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick",t
     aiMicUI(); };
   try{ R.start(1000); state.aiListening=true; state.aiVoiceStatus="録音中…"; haptic("arm"); aiMicUI(); }catch(e){ aiRecM=null; stream.getTracks().forEach(t=>t.stop()); state.aiVoiceStatus="録音を開始できませんでした。"; aiMicUI(); }
 }
-function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&aiVoiceAIOk())){ aiVoiceRec(); return; } const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(state.aiListening&&aiRec){state.aiVoiceStatus="聞き取りを終了しています…";try{aiRec.stop();}catch(e){aiRec=null;state.aiListening=false;}aiMicUI();return;}
+let aiSRS=null;
+function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&!aiSRS&&aiVoiceAIOk())){ aiVoiceRec(); return; } const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(state.aiListening&&aiSRS){ const S=aiSRS; S.user=true; state.aiVoiceStatus="聞き取りを終了しています…"; if(aiRec){ try{aiRec.stop();}catch(e){ aiRec=null; aiSRFinish(S,false); } } else aiSRFinish(S,false); aiMicUI(); return; }
   if(!SR){state.aiVoiceStatus="このブラウザーでは直接の音声認識が使えません。入力欄をタップし、キーボードのマイクで入力してください。";aiMicUI();$("aiIn")?.focus();return;}
-  const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000);state.ai.q=base;state.aiVoiceBase=base;
-  let R,failed=false;try{R=new SR();}catch(e){state.aiVoiceStatus="音声認識を開始できません。キーボードのマイクも使えます。";aiMicUI();return;}aiRec=R;
-  R.lang="ja-JP";R.interimResults=true;R.continuous=true;R.maxAlternatives=1;
-  R.onresult=e=>{if(aiRec!==R)return;const text=aiVoiceText(e.results);state.ai.q=aiVoiceDraft(base,text.final+text.interim);const el=$("aiIn");if(el)el.value=state.ai.q;};
-  R.onerror=e=>{if(aiRec!==R)return;failed=true;const c=e?.error;state.aiVoiceStatus=c==="not-allowed"||c==="service-not-allowed"?"マイクを使えません。ブラウザーのマイク設定を確認するか、キーボードのマイクで入力してください。":c==="no-speech"?"声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。":c==="network"?"音声認識に接続できません。入力は残しています。通信を確認して再開してください。":"聞き取りが中断しました。入力を確認して、必要なら再開してください。";};
-  R.onend=()=>{if(aiRec!==R)return;aiRec=null;state.aiListening=false; { const raw=String(state.ai.q||"").slice(base.length).trim(); if(!failed&&raw) setTimeout(()=>aiVoiceFix(base,raw),0); }if(!failed)state.aiVoiceStatus=state.ai.q!==base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して「送る」を押してください。":"聞き取りを終了しました。もう一度話すことができます。";haptic("done");aiMicUI();};
-  try{state.aiListening=true;state.aiVoiceStatus="聞き取り中です。話し終わったら「聞き取りを終了」を押してください。";R.start();haptic("arm");aiMicUI();}catch(e){aiRec=null;state.aiListening=false;state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。";aiMicUI();}
-}
-function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="取り消す">✕</button>':`<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
+  const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000);state.ai.q=base;state.aiVoiceBase=base;state.aiVoiceRaw="";
+  const S=aiSRS={SR,base,committed:base,lastFinal:"",t0:Date.now(),restarts:0,got:false,user:false};
+  if(!aiSRStart(S)) return; haptic("arm"); }
+/* v198: iPhoneは間が空くと聞き取りが自動で止まるので、■を押すまで続けて聞き直す（それまでの文字は残す） */
+function aiSRStart(S){ let R; try{ R=new S.SR(); }catch(e){ aiSRS=null; state.aiListening=false; state.aiVoiceStatus="音声認識を開始できません。キーボードのマイクも使えます。"; aiMicUI(); return false; }
+  aiRec=R; let failed=false; R.lang="ja-JP"; R.interimResults=true; R.continuous=true; R.maxAlternatives=1;
+  R.onresult=e=>{ if(aiRec!==R) return; const t=aiVoiceText(e.results); if(S.lastFinal&&t.final.length<S.lastFinal.length&&!S.lastFinal.startsWith(t.final)) S.committed=aiVoiceDraft(S.committed,S.lastFinal); S.lastFinal=t.final; if((t.final+t.interim).trim()) S.got=true; state.ai.q=aiVoiceDraft(S.committed,t.final+t.interim); const el=$("aiIn"); if(el) el.value=state.ai.q; };
+  R.onerror=e=>{ if(aiRec!==R) return; const c=e?.error; if((c==="no-speech"||c==="aborted")&&(S.got||S.user)) return; failed=true; state.aiVoiceStatus=c==="not-allowed"||c==="service-not-allowed"?"マイクを使えません。ブラウザーのマイク設定を確認するか、キーボードのマイクで入力してください。":c==="no-speech"?"声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。":c==="network"?"音声認識に接続できません。入力は残しています。通信を確認して再開してください。":"聞き取りが中断しました。入力を確認して、必要なら再開してください。"; };
+  R.onend=()=>{ if(aiRec!==R) return; aiRec=null; S.committed=aiVoiceDraft(S.committed,S.lastFinal); S.lastFinal="";
+    if(!S.user&&!failed&&Date.now()-S.t0<5*60e3&&S.restarts<40){ S.restarts++; setTimeout(()=>{ if(aiSRS!==S||S.user||!state.aiListening) return; aiSRStart(S); },150); return; }
+    aiSRFinish(S,failed); };
+  try{ state.aiListening=true; if(!S.restarts) state.aiVoiceStatus="聞き取り中… 話し終わったら ■ を押してください"; R.start(); if(!S.restarts) aiMicUI(); return true; }
+  catch(e){ aiRec=null; if(S.restarts){ aiSRFinish(S,false); return false; } aiSRS=null; state.aiListening=false; state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。"; aiMicUI(); return false; } }
+function aiSRFinish(S,failed){ if(aiSRS!==S) return; aiSRS=null; state.aiListening=false; const raw=String(state.ai.q||"").slice(S.base.length).trim();
+  if(!failed&&raw) setTimeout(()=>aiVoiceFix(S.base,raw),0);
+  if(!failed) state.aiVoiceStatus=state.ai.q!==S.base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して ➤ で送ってください。":"聞き取りを終了しました。もう一度話すことができます。"; haptic("done"); aiMicUI(); }
+function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="やめて入力を消す">✕</button>':`${A.q&&!A.busy?'<button class="ai-ib" data-act="aiClear" aria-label="入力を消す">✕</button>':""}<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
 function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
@@ -5764,14 +5774,16 @@ const aiMemP=()=>{ const v=prefs.aiMem; if(Array.isArray(v)) return v; try{ cons
 const aiMemPSet=a=>{ prefs.aiMem=JSON.stringify(a.slice(-40)); savePrefs(true); };
 function aiMemAdd(t,scope){ t=String(t||"").trim().slice(0,80); if(!t) return null; const m={id:newId(),t,at:Date.now(),by:myRole()};
   if(scope==="me") aiMemPSet([...aiMemP(),m]);
-  else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); }
+  else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); }
   return m; }
 /* v170: AIに伝える基本情報（ひとりずつ）。自分の分は自分の設定に保存し、「共有する」ならふたりの共有データにも写す */
 const AIP_FIELDS=[["w_day","日勤の時間","例：8:30〜17:30（フレックスなら「コア10〜15時」など）"],["w_early","早番の時間","例：7:00〜16:00"],["w_night","夜勤（入り〜明け）","例：16:30出勤〜翌9:00退勤"],["commute","通勤","例：車で片道30分"],["sleep","起床・就寝","例：勤務日 6:00起床/23:00就寝・休日 8:00/24:00"],["meal","食事の好み","例：和食・麺類が好き、平日は自炊"],["ng","苦手な食べ物・アレルギー","例：パクチー、えび"],["hobby","趣味・休日の過ごし方","例：ドライブ、カフェ、映画"],["chore","家事の得意・苦手","例：料理は得意、アイロンは苦手"],["memo","その他","例：朝は弱い、夜は集中できる、腰痛持ち"]];
 const aiProfMe=()=>{ try{ const o=JSON.parse(prefs.aiProf||"{}"); return o&&typeof o==="object"?o:{}; }catch(e){ return {}; } };
-const aiProfOf=r=>r===myRole()?aiProfMe():((((state.kakei||{}).aiProf)||{})[r]||{});
+const aiProfOf=r=>r===myRole()?aiProfMe():Object.fromEntries(Object.entries((((state.kakei||{}).aiProf)||{})[r]||{}).filter(([,v])=>v));
 function aiProfSave(k,v){ const o={...aiProfMe(),[k]:String(v||"").trim().slice(0,160)}; if(!o[k]) delete o[k]; prefs.aiProf=JSON.stringify(o); savePrefs(true); aiProfSync(); }
-function aiProfSync(){ const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}; P[r]=prefs.aiProfShare==="off"?{}:aiProfMe(); if(JSON.stringify(P[r])===JSON.stringify((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); }
+/* v198: 共有の meta/kakei は「上書き」せず、変えた欄だけ合わせる（読み込み前の空データで音楽の好み・ごみ設定などが消える問題の対策） */
+function kakeiPut(o){ if(!kakeiDoc) return Promise.resolve(); if(!state.kakeiLoaded){ kakeiPut.q={...(kakeiPut.q||{}),...o}; return Promise.resolve(); } return kakeiDoc.update(o); }
+function aiProfSync(){ if(!state.kakeiLoaded) return; const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}, me=prefs.aiProfShare==="off"?{}:aiProfMe(); P[r]=Object.fromEntries([...new Set([...AIP_FIELDS.map(([k])=>k),...Object.keys(me)])].map(k=>[k,me[k]||null])); if(JSON.stringify(P[r])===JSON.stringify((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); }
 function aiProfCardHTML(){ const P=aiProfMe(), ot=otherRole(), op=aiProfOf(ot), on=Object.keys(op).length;
   return `<section class="card" id="aiProfCard"><h2>AIに伝える基本情報</h2><p class="who">AI相談・今日を組む・今日の1曲などで使います。書いた分だけ提案が正確になります（空欄でもOK）</p>
     <div class="aip">${AIP_FIELDS.map(([k,l,ph])=>`<label><span>${l}</span><input type="text" id="aipf_${k}" data-aip="${k}" maxlength="160" placeholder="${esc(ph)}" value="${esc(P[k]||"")}"></label>`).join("")}</div>
@@ -5793,11 +5805,11 @@ function kindCardHTML(){ const L=kindList(true), hid=new Set(String(prefs.kindHi
     <div class="opts"><button class="opt" data-act="kindReset">最初の並びに戻す</button></div></section>`; }
 function aiMemUpd(id,t,scope){ t=String(t||"").trim().slice(0,80); if(!t){ aiMemDel(id); return; } const inP=aiMemP().some(m=>m.id===id), cur=(inP?aiMemP():aiMemB()).find(m=>m.id===id); if(!cur) return;
   const want=scope||(inP?"me":"both");
-  if((want==="me")!==inP){ aiMemDel(id); const m={...cur,t,at:Date.now()}; if(want==="me") aiMemPSet([...aiMemP(),m]); else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } return; }
+  if((want==="me")!==inP){ aiMemDel(id); const m={...cur,t,at:Date.now()}; if(want==="me") aiMemPSet([...aiMemP(),m]); else { state.kakei={...(state.kakei||{}),aiMem:[...aiMemB(),m].slice(-60),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); } return; }
   if(inP) aiMemPSet(aiMemP().map(m=>m.id===id?{...m,t,at:Date.now()}:m));
-  else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().map(m=>m.id===id?{...m,t,at:Date.now()}:m),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } }
+  else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().map(m=>m.id===id?{...m,t,at:Date.now()}:m),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); } }
 function aiMemDel(id){ if(aiMemP().some(m=>m.id===id)){ aiMemPSet(aiMemP().filter(m=>m.id!==id)); }
-  else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().filter(m=>m.id!==id),updatedAt:Date.now()}; if(kakeiDoc) kakeiDoc.set(state.kakei).catch(err); } }
+  else { state.kakei={...(state.kakei||{}),aiMem:aiMemB().filter(m=>m.id!==id),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); } }
 const AI_BRIEF_Q="おはよう。今日のブリーフと、今日の予定の組み方を提案して（タイムテーブルを整理して、時間未定のものや食事も入れて）";
 const AI_REPLAN_Q="予定の時間を過ぎてまだ終わっていないものがあるので、今からの残りの予定を組み直して";
 function aiOverdue(){ const t=today(), nowM=new Date().getHours()*60+new Date().getMinutes();
@@ -7053,7 +7065,7 @@ function dayInfoHTML(d){ const W=wxDay(d), G=gomiOn(d); if(!W&&!G.length) return
 function gomiBarHTML(){ const t=today(), hr=new Date().getHours(), g0=hr<12?gomiOn(t):[], g1=hr>=15?gomiOn(addDays(t,1)):[];
   const row=(lb,g,sub)=>`<button class="gmbar" data-go2="cal">${ic("trash")}<span><b>${lb}</b> ${g.map(k=>`${gomiIcon(k)}${esc(k)}`).join("・")}<small>${sub}</small></span></button>`;
   return (g0.length?row("今日のごみ",g0,"朝8時までに"):"")+(g1.length?row("明日のごみ",g1,"前の晩にまとめておく"):""); }
-function gomiSave(v){ v=String(v||"").slice(0,1500); state.kakei={...(state.kakei||{}),gomi:v}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); gomiCache={src:null,R:null}; }
+function gomiSave(v){ v=String(v||"").slice(0,1500); state.kakei={...(state.kakei||{}),gomi:v}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); gomiCache={src:null,R:null}; }
 function wxRender(){
   const el=$("wx"); if(!el) return; const W=state.wx, T=wxToday();
   if(prefs.wx==="off"||!W||!W.current||!T){ el.hidden=true; return; }
@@ -7310,7 +7322,7 @@ function wcCfg(r){ const W=((state.kakei||{}).workCal||{})[r]||{}; return {on:!!
 /* デンソー年度カレンダー（4月〜翌3月）：取得済みならその休日を使う */
 const fyOf=d=>{ const y=Number(d.slice(0,4)), m=Number(d.slice(5,7)); return m>=4?y:y-1; };
 function dcalMonth(C,d){ const F=C.dcal[fyOf(d)]; return F&&F.months&&F.months[d.slice(0,7)]||null; }
-function wcSave(r,ch){ const all={...((state.kakei||{}).workCal||{})}; all[r]={...(all[r]||{}),...ch}; state.kakei={...(state.kakei||{}),workCal:all}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); }
+function wcSave(r,ch){ const all={...((state.kakei||{}).workCal||{})}; all[r]={...(all[r]||{}),...ch}; state.kakei={...(state.kakei||{}),workCal:all}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); }
 function wcWant(C,d){ if(C.work.includes(d)) return "日"; if(C.off.includes(d)) return "休";
   if(C.pre==="denso"){ const M=dcalMonth(C,d); if(M) return M.off.includes(Number(d.slice(8)))?"休":"日"; } if(C.wk.includes(String(parse(d).getDay()))) return "休"; if(C.hol==="off"&&isJpHol(d)) return "休"; return "日"; }
 function wcRun(r,force){
@@ -7428,7 +7440,7 @@ ${leg?`この勤務表での記号の意味：${leg}\n`:""}- 夜勤が2日にま
 }
 document.addEventListener("change",e=>{ if(e.target&&e.target.id==="shIn"&&e.target.files&&e.target.files[0]) shOcrRead(e.target.files[0]); });
 function shOcrSaveCfg(){ const O=state.shOcr; if(!O) return; const r=O.role||state.paint.who||myRole(), n=(($("shoName")||{}).value||"").trim(), l=(($("shoLeg")||{}).value||"").trim();
-  O.name=n; O.legend=l; const cur=(state.kakei||{}).shOcr||{}; if((cur[r]||{}).name!==n||(cur[r]||{}).legend!==l){ const nx={...cur,[r]:{name:n,legend:l}}; state.kakei={...(state.kakei||{}),shOcr:nx}; if(kakeiDoc) kakeiDoc.set({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); } }
+  O.name=n; O.legend=l; const cur=(state.kakei||{}).shOcr||{}; if((cur[r]||{}).name!==n||(cur[r]||{}).legend!==l){ const nx={...cur,[r]:{name:n,legend:l}}; state.kakei={...(state.kakei||{}),shOcr:nx}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); } }
 let tipEl=null;
 function showTip(){
   if(prefs.nav==="flick") return;
@@ -7596,7 +7608,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",shareArrived); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; state.kakeiLoaded=true; requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
