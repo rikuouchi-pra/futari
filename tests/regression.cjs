@@ -94,7 +94,7 @@ test('failed recognition start releases session so retry works',()=>{
   const v=voiceEnv({window:{SpeechRecognition:class {start(){throw Error('busy');}}}});run(v.c,'aiMic()');assert.equal(run(v.c,'aiRec'),null);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力');
 });
 test('voice composer escapes text, disables send during recognition and supports long drafts',()=>{
-  const c=voiceEnv().c;c.state.ai.q='<script>alert(1)</script>';c.state.aiListening=true;const html=run(c,'aiComposerHTML()');assert.match(html,/maxlength="2000"/);assert.match(html,/readonly/);assert.match(html,/data-act="aiAsk" disabled/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);assert.equal(run(c,"aiVoiceDraft('', 'あ'.repeat(2100)).length"),2000);
+  const c=voiceEnv().c;c.state.ai.q='<script>alert(1)</script>';c.state.aiListening=true;const html=run(c,'aiComposerHTML()');assert.match(html,/maxlength="2000"/);assert.match(html,/readonly/);assert.doesNotMatch(html,/data-act="aiAsk"(?! disabled)/);assert.match(html,/data-act="aiVoiceCancel"/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);assert.equal(run(c,"aiVoiceDraft('', 'あ'.repeat(2100)).length"),2000);
 });
 test('notification inbox separates unread and history and excludes sender-only records',()=>{
   const c=env(['shareReceived','shareUnread','shareInboxHTML']);c.state.events=[{id:'mine',text:'<img>',date:'2026-09-29',notice:{to:'h',from:'w',at:2}},{id:'old',text:'確認した予定',date:'2026-09-27',notice:{to:'h',from:'w',at:1,seenAt:3}},{id:'sent',text:'相手宛のみ',notice:{to:'w',from:'h',at:4}}];
@@ -624,4 +624,12 @@ test('v193 AI uses the Pro tier with a date table and longer context', async () 
   assert.ok(prompt.length<=40000 && prompt.length>30000, `len=${prompt.length}`);
   assert.match(prompt,/2026-09-28\(月・今日\)/); assert.match(prompt,/2026-10-02\(金\)/);
   assert.match(prompt,/言った数だけ/);
+});
+
+test('v195 minimal AI card shows only the latest exchange and at most three suggestions', () => {
+  const c = env(['AIQ','aiComposerHTML','aiCardHTML'], { aiCan:()=>true, aiOverdue:()=>[], aiMemB:()=>[], aiMemP:()=>[], aiProfMe:()=>({}), AIP_FIELDS:[], aiActText:x=>x.type, aiWaitText:()=>'', seg:()=>'' });
+  c.state.ai.log=[{q:'古い質問',a:{reply:'古い答え',acts:[]}},{q:'新しい質問',a:{reply:'新しい答え',acts:[],next:['a','b','c','d']}}];
+  const h=run(c,'aiCardHTML("dock")');
+  assert.match(h,/前の会話（1）/); assert.match(h,/新しい答え/); assert.match(h,/data-act="aiDockClose"/);
+  assert.equal((h.match(/data-aiq=/g)||[]).length,3);
 });

@@ -438,6 +438,25 @@ html body.nav-tab.nav-flick .brand .hr{display:contents!important}html body.nav-
 html body.nav-tab.nav-flick #plus{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:18px;z-index:21;background:var(--accent);color:var(--on-accent);box-shadow:0 6px 20px rgba(0,0,0,.22)}
 html body.nav-tab.nav-flick #plus svg{width:26px;height:26px}
 body.nav-tab:has(.sheet.open) #plus,body.nav-tab:has(.tt-bar) #plus,body.nav-tab:has(.tabmore:not([hidden])) #plus{display:none!important}
+.ai-voice-status[hidden]{display:none}
+.ai-compose.ai-row{display:flex;grid-template-columns:none;align-items:flex-end;gap:6px;padding:6px;border-radius:22px;background:var(--ground);border:1px solid var(--line)}
+.ai-compose.ai-row textarea{flex:1;width:auto;min-width:0;min-height:22px!important;resize:none!important;border:0!important;background:transparent!important;resize:none;padding:8px 10px!important;font:inherit;font-size:15px;line-height:1.45;min-height:22px;max-height:140px;box-shadow:none!important;outline:none}
+.ai-ib{flex:none;width:38px;height:38px;border-radius:50%;border:0;display:grid;place-items:center;background:transparent;color:var(--muted);cursor:pointer}
+.ai-ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ai-ib.ai-send{background:var(--accent);color:var(--on-accent)}.ai-ib.ai-send:disabled{opacity:.4}
+.ai-ib.ai-mic.on{background:var(--danger);color:#fff;animation:aipulse 1.2s ease-in-out infinite}
+@keyframes aipulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--danger) 25%,transparent)}}
+.aicard .ai-h{display:flex;align-items:center;gap:6px}.aicard .ai-h b{flex:1}
+.aicard .ai-chips{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;margin-top:8px}.aicard .ai-chips .chip{flex:none}
+.ai-old summary,.ai-more summary{font-size:12px;color:var(--muted);cursor:pointer}
+.ai-more{margin-top:8px}
+.ai-dock{margin:6px 0 12px;box-shadow:0 8px 28px rgba(0,0,0,.12);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
+.ai-fab{position:fixed;z-index:21;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(152px + env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:16px;border:0;display:grid;place-items:center;background:var(--surface);color:var(--accent);box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer}
+.ai-fab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}
+.ai-fab.on{background:var(--accent);color:var(--on-accent)}
+.ai-fab[hidden]{display:none}
+body:not(.nav-tab) .ai-fab{bottom:calc(96px + env(safe-area-inset-bottom,0px));right:calc(96px + env(safe-area-inset-right,0px))}
+body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([hidden])) .ai-fab{display:none}
 body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
 body.mini .htile{min-height:0}
 
@@ -1690,7 +1709,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="194";
+const APP_VERSION="195";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2450,7 +2469,7 @@ function viewTalk(){
   h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目を長押し→「議題にする」":"この日の記録はありません"}</div>`;
   if(futT.length) h+=`<div class="section-label">これからの議題（話す日を指定）</div><ul class="list">${futT.map(topicRow).join("")}</ul>`;
   h+=talkCalendarHTML();
-  h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`+(isT?aiCardHTML("talk"):"");
+  h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`+(isT&&!state.aiOpen?aiCardHTML("talk"):"");
   if(isT){
     const t=today(), in7=addDays(t,7), me=state.me||"local";
     const trs=state.troubles.filter(x=>x.status!=="done").sort((a,b)=>((TLEVEL[a.level]||TLEVEL.mid).o-(TLEVEL[b.level]||TLEVEL.mid).o));
@@ -3805,6 +3824,7 @@ function render(anim){
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
+  aiDock();
   document.querySelectorAll("#main .heat").forEach(h=>{ h.scrollLeft=h.scrollWidth; });
   if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
   if(anim){ const m=$("main"); m.style.setProperty("--sx",anim+"px"); m.classList.remove("slide"); void m.offsetWidth; m.classList.add("slide"); }
@@ -4238,6 +4258,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="bkXlsx") exportXlsx();
   else if(a==="bkRestore"){ $("bkFile")&&$("bkFile").click(); }
   else if(a==="ttpickx"){ state.ttPick=null; render(); }
+  else if(a==="aiDockClose"){ aiDockToggle(false); }
   else if(a==="futhome"){ state.fut=null; render(-40); }
   else if(a==="cprev"||a==="cnext") shiftCal(a==="cprev"?-1:1);
   else if(a==="paint"){ state.paint.on=!state.paint.on; render(); }
@@ -5557,7 +5578,18 @@ const AI_PROMPT_MAX=40000;
 function aiDateTable(){ const t=today(); return [...Array(21)].map((_,i)=>{ const d=addDays(t,i); return `${d}(${"日月火水木金土"[parse(d).getDay()]}${i===0?"・今日":i===1?"・明日":i===2?"・あさって":""})`; }).join(" "); }
 /* Voice is a draft: recognition never sends a question automatically. */
 let aiRec=null;
-function aiMicUI(){ if(state.view==="home"||state.view==="talk")render(); }
+document.addEventListener("input",e=>{ if(e.target&&e.target.id==="aiIn"){ const t=e.target; t.style.height="auto"; t.style.height=Math.min(140,t.scrollHeight)+"px"; } });
+function aiMicUI(){ if(state.aiOpen||state.view==="home"||state.view==="talk")render(); }
+/* v195: どの画面からでもすぐ呼べるAI（右下の ✦ ボタン → 画面のいちばん上に出る） */
+function aiDock(){ const main=$("main"); let el=$("aiDock"); if(!state.aiOpen||!aiCan()){ if(el) el.remove(); aiFab(); return; }
+  if(!el||el.parentNode!==main){ el=document.createElement("div"); el.id="aiDock"; main.prepend(el); }
+  const ae=document.activeElement, focused=ae&&ae.id==="aiIn"&&el.contains(ae), q=focused?ae.value:null;
+  el.innerHTML=aiCardHTML(state.view==="talk"?"talk":"dock"); el.firstElementChild.classList.add("ai-dock");
+  if(focused){ const n=$("aiIn"); if(n){ n.value=q; n.focus(); } } aiFab(); }
+function aiFab(){ let b=$("aiFab"); if(!aiCan()){ if(b) b.hidden=true; return; } if(!b){ b=document.createElement("button"); b.id="aiFab"; b.className="ai-fab"; b.setAttribute("aria-label","AIに相談"); b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9-1.9 5.1-1.9-5.1L5 10.5l5.1-1.9z"/><path d="M18.5 15.5v4M16.5 17.5h4"/></svg>'; document.body.appendChild(b);
+    b.addEventListener("click",()=>{ haptic("tick"); aiDockToggle(); }); }
+  b.hidden=false; b.classList.toggle("on",!!state.aiOpen); }
+function aiDockToggle(on){ state.aiOpen=on===undefined?!state.aiOpen:on; render(); if(state.aiOpen){ window.scrollTo({top:0,behavior:"smooth"}); setTimeout(()=>{ const n=$("aiIn"); if(n) n.focus({preventScroll:true}); },250); } }
 function aiVoiceText(results){let final="",interim="";for(let i=0;i<results.length;i++){const r=results[i],t=String(r[0]?.transcript||"");if(r.isFinal)final+=t;else interim+=t;}return {final,interim};}
 function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean).join("\n").slice(0,2000);}
 function aiVoiceCancel(){ if(aiRecM){ const M=aiRecM; clearInterval(M._tick); M.onstop=()=>{ try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }; aiRecM=null; try{ M.stop(); }catch(e){} } const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
@@ -5605,7 +5637,7 @@ function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&aiVoiceAIOk())){ a
   R.onend=()=>{if(aiRec!==R)return;aiRec=null;state.aiListening=false;if(!failed)state.aiVoiceStatus=state.ai.q!==base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して「送る」を押してください。":"聞き取りを終了しました。もう一度話すことができます。";haptic("done");aiMicUI();};
   try{state.aiListening=true;state.aiVoiceStatus="聞き取り中です。話し終わったら「聞き取りを終了」を押してください。";R.start();haptic("arm");aiMicUI();}catch(e){aiRec=null;state.aiListening=false;state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。";aiMicUI();}
 }
-function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening;return `<div class="ai-compose"><label class="who" for="aiIn">AIへの相談・音声入力の確認</label><textarea id="aiIn" rows="3" maxlength="2000" enterkeyhint="enter" aria-describedby="aiVoiceStatus" placeholder="${talk?"例：今日の議題の順番は？":"例：明日の19時に、自分だけの予定で買い物を追加して"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><div class="ai-voicebar"><button class="btn ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>${listening?"聞き取りを終了":A.q?"続けて話す":"声で入力"}</button>${listening?'<button class="btn" data-act="aiVoiceCancel">取消</button>':""}<button class="btn primary" data-act="aiAsk" ${A.busy||listening?"disabled":""} aria-label="送る">送る</button></div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite">${esc(state.aiVoiceStatus||"声で入力 → 文字を確認・修正 → 送る。自動では送信しません。")}</p><details class="ai-mem"><summary>聞き取りのコツ</summary><p class="who">「明日・19時・自分だけ・買い物」のように、日付、時刻、だれの予定かを区切って話してください。認識結果は送信前に直せます。音声認識はブラウザーのサービスを使います。</p></details></div>`;}
+function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="取り消す">✕</button>':`<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
 function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
@@ -5692,7 +5724,7 @@ ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフ�
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null}));
     entry.a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(String):[]};haptic("done");
   }catch(e){if(A.runId!==runId)return;entry.a=aiFailure(e,q);A.q=q;}
-  finally{if(A.runId===runId){clearInterval(A.waitTimer);A.waitTimer=null;A.ctl=null;A.busy=false;aiLogSave();if(state.view==="home"||state.view==="talk")render();else toast("AIの結果をホームで確認できます");}}
+  finally{if(A.runId===runId){clearInterval(A.waitTimer);A.waitTimer=null;A.ctl=null;A.busy=false;aiLogSave();if(state.aiOpen||state.view==="home"||state.view==="talk")render();else toast("AIの結果は ✦ ボタンで見られます");}}
 }
 
 /* v159: 覚え書き（ふたり共通＝共有データ／🔒自分＝自分の設定）・朝のブリーフ・遅れたら組み直し・話し合いの準備と片付け */
@@ -5744,17 +5776,19 @@ function aiLogSave(){ try{ store.set("futari.ailog",JSON.stringify({d:today(),lo
 function aiLogLoad(){ try{ const o=JSON.parse(store.get("futari.ailog")||"null"); if(o&&o.d===today()&&Array.isArray(o.log)) state.ai.log=o.log.filter(x=>x.a); }catch(e){} }
 function aiAutoBrief(){ const A=state.ai; if(A.autoTried||!aiCan()||A.busy) return; A.autoTried=true; const h=new Date().getHours();
   if(prefs.aiBrief==="off"||h<5||h>=12||prefs.aiBriefDay===today()) return; prefs.aiBriefDay=today(); savePrefs(true); aiAsk(AI_BRIEF_Q,{brief:true}); }
-function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log[A.log.length-1], talk=where==="talk";
+function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log[A.log.length-1], talk=where==="talk", dock=where==="dock";
   const base=talk?["話し合いの準備をして","メモからやることを作って","今日決まったことを整理して"]:["☀ 今日を組む",...AIQ];
-  const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:base), retry=last&&last.a&&last.a.retry;
+  const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:base).slice(0,3), retry=last&&last.a&&last.a.retry;
   const od=!talk&&!A.busy?aiOverdue():[], mb=aiMemB(), mp=aiMemP();
-  return `<section class="aicard" aria-label="AIに相談"><div class="ai-h"><b>${talk?"AIと話し合いの準備":"AIに相談"}</b><span class="who">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="link ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話と接続状態をリフレッシュ。入力と保存済みの内容は残します">↻ リフレッシュ</button></div>
-    ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 時間を過ぎて終わっていない予定 ${od.length}件（${od.slice(0,2).map(o=>esc(o.t.slice(0,10))).join("・")}${od.length>2?"…":""}）</span><b>残りを組み直す</b></button>`:""}
-    ${A.log.map((x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`).join("")}
+  const qa=(x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`;
+  const L=A.log, older=L.slice(0,-1);
+  return `<section class="aicard ${dock?"ai-dock":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ ${talk?"AIと話し合いの準備":"AI"}</b><span class="who mx">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="icon-btn sm ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話をリフレッシュ（入力は残ります）">↻</button>${dock?`<button class="icon-btn sm" data-act="aiDockClose" aria-label="AIを閉じる">✕</button>`:""}</div>
+    ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 過ぎた予定 ${od.length}件</span><b>組み直す</b></button>`:""}
+    ${older.length?`<details class="ai-old"><summary>前の会話（${older.length}）</summary>${older.map((x,li)=>qa(x,li)).join("")}</details>`:""}${last?qa(last,L.length-1):""}
     ${aiComposerHTML(talk)}
-    <div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}" ${A.busy?"disabled":""}>${retry?"↻ もう一度："+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>
-    <button class="link ai-prof" data-go2="aiprof">👤 基本情報を設定（${Object.keys(aiProfMe()).length}/${AIP_FIELDS.length}）</button>
-    <details class="ai-mem" ${state.aiMemOpen?"open":""}><summary>🧠 AIが覚えていること（${mb.length+mp.length}）</summary>
+    ${A.busy?"":`<div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}">${retry?"↻ "+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>`}
+    <details class="ai-mem ai-more" ${state.aiMemOpen?"open":""}><summary>⚙ AIの設定・覚えていること（${mb.length+mp.length}）</summary>
+      <button class="link ai-prof" data-go2="aiprof">👤 基本情報を設定（${Object.keys(aiProfMe()).length}/${AIP_FIELDS.length}）</button>
       ${[...mb.map(m=>[m,"both"]),...mp.map(m=>[m,"me"])].map(([m,sc])=>state.aiMemEdit===m.id?`<div class="ai-mrow ed"><input type="text" id="aiMemEd" maxlength="80" value="${esc(m.t)}" enterkeyhint="done">${seg("aimesc",sc,[["both","ふたり"],["me","🔒自分"]])}<button class="btn primary" data-aimsave="${esc(m.id)}">保存</button><button class="link" data-aimcancel="1">やめる</button></div>`:`<div class="ai-mrow"><span class="tag tc-muted">${sc==="me"?"🔒自分":"ふたり"}</span><button class="ai-mt" data-aimed="${esc(m.id)}" aria-label="編集">${esc(m.t)}</button><button class="icon-btn sm" data-aimdel="${esc(m.id)}" aria-label="忘れる">✕</button></div>`).join("")||`<div class="who">まだありません。「辛いものは苦手」「平日は自炊」など、覚えてほしいことを入れてください</div>`}
       <div class="ai-in"><input type="text" id="aiMemIn" maxlength="80" placeholder="覚えてほしいこと" enterkeyhint="done">${seg("aimsc",state.aiMemSc||"both",[["both","ふたり"],["me","🔒自分"]])}<button class="btn" data-act="aiMemAdd">追加</button></div></details></section>`; }
 async function refAiRun(){ const ai=aiText(); if(!ai||state.refAiBusy) return; state.refAiBusy=true; render();
@@ -5800,7 +5834,7 @@ function homeWidget(k){ const t=today(), n=counts();
   if(k==="today") return briefHTML(true);
   if(k==="week") return homeWeekHTML();
   if(k==="sched") return homeSchedHTML();
-  if(k==="ai"){ setTimeout(aiAutoBrief,1200); return aiCardHTML("home"); }
+  if(k==="ai"){ setTimeout(aiAutoBrief,1200); return state.aiOpen?"":aiCardHTML("home"); }
   if(k==="habit") return hTodayList().length?homeCard("今日の習慣",hTodayHTML(true).replace('<div class="chart htoday-card">','<div class="htoday-card home">'),"habit"):"";
   if(k==="mood"){ const r=state.reflect.find(x=>x.id===t)||{}, wk=[...Array(7)].map((_,i)=>addDays(t,i-6));
     return homeCard(`今日の気分 <span class="who" style="font-weight:500">🔒自分だけ</span>`,`<div class="moods hmoods">${MOODS.map(([v,l])=>`<button type="button" class="mood" data-hmood="${v}" aria-pressed="${r.mood===v}"><b>${v}</b>${l}</button>`).join("")}</div>
