@@ -194,14 +194,16 @@
     if(signal&&signal.aborted)throw aiAbortError_();
     if(!G){var e0=new Error("no_gas");e0.code="no_gas";throw e0;}
     if(aiConnectionIssue&&aiConnectionIssue.url===G&&Date.now()<aiConnectionIssue.until)throw aiConnectionIssue.error;
-    var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[], id="ai"+rid(), ref=M.doc(fs,"aitmp",id), doc={prompt:String(prompt).slice(0,20000),at:Date.now(),by:me.uid};
-    var ctl=new AbortController(), expired=false, budget=Math.max(1000,Math.min(150000,Number(o.timeoutMs)||(imgs.length?90000:30000)));
+    var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[], id="ai"+rid(), ref=M.doc(fs,"aitmp",id), doc={prompt:String(prompt).slice(0,40000),at:Date.now(),by:me.uid};
+    if(o.modelTier)doc.tier=String(o.modelTier).slice(0,10); /* v193: pro＝賢いモデル（Apps Script v10 以降で有効） */
+    var ctl=new AbortController(), expired=false, budget=Math.max(1000,Math.min(150000,Number(o.timeoutMs)||(imgs.length||o.audio?90000:30000)));
     var cancel=function(){ctl.abort();}, timer=setTimeout(function(){expired=true;ctl.abort();},budget), written=null;
     if(signal)signal.addEventListener("abort",cancel,{once:true});
     var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
     try{
       phase("送信を準備しています");
-      if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0]),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
+      if(o.audio){if(o.audio.size>MAX_ONE){var ea=new Error("録音が長すぎます");ea.code="too_large";throw ea;}doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(o.audio.arrayBuffer(),ctl.signal)));doc.mime=o.audio.type||"audio/wav";} /* v193: 音声の文字起こし */
+      else if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0]),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
       if(ctl.signal.aborted)throw aiAbortError_();
       written=M.setDoc(ref,doc);await waitAbort_(written,ctl.signal);
       var tok=await waitAbort_(me.getIdToken(),ctl.signal);

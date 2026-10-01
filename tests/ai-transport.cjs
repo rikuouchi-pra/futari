@@ -18,3 +18,6 @@ test('known access failures return promptly on repeat and do not upload another 
   t.run('SAMPLE.resetConnection()');assert.equal(t.ctx.aiConnectionIssue,null);assert.equal(t.ctx.gasMode,null);
   t.ctx.fetch=async()=>({text:async()=>JSON.stringify({payload:{reply:'recovered'}})});assert.equal((await t.run("SAMPLE.json('retry',{})")).reply,'recovered');assert.equal(writes,2);
 });
+test('v193 audio is uploaded as-is with its type and the model tier is passed to Apps Script',async()=>{let doc=null;const t=setup({gasUrl:()=> 'https://example.test',rid:()=> 'test',fs:{},me:{uid:'u',getIdToken:async()=> 'fixture-token'},M:{doc:()=>({}),Bytes:{fromUint8Array:u=>({n:u.length})},setDoc:async(_,d)=>{doc=d;},deleteDoc:async()=>{}},fetch:async()=>({status:200,text:async()=>JSON.stringify({payload:{text:'こんにちは'}})})});vm.runInContext(decl('aiAsk'),t.ctx);t.ctx.MAX_ONE=900*1024;
+  const audio={size:8,type:'audio/wav',arrayBuffer:async()=>new ArrayBuffer(8)};t.ctx.__a=audio;const r=await t.run("aiAsk('文字起こし',{audio:__a,modelTier:'pro'})");
+  assert.equal(doc.mime,'audio/wav');assert.equal(doc.img.n,8);assert.equal(doc.tier,'pro');assert.equal(r.text,'こんにちは');});

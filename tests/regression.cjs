@@ -31,7 +31,7 @@ function env(names, overrides = {}) {
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',...overrides });
-  if(names.includes('aiAsk'))names=['aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
+  if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -40,7 +40,7 @@ const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDa
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 
-const voiceFns=['aiRec','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
+const voiceFns=['aiRec','aiRecM','aiVoiceAIOk','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
@@ -284,11 +284,11 @@ test('AI task preserves date, start, end and partner assignment', () => {
 test('historical dates are not silently rewritten by a background timer', () => {
   assert.doesNotMatch(source,/setTimeout\(aiYearFix/);
 });
-test('AI prompt retains question and stays within the backend 20k limit', async () => {
+test('AI prompt retains question and stays within the backend 40k limit', async () => {
   let prompt=''; const c=env(['AI_PREFS','AI_ACT_L','aiAsk'],{aiCan:()=>true,aiCtx:()=> '状況'.repeat(10000),aiMemB:()=>[],aiMemP:()=>[]});
   c.state._smt={json:async p=>{prompt=p;return {reply:'test',acts:[]};}};
   c.state.ai.log=Array.from({length:3},()=>({q:'q'.repeat(1000),a:{reply:'a'.repeat(1000)}}));
-  await run(c,"aiAsk('質問'.repeat(2000))");assert.ok(prompt.length<=20000,`prompt=${prompt.length}`);assert.ok(prompt.indexOf('【今回の質問】')<300);assert.equal(c.state.ai.busy,false);
+  await run(c,"aiAsk('質問'.repeat(2000))");assert.ok(prompt.length<=40000,`prompt=${prompt.length}`);assert.ok(prompt.indexOf('【今回の質問】')<300);assert.equal(c.state.ai.busy,false);
 });
 test('auto rules create private tasks, retain completed items and honor skips', () => {
   const c=env(['tmin','autoCook'],{setTimeout:f=>{f();return 1;},clearTimeout(){},autoTimer:null,db:null,privBase:null,arSkip:()=>new Set(['rule:2026-09-29']),arRules:()=>[{id:'rule',kind:'task',on:true,name:'料理',s:'18:00',e:'19:00'}],arMatch:()=>true});
@@ -526,7 +526,7 @@ test('AI refresh immediately releases busy state, retains draft, and ignores a l
 });
 test('AI timeout releases a provider that ignores cancellation and keeps the question editable',async()=>{
   const timers=[];const c=aiChatEnv({setTimeout:(fn,ms)=>(timers.push({fn,ms}),timers.length),clearTimeout(){},setInterval:()=>1,clearInterval(){}});
-  c.state._smt={json:()=>new Promise(()=>{})};const p=run(c,"aiAsk('質問を残す')");await microtasks();assert.equal(timers[0].ms,30000);timers[0].fn();await p;
+  c.state._smt={json:()=>new Promise(()=>{})};const p=run(c,"aiAsk('質問を残す')");await microtasks();assert.equal(timers[0].ms,60000);timers[0].fn();await p;
   assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.q,'質問を残す');assert.match(c.state.ai.log[0].a.reply,/時間内/);
 });
 test('AI failures are excluded from context and a retry does not duplicate the failed question',async()=>{
@@ -615,4 +615,13 @@ test('v192 templates add concrete memo and checklist; old names map to new templ
   const w = c.writes.at(-1); assert.equal(w.c, 'plans'); assert.match(w.data.memo, /15日以内/); assert.ok(w.data.checks.length >= 3 && w.data.checks.every(x => x.done === false));
   run(c, 'tplNew("wish","温泉に行く")'); assert.equal(c.writes.at(-1).data.checks.length, 0);
   assert.ok(run(c, 'tplX("育休の相談")').c.length > 0);
+});
+test('v193 AI uses the Pro tier with a date table and longer context', async () => {
+  let prompt='', opts=null; const c=env(['AI_PREFS','AI_ACT_L','aiAsk'],{aiCan:()=>true,aiCtx:()=> '状況'.repeat(30000),aiMemB:()=>[],aiMemP:()=>[]});
+  c.state._smt={json:async (p,o)=>{prompt=p;opts=o;return {reply:'ok',acts:[]};}};
+  await run(c,"aiAsk('来週の金曜に歯医者を追加して')");
+  assert.equal(opts.modelTier,'pro'); assert.equal(opts.timeoutMs,60000);
+  assert.ok(prompt.length<=40000 && prompt.length>30000, `len=${prompt.length}`);
+  assert.match(prompt,/2026-09-28\(月・今日\)/); assert.match(prompt,/2026-10-02\(金\)/);
+  assert.match(prompt,/言った数だけ/);
 });

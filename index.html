@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=186"></script>
+<script src="shim.js?v=193"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1664,7 +1664,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="192";
+const APP_VERSION="193";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1740,7 +1740,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={voiceAI:"on",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"rail",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -3607,7 +3607,8 @@ function viewSettings(){
     <label class="sho-f"><span class="who">1行に1つ「種類: 曜日」。毎週は「月 木」、第何週は「第2金」。月だけ違うときは「/ 1月: 第2金」。休みは「休み: 12/29-1/3」。特定の日は「2027-01-07: 可燃ごみ」「2027-01-05: なし」</span><textarea id="gomiIn" rows="7" maxlength="1500" placeholder="${esc(GOMI_EX)}">${esc(gomiTxt())}</textarea></label>
     <div class="opts"><a class="opt" style="text-decoration:none;color:inherit" href="${GOMI_PDF}" target="_blank" rel="noopener">刈谷市のカレンダー（A地区PDF）</a>${gomiTxt()!==GOMI_EX?'<button class="opt" data-act="gomiEx">刈谷市の公式データに戻す</button>':""}</div>
     <p class="who">${(()=>{ const t=today(), n=[...Array(7)].map((_,i)=>addDays(t,i)).map(d=>[d,gomiOn(d)]).filter(([,g])=>g.length); return n.length?"これから1週間："+n.map(([d,g])=>`${short(d)} ${esc(g.join("・"))}`).join("／"):"まだ設定されていません"; })()}</p></section>
-  <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
+  <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div>
+    <p class="who" style="margin-top:10px">音声入力（AIの🎤）</p><div class="opts">${opt("voiceAI","on","高精度（録音してAIで文字起こし）")}${opt("voiceAI","off","端末の音声認識（すぐ文字になる）")}</div><p class="who">高精度は話し終わってから数秒で文字になります。名前やよく使う言葉を手がかりにします。</p><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
     <p>AIを使うのは次の機能です：レシートの読み取り／勤務表の写真からシフト読み取り／会社カレンダーの画像・デンソー年度カレンダーの取り込み。</p>
     <p>${window.__FUTARI_PWA?"送り先：Google Gemini（Apps Script経由）。無料枠では、送った写真や文章がGoogleのサービス改善に使われることがあります。":"送り先：Claude（Anthropic）。"}「使わない」にすると、上の機能は手入力になり、写真や文章は外部に送られません。${esc(nameOf(myRole()))}の画面だけの設定です。</p>
     <p class="who">いまの状態：${!aiOn()?"オフ":state._sm?"使えます":window.__FUTARI_PWA?"準備が必要（Apps ScriptにGeminiのAPIキーを設定）":"この表示環境ではAIに問い合わせできません"}</p></section>
@@ -5523,13 +5524,49 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     else { toast("この操作はまだできません"); return; }
   }catch(err){ toast("実行できませんでした："+(err.message||"入力内容を確認してください")); return; }
   x.ok=true; aiLogSave(); haptic("done"); if(x.type!=="done"&&x.type!=="delete") toast(`${aiActText(x)} を実行しました`,undo,"done"); render(); }
+/* v193: 日付の早見表（今日から21日分）。AIが曜日や「来週の金曜」を計算で間違えないように渡す */
+const AI_PROMPT_MAX=40000;
+function aiDateTable(){ const t=today(); return [...Array(21)].map((_,i)=>{ const d=addDays(t,i); return `${d}(${"日月火水木金土"[parse(d).getDay()]}${i===0?"・今日":i===1?"・明日":i===2?"・あさって":""})`; }).join(" "); }
 /* Voice is a draft: recognition never sends a question automatically. */
 let aiRec=null;
 function aiMicUI(){ if(state.view==="home"||state.view==="talk")render(); }
 function aiVoiceText(results){let final="",interim="";for(let i=0;i<results.length;i++){const r=results[i],t=String(r[0]?.transcript||"");if(r.isFinal)final+=t;else interim+=t;}return {final,interim};}
 function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean).join("\n").slice(0,2000);}
-function aiVoiceCancel(){const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
-function aiMic(){if(state.ai.busy)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function aiVoiceCancel(){ if(aiRecM){ const M=aiRecM; clearInterval(M._tick); M.onstop=()=>{ try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }; aiRecM=null; try{ M.stop(); }catch(e){} } const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
+/* v193: 高精度の音声入力。録音した声をAI（Gemini）で文字起こしする。名前・よく使う言葉を手がかりとして渡す */
+let aiRecM=null;
+function aiVoiceAIOk(){ return prefs.voiceAI!=="off"&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
+async function aiToWav(blob){ const AC=window.AudioContext||window.webkitAudioContext, ctx=new AC(); try{ const buf=await ctx.decodeAudioData(await blob.arrayBuffer()); const sr=16000, len=Math.max(1,Math.ceil(buf.duration*sr)), off=new OfflineAudioContext(1,len,sr), src=off.createBufferSource(); src.buffer=buf; src.connect(off.destination); src.start(); const pcm=(await off.startRendering()).getChannelData(0);
+  const out=new DataView(new ArrayBuffer(44+pcm.length*2)), w=(o,s)=>{ for(let i=0;i<s.length;i++) out.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,"RIFF"); out.setUint32(4,36+pcm.length*2,true); w(8,"WAVE"); w(12,"fmt "); out.setUint32(16,16,true); out.setUint16(20,1,true); out.setUint16(22,1,true); out.setUint32(24,sr,true); out.setUint32(28,sr*2,true); out.setUint16(32,2,true); out.setUint16(34,16,true); w(36,"data"); out.setUint32(40,pcm.length*2,true);
+  for(let i=0;i<pcm.length;i++){ const v=Math.max(-1,Math.min(1,pcm[i])); out.setInt16(44+i*2,v<0?v*0x8000:v*0x7fff,true); }
+  return new Blob([out.buffer],{type:"audio/wav"}); } finally { try{ ctx.close(); }catch(e){} } }
+function aiVoiceHints(){ const w=new Set([nameOf("h"),nameOf("w"),"夜勤入り","夜勤明け","早番","日勤","タイムテーブル","買い物","家事","議題"]);
+  for(const x of [...state.items.slice(-60),...(state.chores||[]),...state.plans.slice(-30)]) if(x&&x.text) w.add(String(x.text).slice(0,20));
+  return [...w].filter(Boolean).slice(0,90).join("、"); }
+async function aiVoiceRec(){
+  if(aiRecM){ try{ aiRecM.stop(); }catch(e){} return; }
+  const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000); state.ai.q=base; state.aiVoiceBase=base;
+  let stream; try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }catch(e){ state.aiVoiceStatus="マイクを使えません。ブラウザーのマイク設定を確認してください。"; aiMicUI(); return; }
+  const chunks=[], R=new MediaRecorder(stream); aiRecM=R; const t0=Date.now();
+  R.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  const tick=R._tick=setInterval(()=>{ const sec=Math.floor((Date.now()-t0)/1000); state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。話し終わったら「聞き取りを終了」`; const el=$("aiVoiceStatus"); if(el) el.textContent=state.aiVoiceStatus; if(sec>=28) try{ R.stop(); }catch(e){} },500);
+  R.onstop=async()=>{ clearInterval(tick); stream.getTracks().forEach(t=>t.stop()); aiRecM=null; state.aiListening=false; state.aiVoiceStatus="AIで文字起こし中…"; aiMicUI();
+    try{ const wav=await aiToWav(new Blob(chunks,{type:R.mimeType||"audio/mp4"}));
+      const d=await state.sample.json(`日本語の音声です。話した内容を正確に文字に起こしてください。
+- 「えー」「あの」などの言いよどみと言い直し前の言葉は除き、言い直した後の内容を書く
+- 日付・時刻・数字はアラビア数字（例：10月3日 19時）
+- 次の名前・言葉が出てくることがあるので、似た音ならこの表記を使う：${aiVoiceHints()}
+- 聞き取れない部分は推測で埋めず（？）と書く
+JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick",timeoutMs:45000});
+      const text=String((d&&(d.text||d.transcript))||"").trim();
+      if(!text){ state.aiVoiceStatus="声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。"; }
+      else { state.ai.q=aiVoiceDraft(base,text); state.aiVoiceStatus="聞き取り完了（AI）。日付・時刻・名前を確認して「送る」を押してください。"; haptic("done"); }
+    }catch(e){ state.aiVoiceStatus="AIで文字起こしできませんでした"+(e&&(e.detail||e.message)?"："+String(e.detail||e.message).slice(0,60):"")+"。もう一度試すか、キーボードのマイクを使ってください。"; }
+    aiMicUI(); };
+  try{ R.start(1000); state.aiListening=true; state.aiVoiceStatus="録音中…"; haptic("arm"); aiMicUI(); }catch(e){ aiRecM=null; stream.getTracks().forEach(t=>t.stop()); state.aiVoiceStatus="録音を開始できませんでした。"; aiMicUI(); }
+}
+function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&aiVoiceAIOk())){ aiVoiceRec(); return; } const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(state.aiListening&&aiRec){state.aiVoiceStatus="聞き取りを終了しています…";try{aiRec.stop();}catch(e){aiRec=null;state.aiListening=false;}aiMicUI();return;}
   if(!SR){state.aiVoiceStatus="このブラウザーでは直接の音声認識が使えません。入力欄をタップし、キーボードのマイクで入力してください。";aiMicUI();$("aiIn")?.focus();return;}
   const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000);state.ai.q=base;state.aiVoiceBase=base;
@@ -5564,14 +5601,20 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
   A.busy=true;A.q="";A.lastQ=q;A.startedAt=Date.now();A.phase="送信を準備しています";A.log.push(entry);if(A.log.length>6)A.log.shift();render();A.waitTimer=setInterval(aiWaitPaint,1000);
   try{
   const hist=A.log.slice(0,-1).filter(x=>x.a&&!x.a.err).slice(-3).map(x=>`Q：${String(x.q).slice(0,300)}\nA：${String(x.a.reply).slice(0,600)}`).join("\n\n");
-  const prompt=`あなたは夫婦「${nameOf("h")}」と「${nameOf("w")}」の生活を手伝うアシスタントです。下の「いまの状況」をふまえて、質問に日本語でやさしく具体的に答えてください。
+  const prompt0=`あなたは夫婦「${nameOf("h")}」と「${nameOf("w")}」の生活を手伝うアシスタントです。下の「いまの状況」をふまえて、質問に日本語でやさしく具体的に答えてください。
 【今回の質問】${q}
 - 状況に関係する点（シフト・天気・最近の夕飯とかぶらない・買い物リストにある食材・予定の時間など）を理由に入れる
-- 候補は2〜3個。全体で300字以内。箇条書きは「・」を使う
+- 答える前に「いまの状況」から質問に関係する事実（日付・シフト・予定・期限・記録・覚えておくこと）を拾い、具体的な日付や名前を挙げて根拠にする。一般論だけで終わらせない
+- 候補は2〜3個。ふつうは400字以内（計画・比較・振り返りを頼まれたら800字まで）。箇条書きは「・」を使う
 - 分からないことは決めつけず、確認の一言を添える
 - 「いまの状況」に書かれていない事実・ルール・習慣は作らない（推測するときは「〜かも」と書く）
-- acts の日付は YYYY-MM-DD、時刻は HH:MM（00:00〜23:59）。今日は ${today()}。本人が年を明示したらその年を守る。日付・開始・終了・担当を指定されたら対応する全フィールドを省略せず入れる
+- acts の日付は YYYY-MM-DD、時刻は HH:MM（00:00〜23:59）。いまは ${today()}（${"日月火水木金土"[new Date().getDay()]}）${String(new Date().getHours()).padStart(2,"0")}:${String(new Date().getMinutes()).padStart(2,"0")}。日付は次の表で決める（計算しない）：${aiDateTable()}。本人が年を明示したらその年を守る。日付・開始・終了・担当を指定されたら対応する全フィールドを省略せず入れる
 - acts の who：家のこと・ふたりに関係することは "both"、自分の用事は "me"。"priv"（相手に見せない）は本人が「内緒」「自分だけ」と言ったときだけ
+- 【登録の正確さ】本人が言った項目だけを、言った数だけ acts にする。言っていない項目・おまけの提案は acts に入れず reply で「〜も追加しますか？」と聞く
+- 【種類の決め方】決まった時刻に人と会う・出かける約束→add_event／自分がやる作業→add_task／買う物→add_shop（「〇〇を買う」は add_shop。text は品名だけ）／毎週・毎日など繰り返す→add_recurring／いつかやりたい・防災・子育て→add_plan／話し合いたいこと→add_topic
+- 【文言】text は本人の言葉をそのまま短く使う（言い換えない・敬語にしない）。日付や時刻、人の名前は text に入れず各フィールドへ
+- 【時刻】「朝」「夕方」など幅のある言い方は time を入れず reply で確認する。「19時」「夜7時」は 19:00。終わりの時刻を言われなければ end は省略
+- 【確認】日付・担当・種類のどれかに迷ったら、acts は作ったうえで reply の最初に「〇〇として登録します。違えば直してね」と一言書く
 - 「追加して」「完了にして」など操作を頼まれたら、必ず acts に入れる。日時などが足りないときは、いちばん自然な案で acts を作り、replyで「違えば直してね」と添える
 - 「防災にTODO」などカテゴリ指定は add_plan の cat に反映する。改善要望・不具合の報告は report_bug、画面切替は open_view、設定変更は set_pref を使う
 - 献立は主菜・副菜・汁物で提案する。冷蔵庫は最終確認時点の在庫なので現在の残量・鮮度を断定しない。献立を記録する場合は add_dinner の main/side/soup を分ける
@@ -5611,10 +5654,11 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 次の形のJSONだけを返してください：{"reply":"答え（改行は\\n）","acts":[…],"next":["続けて聞けそうな短い質問","…"]}（nextは2〜3個、actsは無ければ[]）
 
 【いまの状況】
-${aiCtx().slice(0,8000)}
+__AI_CTX__
 ${hist?`\n【これまでの会話】\n${hist}\n`:""}
 ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフト・天気・大事な予定・期限・話す議題）を3〜5行で。そのあと今日のタイムテーブルを組んだ結果を時刻順に書き、acts で並べ替え・追加を出す（最大15個）\n":""}【質問】${q}`;
-  const RF={...(state.ai.refs||{})},d=await aiRequest(state._smt,prompt,{modelTier:"quick",onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},ctl,opt.brief?60000:30000);
+  const prompt=prompt0.replace("__AI_CTX__",()=>aiCtx().slice(0,Math.max(3000,AI_PROMPT_MAX-500-prompt0.length))); /* v193: 状況は入る限り多く渡す（上限内） */
+  const RF={...(state.ai.refs||{})},d=await aiRequest(state._smt,prompt,{modelTier:"pro",onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},ctl,opt.brief?90000:60000); /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
     if(A.runId!==runId)return;
     const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null}));
