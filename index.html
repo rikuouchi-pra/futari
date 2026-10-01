@@ -471,6 +471,8 @@ body.mini .htile{min-height:0}
 .fut-add{display:flex;gap:6px}.fut-add input{flex:1;min-width:0}.fut-tpl summary{cursor:pointer;color:var(--future);font-size:13px;font-weight:600}.fut-tpl .chips{margin-top:8px}
 .plog{display:flex;flex-direction:column;gap:4px}.pl-e{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:6px 8px;border-radius:10px;background:var(--ground)}.pl-d{color:var(--muted);white-space:nowrap;font-size:12px}.pl-t{flex:1;white-space:pre-wrap}.pl-e .x{border:0;background:transparent;color:var(--muted);cursor:pointer}
 .meta.plg{color:var(--ink)}
+.ck .ck-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ck-m{color:var(--future);font-size:12px;font-weight:600;white-space:pre-wrap}.ck-m i{color:var(--muted);font-style:normal;font-weight:400}
+.ck-ed{display:flex;gap:6px;align-items:flex-end;margin:2px 0 6px 30px}.ck-ed textarea{flex:1;min-width:0}
 .shrem.sm{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 10px;font-size:13px}.shrem.sm .shrem-t{flex:1 1 auto;display:block;white-space:nowrap;font-weight:600}
 .gmbar{display:flex;gap:8px;align-items:center;font-size:13px;width:100%;border:0;background:color-mix(in srgb,var(--habit) 12%,var(--surface));border-radius:12px;padding:8px 10px;margin-top:8px;text-align:left;font:inherit;color:inherit;cursor:pointer}.gmbar small{display:block;color:var(--muted);font-size:11px}
 .evl{display:block;max-width:calc(100% - 4px);box-sizing:border-box;font-size:9px;line-height:13px;height:13px;padding:0 3px;border-radius:4px;background:var(--cal);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
@@ -1709,7 +1711,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="195";
+const APP_VERSION="196";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1785,7 +1787,7 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={mini:"on",navMig:"",voiceAI:"on",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -2208,7 +2210,8 @@ function planSoon(p){ return p.cat!=="anniv"&&p.date&&!p.done&&p.date<=addDays(t
 const yen=n=>"¥"+Number(n).toLocaleString("ja-JP");
 function checksHTML(x){
   const cs=x.checks||[];
-  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span>${esc(c.t)}</span><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>`).join(""):`<div class="who">まだありません</div>`;
+  /* v196: 各項目に「ふたりで決めたこと・結果」を書ける */
+  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<small class="ck-m">→ ${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</small>`:""}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="決めたことを書く">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed"><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
 }
 function planMeta(p,showCat){
   const C=PCATS[p.cat]||PCATS.wish, bits=[];
@@ -2218,7 +2221,7 @@ function planMeta(p,showCat){
   if(p.cat==="anniv"){ const a=annivInfo(p); if(a) bits.push(`<span class="due ${a.days<=7?"today":""}">${a.days===0?"今日！":`あと${a.days}日`}・${short(a.occ)}${a.years>0&&!p.noYear?`・${a.years}${/誕生/.test(p.text)?"歳":"周年"}`:""}</span>`); }
   else if(p.date){ const over=!p.done&&p.date<today(); bits.push(`<span class="due ${over?"over":p.date===today()?"today":""}">${p.cat==="bousai"?"期限 ":""}${dayLabel(p.date)}${over?" 過ぎています":""}</span>`); }
   { const mt=moneyTag(p); if(mt) bits.push(mt); }
-  const cs=p.checks||[]; if(cs.length) bits.push(`<span>チェック ${cs.filter(c=>c.done).length}/${cs.length}</span>`);
+  const cs=p.checks||[]; if(cs.length) bits.push(`<span>チェック ${cs.filter(c=>c.done).length}/${cs.length}${cs.some(c=>c.m)?`・決定 ${cs.filter(c=>c.m).length}`:""}</span>`);
   const lg=(p.log||[]).slice().sort((a,b)=>b.at-a.at)[0];
   return `<div class="meta">${bits.join("")}</div>${lg?`<div class="meta plg">📝 ${short(ymd(new Date(lg.at)))} ${esc(lg.t.slice(0,50))}${lg.t.length>50?"…":""}${(p.log||[]).length>1?`（記録${p.log.length}）`:""}</div>`:""}${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
 }
@@ -2243,7 +2246,7 @@ function planEdit(p){
     <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="${(p.memo||"").length>60?5:2}" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
     <div class="who">結果・記録（やったこと・確認した内容を日付つきで残す）</div><div class="plog" id="pLog">${planLogHTML(p)}</div>
     <div class="edit-row"><input type="text" id="pLogText" maxlength="300" placeholder="例：水を12L買い足した／避難所は○○小学校と確認" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="plogadd">記録</button></div>
-    <div class="who">チェックリスト</div><div class="cklist" id="ckList">${checksHTML(p)}</div>${tplX(p.text)&&tplX(p.text).c.some(t=>!(p.checks||[]).some(c=>c.t===t))?`<button type="button" class="chip mini" data-act="tplFill">＋ 具体的なやること（${tplX(p.text).c.length}件）を入れる</button>`:""}
+    <div class="who">チェックリスト（✎ でふたりで決めたことを書けます）</div><div class="cklist" id="ckList">${checksHTML(p)}</div>${tplX(p.text)&&tplX(p.text).c.some(t=>!(p.checks||[]).some(c=>c.t===t))?`<button type="button" class="chip mini" data-act="tplFill">＋ 具体的なやること（${tplX(p.text).c.length}件）を入れる</button>`:""}
     <div class="edit-row"><input type="text" id="ckText" maxlength="80" placeholder="項目を追加（持ち物・準備など）" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="ckadd">追加</button></div>
     ${editActions("plans",p,gdate?`<a class="glink" href="${esc(gcalUrl({due:gdate,text:(p.cat==="anniv"?"記念日: ":"")+p.text,list:"task"}))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
 }
@@ -2259,7 +2262,9 @@ function planLogOp(act,at){
 function checkOp(act,i){
   const ed=state.editing; if(!ed||ed.c!=="plans") return; const x=state.plans.find(p=>p.id===ed.id); if(!x) return;
   let checks=(x.checks||[]).map(c=>({...c}));
-  if(act==="ck") checks[i].done=!checks[i].done;
+  if(act==="cknote"){ state.ckEdit=state.ckEdit===i?null:i; $("ckList").innerHTML=checksHTML(x); const n=$("ckNote"); if(n) n.focus(); return; }
+  if(act==="cknsave"){ const n=$("ckNote"), v=n?n.value.trim().slice(0,300):""; checks[i]={...checks[i],m:v,mAt:v?Date.now():null,mBy:v?myRole():null}; state.ckEdit=null; }
+  else if(act==="ck") checks[i].done=!checks[i].done;
   else if(act==="ckdel") checks.splice(i,1);
   else { const inp=$("ckText"), t=inp.value.trim(); if(!t) return; checks.push({t,done:false}); inp.value=""; inp.focus(); }
   x.checks=checks; dupd("plans",x.id,{checks}); $("ckList").innerHTML=checksHTML(x);
@@ -3654,7 +3659,7 @@ function viewSettings(){
     <div class="opts"><a class="opt" style="text-decoration:none;color:inherit" href="${GOMI_PDF}" target="_blank" rel="noopener">刈谷市のカレンダー（A地区PDF）</a>${gomiTxt()!==GOMI_EX?'<button class="opt" data-act="gomiEx">刈谷市の公式データに戻す</button>':""}</div>
     <p class="who">${(()=>{ const t=today(), n=[...Array(7)].map((_,i)=>addDays(t,i)).map(d=>[d,gomiOn(d)]).filter(([,g])=>g.length); return n.length?"これから1週間："+n.map(([d,g])=>`${short(d)} ${esc(g.join("・"))}`).join("／"):"まだ設定されていません"; })()}</p></section>
   <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div>
-    <p class="who" style="margin-top:10px">音声入力（AIの🎤）</p><div class="opts">${opt("voiceAI","on","高精度（録音してAIで文字起こし）")}${opt("voiceAI","off","端末の音声認識（すぐ文字になる）")}</div><p class="who">高精度は話し終わってから数秒で文字になります。名前やよく使う言葉を手がかりにします。</p><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
+    <p class="who" style="margin-top:10px">音声入力（AIの🎤）</p><div class="opts">${opt("voiceAI","fix","端末で聞き取り＋AIで直す（おすすめ）")}${opt("voiceAI","on","録音してAIで文字起こし")}${opt("voiceAI","off","端末の聞き取りだけ")}</div><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
     <p>AIを使うのは次の機能です：レシートの読み取り／勤務表の写真からシフト読み取り／会社カレンダーの画像・デンソー年度カレンダーの取り込み。</p>
     <p>${window.__FUTARI_PWA?"送り先：Google Gemini（Apps Script経由）。無料枠では、送った写真や文章がGoogleのサービス改善に使われることがあります。":"送り先：Claude（Anthropic）。"}「使わない」にすると、上の機能は手入力になり、写真や文章は外部に送られません。${esc(nameOf(myRole()))}の画面だけの設定です。</p>
     <p class="who">いまの状態：${!aiOn()?"オフ":state._sm?"使えます":window.__FUTARI_PWA?"準備が必要（Apps ScriptにGeminiのAPIキーを設定）":"この表示環境ではAIに問い合わせできません"}</p></section>
@@ -4147,7 +4152,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="totopic"){ const ed=state.editing; const x=ed&&state[ed.c].find(i=>i.id===ed.id); saveEdit(); if(x) makeTopicFrom(ed.c,x); }
   else if(a==="openref"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t&&t.ref) openRef(t.ref); }
   else if(a==="totask"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t){ dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); } }
-  else if(a==="ck"||a==="ckdel"||a==="ckadd") checkOp(a,Number(b.dataset.i));
+  else if(a==="ck"||a==="ckdel"||a==="ckadd"||a==="cknote"||a==="cknsave") checkOp(a,Number(b.dataset.i));
   else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
   else if(a==="tplFill"){ const ed=state.editing, x=ed&&state.plans.find(p=>p.id===ed.id), X=x&&tplX(x.text); if(X){ const have=new Set((x.checks||[]).map(c=>c.t)), checks=[...(x.checks||[]),...X.c.filter(t=>!have.has(t)).map(t=>({t,done:false}))], memo=x.memo||X.m; x.checks=checks; x.memo=memo; dupd("plans",x.id,{checks,memo}); render(); toast("具体的なやることを入れました"); } }
   else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(state.fut,t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
@@ -4259,6 +4264,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="bkRestore"){ $("bkFile")&&$("bkFile").click(); }
   else if(a==="ttpickx"){ state.ttPick=null; render(); }
   else if(a==="aiDockClose"){ aiDockToggle(false); }
+  else if(a==="aiVoiceRaw"){ if(state.aiVoiceRaw){ state.ai.q=aiVoiceDraft(state.aiVoiceBase||"",state.aiVoiceRaw); state.aiVoiceRaw=""; state.aiVoiceStatus="元の聞き取りに戻しました。"; render(); } }
   else if(a==="futhome"){ state.fut=null; render(-40); }
   else if(a==="cprev"||a==="cnext") shiftCal(a==="cprev"?-1:1);
   else if(a==="paint"){ state.paint.on=!state.paint.on; render(); }
@@ -5470,7 +5476,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
     const rows=[]; for(const cat of FCATS){ const ps=state.plans.filter(x=>x.cat===cat&&!planDone(x)); if(!ps.length) continue;
       rows.push(`〈${PCATS[cat].label}〉`); for(const x of ps.slice(0,deep?25:12)){ const cs=x.checks||[], un=cs.filter(c=>!c.done);
         const a=cat==="anniv"?annivInfo(x):null;
-        rows.push(`[${ref("plans",x.id)}] ${cut(x.text,40)}${a?` 毎年${Number(x.date.slice(5,7))}/${Number(x.date.slice(8))}・あと${a.days}日${a.years>0?`（${a.years}回目）`:""}`:x.date?` ${PCATS[cat].dateL}${x.date}`:""}${x.horizon&&cat!=="anniv"?` ${HL[x.horizon]||""}`:""}${x.kind==="buy"?" 買う":x.kind==="do"?" する":""}${x.budget?` 予算${Number(x.budget).toLocaleString()}円`:""} ${wh(x)}${x.memo?` メモ:${cut(x.memo,deep?120:40)}`:""}${(x.log||[]).length?` 記録:${(x.log||[]).slice(-(deep?3:1)).map(e=>`${ymd(new Date(e.at)).slice(5)} ${cut(e.t,deep?60:30)}`).join("／")}`:""}${cs.length?` チェック${cs.length-un.length}/${cs.length}${un.length?`（残り：${un.slice(0,deep?8:3).map(c=>cut(c.t,15)).join("・")}）`:""}`:""}`); } }
+        rows.push(`[${ref("plans",x.id)}] ${cut(x.text,40)}${a?` 毎年${Number(x.date.slice(5,7))}/${Number(x.date.slice(8))}・あと${a.days}日${a.years>0?`（${a.years}回目）`:""}`:x.date?` ${PCATS[cat].dateL}${x.date}`:""}${x.horizon&&cat!=="anniv"?` ${HL[x.horizon]||""}`:""}${x.kind==="buy"?" 買う":x.kind==="do"?" する":""}${x.budget?` 予算${Number(x.budget).toLocaleString()}円`:""} ${wh(x)}${x.memo?` メモ:${cut(x.memo,deep?120:40)}`:""}${(x.log||[]).length?` 記録:${(x.log||[]).slice(-(deep?3:1)).map(e=>`${ymd(new Date(e.at)).slice(5)} ${cut(e.t,deep?60:30)}`).join("／")}`:""}${cs.some(c=>c.m)?` 決めたこと：${cs.filter(c=>c.m).slice(0,deep?10:4).map(c=>`${cut(c.t,12)}→${cut(c.m,deep?60:25)}`).join("／")}`:""}${cs.length?` チェック${cs.length-un.length}/${cs.length}${un.length?`（残り：${un.slice(0,deep?8:3).map(c=>cut(c.t,15)).join("・")}）`:""}`:""}`); } }
     sec("将来（やりたいこと・旅行・記念日・防災・子育てなど）",rows,deep?80:45);
     const doneP=state.plans.filter(x=>x.cat!=="anniv"&&x.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0)).slice(0,6).map(x=>`${PCATS[x.cat]?PCATS[x.cat].label:""}：${cut(x.text,30)}`); sec("最近叶ったこと・済んだこと",doneP,6);
     const wl=state.pitems.filter(i=>i.list==="wish"&&!i.done).map(i=>`${cut(i.text,30)}${i.budget?` 予算${i.budget}円`:""}（🔒自分だけ）`); sec("自分の欲しいもの・やりたいこと（🔒）",wl,10);
@@ -5499,7 +5505,7 @@ async function updNow(){ toast("更新しています…"); try{ const rs=naviga
 setTimeout(()=>updCheck(false),6000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&(!state.upd||Date.now()-state.upd.at>10*60e3)) updCheck(false); });
 /* v151: AIの提案する操作（押したときだけ実行） */
 const AI_PREFS={eveH:["夜の入力時刻",["17","18","19","20","21"]],shRem:["シフトのお知らせ",["on","off"]],qaPop:["今日の質問",["on","off"]],hintsAlways:["ヒント表示",["0","1"]],music:["音楽",["on","off"]],songAuto:["音楽の自動再生",["on","off"]],wx:["天気表示",["on","off"]],startView:["起動画面",["home","cal","last"]],ttStart:["時間割の開始時刻",["3","4","5","6","7","8"]],diaryPriv:["日記の公開範囲",["0","1"]],haptic:["振動",["on","off"]],fs:["文字サイズ",["m","l","xl"]],mode:["明るさ",["auto","light","dark"]],density:["表示密度",["normal","compact"]],hand:["利き手",["left","right"]],nav:["メニュー形式",["rail","railc","flick","railf"]],aiBrief:["朝のAI提案",["on","off"]]};
-const AI_ACT_L={add_recurring:"繰り返しを追加",open_view:"画面を開く",set_pref:"設定を変更",report_bug:"改善要望を送信",remember:"覚える",add_plan:"将来に追加",edit:"変更",delete:"削除",skip:"この日はやらない",add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
+const AI_ACT_L={set_check:"決めたことを記録",add_recurring:"繰り返しを追加",open_view:"画面を開く",set_pref:"設定を変更",report_bug:"改善要望を送信",remember:"覚える",add_plan:"将来に追加",edit:"変更",delete:"削除",skip:"この日はやらない",add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
 const aiTime=v=>{ const s=String(v||"").padStart(5,"0"); return /^([01]\d|2[0-3]):[0-5]\d$/.test(s)?s:""; };
 function aiWho(v){ if(v==null||v===""||v==="both") return "both"; if(v==="priv"||v==="自分だけ"||v==="じぶんだけ") return "priv"; if(v==="me") return myRole(); if(v==="partner") return otherRole(); if(v==="h"||v==="夫") return "h";if(v==="w"||v==="妻")return "w"; for(const r of ["h","w"]) if(v===nameOf(r)) return r; return null; }
 function aiRecurring(x){
@@ -5518,6 +5524,7 @@ function aiActText(x){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id)
   if(x.type==="report_bug") return `改善要望を送信：${cut2(x.text)}`;
   if(x.type==="add_dinner") return `夕飯メモ：${cut2([x.main,x.side,x.soup].filter(Boolean).join("／")||x.text)}`;
   const dt=aiDate(x.date)?` ${aiDate(x.date)}`:"", tm=x.start||x.time?` ${x.start||x.time}${x.end?"–"+x.end:""}`:"", aw=aiWho(x.who), w=x.who&&x.who!=="both"?`（${aw==="priv"?"🔒じぶん":aw?nameOf(aw):"担当を確認"}）`:"";
+  if(x.type==="set_check") return `決めたこと：${it?cut2(it.text):"（見つかりません）"} › ${cut2(String(x.item||""))} → ${cut2(String(x.note||""))}`;
   if(x.type==="done") return `${it&&((R.c==="items"||R.c==="pitems")?myDone(it):R.c==="topics"?it.status==="done":false)?"未完了に戻す":"完了にする"}：${it?cut2(it.text):"（見つかりません）"}`;
   if(x.type==="delete") return `削除：${it?cut2(it.text):"（見つかりません）"}`;
   if(x.type==="skip") return `この日はやらない：${it?cut2(it.text):"（見つかりません）"}${dt}`;
@@ -5550,6 +5557,11 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     else if(x.type==="add_plan"){ const cat=PCATS[x.cat]?x.cat:"wish"; if(cat==="anniv"&&!d){ toast("記念日は日付が必要です"); return; } const before=new Set(state.plans.map(q=>q.id)); newPlan(cat,cut2(x.text),{date:d,budget:money(x.budget),horizon:["soon","year","someday"].includes(x.horizon)?x.horizon:undefined,who:"both"}); const np=state.plans.find(q=>!before.has(q.id)); if(np) undo=()=>ddel("plans",np.id); }
     else if(x.type==="add_topic"){ dset("topics",id,{text:cut2(x.text),who:"both",status:"open",note:"",ref:null,...(d?{on:d}:{}),by:state.me||null,createdAt:now,updatedAt:now}); undo=()=>ddel("topics",id); }
     else if(x.type==="add_dinner"){ const dd=d||t, ex=dinnerOf(dd), old=ex?{...ex}:null, main=String(x.main||x.text||"").slice(0,80), side=String(x.side||"").slice(0,80), soup=String(x.soup||"").slice(0,80); if(!main&&!side&&!soup){toast("献立がありません");return;} dset("dinner",dd,{date:dd,role:me,by:state.me||null,text:[main,side,soup].filter(Boolean).join("、"),main,side,soup,at:now}); undo=()=>{ if(old) dset("dinner",dd,old); else ddel("dinner",dd); }; }
+    else if(x.type==="set_check"){ const R=x._r, p=R&&R.c==="plans"&&state.plans.find(i=>i.id===R.id); if(!p){ toast("対象の項目が見つかりませんでした"); return; }
+      const key=String(x.item||"").trim(), checks=(p.checks||[]).map(c=>({...c})); let i=checks.findIndex(c=>c.t===key); if(i<0) i=checks.findIndex(c=>key&&(c.t.includes(key)||key.includes(c.t)));
+      if(i<0){ if(!key){ toast("チェック項目が分かりませんでした"); return; } checks.push({t:key.slice(0,80),done:false}); i=checks.length-1; }
+      if(x.note!=null&&String(x.note).trim()) Object.assign(checks[i],{m:String(x.note).trim().slice(0,300),mAt:Date.now(),mBy:myRole()});
+      if(typeof x.done==="boolean") checks[i].done=x.done; p.checks=checks; dupd("plans",p.id,{checks,updatedAt:Date.now()}); }
     else if(x.type==="done"){ const R=x._r; if(!R||!(state[R.c]||[]).find(i=>i.id===R.id)){ toast("対象の項目が見つかりませんでした"); return; } rightAction(R.c,R.id); }
     else if(x.type==="edit"||x.type==="delete"||x.type==="skip"){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id); if(!it){ toast("対象の項目が見つかりませんでした"); return; } const c=R.c;
       if(x.type==="delete"){ if(!canDelete(c,it)) return; removeWithUndo(c,[it.id],`「${cut2(it.text)}」を削除しました`); x.ok=true; render(); return; }
@@ -5595,12 +5607,28 @@ function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean
 function aiVoiceCancel(){ if(aiRecM){ const M=aiRecM; clearInterval(M._tick); M.onstop=()=>{ try{ M.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }; aiRecM=null; try{ M.stop(); }catch(e){} } const R=aiRec;aiRec=null;state.aiListening=false;state.ai.q=state.aiVoiceBase||"";state.aiVoiceStatus="今回の聞き取りを取り消しました。元の入力は残っています。";try{R?.abort();}catch(e){}aiMicUI();}
 /* v193: 高精度の音声入力。録音した声をAI（Gemini）で文字起こしする。名前・よく使う言葉を手がかりとして渡す */
 let aiRecM=null;
-function aiVoiceAIOk(){ return prefs.voiceAI!=="off"&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
+function aiVoiceAIOk(){ return prefs.voiceAI==="on"&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
 async function aiToWav(blob){ const AC=window.AudioContext||window.webkitAudioContext, ctx=new AC(); try{ const buf=await ctx.decodeAudioData(await blob.arrayBuffer()); const sr=16000, len=Math.max(1,Math.ceil(buf.duration*sr)), off=new OfflineAudioContext(1,len,sr), src=off.createBufferSource(); src.buffer=buf; src.connect(off.destination); src.start(); const pcm=(await off.startRendering()).getChannelData(0);
   const out=new DataView(new ArrayBuffer(44+pcm.length*2)), w=(o,s)=>{ for(let i=0;i<s.length;i++) out.setUint8(o+i,s.charCodeAt(i)); };
   w(0,"RIFF"); out.setUint32(4,36+pcm.length*2,true); w(8,"WAVE"); w(12,"fmt "); out.setUint32(16,16,true); out.setUint16(20,1,true); out.setUint16(22,1,true); out.setUint32(24,sr,true); out.setUint32(28,sr*2,true); out.setUint16(32,2,true); out.setUint16(34,16,true); w(36,"data"); out.setUint32(40,pcm.length*2,true);
-  for(let i=0;i<pcm.length;i++){ const v=Math.max(-1,Math.min(1,pcm[i])); out.setInt16(44+i*2,v<0?v*0x8000:v*0x7fff,true); }
-  return new Blob([out.buffer],{type:"audio/wav"}); } finally { try{ ctx.close(); }catch(e){} } }
+  let ss=0; for(let i=0;i<pcm.length;i++){ const v=Math.max(-1,Math.min(1,pcm[i])); ss+=v*v; out.setInt16(44+i*2,v<0?v*0x8000:v*0x7fff,true); }
+  const wb=new Blob([out.buffer],{type:"audio/wav"}); wb._rms=Math.sqrt(ss/Math.max(1,pcm.length)); return wb; } finally { try{ ctx.close(); }catch(e){} } }
+/* v196: 「？」だけ・記号だけの結果は失敗として扱う */
+function aiVoiceClean(t){ t=String(t||"").trim(); const core=t.replace(/[（）()？?。、.,\s・…ー-]/g,""); return core.length?t:""; }
+/* v196: 端末の聞き取り結果を、名前・よく使う言葉を手がかりにAIで直す（音声は送らない） */
+async function aiVoiceFix(base,raw){ if(prefs.voiceAI!=="fix"||!state.sample||!raw.trim()) return;
+  state.aiVoiceStatus="AIで聞き間違いを直しています…"; aiMicUI();
+  try{ const d=await state.sample.json(`次は音声認識で文字にした日本語です。聞き間違い（同じ音の別の漢字・名前・数字）だけを直してください。
+- 内容を足したり要約したりしない。言いよどみ（えー、あの）は消す
+- 日付・時刻・数字はアラビア数字（例：10月3日 19時）
+- 次の名前・言葉が出てくることがある。似た音ならこの表記にする：${aiVoiceHints()}
+- 直す所がなければそのまま返す
+文字：${raw.slice(0,1500)}
+JSONだけを返す：{"text":"直した文"}`,{modelTier:"quick",timeoutMs:20000});
+    const t=aiVoiceClean(d&&d.text); if(!state.aiListening&&t){ state.aiVoiceRaw=raw; state.ai.q=aiVoiceDraft(base,t); state.aiVoiceStatus=t===raw.trim()?"聞き取り完了。確認して ➤ で送ってください。":"AIで直しました。確認して ➤ で送ってください。"; }
+    else state.aiVoiceStatus="聞き取り完了。確認して ➤ で送ってください。";
+  }catch(e){ state.aiVoiceStatus="聞き取り完了（AIの補正は使えませんでした）。確認して ➤ で送ってください。"; }
+  aiMicUI(); }
 function aiVoiceHints(){ const w=new Set([nameOf("h"),nameOf("w"),"夜勤入り","夜勤明け","早番","日勤","タイムテーブル","買い物","家事","議題"]);
   for(const x of [...state.items.slice(-60),...(state.chores||[]),...state.plans.slice(-30)]) if(x&&x.text) w.add(String(x.text).slice(0,20));
   return [...w].filter(Boolean).slice(0,90).join("、"); }
@@ -5613,13 +5641,14 @@ async function aiVoiceRec(){
   const tick=R._tick=setInterval(()=>{ const sec=Math.floor((Date.now()-t0)/1000); state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。話し終わったら「聞き取りを終了」`; const el=$("aiVoiceStatus"); if(el) el.textContent=state.aiVoiceStatus; if(sec>=28) try{ R.stop(); }catch(e){} },500);
   R.onstop=async()=>{ clearInterval(tick); stream.getTracks().forEach(t=>t.stop()); aiRecM=null; state.aiListening=false; state.aiVoiceStatus="AIで文字起こし中…"; aiMicUI();
     try{ const wav=await aiToWav(new Blob(chunks,{type:R.mimeType||"audio/mp4"}));
+      if(wav._rms!==undefined&&wav._rms<0.004){ state.aiVoiceStatus="マイクの音が入っていませんでした。設定 › AI機能 › 音声入力 を「端末で聞き取り＋AIで直す」にすると確実です。"; aiMicUI(); return; }
       const d=await state.sample.json(`日本語の音声です。話した内容を正確に文字に起こしてください。
 - 「えー」「あの」などの言いよどみと言い直し前の言葉は除き、言い直した後の内容を書く
 - 日付・時刻・数字はアラビア数字（例：10月3日 19時）
 - 次の名前・言葉が出てくることがあるので、似た音ならこの表記を使う：${aiVoiceHints()}
-- 聞き取れない部分は推測で埋めず（？）と書く
+- 声が入っていない・聞き取れないときは text を空にする（記号や？を書かない）
 JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick",timeoutMs:45000});
-      const text=String((d&&(d.text||d.transcript))||"").trim();
+      const text=aiVoiceClean(String((d&&(d.text||d.transcript))||""));
       if(!text){ state.aiVoiceStatus="声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。"; }
       else { state.ai.q=aiVoiceDraft(base,text); state.aiVoiceStatus="聞き取り完了（AI）。日付・時刻・名前を確認して「送る」を押してください。"; haptic("done"); }
     }catch(e){ state.aiVoiceStatus="AIで文字起こしできませんでした"+(e&&(e.detail||e.message)?"："+String(e.detail||e.message).slice(0,60):"")+"。もう一度試すか、キーボードのマイクを使ってください。"; }
@@ -5634,10 +5663,10 @@ function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&aiVoiceAIOk())){ a
   R.lang="ja-JP";R.interimResults=true;R.continuous=true;R.maxAlternatives=1;
   R.onresult=e=>{if(aiRec!==R)return;const text=aiVoiceText(e.results);state.ai.q=aiVoiceDraft(base,text.final+text.interim);const el=$("aiIn");if(el)el.value=state.ai.q;};
   R.onerror=e=>{if(aiRec!==R)return;failed=true;const c=e?.error;state.aiVoiceStatus=c==="not-allowed"||c==="service-not-allowed"?"マイクを使えません。ブラウザーのマイク設定を確認するか、キーボードのマイクで入力してください。":c==="no-speech"?"声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。":c==="network"?"音声認識に接続できません。入力は残しています。通信を確認して再開してください。":"聞き取りが中断しました。入力を確認して、必要なら再開してください。";};
-  R.onend=()=>{if(aiRec!==R)return;aiRec=null;state.aiListening=false;if(!failed)state.aiVoiceStatus=state.ai.q!==base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して「送る」を押してください。":"聞き取りを終了しました。もう一度話すことができます。";haptic("done");aiMicUI();};
+  R.onend=()=>{if(aiRec!==R)return;aiRec=null;state.aiListening=false; { const raw=String(state.ai.q||"").slice(base.length).trim(); if(!failed&&raw) setTimeout(()=>aiVoiceFix(base,raw),0); }if(!failed)state.aiVoiceStatus=state.ai.q!==base?"聞き取り完了。日付・時刻・人の名前を確認し、必要なら直して「送る」を押してください。":"聞き取りを終了しました。もう一度話すことができます。";haptic("done");aiMicUI();};
   try{state.aiListening=true;state.aiVoiceStatus="聞き取り中です。話し終わったら「聞き取りを終了」を押してください。";R.start();haptic("arm");aiMicUI();}catch(e){aiRec=null;state.aiListening=false;state.aiVoiceStatus="音声認識を開始できませんでした。入力は残っています。";aiMicUI();}
 }
-function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="取り消す">✕</button>':`<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}</p>`;}
+function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy?"disabled":""} ${listening?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="取り消す">✕</button>':`<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
 function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
@@ -5706,6 +5735,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
   {"type":"open_view","view":"home|cal|task|shop|talk|habit|reflect|diary|future|money|settings","cat":"防災ならbousaiなど(任意)","date":"YYYY-MM-DD(任意)"}
   {"type":"set_pref","key":"設定キー","value":"値"}（許可されたキーと値だけ：${JSON.stringify(AI_PREFS)}。未対応の設定は settings を開いて案内する）
   {"type":"done","ref":"r12"}（[r番号]の項目を完了にする。完了済みなら未完了に戻す）
+  {"type":"set_check","ref":"r12","item":"チェック項目の文字","note":"ふたりで決めたこと・結果","done":true}（将来（防災・子育てなど）の項目の中のチェック項目に、決めたことを書く。話し合いの後片付けで、議題が将来の項目に関係するときはこれを使う。done は決まって済んだときだけ）
   {"type":"edit","ref":"r12","text":"新しい名前(任意)","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner(任意)","note":"メモ(任意・議題)","budget":金額(任意)}（既存の項目を直す。変える欄だけ書く。日付や時刻を消すときは "" を入れる）
   {"type":"delete","ref":"r12"}（項目を削除。本人がはっきり頼んだときだけ）
   {"type":"skip","ref":"r12","date":"YYYY-MM-DD"}（家事・繰り返しタスクをその日だけ「やらない」にする）
@@ -7578,6 +7608,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
     if(next.autoRules!==prefs.autoRules) AR=null;
     const first=firstPrefs; firstPrefs=false;
     if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
+    if(!s.fromCache&&next.voiceMig!=="196"){ next.voiceMig="196"; if(next.voiceAI==="on") next.voiceAI="fix"; setTimeout(()=>savePrefs(true),500); } /* v196: 録音方式で「？」になる問題のため、端末の聞き取り＋AI補正を標準に */
     if(!s.fromCache&&next.navMig!=="194"){ next.navMig="194"; if(next.nav!=="tab"){ next.navPrev=next.nav; next.nav="tab"; } setTimeout(()=>savePrefs(true),500); } /* v194: 一度だけ下のタブメニューへ（設定で戻せる） */
     if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
       if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }

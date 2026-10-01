@@ -40,7 +40,7 @@ const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDa
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 
-const voiceFns=['aiRec','aiRecM','aiVoiceAIOk','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
+const voiceFns=['aiRec','aiRecM','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
@@ -632,4 +632,14 @@ test('v195 minimal AI card shows only the latest exchange and at most three sugg
   const h=run(c,'aiCardHTML("dock")');
   assert.match(h,/前の会話（1）/); assert.match(h,/新しい答え/); assert.match(h,/data-act="aiDockClose"/);
   assert.equal((h.match(/data-aiq=/g)||[]).length,3);
+});
+test('v196 voice results that are only question marks are treated as empty', () => {
+  const c = env(['aiVoiceClean']);
+  assert.equal(run(c, 'aiVoiceClean("（？）")'), ''); assert.equal(run(c, 'aiVoiceClean("？？ 。")'), '');
+  assert.equal(run(c, 'aiVoiceClean("明日19時に買い物")'), '明日19時に買い物');
+});
+test('v196 checklist items keep a decision with author and the AI can fill it', () => {
+  const c = env(['checksHTML'], { CHECK:'✓', short: d => d.slice(5) });
+  const h = run(c, 'checksHTML({checks:[{t:"夜中の当番を決める",done:false,m:"平日は<b>りく</b>",mAt:Date.UTC(2026,9,1),mBy:"h"}]})');
+  assert.match(h, /→ 平日は&lt;b&gt;りく/); assert.match(h, /data-act="cknote"/);
 });
