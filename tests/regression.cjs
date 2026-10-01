@@ -609,3 +609,10 @@ test('v191 plan result log renders newest first, escaped, with author', () => {
   assert.ok(h.includes('&lt;b&gt;')); assert.ok(!h.includes('<b>避難所'));
   assert.match(run(c, 'planLogHTML({})'), /まだ記録はありません/);
 });
+test('v192 templates add concrete memo and checklist; old names map to new templates', () => {
+  const c = env(['TPLX','TPL_ALIAS','tplX','newPlan','tplNew']);
+  run(c, 'tplNew("prep","児童手当の申請")');
+  const w = c.writes.at(-1); assert.equal(w.c, 'plans'); assert.match(w.data.memo, /15日以内/); assert.ok(w.data.checks.length >= 3 && w.data.checks.every(x => x.done === false));
+  run(c, 'tplNew("wish","温泉に行く")'); assert.equal(c.writes.at(-1).data.checks.length, 0);
+  assert.ok(run(c, 'tplX("育休の相談")').c.length > 0);
+});

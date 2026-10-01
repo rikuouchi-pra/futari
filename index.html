@@ -1664,7 +1664,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="191";
+const APP_VERSION="192";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1677,7 +1677,7 @@ const PCATS={
   travel:{label:"旅行",layer:"fun",dateL:"出発日",doneL:"行った",tpl:["温泉旅行","海外旅行","帰省"]},
   anniv:{label:"記念日",layer:"fun",dateL:"日付（毎年）",doneL:"お祝いした",tpl:["結婚記念日","付き合った日","誕生日（自分）","誕生日（相手）"]},
   bousai:{label:"防災",layer:"safe",dateL:"期限・点検日",doneL:"完了",tpl:["飲料水（1人1日3L×3日分）","非常食（3日分）","モバイルバッテリー","懐中電灯・電池","救急セット・常備薬","避難場所と連絡方法の確認","家具の転倒防止"]},
-  prep:{label:"子育て準備",layer:"family",dateL:"期限",doneL:"完了",tpl:["産院・病院を調べる","出産費用と手当の確認","育休の相談","ベビーベッド","チャイルドシート","ベビーカー","肌着・おむつ"]},
+  prep:{label:"子育て準備",layer:"family",dateL:"期限",doneL:"完了",tpl:["妊娠届・母子健康手帳","産院・病院を決める","出産費用と手当の確認","育休・産後パパ育休の相談","入院バッグの準備","名前を決める","出生届（生まれて14日以内）","児童手当の申請","赤ちゃんの健康保険・医療費受給者証","ベビーベッド・寝具","チャイルドシート","ベビーカー・抱っこひも","肌着・おむつ・授乳グッズ"]},
   care:{label:"子育ての家事",layer:"family",dateL:"準備期限",doneL:"準備OK",tpl:["授乳・ミルク（哺乳瓶・粉ミルク）","哺乳瓶の洗浄・消毒","おむつ替え（おむつ・おしりふき）","沐浴（ベビーバス・ガーゼ）","ベビー服・肌着の洗濯","寝かしつけ","夜中の授乳・夜泣きの当番","離乳食づくり","保湿・爪切り","健診・予防接種の予約","母子手帳・保険証の管理","ベビー用品の買い足し"]},
   kids:{label:"子育てでやりたいこと",layer:"family",dateL:"目標日",doneL:"叶った",tpl:["お宮参り","家族写真を撮る","動物園に行く","絵本の読み聞かせ"]}
 };
@@ -2195,10 +2195,10 @@ function planEdit(p){
     ${p.cat!=="anniv"?`<div class="edit-row"><span class="who">いつ頃</span>${seg("phz",p.horizon||"someday",HORIZON)}</div>`:""}
     <div class="edit-row"><span class="who">${C.dateL}</span><input type="date" id="editDue" value="${esc(p.date||"")}" aria-label="${C.dateL}"></div>
     ${p.budget||actOf(p)||p.cat==="wish"||p.cat==="travel"?moneyFields(p):`<details class="mny"><summary class="who">お金（予算・実際にかかった額）</summary>${moneyFields(p)}</details>`}
-    <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="2" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
+    <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="${(p.memo||"").length>60?5:2}" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
     <div class="who">結果・記録（やったこと・確認した内容を日付つきで残す）</div><div class="plog" id="pLog">${planLogHTML(p)}</div>
     <div class="edit-row"><input type="text" id="pLogText" maxlength="300" placeholder="例：水を12L買い足した／避難所は○○小学校と確認" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="plogadd">記録</button></div>
-    <div class="who">チェックリスト</div><div class="cklist" id="ckList">${checksHTML(p)}</div>
+    <div class="who">チェックリスト</div><div class="cklist" id="ckList">${checksHTML(p)}</div>${tplX(p.text)&&tplX(p.text).c.some(t=>!(p.checks||[]).some(c=>c.t===t))?`<button type="button" class="chip mini" data-act="tplFill">＋ 具体的なやること（${tplX(p.text).c.length}件）を入れる</button>`:""}
     <div class="edit-row"><input type="text" id="ckText" maxlength="80" placeholder="項目を追加（持ち物・準備など）" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="ckadd">追加</button></div>
     ${editActions("plans",p,gdate?`<a class="glink" href="${esc(gcalUrl({due:gdate,text:(p.cat==="anniv"?"記念日: ":"")+p.text,list:"task"}))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
 }
@@ -2250,7 +2250,7 @@ function viewFutCat(k){
   if(k==="wish"&&state.futFilter!=="all") list=list.filter(p=>(p.kind==="buy"?"buy":"do")===state.futFilter);
   let h=`<div class="dstrip" data-strip="fut"><button class="icon-btn" data-act="fprev" aria-label="前のカテゴリ">‹</button><div class="ttl" style="font-size:16px">${C.label}</div><button class="icon-btn" data-act="fnext" aria-label="次のカテゴリ">›</button></div>
     <div class="tools"><button class="pill" data-act="futhome">‹ 一覧</button>${k==="wish"?seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]]):""}</div>${whoBar()}`;
-  const have=new Set(state.plans.filter(p=>p.cat===k).map(p=>p.text));
+  const have=new Set(state.plans.filter(p=>p.cat===k).flatMap(p=>[p.text,TPL_ALIAS[p.text]]));
   const tpl=C.tpl.filter(t=>!have.has(t)), all=state.plans.filter(p=>p.cat===k), dn=all.filter(planDone).length, D=PDESC[k]||["・",""];
   h+=`<section class="card fut-sum"><div class="fs-h"><span class="fr-ic">${D[0]}</span><div><small>${D[1]}</small></div>${k!=="anniv"&&all.length?`<span class="fr-n">${dn}<small>/${all.length} ${C.doneL}</small></span>`:""}</div>
     ${k!=="anniv"&&all.length?`<span class="prog"><i style="width:${Math.round(dn/all.length*100)}%"></i></span>`:""}
@@ -2270,9 +2270,41 @@ function viewFutCat(k){
   return h+body+hint(`項目をタップ：メモ・チェックリスト・結果の記録／○で${C.doneL}`);
 }
 function shiftFut(n){ const i=FCATS.indexOf(state.fut); state.fut=FCATS[(i+n+FCATS.length)%FCATS.length]; state.futFilter="all"; render(n>0?40:-40); }
+/* v192: 候補ごとの具体的な中身（追加するとメモとチェックリストに入る）。金額・期限は2026年秋時点の一般的な制度。最新は市・勤務先・産院に確認 */
+const TPLX={
+ "妊娠届・母子健康手帳":{m:"刈谷市は妊娠届を出すと母子健康手帳と妊婦健診の受診票がもらえる。マイナンバーと本人確認書類を持っていく",c:["妊娠届を市に出す","母子健康手帳を受け取る","妊婦健診の受診票（補助券）を受け取る","妊婦健診の予定をカレンダーに入れる","会社に妊娠を伝える時期を決める"]},
+ "産院・病院を決める":{m:"分娩の予約は早めに埋まる産院もある。通いやすさ・費用・無痛分娩の有無・面会ルールで比べる",c:["候補の産院を2〜3か所調べる","分娩予約の時期と方法を確認","費用の目安（個室・無痛分娩の追加）を確認","里帰り出産するか決める","陣痛時の移動手段（タクシー登録など）を決める"]},
+ "出産費用と手当の確認":{m:"出産育児一時金は原則50万円（健康保険から）。出産費用の保険適用は法律ができたが開始時期は未定。会社員の母は出産手当金、両親とも育休給付金の対象",c:["出産育児一時金：直接支払制度の手続きを産院で確認","出産手当金（会社員の母）の申請方法を確認","育児休業給付金の申請方法を会社に確認","医療費控除のため領収書を保管","ふたりの収入の見通しを家計に入れる"]},
+ "育休・産後パパ育休の相談":{m:"育児休業給付は休業前賃金の67%（181日目以降50%）。両親とも出生後8週間以内に14日以上休むと、最大28日分が13%上乗せ（手取り10割相当）。産後パパ育休は生まれて8週間以内に最大4週間・2回まで分けられる",c:["上司に育休の希望時期を伝える","会社の申出期限（産後パパ育休は原則2週間前・育休は1か月前）を確認","ふたりの休む期間を決める","引き継ぎ計画を作る","給付金の申請は会社経由か確認"]},
+ "入院バッグの準備":{m:"妊娠後期（36週ごろ）までにまとめて玄関近くへ",c:["母子健康手帳・保険証・診察券","産褥ショーツ・授乳ブラ・パジャマ","洗面用具・スマホの充電器","赤ちゃんの退院用の服・おくるみ","陣痛タクシーの番号","入院中の連絡先リスト"]},
+ "名前を決める":{m:"出生届に間に合うように。使える漢字（常用漢字・人名用漢字）を確認",c:["候補を出し合う","画数・読みやすさを確認","人名用漢字か確認","最終決定"]},
+ "出生届（生まれて14日以内）":{m:"生まれた日を含めて14日以内に市役所へ。産院で書いてもらう出生証明書と一体の用紙",c:["出生証明書を産院で書いてもらう","出生届を市役所に出す","同時に児童手当・医療費の手続きもできるか確認","住民票に載ったか確認"]},
+ "児童手当の申請":{m:"生まれた翌日から15日以内に申請すると生まれた月の翌月分から受け取れる。高校生年代まで・所得制限なし（2024年10月から）",c:["申請書を市に出す","振込口座を決める","マイナンバーを用意"]},
+ "赤ちゃんの健康保険・医療費受給者証":{m:"勤務先の健康保険に赤ちゃんを加入→保険証（資格確認書）が届いたら、市で子ども医療費の受給者証を申請",c:["勤務先に扶養追加の申請","資格確認書を受け取る","子ども医療費受給者証を市で申請","1か月健診に持っていく"]},
+ "ベビーベッド・寝具":{m:"大人のベッドで一緒に寝ないほうが安全。硬めのマットレス・顔にかかる物を置かない",c:["置き場所を決める","買う／レンタルを決める","硬めのマットレス・シーツ","防水シーツの予備"]},
+ "チャイルドシート":{m:"退院の車から必要（6歳未満は着用義務）。後ろ向きで取り付ける",c:["車に合う型を選ぶ（ISOFIX など）","購入／レンタル","取り付けて練習","退院日に使う"]},
+ "ベビーカー・抱っこひも":{m:"新生児から使える型か確認",c:["使う場面（車・電車・散歩）を考える","新生児対応か確認","試してから決める"]},
+ "肌着・おむつ・授乳グッズ":{m:"最初は買いすぎない。サイズはすぐ変わる",c:["短肌着・コンビ肌着 各5〜6枚","新生児用おむつ・おしりふき","哺乳瓶2本・粉ミルク少し","消毒グッズ","ガーゼ・沐浴用品","爪切り・体温計"]},
+ "授乳・ミルク（哺乳瓶・粉ミルク）":{m:"夜中の担当とミルクの作り方をふたりで共有する",c:["ミルクの作り方を練習","夜中の当番を決める","授乳の記録方法を決める（アプリ・紙）"]},
+ "哺乳瓶の洗浄・消毒":{m:"",c:["消毒方法を決める（薬液・レンジ・煮沸）","洗う担当を決める"]},
+ "おむつ替え（おむつ・おしりふき）":{m:"",c:["替える場所を決める","ストックの置き場所","買い足しの担当を決める"]},
+ "沐浴（ベビーバス・ガーゼ）":{m:"1か月健診までは大人と別にベビーバスで",c:["ベビーバスを用意","お湯の温度（38〜40℃）を確認","沐浴の担当・時間帯を決める"]},
+ "夜中の授乳・夜泣きの当番":{m:"シフト（夜勤）に合わせて交代で寝る時間を確保",c:["曜日・シフトごとの担当を決める","寝る部屋を分けるか決める","つらいときの交代ルールを決める"]},
+ "健診・予防接種の予約":{m:"生後2か月から予防接種が始まる。1か月健診は産院で",c:["1か月健診の予約","かかりつけ小児科を決める","2か月からの予防接種スケジュールを立てる","乳児健診（市）の日程を確認"]},
+ "飲料水（1人1日3L×3日分）":{m:"ふたりなら最低18L（できれば1週間分42L）。ローリングストックで期限を管理",c:["必要な量を用意","保管場所を決める","賞味期限を記録","半年ごとに点検"]},
+ "非常食（3日分）":{m:"ふだん食べる物を多めに買って使った分を足す（ローリングストック）",c:["主食（ご飯パック・麺）","おかず（缶詰・レトルト）","カセットコンロ・ボンベ","賞味期限を記録"]},
+ "避難場所と連絡方法の確認":{m:"井ケ谷町の指定避難所・ハザードマップは刈谷市のサイトで確認",c:["指定避難所と行き方を確認","家族の集合場所を決める","災害用伝言ダイヤル171の使い方を確認","実家への連絡方法を決める"]},
+ "家具の転倒防止":{m:"",c:["寝室の家具を固定","食器棚の扉ロック","ガラスの飛散防止フィルム"]},
+ "モバイルバッテリー":{m:"",c:["容量の大きい物を用意","充電の点検日を決める"]},
+ "懐中電灯・電池":{m:"",c:["各部屋に1つ","予備の電池","点検日を決める"]},
+ "救急セット・常備薬":{m:"",c:["絆創膏・消毒・包帯","いつもの薬を1週間分","お薬手帳のコピー"]}
+};
+const TPL_ALIAS={"産院・病院を調べる":"産院・病院を決める","育休の相談":"育休・産後パパ育休の相談","ベビーベッド":"ベビーベッド・寝具","ベビーカー":"ベビーカー・抱っこひも","肌着・おむつ":"肌着・おむつ・授乳グッズ"}; /* v191までの候補名 */
+const tplX=t=>TPLX[t]||TPLX[TPL_ALIAS[t]];
+function tplNew(cat,text){ const X=tplX(text); newPlan(cat,text,X?{memo:X.m,checks:X.c.map(t=>({t,done:false}))}:{}); }
 function newPlan(cat,text,o={}){
   const now=Date.now();
-  const p={cat,text,horizon:o.horizon||(["bousai","prep","care","travel"].includes(cat)?"soon":"someday"),who:o.who||"both",memo:"",checks:[],done:false,by:state.me||null,createdAt:now,updatedAt:now};
+  const p={cat,text,horizon:o.horizon||(["bousai","prep","care","travel"].includes(cat)?"soon":"someday"),who:o.who||"both",memo:o.memo||"",checks:o.checks||[],done:false,by:state.me||null,createdAt:now,updatedAt:now};
   if(cat==="wish") p.kind=o.kind||"do";
   if(o.date) p.date=o.date;
   if(o.budget) p.budget=o.budget;
@@ -4029,7 +4061,7 @@ $("main").addEventListener("click",e=>{
   const rd=e.target.closest("[data-rdate]"); if(rd){ state.refDate=rd.dataset.rdate; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   const pv=e.target.closest("[data-pv]"); if(pv){ state.paint.val=pv.dataset.pv; document.querySelectorAll("[data-pv]").forEach(x=>x.setAttribute("aria-pressed",String(x===pv))); return; }
   const fc=e.target.closest("[data-fc]"); if(fc){ state.fut=fc.dataset.fc; state.futFilter="all"; window.scrollTo(0,0); render(40); return; }
-  const tp=e.target.closest("[data-tpl]"); if(tp){ newPlan(state.fut,tp.dataset.tpl); toast(`「${tp.dataset.tpl}」を追加しました`); return; }
+  const tp=e.target.closest("[data-tpl]"); if(tp){ tplNew(state.fut,tp.dataset.tpl); toast(`「${tp.dataset.tpl}」を追加しました`); return; }
   const fav=e.target.closest("[data-favorite]"); if(fav){ const [c,id]=fav.dataset.favorite.split("|"); toggleItemFavorite(c,id); return; }
   const fa=e.target.closest("[data-favadd]"); if(fa){ const f=itemFavorites()[Number(fa.dataset.favadd)]; if(!f) return; const c=f.private?"pitems":"items", it=baseItem(f.list,f.text,today(),"",f.who); if(f.private){delete it.who;delete it.by;} dset(c,newId(),it); toast(`「${f.text}」を今日に追加しました`); return; }
   const fr=e.target.closest("[data-favremove]"); if(fr){ const old=itemFavorites(), a=old.slice(), i=Number(fr.dataset.favremove);a.splice(i,1);saveItemFavorites(a).then(ok=>{if(ok){render();toast("お気に入りから外しました",()=>saveItemFavorites(old).then(()=>render()));}});return; }
@@ -4068,6 +4100,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="totask"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t){ dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); } }
   else if(a==="ck"||a==="ckdel"||a==="ckadd") checkOp(a,Number(b.dataset.i));
   else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
+  else if(a==="tplFill"){ const ed=state.editing, x=ed&&state.plans.find(p=>p.id===ed.id), X=x&&tplX(x.text); if(X){ const have=new Set((x.checks||[]).map(c=>c.t)), checks=[...(x.checks||[]),...X.c.filter(t=>!have.has(t)).map(t=>({t,done:false}))], memo=x.memo||X.m; x.checks=checks; x.memo=memo; dupd("plans",x.id,{checks,memo}); render(); toast("具体的なやることを入れました"); } }
   else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(state.fut,t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
   else if(a==="fprev"||a==="fnext") shiftFut(a==="fprev"?-1:1);
   else if(a==="qaSave") qaSave(b.dataset.qd);
