@@ -1652,7 +1652,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="189";
+const APP_VERSION="190";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1664,6 +1664,7 @@ const PCATS={
   anniv:{label:"記念日",layer:"fun",dateL:"日付（毎年）",doneL:"お祝いした",tpl:["結婚記念日","付き合った日","誕生日（自分）","誕生日（相手）"]},
   bousai:{label:"防災",layer:"safe",dateL:"期限・点検日",doneL:"完了",tpl:["飲料水（1人1日3L×3日分）","非常食（3日分）","モバイルバッテリー","懐中電灯・電池","救急セット・常備薬","避難場所と連絡方法の確認","家具の転倒防止"]},
   prep:{label:"子育て準備",layer:"family",dateL:"期限",doneL:"完了",tpl:["産院・病院を調べる","出産費用と手当の確認","育休の相談","ベビーベッド","チャイルドシート","ベビーカー","肌着・おむつ"]},
+  care:{label:"子育ての家事",layer:"family",dateL:"準備期限",doneL:"準備OK",tpl:["授乳・ミルク（哺乳瓶・粉ミルク）","哺乳瓶の洗浄・消毒","おむつ替え（おむつ・おしりふき）","沐浴（ベビーバス・ガーゼ）","ベビー服・肌着の洗濯","寝かしつけ","夜中の授乳・夜泣きの当番","離乳食づくり","保湿・爪切り","健診・予防接種の予約","母子手帳・保険証の管理","ベビー用品の買い足し"]},
   kids:{label:"子育てでやりたいこと",layer:"family",dateL:"目標日",doneL:"叶った",tpl:["お宮参り","家族写真を撮る","動物園に行く","絵本の読み聞かせ"]}
 };
 const FCATS=Object.keys(PCATS);
@@ -2247,7 +2248,7 @@ function viewFutCat(k){
 function shiftFut(n){ const i=FCATS.indexOf(state.fut); state.fut=FCATS[(i+n+FCATS.length)%FCATS.length]; state.futFilter="all"; render(n>0?40:-40); }
 function newPlan(cat,text,o={}){
   const now=Date.now();
-  const p={cat,text,horizon:o.horizon||(["bousai","prep","travel"].includes(cat)?"soon":"someday"),who:o.who||"both",memo:"",checks:[],done:false,by:state.me||null,createdAt:now,updatedAt:now};
+  const p={cat,text,horizon:o.horizon||(["bousai","prep","care","travel"].includes(cat)?"soon":"someday"),who:o.who||"both",memo:"",checks:[],done:false,by:state.me||null,createdAt:now,updatedAt:now};
   if(cat==="wish") p.kind=o.kind||"do";
   if(o.date) p.date=o.date;
   if(o.budget) p.budget=o.budget;
@@ -3025,8 +3026,15 @@ const AI_RELEASE_184={version:"184",at:Date.UTC(2026,8,28,10),fixes:[
   ["muids9ok6vmiy","登録アーティストだけに候補を制限し、音楽検索でも同名の別アーティスト・カバーを除外するよう修正しました。好みの変更でも再選曲します。日時・季節・天気の条件と候補の除外をテスト済み。実際のAI選曲品質は確認待ちです。"]
 ]};
 function bugRelease184(b){if(Number(APP_VERSION)<184||b.reopenedAt||['fixed','rejected'].includes(b.status)||!Number(b.ver)||Number(b.ver)>183)return b;const fix=AI_RELEASE_184.fixes.find(([id,text])=>b.id===id&&bugTextKey(text)===bugTextKey(b.text));if(fix)return {...b,status:"fixed",resolvedBy:"ai",fixedVersion:"184",fixedAt:AI_RELEASE_184.at,fixNote:fix[2],releaseLinked:true,releaseNote:undefined};const pending=AI_RELEASE_184.pending.find(([id])=>id===b.id);return pending?{...b,releaseNote:pending[1]}:b;}
+const AI_RELEASE_190={version:"190",at:Date.UTC(2026,9,1,6),fixes:[
+  ["mulo3ezqkaf6q","カレンダーにゴミの日を出すようにして","v189：刈谷市の公式データ（井ケ谷町＝A地区）でカレンダーの日付・選んだ日・ホームの「今日やること」にごみの日を表示します。曜日は 設定 › データ・アカウント・ヘルプ › ごみ出し で変更できます。"],
+  ["mulq3o1kxnata","子育ての家事の一覧とその確認準備状況がわかるタブを将来の子タブとして追加して","v190：将来に「子育ての家事」を追加。授乳・沐浴・寝かしつけなどの候補から追加でき、準備OKの数と進み具合が一覧のカードに出ます。"]
+],pending:[
+  ["mulqhwu7b6tzv","v190：AIの返事の形が違っても食材を拾えるようにし、失敗したときは理由を表示するようにしました。もう一度試して、出た理由を教えてください。"]
+]};
+function bugRelease190(b){ if(Number(APP_VERSION)<190||b.reopenedAt||['fixed','rejected'].includes(b.status)) return b; const fix=AI_RELEASE_190.fixes.find(([id,text])=>b.id===id&&bugTextKey(text)===bugTextKey(b.text)); if(fix) return {...b,status:"fixed",resolvedBy:"ai",fixedVersion:"190",fixedAt:AI_RELEASE_190.at,fixNote:fix[2],releaseLinked:true,releaseNote:undefined}; const pending=AI_RELEASE_190.pending.find(([id])=>id===b.id); return pending?{...b,releaseNote:pending[1]}:b; }
 function bugDisplay(b){
-  b=bugRelease184(b);
+  b=bugRelease184(b); b=bugRelease190(b);
   if(Number(APP_VERSION)<Number(AI_RELEASE.version)||!Number(b.ver)||Number(b.ver)>AI_RELEASE.throughVersion||b.reopenedAt||!['new',undefined,null,''].includes(b.status))return b;
   const key=bugTextKey(b.text),fix=AI_RELEASE.fixes.find(([t])=>bugTextKey(t)===key);
   if(fix)return {...b,status:"fixed",resolvedBy:"ai",fixedVersion:AI_RELEASE.version,fixedAt:AI_RELEASE.at,fixNote:fix[1],releaseLinked:true};
@@ -4324,15 +4332,19 @@ function refreshExtras(){
     return `<button class="tl-day" data-date="${dd}"><div class="dt">${jpDate(dd)}</div>${dnr&&dinnerText(dnr)?`<div class="meta"><span class="tag tc-shop">夕飯</span><span>${esc(dinnerText(dnr))}</span></div>`:""}${lines}</button>`; }).join(""):`<div class="empty">まだ記録はありません</div>`;
 }
 
+/* v190: AIの返事の形が {"items":["卵"]} 以外（[{name:"卵"}]、{"食材":[…]}、配列だけ など）でも食材名を取り出す */
+function fridgeNames(d){ const out=[], pick=v=>{ if(typeof v==="string") out.push(v); else if(v&&typeof v==="object"){ const n=v.name||v.item||v.food||v.食材||v.名前||v.label; if(typeof n==="string") out.push(n); } };
+  if(Array.isArray(d)) d.forEach(pick); else if(d&&typeof d==="object"){ for(const k of ["items","foods","ingredients","食材","list"]) if(Array.isArray(d[k])){ d[k].forEach(pick); return out; } for(const v of Object.values(d)) if(Array.isArray(v)) v.forEach(pick); }
+  return out; }
 async function fridgeRead(files){
   const fs=[...(files||[])].slice(0,3); if(!fs.length||state.fridgeBusy) return;
   if(!state.sample){ toast("写真の読み取りを利用できません（設定 › AI機能を確認）"); return; }
   state.fridgeBusy=true; flushExtras(); render();
   try{ const results=[]; for(let i=0;i<fs.length;i++){ toast(`冷蔵庫を読み取り中（${i+1}/${fs.length}枚）`); results.push(await state.sample.json(`冷蔵庫・冷凍庫・食品棚の写真です。写っている食材を日本語の一般名でまとめ、JSONだけを返してください。数量、消費期限、鮮度、安全性は推測しないでください。重複はまとめます。\n{"items":["食材名"]}`,{images:fs[i],modelTier:"quick"})); }
-    const items=[...new Set(results.flatMap(d=>Array.isArray(d&&d.items)?d.items:[]).filter(x=>typeof x==="string").map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60);
+    const items=[...new Set(results.flatMap(fridgeNames).map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60);
     if(!items.length){ toast("食材を読み取れませんでした"); return; }
     const existing=String(state.fridgeDraft??fridgeItems().join("、")).split(/[、,\n]+/).map(x=>x.trim()).filter(Boolean);state.fridgeDraft=[...new Set([...existing,...items])].slice(0,60).join("、"); haptic("done"); toast(`${items.length}品を読み取りました。内容を確認して保存してください`); render();
-  }catch(e){ toast("冷蔵庫の写真を読み取れませんでした"); }
+  }catch(e){ const why=String((e&&(e.detail||e.message||e.code))||"").slice(0,80); toast("冷蔵庫の写真を読み取れませんでした"+(why?"："+why:"")); }
   finally{ state.fridgeBusy=false; if(state.view==="diary") render(); }
 }
 async function fridgeSave(){ const el=$("fridgeEdit"); if(!el) return; const items=[...new Set(el.value.split(/[、,\n]+/).map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60), fridge={items,at:Date.now(),by:myRole()};
@@ -5525,7 +5537,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
   {"type":"add_event","text":"","date":"YYYY-MM-DD","start":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner|priv"}
   {"type":"add_block","text":"","date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM"}（自分だけの時間の予定）
   {"type":"add_topic","text":"","date":"話す日(任意)"}
-  {"type":"add_plan","cat":"wish|travel|anniv|bousai|prep|kids","text":"","date":"YYYY-MM-DD(任意)","budget":金額(任意),"horizon":"soon|year|someday(任意)"}（将来のリストに追加）
+  {"type":"add_plan","cat":"wish|travel|anniv|bousai|prep|care|kids","text":"","date":"YYYY-MM-DD(任意)","budget":金額(任意),"horizon":"soon|year|someday(任意)"}（将来のリストに追加）
   {"type":"add_dinner","main":"主菜","side":"副菜","soup":"汁物","date":"YYYY-MM-DD"}
   {"type":"report_bug","text":"不具合・改善要望の内容"}
   {"type":"open_view","view":"home|cal|task|shop|talk|habit|reflect|diary|future|money|settings","cat":"防災ならbousaiなど(任意)","date":"YYYY-MM-DD(任意)"}
@@ -5710,7 +5722,7 @@ function catOf(e){
   const x=e.x||{}; if(x.mcat&&MCATS[x.mcat]) return x.mcat;
   if(e.c==="recur") return x.kind==="save"?"save":guessCat(x.text,x.kind==="var"?"food":"house");
   if(e.c==="spend"){ const c=x.cat; if(MCATS[c]&&!CAT_LEGACY[c]) return c; if(c==="save") return "save"; return guessCat(x.text,CAT_LEGACY[c]||"other"); }
-  if(e.c==="plans") return guessCat(x.text,{travel:"travel",anniv:"gift",bousai:"bousai",prep:"kids",kids:"kids",wish:x.kind==="buy"?"buy":"fun"}[x.cat]||"other");
+  if(e.c==="plans") return guessCat(x.text,{travel:"travel",anniv:"gift",bousai:"bousai",prep:"kids",care:"kids",kids:"kids",wish:x.kind==="buy"?"buy":"fun"}[x.cat]||"other");
   return guessCat(x.text,x.list==="shop"?"buy":"other");
 }
 function catSelect(x,c){ const auto=catOf({c,x:{...x,mcat:null}});
@@ -5886,7 +5898,7 @@ function openSheet(kind){
   S.kind=kind||({cal:"task",shop:"shop",trouble:"trouble",caution:"caution",future:state.fut==="_mine"?"pwish":"plan",talk:"topic",habit:"habit",ptask:"ptask",pshop:"pshop",psched:state.psMode==="cal"?"block":"ptask",pwish:"pwish",money:({month:"recur",goal:"goal"})[state.moneyTab]||"spend"})[v]||"task";
   if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
-  if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
+  if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
   S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
@@ -5957,7 +5969,7 @@ $("sheet").addEventListener("click",e=>{
   const kg=e.target.closest("[data-kgrp]"); if(kg){ S.kind=kgDef(kg.dataset.kgrp); renderSheet(); $("input").focus({preventScroll:true}); return; }
   const kb=e.target.closest("[data-kind]"); if(kb){ S.kind=kb.dataset.kind; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const qd=e.target.closest("[data-qd]"); if(qd){ S.date=S.date===qd.dataset.qd?"":qd.dataset.qd; if(!S.date) S.time=""; renderSheet(); return; }
-  const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
+  const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="skind"){ S.kind=v; state.kLast={...(state.kLast||{}),[kgOf(v)]:v}; } if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
   if(e.target.closest("[data-sx=clear]")){ S.date=""; S.time=""; renderSheet(); }
 });
@@ -7315,7 +7327,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg
 /* v178: 不具合の報告を、Claudeが読めるGoogleドライブのシートへ同期（単独アプリ版・夫のApps Script経由）。対応済みの報告は自動で「修正済み」に */
 function devSyncKick(){ clearTimeout(devSyncKick.t); devSyncKick.t=setTimeout(()=>devSync(false),6000); }
 async function devSync(manual){ if(!window.__FUTARI_PWA||state.acctRole!=="h"||!state.mcp){ if(manual) toast("同期は単独アプリ版の"+nameOf("h")+"の画面で行います"); return; }
-  const B=state.bugs.map(b=>({id:b.id,at:b.at||0,status:b.status||"new",role:b.role||"",view:TITLES[b.view]||b.view||"",ver:b.ver||"",text:String(b.text||"").slice(0,1500),proposal:b.proposal||"",fixNote:b.fixNote||"",err:b.err||""})).sort((x,y)=>y.at-x.at);
+  const B=state.bugs.map(b0=>bugDisplay(b0)).map(b=>({id:b.id,at:b.at||0,status:b.status||"new",role:b.role||"",view:TITLES[b.view]||b.view||"",ver:b.ver||"",text:String(b.text||"").slice(0,1500),proposal:b.proposal||"",fixNote:b.fixNote||b.releaseNote||"",err:b.err||""})).sort((x,y)=>y.at-x.at);
   const key=JSON.stringify(B).length+":"+B.map(b=>b.id+b.status).join(","); if(!manual&&store.get("futari.devsync")===key&&state.devSync) return;
   try{ const r=await state.mcp.callTool("gas","devsync",{bugs:B,usage:typeof usageReport==="function"?usageReport(30):""}); const p=(r&&r.payload)||{}; state.devSync={at:Date.now(),n:p.n||B.length,url:p.url||""}; state.devSyncErr=""; store.set("futari.devsync",key); if(manual) toast("Googleドライブに同期しました"); }
   catch(e){ state.devSyncErr=/devsync|不明|unknown/i.test(String(e&&(e.detail||e.message)))?"Apps Script を v6 に更新すると使えます":String((e&&(e.detail||e.code||e.message))||"失敗").slice(0,80); if(manual) toast("同期できませんでした："+state.devSyncErr); }

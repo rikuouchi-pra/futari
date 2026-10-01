@@ -33,7 +33,7 @@ function env(names, overrides = {}) {
     bugAIPanel:()=>'',...overrides });
   if(names.includes('aiAsk'))names=['aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
-  for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184',...names])) vm.runInContext(declaration(name), c, {filename: name});
+  for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
 }
 const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
@@ -107,10 +107,10 @@ test('new notification alerts occur once after initial load and never on account
   const c=env(['shareReceived','shareUnread','shareArrived']);c.state.events=[{id:'a',notice:{to:'h',at:1}}];run(c,'shareArrived()');assert.equal(c.notices.length,0);c.state.events.push({id:'b',notice:{to:'h',at:2}});run(c,'shareArrived()');run(c,'shareArrived()');assert.equal(c.notices.length,1);c.myRole=()=> 'w';c.state.events.push({id:'c',notice:{to:'w',at:3}});run(c,'shareArrived()');assert.equal(c.notices.length,1);
 });
 test('photo recognition merges into the latest draft, preserving existing food',async()=>{
-  let resolve;const c=env(['fridgeItems','fridgeRead'],{flushExtras(){}});c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:()=>new Promise(r=>resolve=r)};const p=run(c,'fridgeRead([{}])');c.state.fridgeDraft='牛乳、米';resolve({items:['卵','牛乳']});await p;assert.equal(c.state.fridgeDraft,'牛乳、米、卵');assert.equal(c.writes.length,0);
+  let resolve;const c=env(['fridgeItems','fridgeNames','fridgeRead'],{flushExtras(){}});c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:()=>new Promise(r=>resolve=r)};const p=run(c,'fridgeRead([{}])');c.state.fridgeDraft='牛乳、米';resolve({items:['卵','牛乳']});await p;assert.equal(c.state.fridgeDraft,'牛乳、米、卵');assert.equal(c.writes.length,0);
 });
 test('photo and save failures preserve food input and previous saved stock',async()=>{
-  const c=env(['fridgeItems','fridgeRead','fridgeSave'],{flushExtras(){},$:()=>({value:'米、卵'}),kakeiDoc:{update:async()=>{throw Error('offline');}}});c.state.fridgeDraft='米、卵';c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:async()=>{throw Error('offline');}};await run(c,'fridgeRead([{}])');await run(c,'fridgeSave()');assert.equal(c.state.fridgeDraft,'米、卵');assert.deepEqual(plain(c.state.kakei.fridge.items),['牛乳']);assert.equal(c.state.fridgeBusy,false);
+  const c=env(['fridgeItems','fridgeNames','fridgeRead','fridgeSave'],{flushExtras(){},$:()=>({value:'米、卵'}),kakeiDoc:{update:async()=>{throw Error('offline');}}});c.state.fridgeDraft='米、卵';c.state.kakei={fridge:{items:['牛乳']}};c.state.sample={json:async()=>{throw Error('offline');}};await run(c,'fridgeRead([{}])');await run(c,'fridgeSave()');assert.equal(c.state.fridgeDraft,'米、卵');assert.deepEqual(plain(c.state.kakei.fridge.items),['牛乳']);assert.equal(c.state.fridgeBusy,false);
 });
 test('music lookup rejects similarly named cover artists and accepts exact normalized artist',async()=>{
   const c=env(['musicKey','songFind'],{itunesJsonp:async()=>({results:[{trackName:'テスト曲',artistName:'スピッツ tribute',trackViewUrl:'wrong'},{trackName:'テスト曲',artistName:'スピッツ',trackViewUrl:'correct'}]})});assert.equal((await run(c,"songFind('テスト曲','スピッツ')")).url,'correct');c.itunesJsonp=async()=>({results:[{trackName:'テスト曲',artistName:'スピ',trackViewUrl:'wrong'}]});assert.equal(await run(c,"songFind('テスト曲','スピッツ')"),null);
@@ -216,7 +216,7 @@ test('AI recurring time edits preserve future template', () => {
   assert.equal(c.state.habits[0].time,'09:00');assert.equal(c.state.habits[0].dayTimes['2026-09-29'].dur,60);
 });
 test('fridge reads at most three photos individually, deduplicates, awaits confirmation', async () => {
-  let calls=0;const c=env(['fridgeItems','fridgeRead'],{flushExtras(){}});c.state.sample={json:async(p,o)=>{calls++;assert.ok(!Array.isArray(o.images));return {items:['卵',calls===1?'豆腐':'にんじん']};}};
+  let calls=0;const c=env(['fridgeItems','fridgeNames','fridgeRead'],{flushExtras(){}});c.state.sample={json:async(p,o)=>{calls++;assert.ok(!Array.isArray(o.images));return {items:['卵',calls===1?'豆腐':'にんじん']};}};
   c.files=[{id:1},{id:2},{id:3},{id:4}];await run(c,'fridgeRead(files)');assert.equal(calls,3);assert.equal(c.state.fridgeDraft,'卵、豆腐、にんじん');assert.equal(c.writes.length,0);assert.equal(c.state.fridgeBusy,false);
 });
 test('fridge save preserves other shared metadata', async () => {
@@ -578,4 +578,27 @@ test('v189 garbage default is Kariya open data for 井ケ谷町 (A) incl. Januar
   assert.deepEqual(g('2027-01-15'), ['古紙類']);                          // Jan: 3rd Fri = 古紙類
   assert.deepEqual(g('2027-01-29'), ['古紙類']);                          // Jan: 5th Fri
   assert.deepEqual(g('2026-10-03'), []);                                  // Sat
+});
+
+test('v190 fridge photo parsing accepts several AI answer shapes', () => {
+  const c = env(['fridgeNames']);
+  const f = d => [...run(c, `fridgeNames(${JSON.stringify(d)})`)];
+  assert.deepEqual(f({items:['卵','牛乳']}), ['卵','牛乳']);
+  assert.deepEqual(f({items:[{name:'卵'},{item:'豆腐'}]}), ['卵','豆腐']);
+  assert.deepEqual(f(['にんじん']), ['にんじん']);
+  assert.deepEqual(f({食材:['キャベツ']}), ['キャベツ']);
+  assert.deepEqual(f({result:[{食材:'納豆'}]}), ['納豆']);
+  assert.deepEqual(f(null), []);
+});
+test('v190 release notes close garbage and childcare requests, keep fridge pending', () => {
+  const c = env(['AI_RELEASE','bugTextKey','bugDisplay']);
+  const d = b => run(c, `bugDisplay(${JSON.stringify(b)})`);
+  const g = d({id:'mulo3ezqkaf6q',text:'カレンダーにゴミの日を出すようにして',status:'new',ver:'187'});
+  assert.equal(g.status,'fixed'); assert.equal(g.fixedVersion,'190');
+  const k = d({id:'mulq3o1kxnata',text:'子育ての家事の一覧とその確認準備状況がわかるタブを将来の子タブとして追加して',status:'new',ver:'187'});
+  assert.equal(k.status,'fixed');
+  const r = d({id:'mulqhwu7b6tzv',text:'冷蔵庫読み取り機能が使えないから直して',status:'new',ver:'187'});
+  assert.equal(r.status,'new'); assert.match(r.releaseNote,/理由/);
+  const re = d({id:'mulo3ezqkaf6q',text:'カレンダーにゴミの日を出すようにして',status:'new',ver:'187',reopenedAt:1});
+  assert.equal(re.status,'new');
 });
