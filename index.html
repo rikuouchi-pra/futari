@@ -1711,7 +1711,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="196";
+const APP_VERSION="197";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7030,7 +7030,7 @@ const GOMI_EX=`燃やせるごみ: 月 木
 const GOMI_PDF="https://www.city.kariya.lg.jp/kurashi/gomi/info_gomi/1021917.html";
 const gomiTxt=()=>{ const v=(state.kakei||{}).gomi; return v==null||v===""?GOMI_EX:String(v); };
 const GWD={"日":0,"月":1,"火":2,"水":3,"木":4,"金":5,"土":6};
-function gomiIcon(k){ return /可燃|燃やせ|燃やす|燃える|生ごみ/.test(k)?"🔥":/プラ/.test(k)?"♻️":/ペット/.test(k)?"🧴":/缶/.test(k)?"🥫":/びん|ビン/.test(k)?"🍾":/不燃|燃えない|金属|陶器|ガラス/.test(k)?"🔩":/資源/.test(k)?"🥫":/紙容器|段ボール/.test(k)?"📦":/紙|新聞|雑誌|古布|衣類/.test(k)?"📰":/粗大/.test(k)?"🛋️":/危険|有害|電池|スプレー/.test(k)?"⚠️":"🗑️"; }
+function gomiIcon(k){ return /可燃|燃やせ|燃やす|燃える|生ごみ/.test(k)?"🔥":/プラ/.test(k)?"♻️":/ペット/.test(k)?"🧴":/缶/.test(k)?"🥫":/びん|ビン/.test(k)?"🍾":/不燃|燃えない|金属|陶器|ガラス/.test(k)?"🔩":/資源/.test(k)?"🥫":/古紙|段ボール/.test(k)?"📦":/紙容器|紙|新聞|雑誌|古布|衣類/.test(k)?"📰":/粗大/.test(k)?"🛋️":/危険|有害|電池|スプレー/.test(k)?"⚠️":"🗑️"; }
 let gomiCache={src:null,R:null};
 function gomiRules(){ const src=gomiTxt(); if(gomiCache.src===src) return gomiCache.R;
   const R={w:[],add:{},del:{},off:[]};
