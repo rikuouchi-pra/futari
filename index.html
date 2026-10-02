@@ -507,6 +507,8 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v225: 予定の上の端でも長さ（始まり）を変えられる */
+.duo-rs.top{top:0;bottom:auto}.duo-rs.top::after{top:3px;bottom:auto}
 /* v224: トレイから⋮⋮でドラッグ */
 .duo-tr{display:flex;align-items:center}.duo-tr .duo-tb{flex:1}
 .duo-grip{flex:none;align-self:stretch;display:grid;place-items:center;width:44px;font-size:18px;letter-spacing:-3px;color:var(--muted);touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
@@ -1859,7 +1861,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="224";
+const APP_VERSION="225";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1938,7 +1940,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -3085,6 +3087,8 @@ function ttNewPaint(){ const el=$("ttNew"), N=state.ttNew; if(!el||!N) return; c
   const up=e=>{ if(lp&&e.pointerId===lp.pid){ clearTimeout(lp.t); lp=null; } if(nd&&e.pointerId===nd.pid){ nd=null; state.ttNewJust=Date.now(); haptic("tick"); } };
   document.addEventListener("pointerup",up,true); document.addEventListener("pointercancel",up,true);
   document.addEventListener("touchmove",e=>{ if(nd) e.preventDefault(); },{passive:false,capture:true});
+  /* v225: 「タップで予定を追加」の枠は、タイムテーブルの外を触ったら取り消す */
+  document.addEventListener("pointerdown",e=>{ if(!state.ttNew||nd) return; if(e.target.closest("#tt,#ttNew,#sheet,.toast,#toast")) return; state.ttNew=null; renderTT(); },true);
 }
 function blockRow(b){
   if(isEditing("blocks",b.id)) return `<li class="item" data-c="blocks" data-id="${esc(b.id)}"><div class="edit">
@@ -3185,7 +3189,7 @@ function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h",
     const sh=shiftOf(role,d);
     return `<div class="duo-col" data-duo-role="${role}" style="height:${H*DUO_PPH}px">${L.map(o=>{ const top=(o.s-st*60)*DUO_PPH/60, ht=Math.max(18,(o.e-o.s)*DUO_PPH/60), k=o["l"+role], w=100/o["n"+role];
       const key=`${o.c}|${o.x.id}`, sel=state.duoSel===key;
-      return `<div class="duo-b ${o.w==="both"?"both":""} k-${o.k} ${sel?"sel":""}" role="button" tabindex="0" data-duo-ev="${esc(key)}" data-s="${o.s}" data-e="${o.e}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}${o.w==="both"?"・ふたり":""}</small>${o.c==="items"?`<i class="duo-ck" data-duo-ck="${esc(o.x.id)}" role="button" aria-label="完了">${CHECK}</i>`:""}${sel?`<i class="duo-rs" data-duo-rs="1" aria-label="長さを変える"></i>`:""}</div>`; }).join("")}</div>`; };
+      return `<div class="duo-b ${o.w==="both"?"both":""} k-${o.k} ${sel?"sel":""}" role="button" tabindex="0" data-duo-ev="${esc(key)}" data-s="${o.s}" data-e="${o.e}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}${o.w==="both"?"・ふたり":""}</small>${o.c==="items"?`<i class="duo-ck" data-duo-ck="${esc(o.x.id)}" role="button" aria-label="完了">${CHECK}</i>`:""}${sel?`<i class="duo-rs top" data-duo-rs="top" aria-label="始まりを変える"></i><i class="duo-rs" data-duo-rs="1" aria-label="長さを変える"></i>`:""}</div>`; }).join("")}</div>`; };
   const allD=R.map(role=>E.filter(o=>o.all&&(o.w===role||o.w==="both")).map(o=>`<button class="gchip duo-all" data-duo-ev="events|${esc(o.x.id)}">終日｜${esc(o.t)}</button>`).join("")||"");
   return `<details class="duo" ${state.duoClosed?"":"open"} data-duo-det="1"><summary class="subttl"><span>ふたりのタイムテーブル</span><span class="who">空いた時間をタップで予定を追加</span></summary>
     <div class="duo-h"><span></span>${R.map(role=>`<span class="duo-n ${role}">${esc(nameOf(role))} ${shiftBadge(shiftOf(role,d),role)}</span>`).join("")}</div>
@@ -3218,13 +3222,14 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-duo
 /* 長押しでつかんで移動（上下＝時刻、左右＝担当）、選んだ予定の下端で長さ */
 { let D=null, suppress=0;
   const snap=m=>Math.round(m/15)*15;
-  document.addEventListener("pointerdown",e=>{ const blk=e.target.closest("#main .duo-b"); if(!blk||e.target.closest(".duo-ck")) return; const rs=!!e.target.closest(".duo-rs");
-    D={blk,key:blk.dataset.duoEv,x0:e.clientX,y0:e.clientY,s:Number(blk.dataset.s),e:Number(blk.dataset.e),rs,on:rs,moved:false,role:blk.closest(".duo-col").dataset.duoRole,pid:e.pointerId};
+  document.addEventListener("pointerdown",e=>{ const blk=e.target.closest("#main .duo-b"); if(!blk||e.target.closest(".duo-ck")) return; const rsEl=e.target.closest(".duo-rs"), rs=!!rsEl, rsTop=!!(rsEl&&rsEl.classList.contains("top"));
+    D={blk,key:blk.dataset.duoEv,x0:e.clientX,y0:e.clientY,s:Number(blk.dataset.s),e:Number(blk.dataset.e),rs,rsTop,on:rs,top0:parseFloat(blk.style.top)||0,moved:false,role:blk.closest(".duo-col").dataset.duoRole,pid:e.pointerId};
     if(rs){ e.preventDefault(); try{blk.setPointerCapture(e.pointerId)}catch(_){} } else D.timer=setTimeout(()=>{ if(!D) return; D.on=true; haptic("arm"); blk.classList.add("drag"); blk.style.pointerEvents="none"; try{blk.setPointerCapture(D.pid)}catch(_){} },380); },true);
   document.addEventListener("pointermove",e=>{ if(!D||e.pointerId!==D.pid) return; const dx=e.clientX-D.x0, dy=e.clientY-D.y0;
     if(!D.on){ if(Math.abs(dx)>8||Math.abs(dy)>8){ clearTimeout(D.timer); D=null; } return; }
     D.moved=true; const dm=snap(dy*60/DUO_PPH);
-    if(D.rs){ D.blk.style.height=Math.max(18,(D.e-D.s+dm)*DUO_PPH/60)+"px"; D.ne=D.e+dm; D.ns=D.s; }
+    if(D.rs&&D.rsTop){ const ns=Math.min(D.e-15,D.s+dm); D.blk.style.top=(D.top0+(ns-D.s)*DUO_PPH/60)+"px"; D.blk.style.height=Math.max(18,(D.e-ns)*DUO_PPH/60)+"px"; D.ns=ns; D.ne=D.e; }
+    else if(D.rs){ D.blk.style.height=Math.max(18,(D.e-D.s+dm)*DUO_PPH/60)+"px"; D.ne=D.e+dm; D.ns=D.s; }
     else { D.blk.style.transform=`translate(${dx}px,${dm*DUO_PPH/60}px)`; D.ns=D.s+dm; D.ne=D.e+dm; const el=document.elementFromPoint(e.clientX,e.clientY), col=el&&el.closest&&el.closest(".duo-col"); D.nr=col?col.dataset.duoRole:D.role; } },true);
   const end=e=>{ if(!D) return; clearTimeout(D.timer); const d=D; D=null; if(!d.on) return; suppress=Date.now(); d.blk.classList.remove("drag");
     if(d.moved&&d.ns!=null) duoSet(d.key,d.ns,d.ne,d.rs?null:(d.nr!==d.role?d.nr:null)); else render(); };
@@ -3250,6 +3255,71 @@ function duoTray(d){ const t=today(), sh=i=>!isRecItem(i)&&!i.done&&!i.time&&(i.
   return {day,none}; }
 function duoRow(i){ const P=state.duoPick&&state.duoPick.id===i.id, w=getWho(i);
   return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱"}</span></button><span class="duo-grip" data-duo-grip="${esc(i.id)}" role="button" aria-label="つかんでタイムテーブルへ">⋮⋮</span></li>`; }
+/* ================= v225: スマホへの通知（Web Push）。予定の前・朝のまとめ・夜の質問・相手が追加したとき ================= */
+const PUSH_K=[["ev","予定の前"],["am","朝のまとめ（予定・ごみ・天気・やること）"],["pm","夜：今日の質問・日記がまだのとき"],["add","相手が予定・やることを追加したとき"]];
+const pushDev=()=>{ try{ return localStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
+const pushStandaloneIOS=()=>/iPhone|iPad/.test(navigator.userAgent)&&!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
+function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window, perm=ok?Notification.permission:"", on=prefs.pushOn==="1"&&!!pushDev()&&perm==="granted", off=new Set((prefs.pushOff||"").split(",").filter(Boolean));
+  return `<h2>スマホへの通知</h2>${!ok?(pushStandaloneIOS()?`<p class="who">iPhoneでは、Safariの共有ボタン →「ホーム画面に追加」で入れたアプリから開くと通知を使えます（iOS 16.4以降）。</p>`:`<p class="who">この端末・ブラウザは通知に対応していません。</p>`)
+    :perm==="denied"?`<p class="who">通知が「許可しない」になっています。iPhoneの「設定」→「通知」→「ふたりのリスト」で許可してから、もう一度押してください。</p><div class="opts"><button class="opt" data-act="pushOn">もう一度試す</button></div>`
+    :on?`<p class="who">この端末で通知を受け取ります（${esc(nameOf(myRole()))}あて）。</p><div class="opts">${PUSH_K.map(([k,l])=>`<button class="opt" data-act="pushKind" data-k="${k}" aria-pressed="${!off.has(k)}">${l}</button>`).join("")}</div>
+      <h2>予定の何分前</h2><div class="opts">${["10","30","60"].map(v=>`<button class="opt" data-act="pushLead" data-v="${v}" aria-pressed="${prefs.pushLead===v}">${v}分前</button>`).join("")}</div>
+      <h2>朝のまとめ</h2><div class="opts">${["6","7","8"].map(v=>`<button class="opt" data-act="pushAm" data-v="${v}" aria-pressed="${prefs.pushAmH===v}">${v}時</button>`).join("")}</div>
+      <div class="opts"><button class="opt" data-act="pushTest">テスト通知を送る</button><button class="opt" data-act="pushOffDev">この端末の通知をやめる</button></div><p class="who">${state.pushMsg?esc(state.pushMsg):"通知はApps Scriptから5分ごとに送ります。初回だけ、Apps Scriptで installPushTrigger を1回実行してください。"}</p>`
+    :`<p class="who">予定の前・朝のまとめ・今日の質問・相手が追加したときに、スマホに通知します。🔒じぶん専用の予定は自分にだけ届きます。</p><div class="opts"><button class="opt" data-act="pushOn">この端末で通知を受け取る</button></div>${state.pushMsg?`<p class="who">${esc(state.pushMsg)}</p>`:""}`}`; }
+function pushCardRefresh(){ const c=$("pushCard"); if(c) c.innerHTML=pushCardHTML(); }
+const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); };
+async function pushOn(){ try{
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)){ toast(pushStandaloneIOS()?"ホーム画面に追加したアプリから開いてください":"この端末は通知に対応していません"); return; }
+  const perm=await Notification.requestPermission(); if(perm!=="granted"){ state.pushMsg="通知が許可されませんでした"; pushCardRefresh(); return; }
+  state.pushMsg="設定しています…"; pushCardRefresh();
+  const P=await claude.use("push"); if(!P){ state.pushMsg="Apps Scriptの接続先がありません（config.js）"; pushCardRefresh(); return; }
+  const k=(await P.call({op:"key"}))||{}; if(!k.key) throw Error("鍵を受け取れませんでした。Apps Scriptを最新（v11）にしてください");
+  const reg=await navigator.serviceWorker.ready; let sub=await reg.pushManager.getSubscription(); if(sub){ try{ const cur=new Uint8Array(sub.options.applicationServerKey||[]), want=b64uToU8(k.key); if(cur.length!==want.length||cur.some((v,i)=>v!==want[i])){ await sub.unsubscribe(); sub=null; } }catch(e){} }
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToU8(k.key)});
+  let dev=pushDev(), sec=""; try{ sec=localStorage.getItem("futari.pushSec")||""; }catch(e){}
+  if(!dev){ dev="d"+newId()+newId().slice(0,6); sec=newId()+newId(); try{ localStorage.setItem("futari.pushDev",dev); localStorage.setItem("futari.pushSec",sec); }catch(e){} }
+  (reg.active||navigator.serviceWorker.controller)&&(reg.active||navigator.serviceWorker.controller).postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
+  state.pushSub=sub.toJSON(); prefs.pushOn="1"; savePrefs(true); await pushSync("test"); state.pushMsg="テスト通知を送りました。届かないときは、Apps Scriptを最新にして installPushTrigger を実行してください"; pushCardRefresh();
+ }catch(e){ state.pushMsg="通知の設定に失敗しました："+String((e&&(e.detail||e.message))||e).slice(0,120); pushCardRefresh(); } }
+/* この先48時間の通知予定をつくる（ふたり分の共有＋自分の🔒） */
+function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=Number(prefs.pushLead)||30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
+  const shared=[], priv=[], rolesOf=x=>{ const w=getWho(x); return w==="both"?R:R.includes(w)?[w]:R; };
+  for(const d of days){
+    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:`${lead}分後：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
+    for(const i of state.items) if(!i.done&&i.due===d&&i.time&&!isRecItem(i)){ const a=at(d,i.time)-lead*60e3; if(a>now) shared.push({id:`it:${i.id}:${d}:${i.time}:${lead}`,at:a,roles:rolesOf(i),kind:"ev",t:`${lead}分後：${i.text}`,b:`${i.time}・${i.list==="shop"?"買い物":"やること"}`}); }
+    for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:`${lead}分後：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
+    const amH=String(prefs.pushAmH||"7").padStart(2,"0"), am=at(d,`${amH}:00`);
+    if(am>now) for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
+      const parts=[sh?`シフト：${sh}`:"",W?`${WXN[W.k]} ${W.max}°/${W.min}°${W.pop>=30?` ☂${W.pop}%`:""}${W.dry?`・洗濯：${W.dry.l}`:""}`:"",G.length?`ごみ：${G.join("・")}`:"",ev.length?`予定：${ev.slice(0,3).map(x=>`${x.start||"終日"} ${x.text}`).join("、")}${ev.length>3?` ほか${ev.length-3}件`:""}`:"",tk?`やること ${tk}件`:""].filter(Boolean);
+      shared.push({id:`am:${d}:${r}:${amH}`,at:am,roles:[r],kind:"am",t:`${d===t?"今日":"明日"}（${"日月火水木金土"[parse(d).getDay()]}）のまとめ`,b:parts.join("\n")||"今日は予定はありません"}); }
+    const pm=at(d,"20:30"); if(pm>now) for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
+  }
+  return {shared:shared.sort((a,b)=>a.at-b.at).slice(0,60),priv:priv.sort((a,b)=>a.at-b.at).slice(0,40)}; }
+let pushT=null, pushQ=[];
+function pushQueue(m){ if(prefs.pushOn!=="1"||!pushDev()) return; pushQ.push(m); clearTimeout(pushT); pushT=setTimeout(()=>pushSync(),4000); }
+async function pushSync(op){ const dev=pushDev(); if(prefs.pushOn!=="1"||!dev||(db&&!privBase)) return; try{
+  const reg=await navigator.serviceWorker.ready, sub=state.pushSub||((await reg.pushManager.getSubscription())||{toJSON:()=>null}).toJSON(); if(!sub||!sub.endpoint) return;
+  let sec=""; try{ sec=localStorage.getItem("futari.pushSec")||""; }catch(e){}
+  const P=await claude.use("push"); if(!P) return; (reg.active||navigator.serviceWorker.controller)&&(reg.active||navigator.serviceWorker.controller).postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
+  const plan=pushPlan(), now=pushQ.splice(0), off=(prefs.pushOff||"").split(",").filter(Boolean);
+  await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,at:Date.now(),shared:plan.shared,now})});
+  await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
+  const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`}); state.pushLast=Date.now(); return r;
+ }catch(e){ state.pushMsg="通知の同期に失敗："+String((e&&(e.detail||e.message))||e).slice(0,100); } }
+/* アプリを開いたとき・データが変わったとき（まとめて）に予定を送り直す */
+setInterval(()=>{ if(prefs.pushOn==="1"&&document.visibilityState==="visible"&&Date.now()-(state.pushLast||0)>10*60e3) pushSync(); },60e3);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&prefs.pushOn==="1") setTimeout(()=>pushSync(),5000); });
+if("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message",e=>{ if(e.data&&e.data.type==="pushopen") go("home"); });
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=push]"); if(!b) return; e.stopPropagation(); const a=b.dataset.act;
+  if(a==="pushOn") pushOn();
+  else if(a==="pushTest"){ state.pushMsg="送っています…"; pushCardRefresh(); pushSync("test").then(r=>{ state.pushMsg=r&&r.sent?"テスト通知を送りました":(state.pushMsg&&/失敗/.test(state.pushMsg)?state.pushMsg:"送れませんでした。Apps Scriptが最新（v11）か確認してください"); pushCardRefresh(); }); }
+  else if(a==="pushOffDev"){ const dev=pushDev(); claude.use("push").then(P=>P&&P.call({op:"off",dev})).catch(()=>{}); navigator.serviceWorker.ready.then(r=>r.pushManager.getSubscription()).then(s=>s&&s.unsubscribe()).catch(()=>{}); prefs.pushOn="0"; savePrefs(true); state.pushMsg="この端末の通知をやめました"; pushCardRefresh(); }
+  else if(a==="pushKind"){ const S=new Set((prefs.pushOff||"").split(",").filter(Boolean)); S.has(b.dataset.k)?S.delete(b.dataset.k):S.add(b.dataset.k); prefs.pushOff=[...S].join(","); savePrefs(true); pushCardRefresh(); pushSync(); }
+  else if(a==="pushLead"){ prefs.pushLead=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); }
+  else if(a==="pushAm"){ prefs.pushAmH=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); } },true);
+/* 相手あての予定・やること・議題を自分が追加したら、相手にすぐ知らせる */
+{ const W0=window.dset; if(typeof W0==="function") window.dset=function(c,id,data){ try{ if(["events","items","topics"].includes(c)&&data&&!data.auto&&!(state[c]||[]).some(x=>x.id===id)){ const me=myRole(), ot=otherRole(), w=data.who||"both"; if(w===ot||w==="both") pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:`${data.text||""}${data.date||data.due?`（${short(data.date||data.due)}${data.start||data.time?" "+(data.start||data.time):""}）`:""}`}); } }catch(e){} return W0.apply(this,arguments); }; }
 /* v224: ⋮⋮をつかんで、ふたりのタイムテーブルの入れたい人・時刻へドロップ */
 { let G=null, scr=0;
   const pos=(x,y)=>{ const el=document.elementFromPoint(x,y), col=el&&el.closest&&el.closest("#main .duo-col"); if(!col) return null; const g=col.closest(".duo-g"), st=Number(g.dataset.duoSt), r=col.getBoundingClientRect(), m=Math.max(0,Math.min(1425,st*60+Math.round((y-r.top)*60/DUO_PPH/15)*15)); return {col,role:col.dataset.duoRole,m,date:g.dataset.duoDate}; };
@@ -3905,6 +3975,7 @@ function viewSettings(){
       const zs=hdrZ(k);
       return `<li><span class="hord-n"><span class="hord-t">${L}</span><span class="hsz">${[["s","小"],["m","中"],["l","大"],["xl","特大"]].map(([v,l])=>`<button type="button" data-act="hsz" data-k="${k}" data-v="${v}" aria-pressed="${zs===v}">${l}</button>`).join("")}</span></span><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn" data-act="hmv" data-k="${k}" data-d="1" ${i<a.length-1?"":"disabled"} aria-label="下へ">↓</button>${k==="title"?'<span class="hord-s">常に表示</span>':`<button class="opt" data-act="hvis" data-k="${k}" aria-pressed="${!hid}">${hid?"隠す中":"表示"}</button>`}</li>`; }).join("")}</ul>
     <div class="opts"><button class="opt" data-act="hreset">初期に戻す</button></div></section>
+  <section class="card" id="pushCard">${pushCardHTML()}</section>
   <section class="card"><h2>お知らせ</h2><p class="who">メニューの数字と、ホームの「今日やること」に出すタイミングです。</p>
     <h2>夜に書くもの（日記・内省・ありがとう・夕飯メモ）</h2><div class="opts">${["17","18","19","20","21"].map(v=>opt("eveH",v,v+"時から")).join("")}</div>
     <h2>シフト未入力のリマインド</h2><div class="opts">${opt("shRem","on","する")}${opt("shRem","off","しない")}</div><p class="who">空いている日の3日前に「やること」へ追加し、ホームとカレンダーにも表示します。</p>
@@ -5777,7 +5848,7 @@ let autoTimer=null; var arWriting=false;
 const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items",shop:"items",chore:"chores",topic:"topics"};
 const AR_SHARED=new Set(["events","items","chores","topics"]);
 function arMade(){ return new Set((prefs.autoMade||"").split(",").filter(Boolean)); }
-function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
+function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); window.__pushDeb=setTimeout(()=>pushSync(),20000); } clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   if((db&&!privBase)||!state.blocksLoaded||!state.pitemsLoaded||!state.shiftsLoaded) return;
   const ld=c=>c==="blocks"||c==="pitems"||!db||state[c+"Loaded"];
   const t=today(), skip=arSkip(), now=Date.now(), rules=arRules(), ids=new Set(rules.map(r=>r.id)), made=arMade(), made0=prefs.autoMade||"";
@@ -7297,7 +7368,8 @@ const songOf=d=>state.music.find(x=>x.id===d)||null;
 const musicTaste=r=>(((state.kakei||{}).music||{})[r]||"").trim();
 const musicKey=s=>String(s||"").normalize("NFKC").toLowerCase().replace(/[\s・、,\/／\-]/g,"");
 const musicArtists=()=>[...new Set([musicTaste("h"),musicTaste("w")].flatMap(t=>t.split(/[、,，\n\/／]+/)).map(musicKey).filter(Boolean))];
-const songAllowed=o=>!!o&&!!musicKey(o.artist)&&musicArtists().includes(musicKey(o.artist));
+/* v225: 好みの書き方と正式表記が違っても通す（例：ミスチル→Mr.Children）。AIが「どの好みに当たるか(pref)」を返すので、それが登録済みなら可 */
+const songAllowed=o=>{ if(!o) return false; const a=musicKey(o.artist), p=musicKey(o.pref), L=musicArtists(); if(!a&&!p) return false; return L.some(k=>k&&(a===k||p===k)); };
 const songContext=d=>{ const w=wxToday(); return `${d}:${Math.floor(new Date().getHours()/6)}:${w?wxKind(w.code,1):"unknown"}:${musicArtists().sort().join("|")}`; };
 const SVC={apple:["Apple Music",q=>`https://music.apple.com/jp/search?term=${encodeURIComponent(q)}`],spotify:["Spotify",q=>`https://open.spotify.com/search/${encodeURIComponent(q)}`],youtube:["YouTube Music",q=>`https://music.youtube.com/search?q=${encodeURIComponent(q)}`]};
 /* v162: 候補をまとめて選び、Apple Musicの試聴も先に取っておく（押したらすぐ鳴る・別の曲もすぐ） */
@@ -7306,20 +7378,22 @@ function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), 
 - ${nameOf("h")}の好み：${th||"（未登録）"}
 - ${nameOf("w")}の好み：${tw||"（未登録）"}
 ルール：
-- 好みに明記されたアーティスト本人の曲だけに限定する。同系統の別アーティストやカバーは選ばない。アーティスト名が未登録ならsongsは空配列
+- 好みに書かれたアーティスト本人の曲を選ぶ（略称・愛称・ひらがな表記でも、そのアーティストのこと。同系統の別アーティストやカバーは選ばない）
 - 日付${d}・現在${new Date().getHours()}時・季節${["冬","春","夏","秋"][Math.floor((Number(d.slice(5,7))%12)/3)]}・天気${T?WXN[wxKind(T.code,1)]||"不明":"不明"}・${off?"ふたり休み":"平常日"}に合う雰囲気を、登録アーティストの曲の中から選ぶ
 - ふたりとも好みが登録されていれば、交互に（${nameOf("h")}寄り・${nameOf("w")}寄り・両方寄り）
 - 実在が確かな曲だけ（曲名とアーティスト名は正式な表記で。架空の曲は不可）
 - 同じアーティストは2曲まで。次の曲は選ばない：${exclude.join(" / ")||"なし"}
 - reason は「〇〇好きの${nameOf("h")}に」「△△が好きな${nameOf("w")}と」のように、どちらの好みに合うかが分かる一言（40文字以内）
-JSONだけを返す：{"songs":[{"title":"曲名","artist":"アーティスト名","reason":"理由"},…]}`; }
+- pref には、その曲が当たる「好みに書かれたとおりの言葉」をそのまま入れる（例：好みが「ミスチル」なら pref は「ミスチル」、artist は「Mr.Children」）
+- 好みが曲名やジャンル（例：「90年代J-POP」）の場合は、それに合う実在の曲を選び、pref にその言葉を入れる
+JSONだけを返す：{"songs":[{"title":"曲名","artist":"アーティスト名（正式表記）","pref":"当たる好みの言葉","reason":"理由"},…]}`; }
 function songPast(){ return state.music.filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).slice(0,25).flatMap(m=>[`${m.title}／${m.artist}`,...(m.alts||[]).map(a=>`${a.title}／${a.artist}`)]).slice(0,60); }
-const songNorm=L=>(Array.isArray(L)?L:[]).map(o=>({title:String(o&&o.title||"").trim().slice(0,60),artist:String(o&&o.artist||"").trim().slice(0,60),reason:String(o&&o.reason||"").slice(0,80)})).filter(o=>o.title&&songAllowed(o));
+const songNorm=L=>(Array.isArray(L)?L:[]).map(o=>({title:String(o&&o.title||"").trim().slice(0,60),artist:String(o&&o.artist||"").trim().slice(0,60),pref:String(o&&o.pref||"").trim().slice(0,60),reason:String(o&&o.reason||"").slice(0,80)})).filter(o=>o.title&&songAllowed(o));
 const songId=o=>`${musicKey(o&&o.artist)}:${String(o&&o.title||"").normalize("NFKC").toLowerCase().replace(/[\s・\-‐（）()「」'’!！?？.,、。]/g,"")}`;
 function songFresh(L,used){ const seen=new Set(used.map(songId)); return L.filter(o=>{ const id=songId(o); if(seen.has(id)) return false; seen.add(id); return true; }); }
 async function songCatalogAlternative(used){
   for(const artist of [musicTaste("h"),musicTaste("w")].flatMap(t=>t.split(/[、,，\n\/／]+/)).map(s=>s.trim()).filter(Boolean)){
-    try{ const j=await itunesJsonp(artist,50); const L=songFresh((j.results||[]).filter(o=>musicKey(o.artistName)===musicKey(artist)&&o.trackName).map(o=>({title:o.trackName,artist:o.artistName,reason:`${artist}の曲から`,url:o.trackViewUrl||null,preview:o.previewUrl||null,art:(o.artworkUrl100||"").replace("100x100","200x200")||null})),used); if(L.length) return L[0]; }catch(e){}
+    try{ const j=await itunesJsonp(artist,50), ak=musicKey(artist), R=(j.results||[]).filter(o=>o.trackName), M=R.filter(o=>musicKey(o.artistName)===ak), top=R[0]&&musicKey(R[0].artistName); const L=songFresh((M.length?M:R.filter(o=>musicKey(o.artistName)===top)).map(o=>({title:o.trackName,artist:o.artistName,reason:`${artist}が好きなふたりに`,pref:artist,url:o.trackViewUrl||null,preview:o.previewUrl||null,art:(o.artworkUrl100||"").replace("100x100","200x200")||null})),used); if(L.length) return L[0]; }catch(e){}
   }
   return null;
 }
@@ -7331,7 +7405,7 @@ async function songEnsure(d,force){
   let L=[];
   try{ const r=await ai.json(songPrompt(d,5,songPast()),{modelTier:"quick"}); L=await songCheck(songFresh(songNorm(r&&r.songs||[r]),used)); }
   catch(e){ state.songErr=String((e&&(e.detail||e.code||e.message))||"選曲に失敗しました").slice(0,80); }
-  if(!L.length&&force){ const fallback=await songCatalogAlternative(used); if(fallback) L=[fallback]; }
+  if(!L.length){ const fallback=await songCatalogAlternative(used); if(fallback){ L=[fallback]; state.songErr=""; } } /* v225: AIで選べなくても、好みのアーティストの曲一覧（Apple Music）から必ず1曲 */
   if(L.length){ const doc={url:null,preview:null,art:null,...L[0],alts:L.slice(1),context,by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur) Object.assign(cur,doc); else state.music.push({id:d,...doc}); dset("music",d,doc); songPreload(); state.songErr=""; }
   else state.songErr=state.songErr||"別の曲が見つかりませんでした";
   state.songBusy=false; songRender(); }
@@ -7341,7 +7415,7 @@ async function songRefill(d){ const x=songOf(d), ai=aiText(); if(!x||!ai||state.
     const cur=songOf(d); if(cur&&L.length){ const A=cur.alts||[]; cur.alts=[...songFresh([...A.filter(a=>!a.seen),...L],[cur]),...A.filter(a=>a.seen)].slice(0,14); dupd("music",d,{alts:cur.alts}); } }catch(e){}
   state.songRefilling=false; }
 /* Apple Musicで実在を確かめ、ページ・試聴・ジャケットを付ける（見つからない曲＝作り話の可能性があるので外す。検索できない環境ではそのまま） */
-async function songCheck(L){ let net=true; const out=await Promise.all(L.map(async o=>{ if(!net) return o; try{ const m=await songFind(o.title,o.artist); return m?{...o,...m}:null; }catch(e){ net=false; return o; } }));
+async function songCheck(L){ let net=true; const out=await Promise.all(L.map(async o=>{ if(!net) return o; try{ const m=await songFind(o.title,o.artist); return m?{...o,...m,pref:o.pref}:null; }catch(e){ net=false; return o; } }));
   return out.filter(Boolean).filter(songAllowed); }
 function itunesJsonp(term,limit=10){ return new Promise((ok,ng)=>{ const cb="__it"+Date.now().toString(36)+Math.floor(Math.random()*1e4), sc=document.createElement("script"); let done=false;
   const fin=v=>{ if(done) return; done=true; clearTimeout(tm); try{ delete window[cb]; }catch(e){} sc.remove(); v instanceof Error?ng(v):ok(v); };

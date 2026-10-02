@@ -292,6 +292,9 @@
     if(name === "downloads") return DL;
     if(name === "assets") return ASSETS;
     if(name === "sample") return SAMPLE;
+    if(name === "push"){ var GP = gasUrl(); if(!GP) return null; /* v225: 通知（Web Push）。夫婦どちらも、使えるApps Scriptを経由 */
+      return { url: GP, call: async function(args){ var tok = await me.getIdToken(); var j = await gasCall_(GP, { idToken: tok, tool: "push", args: args || {} }, 40000);
+        if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; } return j.payload; } }; }
     if(name === "mcp"){ var G = (window.FUTARI_GAS_URLS || {})[(me.email || "").toLowerCase()] || window.FUTARI_GAS_URL; if(!G) return null;
       return { callTool: async function(server, tool, args){
         if(/googleusercontent\.com\/macros\/echo/.test(G) || !/\/exec(\?|$)/.test(G)){ var q = new Error("bad url"); q.code = "config.js のURLが違います。Apps Scriptの「デプロイを管理」に表示される https://script.google.com/macros/s/…/exec の形のURLを入れてください"; throw q; }
