@@ -507,6 +507,14 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v224: トレイから⋮⋮でドラッグ */
+.duo-tr{display:flex;align-items:center}.duo-tr .duo-tb{flex:1}
+.duo-grip{flex:none;align-self:stretch;display:grid;place-items:center;width:44px;font-size:18px;letter-spacing:-3px;color:var(--muted);touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+.duo-tr.dragging{opacity:.4}
+.duo-ghost{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-120%);padding:8px 12px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:13px;box-shadow:0 8px 24px rgb(0 0 0/.35);white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+.duo-ghost[data-t]:not([data-t=""])::after{content:" → " attr(data-t);font-weight:400}
+.duo-col.drop{background-color:color-mix(in srgb,var(--accent) 10%,transparent)}
+.duo-mark{position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:4;pointer-events:none;font-size:0}
 /* v223: 追加画面の閉じるボタン */
 #sheetHandle{width:auto!important;height:auto!important;min-height:34px;padding:6px 22px!important;margin:10px auto 0!important;display:block;border-radius:999px!important;font:inherit;font-size:13px;font-weight:700;color:var(--muted);background:color-mix(in srgb,var(--muted) 16%,transparent)!important}
 #sheetHandle::before,#sheetHandle::after{display:none!important}
@@ -1851,7 +1859,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="223";
+const APP_VERSION="224";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3241,7 +3249,23 @@ function duoTray(d){ const t=today(), sh=i=>!isRecItem(i)&&!i.done&&!i.time&&(i.
   const day=state.items.filter(i=>sh(i)&&(i.due===d||(d===t&&i.due&&i.due<t))), none=state.items.filter(i=>sh(i)&&!i.due);
   return {day,none}; }
 function duoRow(i){ const P=state.duoPick&&state.duoPick.id===i.id, w=getWho(i);
-  return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱ 時間に入れる"}</span></button></li>`; }
+  return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱"}</span></button><span class="duo-grip" data-duo-grip="${esc(i.id)}" role="button" aria-label="つかんでタイムテーブルへ">⋮⋮</span></li>`; }
+/* v224: ⋮⋮をつかんで、ふたりのタイムテーブルの入れたい人・時刻へドロップ */
+{ let G=null, scr=0;
+  const pos=(x,y)=>{ const el=document.elementFromPoint(x,y), col=el&&el.closest&&el.closest("#main .duo-col"); if(!col) return null; const g=col.closest(".duo-g"), st=Number(g.dataset.duoSt), r=col.getBoundingClientRect(), m=Math.max(0,Math.min(1425,st*60+Math.round((y-r.top)*60/DUO_PPH/15)*15)); return {col,role:col.dataset.duoRole,m,date:g.dataset.duoDate}; };
+  document.addEventListener("pointerdown",e=>{ const h=e.target.closest("#main [data-duo-grip]"); if(!h) return; e.preventDefault(); const it=state.items.find(x=>x.id===h.dataset.duoGrip); if(!it) return;
+    const gh=document.createElement("div"); gh.className="duo-ghost"; gh.textContent=it.text; document.body.appendChild(gh);
+    G={it,gh,pid:e.pointerId,row:h.closest("li")}; G.row.classList.add("dragging"); try{h.setPointerCapture(e.pointerId)}catch(_){} haptic("arm"); move(e); },true);
+  const move=e=>{ if(!G||e.pointerId!==G.pid) return; G.gh.style.left=e.clientX+"px"; G.gh.style.top=e.clientY+"px"; G.gh.style.visibility="hidden"; const P=pos(e.clientX,e.clientY); G.gh.style.visibility="";
+    document.querySelectorAll("#main .duo-col.drop").forEach(c=>c.classList.remove("drop")); let mk=document.getElementById("duoMark"); if(mk) mk.remove();
+    if(P){ P.col.classList.add("drop"); mk=document.createElement("div"); mk.id="duoMark"; mk.className="duo-mark"; const st=Number(P.col.closest(".duo-g").dataset.duoSt); mk.style.top=((P.m-st*60)*DUO_PPH/60)+"px"; mk.textContent=hhmm(P.m); P.col.appendChild(mk); G.gh.dataset.t=`${nameOf(P.role)} ${hhmm(P.m)}`; } else G.gh.dataset.t="";
+    const vh=innerHeight; scr=e.clientY>vh-120?14:e.clientY<140?-14:0; const dg=document.querySelector("#main .duo-g"); if(scr){ if(dg&&dg.contains(document.elementFromPoint(e.clientX,e.clientY))) dg.scrollTop+=scr; else window.scrollBy(0,scr); } };
+  document.addEventListener("pointermove",move,true);
+  const end=e=>{ if(!G||(e&&e.pointerId!==G.pid)) return; const g=G; G=null; g.gh.remove(); g.row&&g.row.classList.remove("dragging"); const mk=document.getElementById("duoMark"); if(mk) mk.remove(); document.querySelectorAll("#main .duo-col.drop").forEach(c=>c.classList.remove("drop"));
+    const P=e&&e.type==="pointerup"?pos(e.clientX,e.clientY):null; if(!P){ render(); return; }
+    const it=g.it, ch={time:hhmm(P.m),due:P.date}; if(getWho(it)!=="both"&&getWho(it)!==P.role) ch.who=P.role; const u=snapUndo("items",it.id); Object.assign(it,ch); dupd("items",it.id,ch); haptic("done"); toast(`「${it.text}」を${hhmm(P.m)}に入れました${ch.who?`（${nameOf(ch.who)}）`:""}`,u,"done"); state.duoPick=null; render(); };
+  document.addEventListener("pointerup",end,true); document.addEventListener("pointercancel",end,true);
+  document.addEventListener("touchmove",e=>{ if(G) e.preventDefault(); },{passive:false,capture:true}); }
 function duoTrayHTML(d){ const {day,none}=duoTray(d);
   return `<div class="duo-tray"><div class="subttl"><span>この日のやること・買い物（時間なし ${day.length}）</span><button class="link" data-act="duoAdd">＋ 追加</button></div>
     ${day.length?`<ul class="list">${day.map(duoRow).join("")}</ul>`:`<div class="empty" style="padding:12px">この日の時間なしのやること・買い物はありません</div>`}
@@ -6811,7 +6835,7 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.target.closest("#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
-  if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar,.duo-g,.duo-bar")) return;
+  if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar,.duo-g,.duo-bar,.duo-grip")) return;
   if(grid&&state.paint.on){ startPaint(e); return; }
   const ttEl=state.view==="cal"?e.target.closest("#tt,.day-nav"):null;
   sw={x:e.clientX,y:e.clientY,row,grid,strip,tt:ttEl?$("tt"):null,li:row&&row.closest("li"),dx:0,dy:0,on:false,axis:null,pid:e.pointerId};
