@@ -487,6 +487,23 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .pm-sum th,.pm-sum td{border-bottom:0;font-weight:700}.pm-h tbody tr{cursor:pointer}
 .pm-rem{display:flex;gap:8px;margin-top:8px}.pm-rem span{flex:1;text-align:center;padding:8px;border-radius:12px;font-weight:700;font-size:13px}.pm-rem .due{background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger)}.pm-rem .ok{background:color-mix(in srgb,var(--habit) 14%,transparent);color:var(--habit)}
 .hh-imp{display:flex;flex-direction:column;gap:6px}.hh-imp small{color:var(--muted)}.hh-imp .btn{align-self:flex-start}
+
+/* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
+#grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
+#grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
+#grid .day .num{font-size:13px;width:20px;height:20px;line-height:20px;flex:none}
+#grid .dic{display:flex;align-items:center;gap:0;flex:none;min-width:0}
+#grid .dic i{font-style:normal;display:grid;place-items:center;width:12px;height:12px;font-size:10px;line-height:1;position:static!important}
+#grid .dic .cwx svg{width:12px;height:12px}
+#grid .day .cwx,#grid .day .cgm{position:static!important;opacity:.9}
+#grid .shrow{gap:2px;height:auto}
+#grid .shrow .sb{width:15px;height:15px;font-size:9px;border-radius:4px}
+#grid .evl{font-size:9px;max-width:100%;height:13px;line-height:13px}
+#grid .marks{height:6px;gap:2px}#grid .marks .mk{width:5px;height:5px}
+#grid .day.out{opacity:.28}#grid .day.out .marks,#grid .day.out .evl,#grid .day.out .cthumb,#grid .day.out .more-n{display:none}
+#grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
+/* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
+.item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
 body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
 body.mini .htile{min-height:0}
 
@@ -1741,7 +1758,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="202";
+const APP_VERSION="203";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3447,7 +3464,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
     cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0?"sun":d.getDay()===6?"sat":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" aria-label="${jpDate(s)} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
-      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="num">${d.getDate()}</span>${(()=>{ const W=wxDay(s), G=gomiOn(s); return (W?`<span class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</span>`:"")+(G.length?`<span class="cgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].slice(0,2).join("")}</span>`:""); })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
+      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return ""; const W=wxDay(s), G=gomiOn(s); return `<span class="dic">${G.length?`<i class="cgm" title="${esc(G.join("・"))}">${gomiIcon(G[0])}</i>`:""}${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>`; })()}</span><span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
 }
@@ -4403,6 +4420,7 @@ $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.id==="futAddIn"){e.preventDefault();const t=e.target.value.trim(); if(t){ newPlan(state.fut,t); e.target.value=""; toast(`「${t.slice(0,20)}」を追加しました`); } return;}
   if(e.key==="Enter"&&e.target.dataset.centry){e.preventDefault();sendComment(e.target.dataset.centry);return;}
   if(e.key==="Enter"&&e.target.id==="editText"&&e.target.tagName==="INPUT"){e.preventDefault();saveEdit();}
+  if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.ramtp){ e.preventDefault(); e.target.blur(); }
   if(state.editing&&e.key==="Escape"){state.editing=null;render();}
 });
 $("gear").onclick=()=>go("settings");
@@ -5319,7 +5337,7 @@ function recurRow(r,ym){
     <button class="check ${p&&!recurShort(r,ym)?"on":""}" style="--c:${K.c}${p&&recurShort(r,ym)?";opacity:.55":""}" data-rpay="${esc(r.id)}" data-ym="${ym}" aria-label="${p?"未確認に戻す":"振込を確認した"}">${CHECK}</button>
     <div class="body" data-act="edit"><div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(r.text)}</span><b style="font-variant-numeric:tabular-nums">${yen(p?p.amount:r.amount||0)}</b></div>
       <div class="meta">${whoTag(r)}<span class="tag" style="--tc:${K.c}">${K.l}</span><span class="due ${late?"over":d===today()?"today":""}">${parse(d).getMonth()+1}/${parse(d).getDate()}${late?" 未確認":""}</span>${p?`<span>${esc(nameOf(p.role||"h"))}が確認</span>`:""}${g?`<span>→ ${esc(g.text)}</span>`:""}${p&&r.kind!=="save"&&Number(p.amount)!==Number(r.amount)?`<span class="${Number(p.amount)>Number(r.amount)?"mtag over":""}">予定${yen(r.amount)}</span>`:""}</div></div>
-    </div>${["w","h"].filter(role=>rShare(r,role)).map(role=>{ const pb=p&&(p[role]||(!p.h&&!p.w))?Math.round(rPaidBy(r,ym,role)):null, sh=rShortBy(r,ym,role); return `<div class="rsub rp"><button type="button" class="rp-c ${pb!=null&&!sh?"on":pb?"part":""}" data-rpb="${esc(r.id)}" data-ym="${ym}" data-role="${role}" aria-label="${esc(nameOf(role))}の振込を確認">${CHECK}</button><span class="rp-n">${esc(nameOf(role))}</span><input type="text" inputmode="numeric" class="ramt" data-ramtp="${esc(r.id)}" data-role="${role}" data-ym="${ym}" placeholder="${Math.round(rShare(r,role))}" value="${pb!=null?pb:""}" aria-label="${esc(nameOf(role))}が払った額"><span class="who">/ ${yen(Math.round(rShare(r,role)))}</span>${sh&&(p||late)?`<span class="r-short">未払い ${yen(sh)}</span>`:""}</div>`; }).join("")}${r.bank||r.basis?`<div class="rsub rinfo">${r.bank?`<span>🏦 ${esc(r.bank)}${r.holder?`（${esc(r.holder)}名義）`:""}</span>`:""}${r.basis?`<span>根拠 ${esc(r.basis)}</span>`:""}</div>`:""}</li>`; /* v200: どの費目も月ごとの実績を入れて直せる */
+    </div>${["w","h"].filter(role=>rShare(r,role)).map(role=>{ const pb=p&&(p[role]||(!p.h&&!p.w))?Math.round(rPaidBy(r,ym,role)):null, sh=rShortBy(r,ym,role); return `<div class="rsub rp"><button type="button" class="rp-c ${pb!=null&&!sh?"on":pb?"part":""}" data-rpb="${esc(r.id)}" data-ym="${ym}" data-role="${role}" aria-label="${esc(nameOf(role))}の振込を確認">${CHECK}</button><span class="rp-n">${esc(nameOf(role))}</span><input type="text" inputmode="numeric" class="ramt" data-ramtp="${esc(r.id)}" data-role="${role}" data-ym="${ym}" placeholder="未入力" value="${pb!=null?pb:""}" enterkeyhint="done" aria-label="${esc(nameOf(role))}が払った額"><span class="who">/ ${yen(Math.round(rShare(r,role)))}</span>${sh&&(p||late)?`<span class="r-short">未払い ${yen(sh)}</span>`:""}</div>`; }).join("")}${r.bank||r.basis?`<div class="rsub rinfo">${r.bank?`<span>🏦 ${esc(r.bank)}${r.holder?`（${esc(r.holder)}名義）`:""}</span>`:""}${r.basis?`<span>根拠 ${esc(r.basis)}</span>`:""}</div>`:""}</li>`; /* v200: どの費目も月ごとの実績を入れて直せる */
 }
 function viewMoneyMonthly(){
   const ym=ymOf(state.moneyRef), rs=byWho(state.recur).filter(r=>rActive(r,ym)).sort((a,b)=>(Number(a.day)||1)-(Number(b.day)||1));
@@ -7561,7 +7579,11 @@ async function wcRead(f){
   }catch(e){ state.wcOcr={st:"",err:e&&e.code==="rate_limited"?"AIの無料枠の回数制限です。少し時間をおいてください":`読み取りに失敗しました（${(e&&(e.detail||e.code||e.message))||"不明"}）`}; render(); } }
 document.addEventListener("change",e=>{ if(e.target&&e.target.id==="wcIn"&&e.target.files&&e.target.files[0]) wcRead(e.target.files[0]); });
 /* ================= 勤務表の写真からシフトを読み取る ================= */
-function shOcrCfg(r){ const k=(state.kakei||{}).shOcr||{}; return k[r]||{}; }
+const SHO_DEF={name:"大内",legend:"A=日、夜=入、明=明、休=休"}; /* v203: 勤務表の既定（大内・A=日勤、夜=夜勤入り、明=明け、休=休み） */
+function shOcrCfg(r){ const k=(state.kakei||{}).shOcr||{}, c=k[r]||{}; return {name:c.name||(r==="h"?SHO_DEF.name:""),legend:c.legend||SHO_DEF.legend}; }
+const shNorm=v=>String(v==null?"":v).normalize("NFKC").replace(/\s/g,"").toUpperCase();
+function shLegendMap(leg){ const M={}; for(const t of String(leg||"").normalize("NFKC").split(/[、,，;；\n]+/)){ const m=t.match(/^\s*(.+?)\s*[=:→]\s*(.+?)\s*$/); if(!m) continue; const to=m[2].trim()[0]; if(SHIFTS.some(x=>x[0]===to)) M[shNorm(m[1])]=to; } return M; }
+function shMap(raw,M){ const v=shNorm(raw); if(!v) return ""; if(M[v]) return M[v]; if(SHIFTS.some(x=>x[0]===v)) return v; if(/^(公|有|特|希)/.test(v)) return "休"; return null; }
 function shOcrHTML(){
   const O=state.shOcr, P=state.paint, r=(O&&O.role)||P.who||myRole(), ym=ymd(state.calMonth).slice(0,7), cfg=shOcrCfg(r), can=!!state.sample;
   if(!O) return `<button class="pill px-b" data-act="shoOpen"><svg viewBox="0 0 24 24" class="lic sm2"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>写真から入力</button>`;
@@ -7572,13 +7594,13 @@ function shOcrHTML(){
     const nch=[...Array(N)].filter((_,i)=>{ const dd=String(i+1); return (O.days[dd]||"")!==shiftOf(r,`${ym}-${dd.padStart(2,"0")}`); }).length;
     return `<div class="shocr"><div class="sho-t"><b>${esc(nameOf(r))}の${m}月（読み取り結果）</b><span class="who">${O.found===false?"名前が見つからなかった可能性があります・":""}枠つき＝今と違う日・タップで記号を変更</span></div>
       <div class="sho-g">${"日月火水木金土".split("").map(w=>`<span class="sho-w">${w}</span>`).join("")}${"<span></span>".repeat(new Date(y,m-1,1).getDay())}${cells}</div>
-      ${O.note?`<div class="who sho-note">AIのメモ：${esc(O.note)}</div>`:""}
+      ${O.note?`<div class="who sho-note">⚠ ${esc(O.note)}</div>`:`<div class="who sho-note">表の合計（休・夜の回数）と一致しました</div>`}
       <div class="sho-act"><button class="btn primary" data-act="shoApply" ${nch?"":"disabled"}>この内容で反映（${nch}日）</button><button class="btn" data-act="shoRetry">撮り直す</button><button class="link" data-act="shoClose">やめる</button></div></div>`; }
   return `<div class="shocr"><div class="sho-t"><b>勤務表の写真から読み取る</b><button class="link" data-act="shoClose">閉じる</button></div>
     <div class="edit-row"><span class="who">だれの分</span>${seg("shor",r,[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}</div>
     <div class="who">対象：<b>${y}年${m}月</b>（上の ‹ › で月を変えられます）</div>
     <label class="sho-f"><span class="who">勤務表での名前（例：大内・ｵｵｳﾁ）</span><input type="text" id="shoName" maxlength="20" value="${esc(cfg.name||"")}" placeholder="表に書かれているとおりに"></label>
-    <label class="sho-f"><span class="who">勤務表の記号の意味（任意）</span><input type="text" id="shoLeg" maxlength="120" value="${esc(cfg.legend||"")}" placeholder="例：N=夜勤入り、ア=明け、○=日勤、A=早番、公=休み"></label>
+    <label class="sho-f"><span class="who">勤務表の記号の意味（任意）</span><input type="text" id="shoLeg" maxlength="120" value="${esc(cfg.legend||"")}" placeholder="例：A=日、夜=入、明=明、休=休"></label>
     ${O.err?`<div class="sho-err">${esc(O.err)}</div>`:""}
     ${can?`<button class="btn primary" data-act="shoPick">写真を選ぶ・撮る</button><div class="who">名前と記号の意味は保存され、次回から入力不要です。反映する前に確認できます。</div>`:`<div class="sho-err">${esc(state.sampleNote||"この画面では写真の読み取りが使えません")}</div>`}</div>`;
 }
@@ -7586,19 +7608,28 @@ async function shOcrRead(f){
   const O=state.shOcr; if(!O||!f) return; const r=O.role||state.paint.who||myRole(), ym=ymd(state.calMonth).slice(0,7), [y,m]=ym.split("-").map(Number), N=new Date(y,m,0).getDate();
   const name=O.name||"", leg=O.legend||"";
   state.shOcr={...O,role:r,st:"reading",err:"",url:URL.createObjectURL(f),ym}; render();
-  const prompt=`これは職場の勤務表（シフト表）の写真です。${y}年${m}月の「${name||nameOf(r)}」さんの行（または列）を探し、1日〜${N}日の各日の勤務を、次の5つの記号のどれかに置き換えてください。
-記号：入＝夜勤入り（夜勤の始まる日）、明＝夜勤明け、休＝休み（公休・有給・希望休・特休など）、早＝早番、日＝日勤（通常勤務）
-${leg?`この勤務表での記号の意味：${leg}\n`:""}- 夜勤が2日にまたがる表記なら、始まる日を「入」、翌日を「明」にする
-- 読めない日・空欄の日は含めない。推測で埋めない
-- 別の人の行を読まないよう、名前をよく確かめる
+  const M=shLegendMap(leg), wd=d0=>"日月火水木金土"[new Date(y,m-1,d0).getDay()];
+  const prompt=`これは職場の勤務表（シフト表）の写真です。${y}年${m}月分です。
+左の名前の列から「${name||nameOf(r)}」さんの行を探し、その行の1日〜${N}日のマスに書かれている文字を、書かれているとおりにそのまま書き写してください（意味に置き換えない）。
+- 上の「曜日」の行で列の位置を合わせる（1日は${wd(1)}曜、${N}日は${wd(N)}曜）。1マスに1文字。左右の列や上下の人の行とずれないよう、マスの縦線を数えて確かめる
+- 手書きで崩れていても、この表で使われている記号（${Object.keys(M).join("・")||"A・夜・明・休"}など）のどれかとして読む。「夜」の翌日はふつう「明」
+- 空欄・読めないマスは含めない。推測で埋めない
+- 行の右端に「休」「夜」などの回数の合計欄があれば、その数字も書き写す
 次の形のJSONだけを返してください：
-{"found":true,"name":"表で見つけた名前","days":{"1":"日","2":"休"},"note":"迷った点があれば短く（なければ空文字）"}`;
+{"found":true,"name":"表で見つけた名前","raw":{"1":"夜","2":"明","3":"休","4":"A"},"totals":{"休":9,"夜":7},"note":"迷ったマスがあれば日付つきで短く（なければ空文字）"}`;
   try{
-    const d=await state.sample.json(prompt,{images:f});
-    const days={}; const src=d&&d.days&&typeof d.days==="object"?d.days:{}; const OK=new Set(SHIFTS.map(x=>x[0]));
-    for(const [k,v] of Object.entries(src)){ const n=Number(String(k).replace(/\D/g,"")); if(n>=1&&n<=N&&OK.has(String(v).trim())) days[String(n)]=String(v).trim(); }
+    const d=await state.sample.json(prompt,{images:f,modelTier:"pro"});
+    const days={}, bad=[]; const src=d&&(d.raw||d.days); const S=src&&typeof src==="object"?src:{};
+    for(const [k,v] of Object.entries(S)){ const n=Number(String(k).replace(/\D/g,"")); if(!(n>=1&&n<=N)) continue; const t=shMap(v,M); if(t) days[String(n)]=t; else if(t===null) bad.push(`${n}日「${String(v).slice(0,3)}」`); }
     if(!Object.keys(days).length){ state.shOcr={...state.shOcr,st:"setup",err:`${name||nameOf(r)}さんのシフトを読み取れませんでした。名前の書き方や、写真の明るさ・傾きを確認して撮り直してください`}; render(); return; }
-    state.shOcr={...state.shOcr,st:"ready",days,found:d.found!==false,note:String(d.note||"").slice(0,120)}; haptic("done"); render();
+    const notes=[]; if(bad.length) notes.push(`記号の意味が分からないマス：${bad.slice(0,6).join("・")}`);
+    const cnt=t=>Object.values(days).filter(x=>x===t).length, T=d.totals&&typeof d.totals==="object"?d.totals:{};
+    const chk=[["休","休"],["夜","入"]].filter(([k])=>T[k]!=null&&Number(T[k])!==cnt(k==="夜"?"入":"休")).map(([k,t])=>`${k}：表の合計${Number(T[k])}／読み取り${cnt(t)}`);
+    if(chk.length) notes.push(`表の合計と合いません（${chk.join("、")}）。枠を確かめてください`);
+    const pair=[...Array(N-1)].map((_,i)=>i+1).filter(n=>days[n]==="入"&&days[n+1]&&days[n+1]!=="明"); if(pair.length) notes.push(`夜勤の翌日が明けになっていない日：${pair.map(n=>n+1+"日").join("・")}`);
+    const miss=N-Object.keys(days).length; if(miss) notes.push(`${miss}日分は読めませんでした（空欄のまま）`);
+    if(d.note) notes.push(String(d.note).slice(0,100));
+    state.shOcr={...state.shOcr,st:"ready",days,found:d.found!==false,note:notes.join(" ／ ").slice(0,300),ok:!notes.length}; haptic("done"); render();
   }catch(e){ state.shOcr={...state.shOcr,st:"setup",err:e&&e.code==="rate_limited"?"AIの無料枠の回数制限です。少し時間をおいてください":e&&e.code==="no_key"?"GeminiのAPIキーが未設定です（Apps Scriptのスクリプト プロパティ）":`読み取りに失敗しました（${(e&&(e.detail||e.code||e.message))||"不明"}）`}; render(); }
 }
 document.addEventListener("change",e=>{ if(e.target&&e.target.id==="shIn"&&e.target.files&&e.target.files[0]) shOcrRead(e.target.files[0]); });
