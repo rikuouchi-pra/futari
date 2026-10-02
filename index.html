@@ -507,6 +507,17 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v216: ふたりのタイムテーブル */
+.duo{margin:4px 0 14px}.duo>summary{cursor:pointer;list-style:none}.duo>summary::-webkit-details-marker{display:none}
+.duo-h{display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;margin:4px 0}.duo-n{font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center;justify-content:center}
+.duo-alls span{display:flex;flex-wrap:wrap;gap:4px}
+.duo-g{display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;max-height:60vh;overflow-y:auto;border-radius:12px;background:var(--surface);padding:4px}
+.duo-t{position:relative}.duo-t span{position:absolute;right:2px;font-size:10px;color:var(--muted);transform:translateY(-5px)}
+.duo-col{position:relative;border-radius:8px;cursor:copy;background:repeating-linear-gradient(to bottom,color-mix(in srgb,var(--line) 70%,transparent) 0 1px,transparent 1px 34px)}
+.duo-b{position:absolute;border:0;border-radius:8px;padding:3px 5px;text-align:left;overflow:hidden;font:inherit;color:var(--ink);background:color-mix(in srgb,var(--cal) 28%,var(--surface));box-shadow:inset 3px 0 0 var(--cal);display:flex;flex-direction:column;cursor:pointer}
+.duo-b b,.duo-b small{flex:none}.duo-b b{font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.duo-b small{font-size:10px;color:var(--muted)}
+.duo-b.both{background:color-mix(in srgb,var(--future) 30%,var(--surface));box-shadow:inset 3px 0 0 var(--future)}
+.duo-b.k-t{background:color-mix(in srgb,var(--task) 24%,var(--surface));box-shadow:inset 3px 0 0 var(--task)}.duo-b.k-s{background:color-mix(in srgb,var(--shop) 24%,var(--surface));box-shadow:inset 3px 0 0 var(--shop)}
 /* v213 */
 .wxp-y{display:block;text-align:center;margin:10px 0 4px;text-decoration:none;font-weight:700}
 /* v211: 明細の状態 */
@@ -1810,7 +1821,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="215";
+const APP_VERSION="216";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3124,6 +3135,29 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   if(dayItems.length) h+=`<div class="section-label">時間なしの予定</div><ul class="list">${dayItems.map(schedRow).join("")}</ul>`;
   h+=`<div id="ttBlocks">${blocksListHTML(d)}</div>`;
   return h; }
+/* v216: ふたりのタイムテーブル（共有の予定・時間つきのやることだけ。相手の🔒じぶん専用は出さない）。空いた時間をタップでふたり／どちらかの予定を追加 */
+const DUO_PPH=34;
+function duoEntries(d){ const out=[];
+  for(const x of state.events) if(x.date===d){ const w=getWho(x); if(!x.start){ out.push({all:true,c:"events",x,w,t:x.text}); continue; } const s0=tmin(x.start), e0=x.end?tmin(x.end):s0+60; out.push({c:"events",x,w,s:s0,e:e0<=s0?1440:e0,t:x.text,k:"e"}); }
+  for(const i of state.items) if(!isRecItem(i)&&i.due===d&&i.time&&!i.done){ const s0=tmin(i.time); out.push({c:"items",x:i,w:getWho(i),s:s0,e:s0+(i.dur||30),t:i.text,k:i.list==="shop"?"s":"t"}); }
+  return out; }
+function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h","w"];
+  const st=Math.min(6,...timed.map(o=>Math.floor(o.s/60))), en=Math.max(24,...timed.map(o=>Math.ceil(o.e/60))), H=en-st;
+  const col=role=>{ const L=timed.filter(o=>o.w===role||o.w==="both").sort((a,b)=>a.s-b.s||b.e-a.e), lanes=[]; for(const o of L){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o["l"+role]=k; } for(const o of L) o["n"+role]=1+Math.max(...L.filter(p=>p.s<o.e&&p.e>o.s).map(p=>p["l"+role]));
+    const sh=shiftOf(role,d);
+    return `<div class="duo-col" data-duo-role="${role}" style="height:${H*DUO_PPH}px">${L.map(o=>{ const top=(o.s-st*60)*DUO_PPH/60, ht=Math.max(18,(o.e-o.s)*DUO_PPH/60), k=o["l"+role], w=100/o["n"+role];
+      return `<button class="duo-b ${o.w==="both"?"both":""} k-${o.k}" data-duo-ev="${o.c}|${esc(o.x.id)}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}${o.k==="e"?`–${hhmm(o.e%1440)}`:""}${o.w==="both"?"・ふたり":""}</small></button>`; }).join("")}</div>`; };
+  const allD=R.map(role=>E.filter(o=>o.all&&(o.w===role||o.w==="both")).map(o=>`<button class="gchip duo-all" data-duo-ev="events|${esc(o.x.id)}">終日｜${esc(o.t)}</button>`).join("")||"");
+  return `<details class="duo" ${state.duoClosed?"":"open"} data-duo-det="1"><summary class="subttl"><span>ふたりのタイムテーブル</span><span class="who">空いた時間をタップで予定を追加</span></summary>
+    <div class="duo-h"><span></span>${R.map(role=>`<span class="duo-n ${role}">${esc(nameOf(role))} ${shiftBadge(shiftOf(role,d),role)}</span>`).join("")}</div>
+    ${allD.some(Boolean)?`<div class="duo-h duo-alls"><span></span>${allD.map(x=>`<span>${x}</span>`).join("")}</div>`:""}
+    <div class="duo-g" data-duo-st="${st}" data-duo-date="${d}"><div class="duo-t" style="height:${H*DUO_PPH}px">${[...Array(H)].map((_,i)=>`<span style="top:${i*DUO_PPH}px">${st+i}</span>`).join("")}</div>${R.map(col).join("")}</div>
+    <div class="who" style="margin:4px 2px 0">ふたりの予定・時間を決めたやることだけ表示（🔒じぶん専用は出ません）</div></details>`; }
+document.addEventListener("click",e=>{
+  const ev=e.target.closest("#main [data-duo-ev]"); if(ev){ const [c,id]=ev.dataset.duoEv.split("|"); openEdit(c,id); return; }
+  const cl=e.target.closest("#main .duo-col"); if(cl&&!e.target.closest(".duo-b")){ const g=cl.closest(".duo-g"), st=Number(g.dataset.duoSt), r=cl.getBoundingClientRect(), hr=Math.min(23,st+Math.floor((e.clientY-r.top)/DUO_PPH));
+    state.pendShared=cl.dataset.duoRole; state.pendTime=`${String(hr).padStart(2,"0")}:00`; state.pendEnd=`${String(Math.min(23,hr+1)).padStart(2,"0")}:00`; state.sel=g.dataset.duoDate; openSheet("event"); return; } });
+document.addEventListener("toggle",e=>{ if(e.target.matches&&e.target.matches("[data-duo-det]")) state.duoClosed=!e.target.open; },true);
 function mySchedRange(from,to){
   const mine=x=>state.psFilter==="all"||["both",myRole()].includes(getWho(x)), out=[], inR=d=>d&&d>=from&&d<=to;
   state.items.filter(i=>inR(i.due)&&mine(i)).forEach(x=>out.push({c:"items",x,d:x.due}));
@@ -3611,7 +3645,7 @@ function viewCal(){
   const myD=state.priv.find(d=>d.id===state.sel)||state.diary.find(d=>d.date===state.sel&&isMine(d));
   const ptD=state.diary.filter(d=>d.date===state.sel&&!isMine(d)&&d.text);
   const sh=shiftOf("h",state.sel), sw_=shiftOf("w",state.sel);
-  h+=pschedDayHTML(byP);
+  h+=pschedDayHTML(byP).replace('<div class="tt-tray">',duoTTHTML(state.sel)+'<div class="tt-tray">');
   const shSeg=(name,cur)=>`<div class="seg" data-seg="${name}">${SHIFTS.map(([v,n])=>`<button type="button" class="s-${v}" data-sv="${v}" aria-pressed="${cur===v}" aria-label="${n}">${v}</button>`).join("")}<button type="button" data-sv="" aria-label="未入力" aria-pressed="${!cur}">−</button></div>`;
   h+=`<details class="gdet"><summary>この日のシフトを変える</summary><div class="shiftset" style="margin-top:8px">${[["h",sh],["w",sw_]].map(([r,v])=>`<div class="shs-row"><div class="shs-h"><span class="shs-n ${r}">${esc(nameOf(r))}</span><span class="shs-v">${esc(SHIFT_NAME[v]||"未入力")}</span></div>${shSeg("sh_"+r,v)}</div>`).join("")}</div></details>`;
   h+=`<div class="section-label"><span>この日の日記</span><button class="link" data-act="godiary">${myD&&myD.text?"日記を開く":"日記を書く"} ›</button></div>`;
@@ -6427,10 +6461,11 @@ function baseItem(list,text,due,time,who){ const now=Date.now(); const it={list,
 function openSheet(kind){
   const v=state.view, S=state.sheet;
   S.kind=kind||({cal:"task",shop:"shop",trouble:"trouble",caution:"caution",future:state.fut==="_mine"?"pwish":"plan",talk:"topic",habit:"habit",ptask:"ptask",pshop:"pshop",psched:state.psMode==="cal"?"block":"ptask",pwish:"pwish",money:({month:"recur",goal:"goal"})[state.moneyTab]||"spend"})[v]||"task";
-  if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
+  if(state.pendShared){ S.who=state.pendShared; S.evPriv=false; S.bshare=false; state.pendShared=null; }
+  else if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
   if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
-  S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
+  S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
