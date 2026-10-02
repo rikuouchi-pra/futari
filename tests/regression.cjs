@@ -677,3 +677,17 @@ test('v200 unpaid months start from the item start, not before it existed', () =
   const r={id:'x',amount:1000,day:1,from:'2026-09'};
   c.R=r; assert.equal(run(c,'recurShort(R,"2026-08")'),0); assert.equal(run(c,'recurShort(R,"2026-09")'),1000);
 });
+test('v201 per-person shares and payments track のり and りく separately', () => {
+  const c = env(['ymOf','ymAdd','dayIn','rActive','rPaid','recurStart','rShare','rPaidBy','rShortBy']);
+  c.R={id:'f',amount:25000,day:1,from:'2026-09',split:{w:7500,h:17500},paid:{'2026-09':{amount:7500,w:{amount:7500}}}};
+  assert.equal(run(c,'rShare(R,"h")'),17500);
+  assert.equal(run(c,'rShortBy(R,"2026-09","w")'),0); assert.equal(run(c,'rShortBy(R,"2026-09","h")'),17500);
+  c.O={id:'o',amount:10000,day:1,from:'2026-09',who:'both',paid:{'2026-09':{amount:10000}}};
+  assert.equal(run(c,'rPaidBy(O,"2026-09","w")'),5000); assert.equal(run(c,'rShortBy(O,"2026-09","h")'),0);
+});
+test('v201 household preset matches the spreadsheet totals (のり 20万・りく 21万)', () => {
+  const c = env(['M10','HOUSEHOLD_PRESET']);
+  assert.equal(run(c,'HOUSEHOLD_PRESET.reduce((a,x)=>a+M10(x[3]),0)'),200000);
+  assert.equal(run(c,'HOUSEHOLD_PRESET.reduce((a,x)=>a+M10(x[4]),0)'),210000);
+  assert.equal(run(c,'HOUSEHOLD_PRESET.every(x=>M10(x[3])+M10(x[4])===M10(x[2]))'),true);
+});
