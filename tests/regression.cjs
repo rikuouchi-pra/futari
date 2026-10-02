@@ -691,3 +691,13 @@ test('v201 household preset matches the spreadsheet totals (のり 20万・り�
   assert.equal(run(c,'HOUSEHOLD_PRESET.reduce((a,x)=>a+M10(x[4]),0)'),210000);
   assert.equal(run(c,'HOUSEHOLD_PRESET.every(x=>M10(x[3])+M10(x[4])===M10(x[2]))'),true);
 });
+test('v202 household import starts from September 2026 and moves later starts back', () => {
+  const c = env(['M10','HOUSEHOLD_PRESET','HOUSEHOLD_FROM','householdImport'], { ymOf:d=>d.slice(0,7) }); let n=0; c.newId=()=>'id'+(n++); c.state.goals=[]; c.catGoals=()=>((c.state.kakei||{}).catGoals)||{}; c.kakeiPut=()=>Promise.resolve();
+  c.state.recur=[{id:'a',text:'食費',from:'2026-10'}];
+  run(c,'householdImport()');
+  assert.equal(c.state.recur[0].from,'2026-09');
+  const added=c.writes.filter(w=>w.op==='set'&&w.c==='recur'); assert.equal(added.length,13); assert.ok(added.every(w=>w.data.from==='2026-09'));
+  const goals=c.writes.filter(w=>w.op==='set'&&w.c==='goals'); assert.deepEqual(plain(goals.map(g=>[g.data.text,g.data.target,g.data.due])),[['出産費①',1080000,'2029-08-31'],['出産費②',1080000,'2029-08-31'],['生活予備費',2880000,'2029-08-31']]);
+  assert.ok(added.filter(w=>w.data.kind==='save').every(w=>w.data.goal));
+  assert.equal(c.state.kakei.limit,270000); assert.equal(c.state.kakei.catGoals.house,195000); assert.equal(c.state.kakei.catGoals.food,25000);
+});

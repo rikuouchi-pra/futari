@@ -1741,7 +1741,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="201";
+const APP_VERSION="202";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5263,11 +5263,24 @@ const HOUSEHOLD_PRESET=[
  ["var","食費",2.5,0.75,1.75,"SBI銀行","のり","","food"],["var","日用費",1,0.5,0.5,"SBI銀行","のり","","daily"],["var","旅費",2.5,1.25,1.25,"SBI銀行","のり","10万円/4か月","travel"],
  ["var","外食費",1,0.5,0.5,"SBI銀行","のり","","eatout"],["save","出産費①",3,1.5,1.5,"SBI銀行","りく","108万円/3年","save"],["save","出産費②",3,1.5,1.5,"SBI銀行","りく","108万円/3年","save"],
  ["save","生活予備費",8,4,4,"SBI銀行","りく","288万円/3年","save"]];
-function householdImport(){ const now=Date.now(), from=ymOf(today()); let add=0, upd=0;
+const HOUSEHOLD_FROM="2026-09"; /* 9月分から */
+function householdImport(){ const now=Date.now(), from=HOUSEHOLD_FROM; let add=0, upd=0;
+  let gAdd=0;
   for(const [kind,text,tot,w,h,bank,holder,basis,mcat] of HOUSEHOLD_PRESET){ const ex=state.recur.find(x=>x.text===text), data={kind,amount:M10(tot),split:{w:M10(w),h:M10(h)},bank,holder,basis,mcat,who:"both"};
-    if(ex){ dupd("recur",ex.id,{...data,updatedAt:now}); Object.assign(ex,data); upd++; }
+    /* v202: 貯蓄は目標とひもづけ（金額根拠「108万円/3年」→ 目標108万円・9月から36か月後の月末まで） */
+    const gm=kind==="save"&&String(basis).match(/^([\d.]+)万円\/(\d+)年$/);
+    if(gm){ const target=M10(Number(gm[1])), due=ymd(new Date(Number(from.slice(0,4)),Number(from.slice(5))-1+Number(gm[2])*12,0)); let g=(state.goals||[]).find(x=>x.text===text);
+      if(!g){ const gid=newId(); g={id:gid,text,target,due,base:0,deposits:[],who:"both"}; dset("goals",gid,{text,target,due,base:0,deposits:[],who:"both",by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); (state.goals=state.goals||[]).push(g); gAdd++; }
+      else if(!g.target||!g.due){ const ch={}; if(!g.target) ch.target=target; if(!g.due) ch.due=due; dupd("goals",g.id,{...ch,updatedAt:now}); Object.assign(g,ch); }
+      data.goal=g.id; }
+    if(ex){ if(!ex.from||ex.from>from) data.from=from; dupd("recur",ex.id,{...data,updatedAt:now}); Object.assign(ex,data); upd++; }
     else { dset("recur",newId(),{text,...data,day:1,from,active:true,paid:{},by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); add++; } }
-  state.hhDone=true; toast(`家計内訳を取り込みました（追加 ${add}・更新 ${upd}）`); haptic("done"); render(); }
+  /* v202: 支出の分類ごとの毎月の目標・毎月の上限も内訳から（未設定のものだけ） */
+  { const G={...catGoals()}, K=state.kakei||{}; let gc=0; const sums={}; for(const [kind,,tot,,,,,,mcat] of HOUSEHOLD_PRESET) if(kind!=="save") sums[mcat]=(sums[mcat]||0)+M10(tot);
+    for(const [k,v] of Object.entries(sums)) if(!Number(G[k])){ G[k]=v; gc++; }
+    const lim=Object.values(sums).reduce((a,v)=>a+v,0), ch={}; if(gc) ch.catGoals=G; if(!Number(K.limit)) ch.limit=lim;
+    if(Object.keys(ch).length){ state.kakei={...K,...ch,updatedAt:now}; if(typeof kakeiPut==="function") kakeiPut({...ch,updatedAt:now}).catch(()=>{}); } }
+  state.hhDone=true; toast(`家計内訳を取り込みました（追加 ${add}・更新 ${upd}${gAdd?`・目標 ${gAdd}件`:""}）`); haptic("done"); render(); }
 /* 今月の振込：人×振込先ごと（家計内訳の「支払い先」表と同じ形） */
 function personMonthHTML(ym,rs){ const R=["w","h"], banks=[...new Set(rs.map(r=>r.bank||"未設定"))];
   const exp=(f,role)=>rs.filter(f).reduce((a,r)=>a+rShare(r,role),0), paid=(f,role)=>rs.filter(f).reduce((a,r)=>a+rPaidBy(r,ym,role),0);
@@ -5317,7 +5330,7 @@ function viewMoneyMonthly(){
   h+=`<div class="chart"><h3>振込確認 ${done}/${rs.length}</h3><div class="mbar"><i style="width:${rs.length?Math.round(done/rs.length*100):0}%;background:var(--habit)"></i></div>
     <div class="mcats">${Object.entries(RKIND).map(([k,o])=>`<div class="mcat"><span class="nm"><i style="background:${o.c}"></i>${o.l}</span><span class="bar"><i style="width:${tot(k)?Math.min(100,Math.round(paid(k)/tot(k)*100)):0}%;background:${o.c}"></i></span><b>${yen(paid(k))}<small> / ${yen(tot(k))}</small></b></div>`).join("")}</div>
     <div class="who" style="margin-top:6px">毎月の支出予定 ${yen(tot("fixed")+tot("var"))}・貯金予定 ${yen(tot("save"))}</div></div>`;
-  if(!state.hhDone&&HOUSEHOLD_PRESET.some(([,t])=>!state.recur.some(x=>x.text===t&&x.split))) h+=`<div class="chart hh-imp"><b>家計内訳（${HOUSEHOLD_PRESET.length}項目・のり／りくの負担額つき）を取り込む</b><small>住宅ローン〜生活予備費。同じ名前の項目は金額・負担額・振込先を上書き、ない項目は追加します</small><button class="btn primary" data-act="hhImport">取り込む</button></div>`;
+  if(!state.hhDone&&HOUSEHOLD_PRESET.some(([k,t])=>!state.recur.some(x=>x.text===t&&x.split&&x.from&&x.from<=HOUSEHOLD_FROM&&(k!=="save"||x.goal)))) h+=`<div class="chart hh-imp"><b>家計内訳（${HOUSEHOLD_PRESET.length}項目・のり／りくの負担額つき）を取り込む</b><small>住宅ローン〜生活予備費を2026年9月分から。貯蓄（出産費①②・生活予備費）は貯金の目標に、支出は分類ごとの毎月の目標・上限にひもづけます。同じ名前の項目は金額・負担額・振込先を上書き、ない項目は追加します</small><button class="btn primary" data-act="hhImport">取り込む</button></div>`;
   if(rs.length) h+=personMonthHTML(ym,rs);
   { const U=recurUnpaidList(), sum=U.reduce((a,x)=>a+x.n,0);
     h+=`<div class="chart unpaid ${sum?"":"zero"}"><h3>払えていない額 <b>${yen(sum)}</b></h3>${U.length?`<ul class="up-l">${U.slice(0,state.upAll?99:6).map(x=>`<li><button data-rhym="${x.ym}"><span>${Number(x.ym.slice(5))}月 ${esc(x.r.text)}</span><b>${yen(x.n)}</b><small>${["w","h"].filter(role=>rShortBy(x.r,x.ym,role)).map(role=>`${esc(nameOf(role))} ${yen(rShortBy(x.r,x.ym,role))}`).join("・")||(x.paid?`${yen(x.paid.amount)} 払った／予定 ${yen(x.r.amount)}`:"未入力")}</small></button></li>`).join("")}</ul>${U.length>6&&!state.upAll?`<button class="link" data-act="upAll">ほか ${U.length-6}件を表示</button>`:""}`:'<div class="who">直近12か月で払えていないものはありません</div>'}</div>`; }
