@@ -507,6 +507,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v223: 追加画面の閉じるボタン */
+#sheetHandle{width:auto!important;height:auto!important;min-height:34px;padding:6px 22px!important;margin:10px auto 0!important;display:block;border-radius:999px!important;font:inherit;font-size:13px;font-weight:700;color:var(--muted);background:color-mix(in srgb,var(--muted) 16%,transparent)!important}
+#sheetHandle::before,#sheetHandle::after{display:none!important}
+#sheetHandle.nudge{animation:shNudge .5s}@keyframes shNudge{30%{transform:scale(1.12);color:var(--ink)}}
 /* v221: 今日やることのタイル：何をフォローしているかを常に表示＋見送り */
 .htile-w{position:relative;display:flex}.htile-w .htile{flex:1;padding-bottom:30px}
 body .htile-w .htile small.ht-d{display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;line-height:1.35;opacity:.85;margin-top:2px;text-align:left}
@@ -1818,7 +1822,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
     <div class="kinds" id="kinds"></div>
     <div class="addrow"><input type="text" id="input" maxlength="120" enterkeyhint="send" aria-label="内容"><button class="addbtn" type="submit">追加</button></div>
     <div id="opts"></div>
-    <button type="button" class="sheet-handle" id="sheetHandle" aria-label="閉じる（上へスワイプ）"></button>
+    <button type="button" class="sheet-handle" id="sheetHandle" aria-label="閉じる">閉じる</button>
   </form>
 </div>
 <div class="onb" id="onb" hidden role="dialog" aria-modal="true" aria-label="はじめての設定"><div class="onb-card" id="onbCard"></div></div>
@@ -1847,7 +1851,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="222";
+const APP_VERSION="223";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6645,7 +6649,8 @@ $("sheet").addEventListener("change",e=>{ const S=state.sheet;
   if(e.target.id==="sEnd"){ S.end=e.target.value; return; }
   if(e.target.id==="sTime"&&(S.kind==="block"||S.kind==="gevent"||S.kind==="event"||S.kind==="habit"||(S.kind==="task"&&S.trep&&S.trep!=="none"))){ S.time=e.target.value; return; }
   if(e.target.id==="sTime"){ S.time=e.target.value; if(S.time&&!S.date) S.date=state.view==="cal"?state.sel:today(); renderSheet(); } });
-$("scrim").addEventListener("click",closeSheet);
+/* v223: 追加画面は「追加」か「閉じる」を押したときだけ閉じる（時刻・日付の選択中に外側のタップやスワイプで勝手に閉じていた） */
+$("scrim").addEventListener("click",()=>{ if(state.sheet.open){ const h=$("sheetHandle"); if(h){ h.classList.remove("nudge"); void h.offsetWidth; h.classList.add("nudge"); } } });
 $("sheetHandle").addEventListener("click",closeSheet);
 $("sheet").addEventListener("input",e=>{ const S=state.sheet; if(e.target.id==="sMoN") S.hmoN=e.target.value; if(e.target.id==="sMoS") S.hmoS=e.target.value; }); /* v141 */
 /* v140: 入力をやめたら閉じる（キーボードを閉じた・Esc）。シート内の操作中は閉じない */
@@ -6657,9 +6662,9 @@ let sheetTouchT=0;
     const ks=[...document.querySelectorAll("#kinds [data-kgrp]")].map(b=>b.dataset.kgrp), S=state.sheet, i=ks.indexOf(kgOf(S.kind)); if(i<0) return; const n=ks[(i+(dx<0?1:-1)+ks.length)%ks.length];
     S.kind=kgDef(n); haptic("tick"); renderSheet(); const kb=document.querySelector(`#kinds [data-kgrp="${n}"]`); if(kb) kb.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}); sheetTouchT=Date.now(); },true); }
 $("sheet").addEventListener("pointerdown",()=>{ sheetTouchT=Date.now(); },true);
-$("input").addEventListener("blur",()=>{ setTimeout(()=>{ const S=state.sheet; if(!S.open) return; if(Date.now()-sheetTouchT<700) return; const ae=document.activeElement; if(ae&&$("sheet").contains(ae)) return; if($("input").value.trim()) return; closeSheet(); },250); });
+$("input").addEventListener("blur",()=>{ if(true) return; setTimeout(()=>{ const S=state.sheet; if(!S.open) return; if(Date.now()-sheetTouchT<700) return; const ae=document.activeElement; if(ae&&$("sheet").contains(ae)) return; if($("input").value.trim()) return; closeSheet(); },250); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&state.sheet.open){ e.preventDefault(); closeSheet(); } });
-{ let sy=null; $("sheet").addEventListener("touchstart",e=>{ if(e.target.closest("input,.kinds")) {sy=null;return;} sy=e.touches[0].clientY; },{passive:true});
+{ let sy=null; $("sheet").addEventListener("touchstart",e=>{ if(!e.target.closest("#sheetHandle")) {sy=null;return;} sy=e.touches[0].clientY; },{passive:true});
   $("sheet").addEventListener("touchend",e=>{ if(sy===null) return; if(e.changedTouches[0].clientY-sy<-30) closeSheet(); sy=null; }); }
 $("form").addEventListener("submit",e=>{
   e.preventDefault(); const S=state.sheet, t=$("input").value.trim(); if(!t) return;
