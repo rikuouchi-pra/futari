@@ -507,6 +507,12 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v209: 子タブ（ハブの切替・将来のカテゴリ）を上に固定して、いつでも押せるように */
+#hubBar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdrH,64px));z-index:4;margin:0 -4px;padding:0 4px}
+#hubBar .hubbar,.futbar{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:color-mix(in srgb,var(--surface) 88%,transparent);box-shadow:0 2px 10px rgb(0 0 0/.12)}
+.futbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdrH,64px) + var(--hubH,0px));z-index:3}
+.anv-k{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.anv-d b{font-size:17px;font-variant-numeric:tabular-nums}.anv-d small{font-size:11px;color:var(--muted);margin-left:1px}
+.anv-l{padding:4px 14px}.anv-l .anv-s+.anv-s{border-top:1px solid var(--line)}.anv-ed{margin:6px 0}
 /* v208: 決めたこと（話したい内容／決めたこと）の分けた編集 */
 .dec2-l{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:6px 2px 3px}
 .dec-ed{padding:12px 14px}.dec-ed textarea,.ck-ed.dec2 textarea{width:100%;box-sizing:border-box}.dec-ed .edit-actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
@@ -521,7 +527,7 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .anv-l{border-top:1px solid var(--line);margin-top:8px;padding-top:4px}
 .anv-s{display:grid!important;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:4px 10px;padding:8px 0!important}
 .anv-n b{font-size:14px}.anv-n small{color:var(--muted);font-size:11px;margin-left:6px}.anv-d{font-size:13px;font-weight:700;text-align:right}
-.anv-n{grid-column:1;grid-row:1}.anv-d{grid-column:2;grid-row:1}.anv-bar{grid-row:2;grid-column:1/3;display:grid;grid-template-columns:repeat(26,1fr);gap:3px}.anv-bar i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}.anv-bar i.g{background:var(--ink)}.anv-bar i.t{box-shadow:inset 0 0 0 1.5px var(--ink);background:transparent}
+.anv-n{grid-column:1;grid-row:1}.anv-d{grid-column:2;grid-row:1}.anv-bar{grid-row:2;grid-column:1/3;display:grid;grid-template-columns:repeat(24,1fr);gap:3px}.anv-bar i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}.anv-bar i.g{background:var(--ink)}.anv-bar i.t{box-shadow:inset 0 0 0 1.5px var(--ink);background:transparent}
 /* v208: キーボードが出ている間は下のタブバー・＋・✦を隠す（iPhoneで画面の途中に浮くため） */
 body.kbd .tabbar,body.kbd #plus,body.kbd #aiFab,body.kbd .tabmore{display:none!important}
 /* v207: 自動ルールの時間欄を1行に */
@@ -1780,7 +1786,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="208";
+const APP_VERSION="209";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2276,12 +2282,18 @@ function annivInfo(p){
 }
 /* v208: 記念日を「前回から次回までの1年」をドットで。黒＝過ぎた日・○＝今日・薄い＝残り */
 function annivSpan(p){ const a=annivInfo(p); if(!a) return null; const occ=parse(a.occ), prev=new Date(occ.getFullYear()-1,occ.getMonth(),occ.getDate()), total=Math.round((occ-prev)/864e5), gone=total-a.days; return {...a,total,gone,pct:Math.round(gone/total*1000)/10,prev:ymd(prev)}; }
+/* v209: 年が分からない日付（2000年で入っている等）は年数を出さない。誕生日＝歳、結婚・付き合った日など＝周年 */
+function annivAge(p,s){ const y=Number(String(p.date).slice(0,4)); if(!y||y<=1900||y===2000||s.years<=0) return ""; return /誕生/.test(p.text)?`${s.years}歳`:/結婚|付き合|交際|入籍|記念/.test(p.text)?`${s.years}周年`:`${s.years}年目`; }
+const annivGroup=p=>/誕生/.test(p.text)?"誕生日":/の日\S{0,2}$|母の日|父の日|敬老|クリスマス|バレンタイン|ホワイトデー|お正月|七五三|節句/.test(p.text)?"行事":"ふたり・家の記念日";
 function annivDotsHTML(arr){ if(!arr.length) return ""; const S=arr.map(p=>({p,s:annivSpan(p)})).filter(x=>x.s); if(!S.length) return "";
-  const big=({p,s})=>{ const dots=[...Array(s.total)].map((_,i)=>`<i class="${i<s.gone?"g":i===s.gone?"t":""}"></i>`).join("");
-    return `<button class="anv-big" data-anv="${esc(p.id)}"><div class="anv-h"><span><b>${esc(p.text)}</b><small>${esc(jpDate(s.occ))}${s.years>0?`・${s.years}年目`:""}</small></span><span class="anv-pct">${s.days===0?"今日！":`${s.pct}%`}</span></div><div class="anv-g">${dots}</div><div class="anv-r">${s.days===0?"おめでとう":`あと <b>${s.days}</b> 日`}</div></button>`; };
-  const small=({p,s})=>{ const W=26, f=Math.round(s.gone/s.total*W); return `<button class="anv-s" data-anv="${esc(p.id)}"><span class="anv-n"><b>${esc(p.text)}</b><small>${esc(short(s.occ))}${s.years>0?`・${s.years}年目`:""}</small></span><span class="anv-bar">${[...Array(W)].map((_,i)=>`<i class="${i<f?"g":i===f?"t":""}"></i>`).join("")}</span><span class="anv-d">${s.days===0?"今日":`あと${s.days}日`}</span></button>`; };
-  return `<section class="card anv">${big(S[0])}${S.length>1?`<div class="anv-l">${S.slice(1).map(small).join("")}</div>`:""}</section>`; }
-document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-anv]"); if(!b) return; state.editing={c:"plans",id:b.dataset.anv}; render(); setTimeout(()=>{ const el=document.querySelector(`#main [data-id="${CSS.escape(b.dataset.anv)}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); });
+  const ed=state.editing&&state.editing.c==="plans"?state.editing.id:null, edRow=p=>`<ul class="list anv-ed">${planRow(p)}</ul>`;
+  const meta=(p,s)=>[short(s.occ),annivAge(p,s)].filter(Boolean).join("・");
+  const big=({p,s})=>{ if(ed===p.id) return edRow(p); const dots=[...Array(s.total)].map((_,i)=>`<i class="${i<s.gone?"g":i===s.gone?"t":""}"></i>`).join("");
+    return `<button class="anv-big" data-anv="${esc(p.id)}"><div class="anv-h"><span><small class="anv-k">次の記念日</small><b>${esc(p.text)}</b><small>${esc(meta(p,s))}</small></span><span class="anv-pct">${s.days===0?"今日":`${s.pct}%`}</span></div><div class="anv-g">${dots}</div><div class="anv-r">${s.days===0?"おめでとう":`${s.days} 日残り`}</div></button>`; };
+  const small=({p,s})=>{ if(ed===p.id) return edRow(p); const W=24, f=Math.round(s.gone/s.total*W); return `<button class="anv-s" data-anv="${esc(p.id)}"><span class="anv-n"><b>${esc(p.text)}</b><small>${esc(meta(p,s))}</small></span><span class="anv-d">${s.days===0?"今日":`<b>${s.days}</b><small>日</small>`}</span><span class="anv-bar">${[...Array(W)].map((_,i)=>`<i class="${i<f?"g":i===f?"t":""}"></i>`).join("")}</span></button>`; };
+  const rest=S.slice(1), G=["ふたり・家の記念日","誕生日","行事"].map(g=>[g,rest.filter(x=>annivGroup(x.p)===g)]).filter(([,a])=>a.length);
+  return `<section class="card anv">${big(S[0])}</section>${G.map(([g,a])=>`<div class="section-label">${g}（${a.length}）</div><section class="card anv anv-l">${a.map(small).join("")}</section>`).join("")}<div class="who" style="margin:4px 4px 10px">タップで編集（日付・お祝いした・削除）</div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-anv]"); if(!b) return; state.editing={c:"plans",id:b.dataset.anv}; editSeg={}; render(); setTimeout(()=>{ const el=document.querySelector(`#main [data-id="${CSS.escape(b.dataset.anv)}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); });
 function planDone(p){ if(p.cat==="anniv"){ const a=annivInfo(p); return !!(a&&p.celebrated===a.cycle); } return !!p.done; }
 function planSoon(p){ return p.cat!=="anniv"&&p.date&&!p.done&&p.date<=addDays(today(),30); }
 
@@ -2376,8 +2388,9 @@ function viewFutHome(){
 function viewFutCat(k){
   const C=PCATS[k]; let list=byWho(state.plans.filter(p=>p.cat===k));
   if(k==="wish"&&state.futFilter!=="all") list=list.filter(p=>(p.kind==="buy"?"buy":"do")===state.futFilter);
-  let h=`<div class="dstrip" data-strip="fut"><button class="icon-btn" data-act="fprev" aria-label="前のカテゴリ">‹</button><div class="ttl" style="font-size:16px">${C.label}</div><button class="icon-btn" data-act="fnext" aria-label="次のカテゴリ">›</button></div>
-    <div class="tools"><button class="pill" data-act="futhome">‹ 一覧</button>${k==="wish"?seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]]):""}</div>${whoBar()}`;
+  /* v209: カテゴリは上に固定したチップで直接切り替え（‹ › と「一覧」ボタンを統合） */
+  let h=`<nav class="hubbar futbar" aria-label="将来のカテゴリ"><button data-act="futhome">一覧</button>${FCATS.map(c=>`<button data-fc="${c}" class="${c===k?"on":""}">${(PDESC[c]||["",""])[0]} ${esc(PCATS[c].label)}</button>`).join("")}</nav>
+    ${k==="wish"?`<div class="tools">${seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]])}</div>`:""}${whoBar()}`;
   const have=new Set(state.plans.filter(p=>p.cat===k).flatMap(p=>[p.text,TPL_ALIAS[p.text]]));
   const tpl=C.tpl.filter(t=>!have.has(t)), all=state.plans.filter(p=>p.cat===k), dn=all.filter(planDone).length, D=PDESC[k]||["・",""];
   h+=`<section class="card fut-sum"><div class="fs-h"><span class="fr-ic">${D[0]}</span><div><small>${D[1]}</small></div>${k!=="anniv"&&all.length?`<span class="fr-n">${dn}<small>/${all.length} ${C.doneL}</small></span>`:""}</div>
@@ -2388,7 +2401,8 @@ function viewFutCat(k){
   if(k==="anniv"){
     const arr=list.filter(p=>p.date).sort((a,b)=>annivInfo(a).days-annivInfo(b).days).concat(list.filter(p=>!p.date));
     h+=annivDotsHTML(arr.filter(p=>p.date));
-    h+=arr.length?sect("近い順",arr):`<div class="section-label">近い順</div><div class="empty">記念日はまだありません<br>候補をタップするか、下に引っぱって追加</div>`;
+    const und=arr.filter(p=>!p.date);
+    h+=arr.length?(und.length?sect("日付が未設定",und):""):`<div class="empty">記念日はまだありません<br>候補をタップするか、上の欄から追加</div>`;
     return h+hint("項目：→でお祝いした・←で削除・タップで編集<br>カテゴリ名の帯を←→で切替");
   }
   const open=list.filter(p=>!p.done), done=list.filter(p=>p.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
@@ -6579,7 +6593,7 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.button>0||state.editing) return;
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
   /* v205: 横にスクロールできる場所（チップの列・表・ハブの切替など）では、タブ切替のスワイプを始めない */
-  if(e.target.closest("#hubBar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
+  if(e.target.closest("#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
   if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar")) return;
@@ -7339,7 +7353,10 @@ function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; retu
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
 function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"||k==="meal"); if(items.length<2) return "";
   return `<nav class="hubbar" aria-label="${h.l}の中">${items.map(([k,l])=>{ const b=k==="home"?"":tabBadge(k); return `<button data-hub="${k}" class="${(v===k||(v==="caution"&&k==="trouble"))?"on":""}">${l}${b?`<i>${b}</i>`:""}</button>`; }).join("")}</nav>`; }
-function hubMount(){ const main=$("main"); let el=$("hubBar"); if(prefs.nav!=="tab"){ if(el) el.remove(); return; } const html=hubBarHTML(state.view); if(!html){ if(el) el.remove(); return; }
+function stickVars(){ const r=document.documentElement, hd=document.querySelector("header"), hb=$("hubBar"); if(hd) r.style.setProperty("--hdrH",hd.offsetHeight+"px"); r.style.setProperty("--hubH",(hb&&hb.offsetParent?hb.offsetHeight+4:0)+"px");
+  const fb=document.querySelector("#main .futbar"), on=fb&&fb.querySelector(".on"); if(on&&!fb.dataset.c){ fb.dataset.c="1"; fb.scrollLeft=on.offsetLeft-(fb.clientWidth-on.offsetWidth)/2; } }
+addEventListener("resize",()=>stickVars()); if(typeof ResizeObserver!=="undefined") setTimeout(()=>{ const hd=document.querySelector("header"); if(hd) new ResizeObserver(()=>stickVars()).observe(hd); },0);
+function hubMount(){ setTimeout(stickVars,0); const main=$("main"); let el=$("hubBar"); if(prefs.nav!=="tab"){ if(el) el.remove(); return; } const html=hubBarHTML(state.view); if(!html){ if(el) el.remove(); return; }
   if(!el||el.parentNode!==main){ el=document.createElement("div"); el.id="hubBar"; main.prepend(el); } else if(main.firstElementChild!==el) main.prepend(el); el.innerHTML=html; }
 document.addEventListener("click",e=>{ const b=e.target.closest("#hubBar [data-hub]"); if(!b) return; haptic("tick"); const k=b.dataset.hub; if(k===state.view) return; state.hubLast=state.hubLast||{}; state.hubLast[hubOf(k).k]=k; go(k); });
 /* ふたりで決めたこと：話し合いで終わった議題・話し合いメモ・将来の項目に書いた決定を1か所で見返す */
