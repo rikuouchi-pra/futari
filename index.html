@@ -507,6 +507,8 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v213 */
+.wxp-y{display:block;text-align:center;margin:10px 0 4px;text-decoration:none;font-weight:700}
 /* v211: 明細の状態 */
 .rst{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;line-height:17px}
 .rst.ok{background:color-mix(in srgb,var(--habit) 22%,transparent);color:var(--habit)}
@@ -1808,7 +1810,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="212";
+const APP_VERSION="213";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7326,6 +7328,8 @@ function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=toda
   return {max:Math.round(W.daily.temperature_2m_max[i]),min:Math.round(W.daily.temperature_2m_min[i]),pop:W.daily.precipitation_probability_max[i]||0,code:W.daily.weather_code[i],rainAt:rainAt?Number(rainAt.h.slice(11,13)):null}; }
 
 /* v189: 日ごとの天気（16日先まで）とごみ出し */
+/* v213: Yahoo!天気（刈谷市）へのリンク。Yahoo!天気の予報データは外部に提供されていないため、アプリ内の数字は Open-Meteo のまま */
+const YAHOO_WX="https://weather.yahoo.co.jp/weather/jp/23/5110/23210.html";
 function wxDay(d){ const W=state.wx; if(!W||!W.daily||prefs.wx==="off") return null; const i=W.daily.time.indexOf(d); if(i<0) return null;
   return {max:Math.round(W.daily.temperature_2m_max[i]),min:Math.round(W.daily.temperature_2m_min[i]),pop:W.daily.precipitation_probability_max[i]||0,k:wxKind(W.daily.weather_code[i],1)}; }
 /* 刈谷市オープンデータ「ごみ収集日（基準日：令和8年4月1日）」井ケ谷町＝A地区 */
@@ -7379,7 +7383,8 @@ function wxRender(){
   pn.innerHTML=`<div class="wxp-h"><b>${esc(L.name)}の天気</b><span class="who">${esc(WXN[k])}・今 ${Math.round(W.current.temperature_2m)}°</span></div>
     <div class="wxp-hr">${hs.map(i=>{ const p=W.hourly.precipitation_probability[i]||0; return `<div class="wxh"><small>${Number(W.hourly.time[i].slice(11,13))}時</small>${wxSvg(wxKind(W.hourly.weather_code[i],W.hourly.is_day[i]))}<b>${Math.round(W.hourly.temperature_2m[i])}°</b><span class="wxh-p" style="--p:${p}%">${p?p+"%":""}</span></div>`; }).join("")}</div>
     <div class="wxp-d">${W.daily.time.slice(0,3).map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>`).join("")}</div>
-    <div class="who wxp-f">Open-Meteo の予報・30分ごとに更新・場所は 設定 › 天気</div>`;
+    <a class="btn wxp-y" href="${esc(YAHOO_WX)}" target="_blank" rel="noopener">Yahoo!天気で見る（刈谷市）↗</a>
+    <div class="who wxp-f">上の数字は Open-Meteo の予報・30分ごとに更新・場所は 設定 › 天気</div>`;
   const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px";
 }
 $("hfold").addEventListener("click",e=>{ e.stopPropagation(); prefs.hdrFold=prefs.hdrFold==="1"?"0":"1"; haptic("tick"); savePrefs(true); render(); });
