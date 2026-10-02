@@ -1868,7 +1868,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="227";
+const APP_VERSION="228";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2301,7 +2301,7 @@ function itemRow(i,showKind,c="items"){
       ${shared?editWho(i):""}
       <div class="edit-row"><input type="date" id="editDue" value="${esc(i.due||"")}" aria-label="日付"><input type="time" id="editTime" value="${esc(myT(i)||"")}" aria-label="時刻"></div>
       ${moneyFields(i)}
-      ${shared&&sharedBoth(i)&&i.due?`<div class="who">時刻は${esc(nameOf(myRole()))}の時間です（${esc(nameOf(otherRole()))}：${esc(otT(i)||"未定")}）。ふたりのタスクはそれぞれ自分の時間を決められます</div>`:""}
+      ${shared&&sharedBoth(i)&&i.due?`<div class="who">時刻はふたりで共通です（どちらが変えても、ふたりの予定に同じ時刻で出ます）</div>`:""}
       <textarea id="editMemo" rows="2" maxlength="600" placeholder="メモ">${esc(i.memo||"")}</textarea>
       ${["task","shop"].includes(i.list)?`<button type="button" class="btn" data-favorite="${c}|${esc(i.id)}">${itemFavorite(i,c)?"★ お気に入りから外す":"☆ お気に入りに保存"}</button>`:""}
       ${i.list!=="wish"?`<div class="edit-row"><button type="button" class="btn" data-act="mvItem">${shared?"じぶんだけの項目にする":"ふたりの項目にする（相手にも見える）"}</button></div>`:""}
@@ -2628,7 +2628,7 @@ function talkCalendarData(days){
   for(const rows of Object.values(byDay))rows.sort(sort);undated.sort(sort);return {byDay,undated};
 }
 function talkCalendarSummary(rows){const counts=new Map();for(const o of rows)counts.set(o.kind,(counts.get(o.kind)||0)+1);return [...counts].map(([k,n])=>TALK_CAL_KINDS[k][0]+n+'件').join('・');}
-function talkCalendarTimes(x,d){if(x.start)return x.start+(x.end?'–'+x.end:'');const roles=getWho(x)==='both'?['h','w']:[getWho(x)],times=roles.filter(r=>['h','w'].includes(r)).map(r=>{const day=(x['dayTimes_'+r]||{})[d]||(x.dayTimes||{})[d],time=day&&Object.prototype.hasOwnProperty.call(day,'time')?day.time:x['time_'+r]??x.time;return time?nameOf(r)+' '+time:'';}).filter(Boolean);return times.join('・');}
+function talkCalendarTimes(x,d){if(x.start)return x.start+(x.end?'–'+x.end:'');const day=dayTime(x,d),time=day&&Object.prototype.hasOwnProperty.call(day,'time')?day.time:myT(x);if(!time)return '';const w=getWho(x);return w==='both'||!['h','w'].includes(w)?time:nameOf(w)+' '+time;}
 function talkCalendarRow(o){const {c,x,d,kind}=o;
   if(kind==='event')return eventRow(x);if(kind==='task'||kind==='shop')return itemRow(x,true);if(kind==='plan')return planRow(x,true);if(kind==='caution')return cautionRow(x);
   const [label,color]=TALK_CAL_KINDS[kind],who=getWho(x),time=talkCalendarTimes(x,d);
@@ -2961,12 +2961,12 @@ const tmin=s=>{ const [h,m]=(s||"0:0").split(":").map(Number); return h*60+(m||0
 const hhmm=m=>`${String(Math.floor(m/60)%24).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
 /* v178: 日別の時間は担当ごとに保持。元の頻度・標準時刻と他の日は変更しない。 */
 const hasDayTime=(c,x)=>c==="habits"||c==="chores"||isRecItem(x)||(c==="blocks"&&x.rep&&x.rep!=="none");
-const dayTimeKey=x=>sharedBoth(x)?"dayTimes_"+myRole():"dayTimes";
-const dayTime=(x,d)=>(x[dayTimeKey(x)]||{})[d];
+const dayTimeKey=x=>"dayTimes";
+const dayTime=(x,d)=>{ const o=(x.dayTimes||{})[d]; if(o||!sharedBoth(x)) return o; for(const r of bothRoleOrder(x)){ const v=(x["dayTimes_"+r]||{})[d]; if(v) return v; } };
 const timeAt=(x,d)=>{ const o=dayTime(x,d); return o&&Object.prototype.hasOwnProperty.call(o,"time")?o.time:myT(x); };
 const durAt=(x,d)=>{ const o=dayTime(x,d); return o&&o.dur!=null?o.dur:myD(x); };
 function timeChangeFor(c,x,d,time,dur,scope="day"){
-  if(scope==="all"&&hasDayTime(c,x)){ const key=dayTimeKey(x); return {...(c==="blocks"?{start:time||"",end:time?hhmm(Math.min(1440,tmin(time)+(dur||60))%1440):"",allDay:!time}:timeCh(x,time,dur)),[key]:null,...(x.auto?{touched:true}:{})}; }
+  if(scope==="all"&&hasDayTime(c,x)){ const key=dayTimeKey(x); return {...(c==="blocks"?{start:time||"",end:time?hhmm(Math.min(1440,tmin(time)+(dur||60))%1440):"",allDay:!time}:timeCh(x,time,dur)),[key]:null,...(sharedBoth(x)?{dayTimes_h:null,dayTimes_w:null}:{}),...(x.auto?{touched:true}:{})}; }
   if(!hasDayTime(c,x)) return c==="blocks"||c==="events"?{start:time,end:time?hhmm(Math.min(1440,tmin(time)+(dur||60))%1440):null,...(x.auto?{touched:true}:{})}:{...timeCh(x,time,dur),...(x.auto?{touched:true}:{})};
   const key=dayTimeKey(x), prev=dayTime(x,d), baseDur=c==="blocks"?Math.max(15,((tmin(x.end)||tmin(x.start)+60)-tmin(x.start)+1440)%1440):Number(myD(x))||30;
   return {[key]:{...(x[key]||{}),[d]:{time:time||null,dur:time?(dur||prev&&prev.dur||baseDur):null}}};
@@ -3186,11 +3186,11 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   return h; }
 /* v216: ふたりのタイムテーブル（共有の予定・時間つきのやることだけ。相手の🔒じぶん専用は出さない）。空いた時間をタップでふたり／どちらかの予定を追加 */
 const DUO_PPH=46;
-const duoTR=(i,r)=>{ const k="time_"+r; return sharedBoth(i)&&(k in i)?i[k]:i.time; };
-const duoDR=(i,r)=>{ const k="dur_"+r; return sharedBoth(i)&&(k in i)?i[k]:i.dur; };
-const duoDK=(x,r)=>sharedBoth(x)?"dayTimes_"+r:"dayTimes";
-const duoTA=(x,d,r)=>{ const o=(x[duoDK(x,r)]||{})[d]; return o&&Object.prototype.hasOwnProperty.call(o,"time")?o.time:duoTR(x,r); };
-const duoDA=(x,d,r)=>{ const o=(x[duoDK(x,r)]||{})[d]; return o&&o.dur!=null?o.dur:duoDR(x,r); };
+const duoTR=(i,r)=>myT(i);
+const duoDR=(i,r)=>myD(i);
+const duoDK=(x,r)=>"dayTimes";
+const duoTA=(x,d,r)=>timeAt(x,d);
+const duoDA=(x,d,r)=>durAt(x,d);
 const duoCols=w=>w==="both"?["h","w"]:(w==="h"||w==="w")?[w]:[];
 /* v227: 個人のタイムテーブルと同じ時刻（担当ごとの時刻・家事・くり返しタスク）で並べる。🔒じぶん専用（blocks・pitems・habits）は入れない */
 function duoEntries(d){ const out=[];
@@ -3200,10 +3200,7 @@ function duoEntries(d){ const out=[];
   for(const h of state.items) if(isRecItem(h)&&d>=hSince(h)&&(hDaily(h)||recOn(h,d))){ const w=getWho(h); for(const r of duoCols(w)){ const tm=duoTA(h,d,r); if(!tm) continue; const s0=tmin(tm); out.push({c:"items",x:h,w,r,s:s0,e:s0+(Number(duoDA(h,d,r))||30),t:h.text,k:"t",done:!!habitLog(h)[d],day:1}); } }
   return out; }
 /* 時刻の書き込み（ふたりのやることは担当ごとの時刻。r=null は両方） */
-function duoTimeCh(x,r,tm,dur){ if(!sharedBoth(x)){ const o={time:tm}; if(dur!==undefined) o.dur=dur; return o; }
-  const R=r?[r]:["h","w"], o={}; for(const k of R){ o["time_"+k]=tm; if(dur!==undefined) o["dur_"+k]=dur; }
-  for(const k of ["h","w"]) if(!R.includes(k)&&!(("time_"+k) in x)){ o["time_"+k]=x.time==null?null:x.time; o["dur_"+k]=x.dur==null?null:x.dur; }
-  o.time=null; o.dur=null; return o; }
+function duoTimeCh(x,r,tm,dur){ return timeCh(x,tm,dur==null?null:dur); }
 const duoTimed=i=>{ const C=duoCols(getWho(i)); return C.length?C.some(r=>!!duoTR(i,r)):!!i.time; };
 function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h","w"], me=myRole(), t0=today();
   const st=Math.min(6,...timed.map(o=>Math.floor(o.s/60))), en=Math.max(24,...timed.map(o=>Math.ceil(o.e/60))), H=en-st;
@@ -4583,7 +4580,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="mvItem"&&c&&id){ const x=state[c].find(i=>i.id===id); if(x){ const toP=c==="items", now=Date.now();
       const keep=["list","text","due","time","memo","budget","done","doneAt","createdAt","link","actual"], o={};
       for(const k of keep) if(x[k]!=null) o[k]=x[k];
-      if(!toP&&x.time) o["time_"+myRole()]=x.time;
+      if(!toP&&x.time) o.time=x.time;
       if(toP&&(myT(x))) o.time=myT(x);
       if(toP&&myDone(x)){ o.done=true; o.doneAt=x["doneAt_"+myRole()]||x.doneAt||now; }
       o.updatedAt=now; if(!toP){ o.who="both"; o.by=state.me||null; }
@@ -5758,14 +5755,15 @@ function viewMoneyGoals(){
 
 /* ================= ふたりのタスクは、それぞれが自分の時間を決められる ================= */
 const sharedBoth=i=>!!i&&("who" in i)&&getWho(i)==="both";
-const myT=i=>{ const k="time_"+myRole(); return sharedBoth(i)&&(k in i)?i[k]:i.time; };
-const myD=i=>{ const k="dur_"+myRole(); return sharedBoth(i)&&(k in i)?i[k]:i.dur; };
-const otT=i=>{ const k="time_"+otherRole(); return sharedBoth(i)&&(k in i)?i[k]:i.time; };
-function timeCh(i,time,dur){ if(sharedBoth(i)){ const R=myRole(), O=otherRole(), o={["time_"+R]:time}; if(dur!=null) o["dur_"+R]=dur;
-    /* 古い共通の時刻は、相手の分として残してから共通欄を空にする（以後は完全に別々） */
-    if(i.time!=null&&i.time!==""&&!(("time_"+O) in i)){ o["time_"+O]=i.time; if(i.dur!=null&&!(("dur_"+O) in i)) o["dur_"+O]=i.dur; }
-    if(i.time!=null&&i.time!==""){ if(dur==null&&i.dur!=null&&!(("dur_"+R) in i)) o["dur_"+R]=i.dur; o.time=null; o.dur=null; }
-    return o; } const o={time}; if(dur!=null) o.dur=dur; return o; }
+/* v228: ふたりの予定・やることの時刻はふたりで共通（以前の担当ごとの時刻は、最後に編集した人→自分→相手の順で読む） */
+const bothRoleOrder=i=>[i.updBy,myRole(),otherRole()].filter((r,k,a)=>(r==="h"||r==="w")&&a.indexOf(r)===k);
+const bothPick=i=>i.time?null:bothRoleOrder(i).find(r=>i["time_"+r]);
+const myT=i=>{ if(!sharedBoth(i)||i.time) return i.time; const r=bothPick(i); return r?i["time_"+r]:i.time; };
+const myD=i=>{ if(!sharedBoth(i)||i.time) return i.dur; const r=bothPick(i); return r&&i["dur_"+r]!=null?i["dur_"+r]:i.dur; };
+const otT=myT;
+function timeCh(i,time,dur){ const o={time}; if(dur!=null) o.dur=dur; else if(sharedBoth(i)&&time&&!i.dur&&myD(i)) o.dur=myD(i);
+  if(sharedBoth(i)) for(const r of ["h","w"]){ if(("time_"+r) in i) o["time_"+r]=null; if(("dur_"+r) in i) o["dur_"+r]=null; }
+  return o; }
 /* ふたりの「やること」は完了も別々：ふたりとも完了したら全体が完了 */
 const bothTask=i=>sharedBoth(i)&&i.list==="task";
 const doneOf=(i,r)=>!!i.done||!!i["done_"+r];

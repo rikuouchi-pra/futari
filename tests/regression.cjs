@@ -36,12 +36,12 @@ function env(names, overrides = {}) {
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
 }
-const core = ['tmin','hhmm','isRecItem','sharedBoth','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
+const core = ['tmin','hhmm','isRecItem','sharedBoth','bothRoleOrder','bothPick','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 
 const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
-const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
+const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','sharedBoth','bothRoleOrder','bothPick','myT','dayTime','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
   const c=talkCalEnv({$:()=>null,talkOf:()=>null});c.state.talkCalDate='2024-02-29';const grid=run(c,'talkCalendarDates()');assert.equal(grid.days[0],'2024-01-29');assert.ok(grid.days.includes('2024-02-29'));assert.equal(grid.days.length%7,0);c.state.talkCalMonth='2026-12';run(c,'talkCalendarMove(null,1)');assert.equal(c.state.talkCalDate,'2027-01-01');run(c,'talkCalendarMove(null,-1)');assert.equal(c.state.talkCalDate,'2026-12-01');
@@ -72,8 +72,8 @@ test('monthly, quota and interval recurrence dates stay grounded in schedule and
 test('shared calendar includes chores, plans, annual anniversaries, cautions and monthly payments',()=>{
   const c=talkCalEnv();c.state.chores=[{id:'chore',target:'wd',wd:[3],since:'2026-09-01',createdAt:Date.UTC(2026,8,1),who:'w'}];c.state.plans=[{id:'plan',date:'2026-09-30'},{id:'anniv',cat:'anniv',date:'2020-09-30'}];c.state.cautions=[{id:'caution',date:'2026-09-30'}];c.state.recur=[{id:'bill',day:31,from:'2026-09',until:'2026-10',paid:{'2026-09':{amount:1}}},{id:'disabled',day:30,active:false}];const data=run(c,"talkCalendarData(['2026-09-30','2026-10-31','2026-11-30','2027-09-30'])");assert.deepEqual(plain(data.byDay['2026-09-30'].map(o=>o.x.id).sort()),['anniv','bill','caution','chore','plan']);assert.equal(data.byDay['2026-09-30'].find(o=>o.kind==='pay').status,'支払い済み');assert.ok(data.byDay['2026-10-31'].some(o=>o.x.id==='bill'));assert.ok(!data.byDay['2026-11-30'].some(o=>o.x.id==='bill'));assert.ok(data.byDay['2027-09-30'].some(o=>o.x.id==='anniv'));
 });
-test('recurring rows show selected-day times for both people and never toggle today by mistake',()=>{
-  const c=talkCalEnv();c.o={c:'items',kind:'repeat',d:'2026-09-29',x:{id:'rec',text:'<掃除>',who:'both',time:'09:00',dayTimes_h:{'2026-09-29':{time:null}},dayTimes_w:{'2026-09-29':{time:'18:00'}}}};const html=run(c,'talkCalendarRow(o)');assert.match(html,/w 18:00/);assert.doesNotMatch(html,/09:00|data-act="right"|data-htc/);assert.match(html,/&lt;掃除&gt;/);assert.match(html,/詳細・編集/);
+test('recurring rows show the shared selected-day time and never toggle today by mistake',()=>{
+  const c=talkCalEnv();c.o={c:'items',kind:'repeat',d:'2026-09-29',x:{id:'rec',text:'<掃除>',who:'both',time:'09:00',dayTimes:{'2026-09-29':{time:'18:00'}}}};const html=run(c,'talkCalendarRow(o)');assert.match(html,/18:00/);assert.doesNotMatch(html,/09:00|data-act="right"|data-htc/);assert.match(html,/&lt;掃除&gt;/);assert.match(html,/詳細・編集/);
 });
 test('voice result updates replace interim text without duplication and never send',()=>{
   const v=voiceEnv();v.c.sent=0;v.c.aiAsk=()=>v.c.sent++;run(v.c,'aiMic()');
@@ -147,10 +147,13 @@ test('daily override preserves standard time and other dates', () => {
   assert.equal(c.x.time,'09:00'); assert.equal(run(c,"timeAt(x,'2026-09-28')"),'10:00');
   assert.equal(run(c,"timeAt(x,'2026-09-29')"),'12:00'); assert.equal(run(c,"timeAt(x,'2026-09-30')"),'09:00');
 });
-test('shared recurrence overrides do not change partner time', () => {
+test('shared items keep one time for both people (old per-person times are read once)', () => {
   const c=env(core); c.x={list:'rtask',who:'both',time:'09:00',dayTimes_w:{'2026-09-28':{time:'07:00',dur:20}}};
+  assert.equal(run(c,"timeAt(x,'2026-09-28')"),'07:00');
   run(c,"Object.assign(x,timeChangeFor('items',x,'2026-09-28','10:00',60))");
-  assert.equal(c.x.dayTimes_w['2026-09-28'].time,'07:00'); assert.equal(c.x.dayTimes_h['2026-09-28'].time,'10:00');
+  assert.equal(c.x.dayTimes['2026-09-28'].time,'10:00'); assert.equal(run(c,"timeAt(x,'2026-09-28')"),'10:00');
+  c.y={list:'task',who:'both',time:null,time_h:'11:00',time_w:'09:30',dur_h:30,updBy:'w'}; assert.equal(run(c,'myT(y)'),'09:30');
+  run(c,"Object.assign(y,timeCh(y,'12:00',60))"); assert.equal(c.y.time,'12:00'); assert.equal(c.y.time_h,null); assert.equal(c.y.time_w,null); assert.equal(run(c,'myT(y)'),'12:00');
 });
 test('removing time affects only the selected recurrence date', () => {
   const c=env(core); c.x={time:'09:00',dur:30}; run(c,"Object.assign(x,timeChangeFor('habits',x,'2026-09-28',null,null))");
@@ -310,10 +313,10 @@ test('compact timetable cards omit metadata and selected details separate title 
   assert.match(declaration('ttBarHTML'),/class="tb-title"/);assert.match(declaration('ttBarHTML'),/class="tb-time"/);
   assert.doesNotMatch(declaration('ttBarHTML'),/esc\(ttMeta\(o\)\)/);
 });
-test('all recurrence scope resets own overrides and preserves partner time and logs',()=>{
+test('all recurrence scope resets shared overrides for both people and keeps logs',()=>{
   const c=env(core);c.x={list:'rtask',who:'both',time:'09:00',dayTimes_h:{'2026-09-28':{time:'10:00'}},dayTimes_w:{'2026-09-28':{time:'08:00'}},log:{'2026-09-27':true}};
   run(c,"Object.assign(x,timeChangeFor('items',x,'2026-09-28','12:00',60,'all'))");
-  assert.equal(c.x.dayTimes_h,null);assert.equal(c.x.dayTimes_w['2026-09-28'].time,'08:00');assert.equal(c.x.time_w,'09:00');assert.equal(c.x.time_h,'12:00');assert.equal(c.x.log['2026-09-27'],true);
+  assert.equal(c.x.dayTimes_h,null);assert.equal(c.x.dayTimes_w,null);assert.equal(c.x.dayTimes,null);assert.equal(c.x.time,'12:00');assert.equal(c.x.log['2026-09-27'],true);
   assert.equal(run(c,"timeAt(x,'2026-09-29')"),'12:00');
 });
 test('AI recurring creation supports every frequency and explicit private/shared assignees',()=>{
