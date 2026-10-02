@@ -494,7 +494,7 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .day .num{font-size:13px;width:20px;height:20px;line-height:20px;flex:none}
 #grid .dtop .cwx{position:static!important;flex:none;width:12px;height:12px;display:grid;place-items:center}
 #grid .dtop .cwx svg{width:12px;height:12px}
-/* v204: ごみは日付の下に全部（小さく・はみ出さない） */
+/* v204: ごみは日付の下に全部（小さく・はみ出さない）。v205: ごみがない日も同じ高さを空けてシフトの段をそろえる */
 #grid .dgm{display:flex;justify-content:center;gap:1px;width:100%;height:12px;overflow:hidden;line-height:12px}
 #grid .dgm i{font-style:normal;flex:none;display:block;width:12px;height:12px;overflow:hidden;text-align:center;font-size:9px;line-height:12px}
 :root[data-fs] #grid .dgm i{font-size:9px}
@@ -1761,7 +1761,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="204";
+const APP_VERSION="205";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3467,7 +3467,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
     cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0?"sun":d.getDay()===6?"sat":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" aria-label="${jpDate(s)} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
-      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return "</span>"; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:""}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
+      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
 }
