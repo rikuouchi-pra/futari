@@ -1847,7 +1847,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="221";
+const APP_VERSION="222";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6301,7 +6301,9 @@ function qaPopHTML(){ const d=today(), me=myRole(), ot=otherRole(), m=qaAns(d,me
       <div class="qpop-b">${o?`<button class="btn" data-qp="topic">話し合いの議題にする</button>`:""}<button class="btn primary" data-qp="close">閉じる</button></div>`
     :`<textarea id="qpIn" rows="3" maxlength="300" placeholder="思ったままに一言でも"></textarea><div class="who">${o?`${esc(nameOf(ot))}は答えました。答えると見られます 👀`:`${esc(nameOf(ot))}はまだです。ふたりとも答えると見せ合えます`}</div>
       <div class="qpop-b"><button class="btn" data-qp="later">あとで</button><button class="btn primary" data-qp="save">答える</button></div>`}</div>`; }
-function qaPopOpen(){ state.qaPopShown=true; state.qaPopOpen=true; let el=$("qpop"); if(!el){ el=document.createElement("div"); el.id="qpop"; el.className="qpop"; document.body.appendChild(el);
+function qaPopOpen(){ state.qaPopShown=true; state.qaPopOpen=true;
+  /* v222: ポップアップで見せた質問をその日の質問として固定（あとでAIの質問に差し替わって、ホームの表示と食い違うのを防ぐ） */
+  { const d=today(), x=qaOf(d); if(state.qaGen!==d&&!(x&&x.q)){ const q=qaQ(d), now=Date.now(); if(x){ x.q=q; dupd("qa",d,{q,gen:"pop"}); } else { state.qa.push({id:d,q,gen:"pop"}); dset("qa",d,{q,gen:"pop",createdAt:now,updatedAt:now}); } } } let el=$("qpop"); if(!el){ el=document.createElement("div"); el.id="qpop"; el.className="qpop"; document.body.appendChild(el);
     el.addEventListener("click",async e=>{ if(e.target===el){ qaPopClose(true); return; } const b=e.target.closest("[data-qp]"); if(!b) return; const a=b.dataset.qp, d=today();
       if(a==="later") qaPopClose(true); else if(a==="close") qaPopClose(false); else if(a==="topic"){ addTopicText(`今日の質問「${qaQ(d)}」の答えについて`); qaPopClose(false); }
       else if(a==="save"){ const v=($("qpIn")||{}).value||""; if(!v.trim()){ toast("ひとことでも書いてください"); return; } await qaSave(d,v); if(qaAns(d,otherRole())) celebrate(); el.innerHTML=qaPopHTML(); } }); }
@@ -7784,7 +7786,7 @@ JSONだけを返す：{"q":"質問"}`,{modelTier:"quick"});
     const q=String(r&&r.q||"").trim().slice(0,60); const cur=qaOf(d);
     if(q&&!(cur&&(cur.a_h||cur.a_w))&&(!cur||!cur.q||force)){ if(cur){ cur.q=q; dupd("qa",d,{q,gen:"ai"}); } else { state.qa.push({id:d,q,gen:"ai"}); dset("qa",d,{q,gen:"ai",createdAt:Date.now(),updatedAt:Date.now()}); } }
   }catch(e){}
-  state.qaGen=null; render(); }
+  state.qaGen=null; render(); if(state.qaPopOpen&&typeof qaPopHTML==="function"){ const el=$("qpop"); if(el&&el.querySelector(".qpop-q")) el.querySelector(".qpop-q").textContent=qaQ(d); } }
 
 /* ================= 話し合いの自動議題（のりの夜勤など、お休みの日以外に表示） ================= */
 function agendaHTML(){
