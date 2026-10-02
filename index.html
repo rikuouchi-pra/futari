@@ -1761,7 +1761,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="205";
+const APP_VERSION="206";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3957,7 +3957,11 @@ function switchLayer(l){ const v=l==="me"?(LAYER_TABS.me.includes(prefs.lastMe)?
 $("layers").addEventListener("click",e=>{ const b=e.target.closest("[data-layer]"); if(b) switchLayer(b.dataset.layer); });
 function markCommentsSeen(){ if(counts().diaryC){ prefs.seenC=Date.now(); savePrefs(true); } }
 $("dots").addEventListener("click",e=>{ const b=e.target.closest("[data-go]"); if(b){ const i=ORDER.indexOf(state.view), j=ORDER.indexOf(b.dataset.go); go(b.dataset.go,j>i?40:-40); } });
-function goRel(n){ const i=ORDER.indexOf(state.view==="caution"?"trouble":state.view); if(i<0) return; const j=i+n;
+function appHScroll(el){ for(let n=el;n&&n!==document.body;n=n.parentElement){ if(n.scrollWidth>n.clientWidth+4&&/(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true; } return false; }
+/* v205: 下のタブバー表示では、左右スワイプは「今のハブの中（上の切替の順）→ 端で隣のハブ」に動く。旧レイヤー順は使わない */
+function hubSeq(){ const hs=hiddenTabs(); return HUBS.flatMap(h=>h.v.map(([k])=>k).filter(k=>!hs.has(k)||k===state.view||["home","settings","usage","dec","meal"].includes(k))); }
+function goRel(n){ if(prefs.nav==="tab"){ const Q=hubSeq(), v=state.view==="caution"?"trouble":state.view, i=Q.indexOf(v); if(i<0) return; const j=i+n; if(j<0||j>=Q.length) return; go(Q[j],n>0?40:-40); return; }
+  const i=ORDER.indexOf(state.view==="caution"?"trouble":state.view); if(i<0) return; const j=i+n;
   if(j<0||j>=ORDER.length){ /* 端まで来たら反対のレイヤーへ（ふたり⇄じぶん） */
     const L=layerOf(state.view), O=L==="us"?"me":"us", hs=hiddenTabs(), list=LAYER_TABS[O].filter(k=>!hs.has(k)); if(!list.length) return;
     toast(O==="me"?"じぶん（自分だけ）に切り替えました":"ふたりに切り替えました"); go(n>0?list[0]:list[list.length-1],n>0?40:-40); return; }
@@ -6498,6 +6502,8 @@ let sw=null;
 $("app").addEventListener("pointerdown",e=>{
   if(e.button>0||state.editing) return;
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
+  /* v205: 横にスクロールできる場所（チップの列・表・ハブの切替など）では、タブ切替のスワイプを始めない */
+  if(e.target.closest("#hubBar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
   if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar")) return;
@@ -6540,7 +6546,8 @@ function endSwipe(){
   if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER) openSheet(); else if(state.dirty) render(); return; }
   if(s.tt){ s.tt.style.transition="transform .18s,opacity .18s"; s.tt.style.transform=""; s.tt.style.opacity=""; }
   if(s.axis==="x"&&s.tt){ if(Math.abs(s.dx)>55) ttShiftDay(s.dx<0?1:-1); else if(state.dirty) render(); return; }
-  if(s.axis==="x"&&Math.abs(s.dx)>55){
+  const tabSw=!s.grid&&!s.strip, need=tabSw?Math.max(90,innerWidth*.28):55;
+  if(s.axis==="x"&&Math.abs(s.dx)>need){
     const n=s.dx<0?1:-1;
     if(s.grid||(s.strip&&s.strip.dataset.strip==="cal")) shiftCal(n);
     else if(s.strip&&s.strip.dataset.strip==="diary") shiftDiary(n);
