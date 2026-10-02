@@ -492,9 +492,12 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
 #grid .day .num{font-size:13px;width:20px;height:20px;line-height:20px;flex:none}
-#grid .dic{display:flex;align-items:center;gap:0;flex:none;min-width:0}
-#grid .dic i{font-style:normal;display:grid;place-items:center;width:12px;height:12px;font-size:10px;line-height:1;position:static!important}
-#grid .dic .cwx svg{width:12px;height:12px}
+#grid .dtop .cwx{position:static!important;flex:none;width:12px;height:12px;display:grid;place-items:center}
+#grid .dtop .cwx svg{width:12px;height:12px}
+/* v204: ごみは日付の下に全部（小さく・はみ出さない） */
+#grid .dgm{display:flex;justify-content:center;gap:1px;width:100%;height:12px;overflow:hidden;line-height:12px}
+#grid .dgm i{font-style:normal;flex:none;display:block;width:12px;height:12px;overflow:hidden;text-align:center;font-size:9px;line-height:12px}
+:root[data-fs] #grid .dgm i{font-size:9px}
 #grid .day .cwx,#grid .day .cgm{position:static!important;opacity:.9}
 #grid .shrow{gap:2px;height:auto}
 #grid .shrow .sb{width:15px;height:15px;font-size:9px;border-radius:4px}
@@ -1758,7 +1761,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="203";
+const APP_VERSION="204";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3464,7 +3467,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
     cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0?"sun":d.getDay()===6?"sat":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" aria-label="${jpDate(s)} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
-      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return ""; const W=wxDay(s), G=gomiOn(s); return `<span class="dic">${G.length?`<i class="cgm" title="${esc(G.join("・"))}">${gomiIcon(G[0])}</i>`:""}${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>`; })()}</span><span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
+      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return "</span>"; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:""}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
 }
@@ -7245,12 +7248,12 @@ function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在
 /* v199: 全体の構成＝時間軸＋ふたり軸。下のタブは「今日／予定／ふたり／将来／その他」、それぞれの中を上の切り替えで移動 */
 const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"],["habit","習慣"]]},
-  {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"],["psched","じぶんの予定"]]},
+  {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
   {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
-function hubOf(v){ if(v==="caution") v="trouble"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
-function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0); }
+function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
+function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
 function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"||k==="meal"); if(items.length<2) return "";
   return `<nav class="hubbar" aria-label="${h.l}の中">${items.map(([k,l])=>{ const b=k==="home"?"":tabBadge(k); return `<button data-hub="${k}" class="${(v===k||(v==="caution"&&k==="trouble"))?"on":""}">${l}${b?`<i>${b}</i>`:""}</button>`; }).join("")}</nav>`; }
 function hubMount(){ const main=$("main"); let el=$("hubBar"); if(prefs.nav!=="tab"){ if(el) el.remove(); return; } const html=hubBarHTML(state.view); if(!html){ if(el) el.remove(); return; }
