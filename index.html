@@ -1810,7 +1810,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="213";
+const APP_VERSION="214";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2610,6 +2610,7 @@ function viewTalk(){
     if(later.length) h+=`<div class="subttl">30日以内の将来</div><ul class="list">${later.map(p=>planRow(p,true)).join("")}</ul>`;
   }
   h+=qaPastHTML();
+  if(isT) h+=autoCardHTML("topic"); /* v214: 定期的に話すこと */
   return h+`<p class="hint">議題：→で話した・←で削除・タップでメモ／やることにする<br>確認の項目はその場で編集できます・日付の帯←→で過去の話し合い<br>上から↓で議題を追加・←→でタブ切替</p>`;
 }
 function makeTopicFrom(c,x){
@@ -5589,13 +5590,14 @@ function arSave(){ prefs.autoRules=JSON.stringify(arRules()); clearTimeout(arSav
 /* v207: 条件にごみの日・天気・降水確率・気温・ふたり休みを追加。天気は予報がある日（約2週間先）だけ判定し、分からない日は null（何もしない） */
 const AR_WXC=[["晴","晴れ"],["曇","くもり"],["雨","雨"],["雪","雪"]];
 const wxCat=k=>/^(sun|moon|sunc|moonc)$/.test(k)?"晴":/^(cloud|fog)$/.test(k)?"曇":/^(rain|storm)$/.test(k)?"雨":k==="snow"?"雪":"";
-const AR_T=[["shift:h",()=>nameOf("h")+"のシフト"],["shift:w",()=>nameOf("w")+"のシフト"],["off",()=>"ふたり休み"],["wd",()=>"曜日"],["gomi",()=>"ごみの日"],["wx",()=>"天気"],["pop",()=>"降水確率"],["tmax",()=>"最高気温"],["tmin",()=>"最低気温"]];
+const AR_T=[["shift:h",()=>nameOf("h")+"のシフト"],["shift:w",()=>nameOf("w")+"のシフト"],["off",()=>"ふたり休み"],["wd",()=>"曜日"],["dom",()=>"毎月◯日"],["gomi",()=>"ごみの日"],["wx",()=>"天気"],["pop",()=>"降水確率"],["tmax",()=>"最高気温"],["tmin",()=>"最低気温"]];
 const arTKey=c=>c.t==="shift"?"shift:"+(c.r||"h"):c.t;
 const gomiKinds=()=>gomiRules().w.map(r=>r.k);
 function arCond(c,d){
   let m;
   if(c.t==="wd") m=(c.v||[]).map(Number).includes(parse(d).getDay());
   else if(c.t==="off") m=offState(d)==="both";
+  else if(c.t==="dom"){ const p=parse(d), last=new Date(p.getFullYear(),p.getMonth()+1,0).getDate(); m=(c.v||[]).some(v=>v==="末"?p.getDate()===last:Number(v)===p.getDate()||(Number(v)>last&&p.getDate()===last)); }
   else if(c.t==="gomi"){ const G=gomiOn(d), v=c.v||[]; if(!v.length) return false; m=v.some(k=>k==="なし"?!G.length:k==="*"?G.length>0:G.includes(k)); }
   else if(c.t==="wx"||c.t==="pop"||c.t==="tmax"||c.t==="tmin"){ const W=wxDay(d); if(!W) return null; const n=Number(c.n);
     if(c.t==="wx"){ if(!(c.v||[]).length) return false; m=(c.v||[]).includes(wxCat(W.k)); }
@@ -5611,8 +5613,8 @@ function arMatch(r,d){ const gs=(r.groups||[]).filter(g=>(g.conds||[]).length); 
 const cookDay=d=>arRules().some(r=>r.on&&arMatch(r,d)===true);
 function arSkip(){ const out=new Set(); for(const x of (prefs.autoSkip||"").split(",").filter(Boolean)) out.add(x.includes(":")?x:"cook:"+x); return out; }
 let autoTimer=null; var arWriting=false;
-const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items",shop:"items",chore:"chores"};
-const AR_SHARED=new Set(["events","items","chores"]);
+const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items",shop:"items",chore:"chores",topic:"topics"};
+const AR_SHARED=new Set(["events","items","chores","topics"]);
 function arMade(){ return new Set((prefs.autoMade||"").split(",").filter(Boolean)); }
 function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   if((db&&!privBase)||!state.blocksLoaded||!state.pitemsLoaded||!state.shiftsLoaded) return;
@@ -5627,8 +5629,18 @@ function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
       else if(!want&&ex&&ex.auto) ddel("chores",id);
       else if(want&&ex&&ex.auto&&(ex.text!==r.name||JSON.stringify(ex.ar)!==JSON.stringify(ar)||(ex.who||"both")!==(r.who||"both"))) dupd("chores",id,{text:r.name,ar,who:r.who||"both"});
       continue; }
+    if(r.kind==="topic"){ /* v214: 議題は「次の1回」だけ入れる。話し終えたら次の回。話していない前回分があれば増やさない */
+      const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done");
+      if(!r.on){ for(const b of open) if(!b.touched&&(b.on||"")>=t) ddel("topics",b.id); continue; }
+      if(open.some(b=>(b.on||"")<t)) continue;
+      let nd=null; for(let i=0;i<60&&!nd;i++){ const d=addDays(t,i), M=arMatch(r,d); if(M===true&&!skip.has(`${r.id}:${d}`)&&!mine.some(b=>b.on===d&&b.status==="done")) nd=d; }
+      for(const b of open) if(b.on!==nd&&!b.touched&&(b.on||"")>=t){ ddel("topics",b.id); made.delete(`${r.id}:${b.on}`); }
+      if(nd){ const id=`auto_${r.id}_${nd}`, ex=mine.find(b=>b.id===id), key=`${r.id}:${nd}`;
+        if(!ex&&!made.has(key)){ dset("topics",id,{text:r.name,who:"both",status:"open",note:"",ref:null,on:nd,auto:r.id,autoBy:myRole(),by:state.me||null,createdAt:now,updatedAt:now}); made.add(key); }
+        else if(ex&&ex.status!=="done"&&!ex.touched&&ex.text!==r.name) dupd("topics",id,{text:r.name}); }
+      continue; }
     for(let i=0;i<60;i++){ const d=addDays(t,i), id=`auto_${r.id}_${d}`, key=`${r.id}:${d}`, ex=state[c].find(b=>b.id===id), M=r.on?arMatch(r,d):false;
-      for(const o of Object.values(AR_COL)) if(o!==c&&ld(o)){ const prev=state[o].find(b=>b.id===id); if(prev&&prev.auto&&!prev.touched&&!prev.done) ddel(o,id); }
+      for(const o of Object.values(AR_COL)) if(o!==c&&ld(o)){ const prev=(state[o]||[]).find(b=>b.id===id); if(prev&&prev.auto&&!prev.touched&&!prev.done) ddel(o,id); }
       if(M===null) continue; /* 天気などがまだ分からない日はそのまま */
       const want=M&&!skip.has(key), who=r.who||"both", tm=r.s||"";
       const fields=c==="pitems"?{list:"task",due:d,time:r.s,dur:Math.max(15,(tmin(r.e)-tmin(r.s)+1440)%1440)}
@@ -5640,7 +5652,7 @@ function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
       else if(!want&&ex&&ex.auto&&!ex.touched&&!ex.done){ ddel(c,id); made.delete(key); }
       else if(want&&ex&&ex.auto&&!ex.touched&&!ex.done&&(ex.text!==r.name||Object.keys(fields).some(k=>(ex[k]??null)!==(fields[k]??null)))) dupd(c,id,{...fields,text:r.name}); } }
   /* 削除されたルールの、まだ触っていない先の予定は片付ける */
-  for(const c of Object.values(AR_COL)) if(ld(c)) for(const b of state[c]) if(b.auto&&b.auto!=="shift"&&String(b.id).startsWith("auto_")&&(!AR_SHARED.has(c)||b.autoBy===myRole())&&!ids.has(b.auto)&&!b.touched&&!b.done&&(c==="chores"||(b.date||b.due)>=t)) ddel(c,b.id);
+  for(const c of Object.values(AR_COL)) if(ld(c)) for(const b of state[c]||[]) if(b.auto&&b.auto!=="shift"&&String(b.id).startsWith("auto_")&&(!AR_SHARED.has(c)||b.autoBy===myRole())&&!ids.has(b.auto)&&!b.touched&&!b.done&&b.status!=="done"&&(c==="chores"||(b.date||b.due||b.on||"")>=t)) ddel(c,b.id);
   } finally { arWriting=false; }
   const mk=[...made].filter(k=>k.slice(-10)>=addDays(t,-7)).join(","); if(mk!==made0){ prefs.autoMade=mk; savePrefs(true); }
   },1200); }
@@ -5648,6 +5660,7 @@ function arDesc(r){
   const L=a=>a.join("・")||"（未選択）";
   const cd=c=>{ const N=c.not?"でない":""; return c.t==="wd"?`曜日が${L((c.v||[]).map(v=>(AR_WD.find(w=>w[0]===Number(v))||[0,"?"])[1]))}${N}`
     :c.t==="off"?`ふたり休み${c.not?"でない":""}`
+    :c.t==="dom"?`毎月${L((c.v||[]).map(v=>v==="末"?"末日":v+"日"))}${N}`
     :c.t==="gomi"?`ごみが${L((c.v||[]).map(v=>v==="*"?"何か出せる日":v==="なし"?"収集なし":v))}${N}`
     :c.t==="wx"?`天気が${L((c.v||[]).map(v=>(AR_WXC.find(w=>w[0]===v)||[0,v])[1]))}${N}`
     :c.t==="pop"?`降水確率が${c.n||"?"}%以上${N}`:c.t==="tmax"?`最高気温が${c.n||"?"}℃以上${N}`:c.t==="tmin"?`最低気温が${c.n||"?"}℃以下${N}`
@@ -5660,6 +5673,7 @@ function arCondHTML(ri,gi,ci,c){
   const vals=c.t==="wd"?AR_WD.map(([v,l])=>chip(v,l,(c.v||[]).map(Number).includes(v))).join("")
     :c.t==="gomi"?[["*","何か出せる日"],...gomiKinds().map(k=>[k,`${gomiIcon(k)}${esc(k)}`]),["なし","収集なし"]].map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
     :c.t==="wx"?AR_WXC.map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
+    :c.t==="dom"?[...[...Array(31)].map((_,i)=>[String(i+1),String(i+1)]),["末","末日"]].map(([v,l])=>chip(v,l,(c.v||[]).map(String).includes(v))).join("")
     :c.t==="pop"||c.t==="tmax"||c.t==="tmin"?`<label class="who">${c.t==="pop"?"":""}<input type="number" inputmode="numeric" class="minp" data-arcn="1" ${A} value="${esc(c.n??"")}" style="width:70px" aria-label="数値"> ${c.t==="pop"?"%以上":c.t==="tmax"?"℃以上":"℃以下"}</label>`
     :c.t==="off"?`<span class="who">${esc(nameOf("h"))}と${esc(nameOf("w"))}が両方「休」の日</span>`
     :AR_SHIFTS.map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("");
@@ -5674,8 +5688,8 @@ function arRuleHTML(r,ri){
   const gs=r.groups||[];
   return `<div class="arule">
     <div class="edit-row"><input type="text" data-arf="name" data-ri="${ri}" value="${esc(r.name)}" maxlength="40" style="flex:1" aria-label="予定の名前"><div class="seg">${[["1","オン"],["0","オフ"]].map(([v,l])=>`<button type="button" data-ar="on" data-ri="${ri}" data-v="${v}" aria-pressed="${(r.on?"1":"0")===v}">${l}</button>`).join("")}</div></div>
-    ${r.kind==="shop"||r.kind==="chore"?"":`<div class="edit-row"><span class="who mlbl">時間</span><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s)}"><span class="who">〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e)}"></div>`}
-    <div class="edit-row"><label>入れる先 <select data-arf="kind" data-ri="${ri}">${[["block","🔒じぶんの予定"],["task","🔒じぶんのタスク"],["event","ふたりの予定"],["item","ふたりのやること"],["shop","買い物リスト"],["chore","家事（条件の日に出る）"]].map(([v,l])=>`<option value="${v}" ${(r.kind||"block")===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    ${r.kind==="shop"||r.kind==="chore"||r.kind==="topic"?"":`<div class="edit-row"><span class="who mlbl">時間</span><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s)}"><span class="who">〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e)}"></div>`}
+    <div class="edit-row"><label>入れる先 <select data-arf="kind" data-ri="${ri}">${[["block","🔒じぶんの予定"],["task","🔒じぶんのタスク"],["event","ふたりの予定"],["item","ふたりのやること"],["shop","買い物リスト"],["chore","家事（条件の日に出る）"],["topic","話すこと（議題）"]].map(([v,l])=>`<option value="${v}" ${(r.kind||"block")===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
     ${shared?`<div class="edit-row"><label>担当 <select data-arf="who" data-ri="${ri}">${[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([v,l])=>`<option value="${v}" ${(r.who||"both")===v?"selected":""}>${l}</option>`).join("")}</select></label>${r.kind==="event"||r.kind==="item"?`<span class="who">時間を空にすると終日</span>`:""}</div>`:""}
     <div class="edit-row"><label>入れる日 <select data-arf="off" data-ri="${ri}">${[["0","条件に合う日"],["-1","その前日"],["-2","その2日前"],["1","その翌日"]].map(([v,l])=>`<option value="${v}" ${String(r.off||0)===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
     <div class="who" style="margin:4px 0">条件（かつ＝すべて満たす／または＝どれか1つ満たす）</div>
@@ -5686,17 +5700,22 @@ function arRuleHTML(r,ri){
     <div class="ardesc"><b>いまの条件：</b>${esc(arDesc(r))}<br><b>次の対象日：</b>${next.length?next.map(d=>esc(dayLabel(d))).join("・"):"60日以内になし"}</div>
     <div style="text-align:right"><button type="button" class="btn danger" data-ar="delr" data-ri="${ri}">このルールを削除</button></div></div>`;
 }
-function autoCardHTML(){
-  const R=arRules();
-  return `<details class="chart autocard" ${state.autoOpen?"open":""}><summary><b>自動で入る予定・タスク</b><span class="who">　${R.filter(r=>r.on).length}件のルール</span></summary>
-    ${R.map(arRuleHTML).join("")||'<div class="who" style="margin:8px 0">まだありません</div>'}
+function autoCardHTML(only){
+  const R=arRules(), L=R.map((r,i)=>[r,i]).filter(([r])=>only?r.kind===only:r.kind!=="topic");
+  if(only==="topic") return `<details class="chart autocard" ${state.autoOpenT?"open":""} data-aopen="T"><summary><b>定期的に話すこと</b><span class="who">　${L.filter(([r])=>r.on).length}件</span></summary>
+    ${L.map(([r,i])=>arRuleHTML(r,i)).join("")||'<div class="who" style="margin:8px 0">例：毎週日曜「来週の予定」・毎月25日「家計の振り返り」・ふたり休みの前日「休みの過ごし方」</div>'}
+    <div class="chips" style="margin-top:8px">${[["来週の予定","wd0"],["家計の振り返り","dom25"],["休みの過ごし方","off-1"]].filter(([n])=>!R.some(r=>r.kind==="topic"&&r.name===n)).map(([n,k])=>`<button type="button" class="chip" data-ar="addr" data-k="topic" data-tp="${k}" data-nm="${esc(n)}">＋ ${esc(n)}</button>`).join("")}<button type="button" class="chip" data-ar="addr" data-k="topic" data-tp="wd0" data-nm="話したいこと">＋ 自分で作る</button></div>
+    <div class="who" style="margin-top:8px">条件に合う次の日に、議題として自動で入ります（話し終えると、その次の回が入ります）。ふたりとも見られます。</div></details>`;
+  return `<details class="chart autocard" ${state.autoOpen?"open":""}><summary><b>自動で入る予定・タスク</b><span class="who">　${L.filter(([r])=>r.on).length}件のルール</span></summary>
+    ${L.map(([r,i])=>arRuleHTML(r,i)).join("")||'<div class="who" style="margin:8px 0">まだありません</div>'}
     <button type="button" class="btn" data-ar="addr" style="margin-top:8px">＋ ルールを追加</button>
     <div class="who" style="margin-top:8px">シフト・曜日・ごみの日・天気・気温などが条件に合う日（今日から60日先まで）に、選んだ先へ自動で入ります。条件から外れると自動で取り消し、消した日は再追加しません。手で直したもの・完了したものはそのまま残します。</div></details>`;
 }
 function arAct(b){
   const R=arRules(), a=b.dataset.ar, ri=Number(b.dataset.ri), gi=Number(b.dataset.gi), ci=Number(b.dataset.ci), v=b.dataset.v, r=R[ri];
-  state.autoOpen=true;
-  if(a==="addr"){ R.push({id:newId().slice(-6),name:"新しい予定",s:"09:00",e:"10:00",on:true,mode:"or",groups:[{mode:"and",conds:[{t:"shift",r:myRole(),v:["休"],not:false}]}]}); }
+  if(b.closest('[data-aopen="T"]')) state.autoOpenT=true; else state.autoOpen=true;
+  if(a==="addr"&&b.dataset.k==="topic"){ const tp=b.dataset.tp||"wd0", c=tp==="dom25"?{t:"dom",v:["25"],not:false}:tp==="off-1"?{t:"off",not:false}:{t:"wd",v:[0],not:false}; R.push({id:newId().slice(-6),name:b.dataset.nm||"話したいこと",s:"",e:"",on:true,mode:"or",kind:"topic",who:"both",off:tp==="off-1"?-1:0,groups:[{mode:"and",conds:[c]}]}); state.autoOpenT=true; }
+  else if(a==="addr"){ R.push({id:newId().slice(-6),name:"新しい予定",s:"09:00",e:"10:00",on:true,mode:"or",groups:[{mode:"and",conds:[{t:"shift",r:myRole(),v:["休"],not:false}]}]}); }
   else if(!r) return;
   else if(a==="delr"){ if(!b.dataset.arm){ b.dataset.arm="1"; b.textContent="本当に削除"; return; } R.splice(ri,1); }
   else if(a==="on") r.on=v==="1";
@@ -7970,7 +7989,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
+  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
