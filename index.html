@@ -1861,7 +1861,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="225";
+const APP_VERSION="226";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5299,7 +5299,7 @@ function choreRow(c){
   const I=choreInfo(c), me=myRole(), doneT=!!(c.log||{})[today()];
   if(isEditing("chores",c.id)) return `<li class="item" data-c="chores" data-id="${esc(c.id)}"><div class="edit">
     <input type="text" id="editText" value="${esc(c.text)}" maxlength="40" aria-label="家事の名前">
-    <div class="edit-row"><span class="who">頻度</span>${seg("chfq",chSch(c)?c.target:"iv",CH_FQ)}</div>
+    <div class="edit-row"><span class="who">頻度</span>${seg("chfq",chSch(c)?c.target:"iv",c.target==="ar"?[...CH_FQ,["ar","条件で"]]:CH_FQ)}</div>${c.target==="ar"?`<div class="who" style="margin:-4px 0 6px">条件：${esc(arDesc(c.ar||{}))}（条件は カレンダー › 自動で入る予定・タスク で変更）</div>`:""}
     <div class="edit-row" id="chEveryRow" ${chSch(c)?"hidden":""}><span class="who">前回から</span><input type="number" id="chEvery" min="1" max="365" value="${esc(c.every||7)}" style="width:80px" inputmode="numeric"><span class="who">日ごと</span></div>
     ${wdPick("chWd",hWd(c),c.target==="wd"||c.target==="mn","who")}${nthPick("chNth",hNth(c),c.target==="mn","who")}${moPick("chMo",c.mEvery||3,moS(c),c.target==="mo","who")}
     <div class="edit-row"><span class="who">担当</span>${seg("chwho",c.who||"both",[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))],["alt","交代"]])}</div>
@@ -5859,7 +5859,7 @@ function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); win
       const id=`auto_${r.id}`, ex=state.chores.find(b=>b.id===id), ar={mode:r.mode||"or",groups:r.groups||[],off:Number(r.off||0)}, want=!!r.on;
       if(want&&!ex){ dset("chores",id,{text:r.name,every:1,target:"ar",ar,who:r.who||"both",pts:1,log:{},auto:r.id,autoBy:myRole(),by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); }
       else if(!want&&ex&&ex.auto) ddel("chores",id);
-      else if(want&&ex&&ex.auto&&(ex.text!==r.name||JSON.stringify(ex.ar)!==JSON.stringify(ar)||(ex.who||"both")!==(r.who||"both"))) dupd("chores",id,{text:r.name,ar,who:r.who||"both"});
+      else if(want&&ex&&ex.auto&&ex.target==="ar"&&(JSON.stringify(ex.ar)!==JSON.stringify(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
       continue; }
     if(r.kind==="topic"){ /* v214: 議題は「次の1回」だけ入れる。話し終えたら次の回。話していない前回分があれば増やさない */
       const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done");
@@ -8239,7 +8239,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
