@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=193"></script>
+<script src="shim.js?v=200"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -465,6 +465,19 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .hubbar i{font-style:normal;font-size:10.5px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:8px;background:var(--danger);color:#fff}
 .dec-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.dec-sum div{background:var(--surface);border-radius:14px;padding:12px;text-align:center}.dec-sum b{display:block;font-family:var(--font-display);font-size:22px;color:var(--accent)}.dec-sum small{color:var(--muted);font-size:11px}
 .dec-l .item{padding:10px 14px;display:block}.dec-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:3px;padding:2px 0;cursor:pointer}.dec-r span{color:var(--future);font-weight:600;font-size:13px;white-space:pre-wrap}.dec-r small{color:var(--muted);font-size:11px}.dec-r .dec-n{color:var(--ink);font-weight:400}
+
+.meal-c{display:flex;flex-direction:column;gap:10px}.meal-c h3{margin:0;font-size:16px}
+.meal-f{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:8px}.meal-f span{font-size:13px;font-weight:700;color:var(--muted)}.meal-f input{min-width:0}
+.meal-h{display:flex;justify-content:space-between;align-items:center}.meal-btns{display:flex;gap:8px;flex-wrap:wrap}
+.meal-new{font-size:13px;font-weight:700;color:var(--accent)}.meal-chips{display:flex;flex-wrap:wrap;gap:6px}
+.meal-l .item{padding:10px 14px;display:block}.meal-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;gap:10px;align-items:baseline;cursor:pointer}.meal-r small{color:var(--muted);width:40px;flex:none}
+.r-short{font-size:12px;font-weight:700;color:var(--danger);margin-left:auto}
+.unpaid h3{display:flex;justify-content:space-between;align-items:baseline}.unpaid h3 b{color:var(--danger);font-family:var(--font-display);font-size:22px}.unpaid.zero h3 b{color:var(--habit)}
+.up-l{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}.up-l button{width:100%;border:0;background:var(--ground);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer}.up-l b{color:var(--danger)}.up-l small{grid-column:1/-1;color:var(--muted);font-size:11px}
+.rh-g{display:grid;grid-template-columns:minmax(64px,1.3fr) repeat(12,1fr);gap:3px;align-items:center;margin-top:6px}.rh-g small{text-align:center;font-size:10px;color:var(--muted)}.rh-g small.cur{color:var(--ink);font-weight:700}
+.rh-n{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rh-c{display:block;width:100%;aspect-ratio:1;border:0;border-radius:4px;padding:0;background:var(--line);cursor:pointer}.rh-c.ok{background:var(--habit)}.rh-c.part{background:var(--caution)}.rh-c.miss{background:var(--danger)}.rh-c.wait{background:color-mix(in srgb,var(--line) 60%,transparent);outline:1px dashed var(--line)}.rh-c.off{background:transparent}
+.rh-k{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:8px 0 4px}.rh-k span{display:flex;align-items:center;gap:4px}.rh-k .rh-c{width:10px;height:10px}
 body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
 body.mini .htile{min-height:0}
 
@@ -1705,7 +1718,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
 const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
-  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと"};
+  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
@@ -1719,7 +1732,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="199";
+const APP_VERSION="200";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3834,7 +3847,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="usage"?viewUsage(): v==="dec"?viewDecisions(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="usage"?viewUsage(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -4249,7 +4262,10 @@ $("main").addEventListener("click",e=>{
   else if(a==="dphadd"){ const i=$("dphIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgePick"){ const i=$("fridgeIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgeSave") fridgeSave();
-  else if(a==="fridgeSuggest"){ const items=fridgeItems(); if(!items.length){ toast("先に冷蔵庫の食材を保存してください"); return; } go("home"); aiAsk("冷蔵庫の食材を優先して、初心者でも作れる夕飯を主菜・副菜・汁物の組み合わせで3案提案して。足りない物は買い物として分けて"); }
+  else if(a==="upAll"){ state.upAll=true; render(); }
+  else if(a==="fridgeUndo"){ state.fridgeDraft=null; render(); }
+  else if(a==="mealDay"){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } const n=Number(b.dataset.n); state.mealDate=addDays(mealDate(),n); render(n<0?-40:40); }
+  else if(a==="fridgeSuggest"){ const items=fridgeItems(); if(!items.length){ toast("先に冷蔵庫の食材を保存してください"); return; } state.aiOpen=true; render(); window.scrollTo({top:0,behavior:"smooth"}); aiAsk("冷蔵庫の食材を優先して、初心者でも作れる夕飯を主菜・副菜・汁物の組み合わせで3案提案して。足りない物は買い物として分けて"); }
   else if(a==="bugShowAI"){state.bugShowFixed=true;refreshBugCard();document.querySelector('[data-bug-history="fixed"]')?.scrollIntoView({block:"center",behavior:"smooth"});}
   else if(a==="bugExport") saveFile("futari-requests.json",new Blob([JSON.stringify(bugExportData(),null,2)],{type:"application/json"}));
   else if(a==="bshare"){ const ed=state.editing, x=ed&&state.blocks.find(q=>q.id===ed.id); if(!x) return; saveEdit(); const y=state.blocks.find(q=>q.id===x.id)||x, id=newId(), now=Date.now(), {id:_i,...rest}=JSON.parse(JSON.stringify(y));
@@ -4425,8 +4441,7 @@ function dayExtrasHTML(d){
     <div class="paper" style="display:flex;flex-direction:column;gap:12px">
       <div class="rf"><label for="thxIn">${esc(nameOf(ot))}へのありがとう</label><textarea id="thxIn" rows="2" maxlength="300" placeholder="例：朝ごはんを作ってくれてありがとう">${esc(mine?mine.text:"")}</textarea></div>
       <div class="rf"><label>${esc(nameOf(ot))}からのありがとう</label><div id="thxGot" class="thx-got">${thxGotHTML(d)}</div></div>
-      <div class="rf"><label for="dinIn">夕飯（ふたりで共有）</label><input type="text" id="dinIn" maxlength="80" placeholder="主菜（例：豚の生姜焼き）" value="${esc(dn?(dn.main||(!dn.side&&!dn.soup?dn.text:"")||""):"")}"><input class="dinExtra" type="text" id="dinSide" maxlength="80" placeholder="副菜（例：ほうれん草のおひたし）" value="${esc(dn?dn.side||"":"")}"><input class="dinExtra" type="text" id="dinSoup" maxlength="80" placeholder="汁物（例：玉ねぎの味噌汁）" value="${esc(dn?dn.soup||"":"")}">${dn&&dinnerText(dn)?`<div class="who" id="dinBy">${esc(nameOf(authorRole(dn)))}が記入</div>`:'<div class="who" id="dinBy"></div>'}</div>
-      <div class="rf"><label for="fridgeEdit">冷蔵庫から献立を考える</label><div class="edit-row"><button class="btn" data-act="fridgePick" ${state.fridgeBusy?"disabled":""}>冷蔵庫の写真を読み取る</button>${fridgeItems().length?'<button class="btn primary" data-act="fridgeSuggest">主菜・副菜・汁物を提案</button>':""}</div><p class="who">写真は設定済みAIへ送信します（最大3枚）。読み取った食材は現在の入力に追加します。使い終わった食材を消し、確認して保存してください。保存した食材はふたりで共有されます。</p><textarea id="fridgeEdit" rows="3" maxlength="2000" placeholder="卵、にんじん、豆腐（読点か改行で区切る）">${esc(state.fridgeDraft??fridgeItems().join("、"))}</textarea><button class="btn" data-act="fridgeSave">食材を保存・更新</button><div class="who">${((state.kakei||{}).fridge||{}).at?`最終確認：${esc(new Date(state.kakei.fridge.at).toLocaleString("ja-JP"))}。使用後は食材を更新してください。`:"写真なしでも食材を直接入力できます"}</div></div>
+      <div class="rf"><label>夕飯</label><button type="button" class="link" data-go2="meal" style="text-align:left">${dn&&dinnerText(dn)?esc(dinnerText(dn))+" ›":"料理タブで献立・冷蔵庫を記録 ›"}</button></div>
       <div class="paper-foot"><span id="xSave">入力すると自動で保存されます</span></div></div>`;
 }
 function thxGotHTML(d){ const g=thanksOf(d,otherRole()); return g&&g.text?esc(g.text):'<span class="who">まだありません</span>'; }
@@ -4462,16 +4477,44 @@ function refreshExtras(){
 function fridgeNames(d){ const out=[], pick=v=>{ if(typeof v==="string") out.push(v); else if(v&&typeof v==="object"){ const n=v.name||v.item||v.food||v.食材||v.名前||v.label; if(typeof n==="string") out.push(n); } };
   if(Array.isArray(d)) d.forEach(pick); else if(d&&typeof d==="object"){ for(const k of ["items","foods","ingredients","食材","list"]) if(Array.isArray(d[k])){ d[k].forEach(pick); return out; } for(const v of Object.values(d)) if(Array.isArray(v)) v.forEach(pick); }
   return out; }
+
+
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-rhym]"); if(!b) return; state.moneyRef=b.dataset.rhym+"-01"; render(); setTimeout(()=>{ const l=document.querySelector("#main .ramt"); if(l) l.closest(".list").scrollIntoView({block:"start",behavior:"smooth"}); },80); });
+/* v200: 料理タブ（献立の記録・冷蔵庫・AIの献立提案）。日記から分けた */
+function mealDate(){ return state.mealDate||today(); }
+function viewMeal(){ const d=mealDate(), dn=dinnerOf(d), F=fridgeItems(), fr=(state.kakei||{}).fridge||{};
+  const recent=state.dinner.filter(x=>dinnerText(x)).sort((a,b)=>a.id<b.id?1:-1).slice(0,10);
+  let h=`<div class="dstrip" data-strip="meal"><button class="icon-btn" data-act="mealDay" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===today()?"・今日":""}</div><button class="icon-btn" data-act="mealDay" data-n="1" aria-label="次の日">›</button></div>`;
+  h+=`<section class="card meal-c"><h3>🍽 献立</h3>
+    <label class="meal-f"><span>主菜</span><input type="text" id="mealMain" maxlength="80" placeholder="豚の生姜焼き" value="${esc(dn?(dn.main||(!dn.side&&!dn.soup?dn.text:"")||""):"")}"></label>
+    <label class="meal-f"><span>副菜</span><input type="text" id="mealSide" maxlength="80" placeholder="ほうれん草のおひたし" value="${esc(dn?dn.side||"":"")}"></label>
+    <label class="meal-f"><span>汁物</span><input type="text" id="mealSoup" maxlength="80" placeholder="玉ねぎの味噌汁" value="${esc(dn?dn.soup||"":"")}"></label>
+    <div class="who" id="mealSave">${dn?"保存済み（ふたりで共有）":"入力すると自動で保存されます"}</div></section>`;
+  h+=`<section class="card meal-c"><div class="meal-h"><h3>🧊 冷蔵庫</h3><span class="who">${fr.at?`${short(ymd(new Date(fr.at)))} 更新`:""}</span></div>
+    <div class="meal-btns"><button class="btn primary" data-act="fridgePick" ${state.fridgeBusy?"disabled":""}>${state.fridgeBusy?"読み取り中…":"📷 写真で読み取る"}</button>${F.length?'<button class="btn" data-act="fridgeSuggest">✦ 献立を提案</button>':""}</div>
+    ${state.fridgeDraft!=null?`<div class="meal-new">読み取った食材を確認して「保存」を押してください</div>`:""}
+    <textarea id="fridgeEdit" rows="3" maxlength="2000" placeholder="卵、にんじん、豆腐（読点か改行で区切る）">${esc(state.fridgeDraft??F.join("、"))}</textarea>
+    <div class="meal-btns"><button class="btn ${state.fridgeDraft!=null?"primary":""}" data-act="fridgeSave">保存</button>${state.fridgeDraft!=null?'<button class="btn" data-act="fridgeUndo">やめる</button>':""}</div>
+    ${F.length&&state.fridgeDraft==null?`<div class="chips meal-chips">${F.map(x=>`<span class="chip mini">${esc(x)}</span>`).join("")}</div>`:""}</section>`;
+  if(recent.length) h+=`<div class="section-label">最近の献立</div><ul class="list meal-l">${recent.map(x=>`<li class="item"><button class="meal-r" data-mealday="${esc(x.id)}"><small>${esc(short(x.id))}</small><span>${esc(dinnerText(x))}</span></button></li>`).join("")}</ul>`;
+  return h; }
+function saveMeal(){ const el=$("mealMain"); if(!el) return; const d=mealDate(), main=el.value.trim(), side=($("mealSide").value||"").trim(), soup=($("mealSoup").value||"").trim(), t=[main,side,soup].filter(Boolean).join("、"), ex=dinnerOf(d);
+  if(!t){ if(ex) ddel("dinner",d); }
+  else if(!ex||ex.main!==main||ex.side!==side||ex.soup!==soup) dset("dinner",d,{date:d,role:myRole(),by:state.me||null,text:t,main,side,soup,at:Date.now()});
+  const s2=$("mealSave"); if(s2) s2.textContent="保存しました（ふたりで共有）"; }
+let mealTimer=null;
+document.addEventListener("input",e=>{ const id=e.target&&e.target.id; if(id==="mealMain"||id==="mealSide"||id==="mealSoup"){ const s2=$("mealSave"); if(s2) s2.textContent="入力中…"; clearTimeout(mealTimer); mealTimer=setTimeout(()=>{ mealTimer=null; saveMeal(); },800); } });
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-mealday]"); if(b){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } state.mealDate=b.dataset.mealday; render(); window.scrollTo({top:0,behavior:"smooth"}); } });
 async function fridgeRead(files){
   const fs=[...(files||[])].slice(0,3); if(!fs.length||state.fridgeBusy) return;
   if(!state.sample){ toast("写真の読み取りを利用できません（設定 › AI機能を確認）"); return; }
   state.fridgeBusy=true; flushExtras(); render();
   try{ const results=[]; for(let i=0;i<fs.length;i++){ toast(`冷蔵庫を読み取り中（${i+1}/${fs.length}枚）`); results.push(await state.sample.json(`冷蔵庫・冷凍庫・食品棚の写真です。写っている食材を日本語の一般名でまとめ、JSONだけを返してください。数量、消費期限、鮮度、安全性は推測しないでください。重複はまとめます。\n{"items":["食材名"]}`,{images:fs[i],modelTier:"quick"})); }
     const items=[...new Set(results.flatMap(fridgeNames).map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60);
-    if(!items.length){ toast("食材を読み取れませんでした"); return; }
+    if(!items.length){ toast("写真から食材を見つけられませんでした。明るい写真で、扉を開けた正面から撮ってみてください"); return; }
     const existing=String(state.fridgeDraft??fridgeItems().join("、")).split(/[、,\n]+/).map(x=>x.trim()).filter(Boolean);state.fridgeDraft=[...new Set([...existing,...items])].slice(0,60).join("、"); haptic("done"); toast(`${items.length}品を読み取りました。内容を確認して保存してください`); render();
   }catch(e){ const why=String((e&&(e.detail||e.message||e.code))||"").slice(0,80); toast("冷蔵庫の写真を読み取れませんでした"+(why?"："+why:"")); }
-  finally{ state.fridgeBusy=false; if(state.view==="diary") render(); }
+  finally{ state.fridgeBusy=false; if(state.view==="meal"||state.view==="diary") render(); }
 }
 async function fridgeSave(){ const el=$("fridgeEdit"); if(!el) return; const items=[...new Set(el.value.split(/[、,\n]+/).map(x=>x.trim().slice(0,30)).filter(Boolean))].slice(0,60), fridge={items,at:Date.now(),by:myRole()};
   try{ if(!kakeiDoc) throw new Error("not connected"); await kakeiDoc.update({fridge,updatedAt:Date.now()}); state.kakei={...state.kakei,fridge}; state.fridgeDraft=null; toast("冷蔵庫の食材を保存しました"); render(); }catch(e){ toast("保存できませんでした。入力は残っています"); } }
@@ -4690,7 +4733,8 @@ function goCheck(k){
   if(k==="talk"){ const m=talkMissing(); state.talkDate=m.length?m[m.length-1]:t; go("talk"); }
   else if(k==="caution") go("caution");
   else if(k==="comment"){ state.diaryTab="me"; go("diary"); }
-  else if(k==="diary"||k==="thanks"||k==="dinner"){ state.diaryTab="me"; state.diaryDate=t; go("diary"); if(k!=="diary") setTimeout(()=>{ const el=$(k==="thanks"?"thxIn":"dinIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },120); }
+  else if(k==="dinner"){ state.mealDate=t; go("meal"); }
+  else if(k==="diary"||k==="thanks"){ state.diaryTab="me"; state.diaryDate=t; go("diary"); if(k!=="diary") setTimeout(()=>{ const el=$(k==="thanks"?"thxIn":"dinIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },120); }
   else if(k==="reflect"){ state.refDate=t; go("reflect"); }
   else if(k==="habit"||k==="hdue") go("habit");
   else if(k==="qa"){ go("home"); setTimeout(()=>{ const el=document.querySelector(".qa.hq"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); const i=$("qaIn"); if(i) i.focus({preventScroll:true}); } },120); }
@@ -5187,6 +5231,14 @@ function toggleRecurPaid(id,ym,amount){
   haptic(val?"done":"tick"); if(val&&!p) celebrate();
   toast(val?`振込確認：${r.text} ${yen(val.amount)}`:`未確認に戻しました：${r.text}`,u,"done"); render();
 }
+/* v200: 予定額に対して払えていない額（期日が来た月だけ） */
+function recurStart(r){ const ks=Object.keys(r.paid||{}).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort(); return r.from||(r.createdAt?ymOf(ymd(new Date(r.createdAt))):"")||ks[0]||ymOf(today()); }
+function recurShort(r,ym){ if(!rActive(r,ym)||ym<recurStart(r)) return 0; const due=Number(r.amount||0), p=rPaid(r,ym); if(!due) return 0; if(!p) return dayIn(ym,r.day)<=today()?due:0; return Math.max(0,due-Number(p.amount||0)); }
+function recurUnpaidList(){ const out=[], cur=ymOf(today()); for(const r of byWho(state.recur)) for(let i=0;i<12;i++){ const ym=ymAdd(cur,-i), n=recurShort(r,ym); if(n>0) out.push({r,ym,n,paid:rPaid(r,ym)}); } return out.sort((a,b)=>a.ym<b.ym?1:-1); }
+function recurHistHTML(ym){ const rs=byWho(state.recur).filter(r=>[...Array(12)].some((_,i)=>rActive(r,ymAdd(ym,-i)))), months=[...Array(12)].map((_,i)=>ymAdd(ym,i-11)); if(!rs.length) return "";
+  const cell=(r,m)=>{ if(!rActive(r,m)||m<recurStart(r)) return `<i class="rh-c off"></i>`; const p=rPaid(r,m), sh=recurShort(r,m), cls=p?(sh>0?"part":"ok"):(sh>0?"miss":"wait"); return `<button class="rh-c ${cls}" data-rhym="${m}" title="${m} ${p?yen(p.amount):"未入力"}${sh?` 未払い${yen(sh)}`:""}"></button>`; };
+  return `<div class="chart rh"><h3>月ごとの実績（直近12か月）</h3><div class="rh-g"><span></span>${months.map(m=>`<small class="${m===ym?"cur":""}">${Number(m.slice(5))}</small>`).join("")}${rs.map(r=>`<span class="rh-n">${esc(r.text)}</span>${months.map(m=>cell(r,m)).join("")}`).join("")}</div>
+    <div class="rh-k"><span><i class="rh-c ok"></i>払った</span><span><i class="rh-c part"></i>一部</span><span><i class="rh-c miss"></i>未払い</span><span><i class="rh-c wait"></i>これから</span></div><div class="who">マスをタップでその月を開き、実績を直せます</div></div>`; }
 function recurRow(r,ym){
   const K=RKIND[r.kind]||RKIND.fixed, p=rPaid(r,ym), d=dayIn(ym,r.day), late=!p&&d<today(), g=r.goal&&state.goals.find(x=>x.id===r.goal);
   if(isEditing("recur",r.id)) return `<li class="item" data-c="recur" data-id="${esc(r.id)}"><div class="edit">
@@ -5202,7 +5254,7 @@ function recurRow(r,ym){
     <button class="check ${p?"on":""}" style="--c:${K.c}" data-rpay="${esc(r.id)}" data-ym="${ym}" aria-label="${p?"未確認に戻す":"振込を確認した"}">${CHECK}</button>
     <div class="body" data-act="edit"><div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(r.text)}</span><b style="font-variant-numeric:tabular-nums">${yen(p?p.amount:r.amount||0)}</b></div>
       <div class="meta">${whoTag(r)}<span class="tag" style="--tc:${K.c}">${K.l}</span><span class="due ${late?"over":d===today()?"today":""}">${parse(d).getMonth()+1}/${parse(d).getDate()}${late?" 未確認":""}</span>${p?`<span>${esc(nameOf(p.role||"h"))}が確認</span>`:""}${g?`<span>→ ${esc(g.text)}</span>`:""}${p&&r.kind!=="save"&&Number(p.amount)!==Number(r.amount)?`<span class="${Number(p.amount)>Number(r.amount)?"mtag over":""}">予定${yen(r.amount)}</span>`:""}</div></div>
-    </div>${r.kind==="var"?`<div class="rsub"><span class="who">今月の額</span><input type="text" inputmode="numeric" class="ramt" data-ramt="${esc(r.id)}" data-ym="${ym}" placeholder="${esc(r.amount||"")}" value="${p?esc(p.amount):""}" aria-label="今月の実際の額"><span class="who">円で確定</span></div>`:""}</li>`;
+    </div><div class="rsub"><span class="who">${parse(ym+"-01").getMonth()+1}月の実績</span><input type="text" inputmode="numeric" class="ramt" data-ramt="${esc(r.id)}" data-ym="${ym}" placeholder="${esc(r.amount||"")}" value="${p?esc(p.amount):""}" aria-label="この月に実際に払った額"><span class="who">円</span>${recurShort(r,ym)>0&&(p||late)?`<span class="r-short">未払い ${yen(recurShort(r,ym))}</span>`:""}</div></li>`; /* v200: どの費目も月ごとの実績を入れて直せる */
 }
 function viewMoneyMonthly(){
   const ym=ymOf(state.moneyRef), rs=byWho(state.recur).filter(r=>rActive(r,ym)).sort((a,b)=>(Number(a.day)||1)-(Number(b.day)||1));
@@ -5213,6 +5265,9 @@ function viewMoneyMonthly(){
   h+=`<div class="chart"><h3>振込確認 ${done}/${rs.length}</h3><div class="mbar"><i style="width:${rs.length?Math.round(done/rs.length*100):0}%;background:var(--habit)"></i></div>
     <div class="mcats">${Object.entries(RKIND).map(([k,o])=>`<div class="mcat"><span class="nm"><i style="background:${o.c}"></i>${o.l}</span><span class="bar"><i style="width:${tot(k)?Math.min(100,Math.round(paid(k)/tot(k)*100)):0}%;background:${o.c}"></i></span><b>${yen(paid(k))}<small> / ${yen(tot(k))}</small></b></div>`).join("")}</div>
     <div class="who" style="margin-top:6px">毎月の支出予定 ${yen(tot("fixed")+tot("var"))}・貯金予定 ${yen(tot("save"))}</div></div>`;
+  { const U=recurUnpaidList(), sum=U.reduce((a,x)=>a+x.n,0);
+    h+=`<div class="chart unpaid ${sum?"":"zero"}"><h3>払えていない額 <b>${yen(sum)}</b></h3>${U.length?`<ul class="up-l">${U.slice(0,state.upAll?99:6).map(x=>`<li><button data-rhym="${x.ym}"><span>${Number(x.ym.slice(5))}月 ${esc(x.r.text)}</span><b>${yen(x.n)}</b><small>${x.paid?`${yen(x.paid.amount)} 払った／予定 ${yen(x.r.amount)}`:"未入力"}</small></button></li>`).join("")}</ul>${U.length>6&&!state.upAll?`<button class="link" data-act="upAll">ほか ${U.length-6}件を表示</button>`:""}`:'<div class="who">直近12か月で払えていないものはありません</div>'}</div>`; }
+  h+=recurHistHTML(ym);
   for(const [k,o] of Object.entries(RKIND)){ const L=rs.filter(r=>(r.kind||"fixed")===k);
     h+=`<div class="section-label"><span>${o.l}（${L.length}）</span><button class="link" data-act="addrecur" data-k="${k}">＋ 追加</button></div>`;
     h+=L.length?`<ul class="list">${L.map(r=>recurRow(r,ym)).join("")}</ul>`:`<div class="empty" style="padding:14px">例：${o.ex}</div>`; }
@@ -7104,14 +7159,14 @@ function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在
 
 /* v199: 全体の構成＝時間軸＋ふたり軸。下のタブは「今日／予定／ふたり／将来／その他」、それぞれの中を上の切り替えで移動 */
 const HUBS=[
-  {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["chore","家事"],["habit","習慣"]]},
+  {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"],["habit","習慣"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"],["psched","じぶんの予定"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
   {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0); }
-function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"); if(items.length<2) return "";
+function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"||k==="meal"); if(items.length<2) return "";
   return `<nav class="hubbar" aria-label="${h.l}の中">${items.map(([k,l])=>{ const b=k==="home"?"":tabBadge(k); return `<button data-hub="${k}" class="${(v===k||(v==="caution"&&k==="trouble"))?"on":""}">${l}${b?`<i>${b}</i>`:""}</button>`; }).join("")}</nav>`; }
 function hubMount(){ const main=$("main"); let el=$("hubBar"); if(prefs.nav!=="tab"){ if(el) el.remove(); return; } const html=hubBarHTML(state.view); if(!html){ if(el) el.remove(); return; }
   if(!el||el.parentNode!==main){ el=document.createElement("div"); el.id="hubBar"; main.prepend(el); } else if(main.firstElementChild!==el) main.prepend(el); el.innerHTML=html; }

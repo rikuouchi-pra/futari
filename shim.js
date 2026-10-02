@@ -121,7 +121,7 @@
     if(blob.size <= MAX_ONE) return blob;
     var src = await createImageBitmap(blob), max = 1400, q = 0.72, out = blob;
     for(var i = 0; i < 5 && out.size > MAX_ONE; i++){
-      var k = Math.min(1, max / Math.max(src.width, src.height)), c = document.createElement("canvas"); c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+      var W0 = src.naturalWidth || src.width, H0 = src.naturalHeight || src.height, k = Math.min(1, max / Math.max(W0, H0)), c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
       c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); out = await new Promise(function(r){ c.toBlob(r, "image/jpeg", q); }); max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.06); }
     if(out.size > MAX_ONE){ var e = new Error("too large"); e.code = "quota_or_state"; throw e; }
     return out;
@@ -171,13 +171,20 @@
   /* AI：Apps Script 経由で Gemini に問い合わせる。写真と長い文章は一時的に Firestore（aitmp）に置き、スクリプトが読みに行く */
   function gasUrl(){ var U = window.FUTARI_GAS_URLS || {}, mine = me && U[(me.email || "").toLowerCase()];
     if(mine) return mine; for(var k in U) if(U[k]) return U[k]; return window.FUTARI_GAS_URL || ""; }
+  /* v200: iPhone の写真（HEIC など）で createImageBitmap が失敗するときは <img> で読み込む */
+  async function aiDecode_(blob){
+    try { return await createImageBitmap(blob); } catch(e) {}
+    var url = URL.createObjectURL(blob);
+    try { return await new Promise(function(ok, ng){ var im = new Image(); im.onload = function(){ ok(im); }; im.onerror = function(){ var e = new Error("写真を開けませんでした（JPEGで撮り直すか、スクリーンショットで試してください）"); e.code = "bad_image"; ng(e); }; im.src = url; }); }
+    finally { setTimeout(function(){ URL.revokeObjectURL(url); }, 30000); }
+  }
   async function aiShrink(blob){
-    var src = await createImageBitmap(blob), max = 2000, q = 0.82, out = null;
+    var src = await aiDecode_(blob), max = 2000, q = 0.82, out = null;
     for(var i = 0; i < 6; i++){
-      var k = Math.min(1, max / Math.max(src.width, src.height)), c = document.createElement("canvas"); c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+      var W0 = src.naturalWidth || src.width, H0 = src.naturalHeight || src.height, k = Math.min(1, max / Math.max(W0, H0)), c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
       c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); out = await new Promise(function(r){ c.toBlob(r, "image/jpeg", q); });
-      if(out.size <= MAX_ONE) return out; max = Math.round(max * 0.82); q = Math.max(0.55, q - 0.06); }
-    var e = new Error("too large"); e.code = "写真が大きすぎます"; throw e;
+      if(out && out.size <= MAX_ONE) return out; max = Math.round(max * 0.82); q = Math.max(0.55, q - 0.06); }
+    var e = new Error("写真が大きすぎます"); e.code = "too_large"; throw e;
   }
   function aiAbortError_(){ var e=new Error("AI request cancelled"); e.name="AbortError"; e.code="ai_cancelled"; return e; }
   function waitAbort_(promise, signal){

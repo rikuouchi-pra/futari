@@ -663,3 +663,17 @@ test('v199 hubs group views by time and couple axes; unknown views fall into そ
   assert.equal(run(c,'hubOf("task").k'),'today'); assert.equal(run(c,'hubOf("cal").k'),'plan');
   assert.equal(run(c,'hubOf("caution").k'),'us'); assert.equal(run(c,'hubOf("money").k'),'fut'); assert.equal(run(c,'hubOf("log").k'),'more');
 });
+test('v200 recurring payments show the unpaid amount per month and only once due', () => {
+  const c = env(['ymOf','ymAdd','dayIn','rActive','rPaid','recurStart','recurShort','recurUnpaidList'], { byWho:x=>x });
+  c.state.recur=[{id:'rent',text:'家賃',amount:80000,day:1,paid:{'2026-08':{amount:80000},'2026-09':{amount:50000}}},{id:'late',text:'保険',amount:5000,day:31}];
+  assert.equal(run(c,'recurShort(state.recur[0],"2026-08")'),0);
+  assert.equal(run(c,'recurShort(state.recur[0],"2026-09")'),30000);
+  assert.equal(run(c,'recurShort(state.recur[1],"2026-09")'),0); // 9/30 is after today (9/28)
+  const L=plain(run(c,'recurUnpaidList().map(x=>[x.r.id,x.ym,x.n])'));
+  assert.deepEqual(L.filter(x=>x[0]==='rent'&&x[1]==='2026-09'),[['rent','2026-09',30000]]);
+});
+test('v200 unpaid months start from the item start, not before it existed', () => {
+  const c = env(['ymOf','ymAdd','dayIn','rActive','rPaid','recurStart','recurShort'], { byWho:x=>x });
+  const r={id:'x',amount:1000,day:1,from:'2026-09'};
+  c.R=r; assert.equal(run(c,'recurShort(R,"2026-08")'),0); assert.equal(run(c,'recurShort(R,"2026-09")'),1000);
+});
