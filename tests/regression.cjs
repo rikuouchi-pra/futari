@@ -526,7 +526,7 @@ test('AI refresh immediately releases busy state, retains draft, and ignores a l
 });
 test('AI timeout releases a provider that ignores cancellation and keeps the question editable',async()=>{
   const timers=[];const c=aiChatEnv({setTimeout:(fn,ms)=>(timers.push({fn,ms}),timers.length),clearTimeout(){},setInterval:()=>1,clearInterval(){}});
-  c.state._smt={json:()=>new Promise(()=>{})};const p=run(c,"aiAsk('質問を残す')");await microtasks();assert.equal(timers[0].ms,60000);timers[0].fn();await p;
+  c.state._smt={json:()=>new Promise(()=>{})};const p=run(c,"aiAsk('質問を残す')");await microtasks();assert.equal(timers[0].ms,60000);timers[0].fn();await microtasks();const t2=timers.find((t,i)=>i>0&&t.ms===45000);assert.ok(t2,'falls back to the quick model');t2.fn();await p;
   assert.equal(c.state.ai.busy,false);assert.equal(c.state.ai.q,'質問を残す');assert.match(c.state.ai.log[0].a.reply,/時間内/);
 });
 test('AI failures are excluded from context and a retry does not duplicate the failed question',async()=>{
@@ -619,7 +619,8 @@ test('v192 templates add concrete memo and checklist; old names map to new templ
 test('v193 AI uses the Pro tier with a date table and longer context', async () => {
   let prompt='', opts=null; const c=env(['AI_PREFS','AI_ACT_L','aiAsk'],{aiCan:()=>true,aiCtx:()=> '状況'.repeat(30000),aiMemB:()=>[],aiMemP:()=>[]});
   c.state._smt={json:async (p,o)=>{prompt=p;opts=o;return {reply:'ok',acts:[]};}};
-  await run(c,"aiAsk('来週の金曜に歯医者を追加して')");
+  await run(c,"aiAsk('来週の金曜に歯医者を追加して')"); assert.equal(opts.modelTier,'quick');
+  await run(c,"aiAsk('来週の金曜はどう過ごすのがいい？')");
   assert.equal(opts.modelTier,'pro'); assert.equal(opts.timeoutMs,60000);
   assert.ok(prompt.length<=40000 && prompt.length>30000, `len=${prompt.length}`);
   assert.match(prompt,/2026-09-28\(月・今日\)/); assert.match(prompt,/2026-10-02\(金\)/);

@@ -1808,7 +1808,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="211";
+const APP_VERSION="212";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2690,14 +2690,14 @@ function moOn(h,d){ const S=moS(h); if(d<S) return false; const a=parse(S), r=pa
 const hWd=h=>(Array.isArray(h.wd)&&h.wd.length?h.wd:[parse(hSince(h)).getDay()]).map(Number);
 const hNth=h=>(Array.isArray(h.nth)&&h.nth.length?h.nth:[Math.min(4,Math.ceil(parse(hSince(h)).getDate()/7))]).map(Number);
 const nthOfD=d=>Math.ceil(parse(d).getDate()/7);
-function hOn(h,d){if(d<hSince(h))return false;const c=tgtCode(h); if(c==="7") return true; if(!hSch(h)) return false; if(c==="mo") return moOn(h,d); const r=parse(d); if(!hWd(h).includes(r.getDay())) return false; if(c==="wd") return true;
+function hOn(h,d){if(d<hSince(h))return false;const c=tgtCode(h); if(c==="ar") return !!h.ar&&arMatch(h.ar,d)===true; if(c==="7") return true; if(!hSch(h)) return false; if(c==="mo") return moOn(h,d); const r=parse(d); if(!hWd(h).includes(r.getDay())) return false; if(c==="wd") return true;
   const dt=r.getDate(), last=dt+7>new Date(r.getFullYear(),r.getMonth()+1,0).getDate(), N=hNth(h); return N.includes(Math.ceil(dt/7))||(last&&N.includes(-1)); }
 function hNextOn(h,from){ for(let i=0;i<800;i++){ const d=addDays(from,i); if(hOn(h,d)) return d; } return null; }
 function hOccs(h,n){ const t=today(), since=hSince(h), out=[]; for(let i=0;i<900&&out.length<n;i++){ const d=addDays(t,-i); if(d<since) break; if(hOn(h,d)) out.unshift(d); } return out; }
 const wdSort=ws=>ws.slice().sort((a,b)=>((a+6)%7)-((b+6)%7));
 const nthLb=n=>n===-1?"最終":`第${n}`;
 const dW=d=>`${short(d)}（${WDN[parse(d).getDay()]}）`;
-const tgtLabel=h=>tgtCode(h)==="wd"?(hWd(h).length===7?"毎日":`毎週 ${wdSort(hWd(h)).map(w=>WDN[w]).join("・")}`):tgtCode(h)==="mn"?`毎月 ${hNth(h).slice().sort((a,b)=>(a<0?9:a)-(b<0?9:b)).map(nthLb).join("・")} ${wdSort(hWd(h)).map(w=>WDN[w]).join("・")}曜`:tgtCode(h)==="mo"?`${moN(h)===1?"毎月":moN(h)+"か月ごと"} ${parse(moS(h)).getDate()}日`:tgtCode(h)==="iv"?`${Number(h.every)||30}日ごと`:(TARGETS.find(x=>x[0]===tgtCode(h))||TARGETS[0])[1];
+const tgtLabel=h=>tgtCode(h)==="ar"?`条件：${arDesc(h.ar||{})}`:tgtCode(h)==="wd"?(hWd(h).length===7?"毎日":`毎週 ${wdSort(hWd(h)).map(w=>WDN[w]).join("・")}`):tgtCode(h)==="mn"?`毎月 ${hNth(h).slice().sort((a,b)=>(a<0?9:a)-(b<0?9:b)).map(nthLb).join("・")} ${wdSort(hWd(h)).map(w=>WDN[w]).join("・")}曜`:tgtCode(h)==="mo"?`${moN(h)===1?"毎月":moN(h)+"か月ごと"} ${parse(moS(h)).getDate()}日`:tgtCode(h)==="iv"?`${Number(h.every)||30}日ごと`:(TARGETS.find(x=>x[0]===tgtCode(h))||TARGETS[0])[1];
 /* 定期（毎日以外）：期間型（今週／今月などの中で◯回）と間隔型（前回から◯日） */
 const HLEAD={}; /* v102: 習慣は「当日だけ」知らせる（期限の最終日＝当日） */
 const dDiff=(a,b)=>Math.round((parse(a)-parse(b))/864e5);
@@ -5043,7 +5043,7 @@ function offHeatHTML(){
 const CHORE_PRESET=[["洗濯",1],["料理",1],["食器洗い",1],["ゴミ出し",3],["掃除機",3],["お風呂掃除",3],["トイレ掃除",7],["シーツ交換",14],["冷蔵庫の整理",30],["換気扇の掃除",90]];
 function choreLast(c){ const ks=Object.keys(c.log||{}).filter(k=>c.log[k]).sort(); return ks.length?{d:ks[ks.length-1],r:c.log[ks[ks.length-1]]}:null; }
 /* v141: 家事も繰り返しタスクと同じ頻度（曜日で／毎月 第○曜／○か月ごと）。未設定・iv は従来の「前回から○日ごと」 */
-const chSch=c=>["wd","mn","mo"].includes(String(c.target||""));
+const chSch=c=>["wd","mn","mo","ar"].includes(String(c.target||""));
 const CH_FQ=[["iv","○日ごと"],["wd","曜日で"],["mo","○か月ごと"],["mn","毎月 第○曜"]];
 const chFqLabel=c=>chSch(c)?tgtLabel(c):Number(c.every||7)===1?"毎日":`${c.every||7}日ごと`;
 function choreInfo(c){ const L=choreLast(c), ev=Math.max(1,Number(c.every||7)), since0=c.createdAt?ymd(new Date(c.createdAt)):today(), base=L?L.d:since0, since=chSch(c)&&c.schFrom&&c.schFrom>since0?c.schFrom:since0; let due;
@@ -5609,8 +5609,8 @@ function arMatch(r,d){ const gs=(r.groups||[]).filter(g=>(g.conds||[]).length); 
 const cookDay=d=>arRules().some(r=>r.on&&arMatch(r,d)===true);
 function arSkip(){ const out=new Set(); for(const x of (prefs.autoSkip||"").split(",").filter(Boolean)) out.add(x.includes(":")?x:"cook:"+x); return out; }
 let autoTimer=null; var arWriting=false;
-const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items"};
-const AR_SHARED=new Set(["events","items"]);
+const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items",shop:"items",chore:"chores"};
+const AR_SHARED=new Set(["events","items","chores"]);
 function arMade(){ return new Set((prefs.autoMade||"").split(",").filter(Boolean)); }
 function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   if((db&&!privBase)||!state.blocksLoaded||!state.pitemsLoaded||!state.shiftsLoaded) return;
@@ -5619,6 +5619,12 @@ function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   arWriting=true;
   try{
   for(const r of rules){ const c=AR_COL[r.kind]||"blocks"; if(!ld(c)) continue;
+    if(r.kind==="chore"){ /* v212: 家事は「条件で出る家事」を1件つくる（条件はその家事の中に持つので相手の端末でも同じ日に出る） */
+      const id=`auto_${r.id}`, ex=state.chores.find(b=>b.id===id), ar={mode:r.mode||"or",groups:r.groups||[],off:Number(r.off||0)}, want=!!r.on;
+      if(want&&!ex){ dset("chores",id,{text:r.name,every:1,target:"ar",ar,who:r.who||"both",pts:1,log:{},auto:r.id,autoBy:myRole(),by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); }
+      else if(!want&&ex&&ex.auto) ddel("chores",id);
+      else if(want&&ex&&ex.auto&&(ex.text!==r.name||JSON.stringify(ex.ar)!==JSON.stringify(ar)||(ex.who||"both")!==(r.who||"both"))) dupd("chores",id,{text:r.name,ar,who:r.who||"both"});
+      continue; }
     for(let i=0;i<60;i++){ const d=addDays(t,i), id=`auto_${r.id}_${d}`, key=`${r.id}:${d}`, ex=state[c].find(b=>b.id===id), M=r.on?arMatch(r,d):false;
       for(const o of Object.values(AR_COL)) if(o!==c&&ld(o)){ const prev=state[o].find(b=>b.id===id); if(prev&&prev.auto&&!prev.touched&&!prev.done) ddel(o,id); }
       if(M===null) continue; /* 天気などがまだ分からない日はそのまま */
@@ -5626,13 +5632,13 @@ function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
       const fields=c==="pitems"?{list:"task",due:d,time:r.s,dur:Math.max(15,(tmin(r.e)-tmin(r.s)+1440)%1440)}
         :c==="blocks"?{date:d,from:null,start:r.s,end:r.e,rep:"none",color:"shop"}
         :c==="events"?{date:d,who,...(tm?{start:tm,end:r.e||hhmm(Math.min(tmin(tm)+60,1439))}:{start:null,end:null})}
-        :{list:"task",due:d,who,time:tm||null};
+        :{list:r.kind==="shop"?"shop":"task",due:d,who,time:r.kind==="shop"?null:(tm||null)};
       if(want&&!ex){ if(AR_SHARED.has(c)&&made.has(key)) continue; /* 相手が消したものは作り直さない */
         dset(c,id,{text:r.name,...fields,...(c==="pitems"||c==="items"?{done:false}:{}),auto:r.id,...(AR_SHARED.has(c)?{by:state.me||null,role:myRole(),autoBy:myRole()}:{}),createdAt:now,updatedAt:now}); if(AR_SHARED.has(c)) made.add(key); }
       else if(!want&&ex&&ex.auto&&!ex.touched&&!ex.done){ ddel(c,id); made.delete(key); }
       else if(want&&ex&&ex.auto&&!ex.touched&&!ex.done&&(ex.text!==r.name||Object.keys(fields).some(k=>(ex[k]??null)!==(fields[k]??null)))) dupd(c,id,{...fields,text:r.name}); } }
   /* 削除されたルールの、まだ触っていない先の予定は片付ける */
-  for(const c of Object.values(AR_COL)) if(ld(c)) for(const b of state[c]) if(b.auto&&b.auto!=="shift"&&String(b.id).startsWith("auto_")&&(!AR_SHARED.has(c)||b.autoBy===myRole())&&!ids.has(b.auto)&&!b.touched&&!b.done&&(b.date||b.due)>=t) ddel(c,b.id);
+  for(const c of Object.values(AR_COL)) if(ld(c)) for(const b of state[c]) if(b.auto&&b.auto!=="shift"&&String(b.id).startsWith("auto_")&&(!AR_SHARED.has(c)||b.autoBy===myRole())&&!ids.has(b.auto)&&!b.touched&&!b.done&&(c==="chores"||(b.date||b.due)>=t)) ddel(c,b.id);
   } finally { arWriting=false; }
   const mk=[...made].filter(k=>k.slice(-10)>=addDays(t,-7)).join(","); if(mk!==made0){ prefs.autoMade=mk; savePrefs(true); }
   },1200); }
@@ -5661,14 +5667,14 @@ function arCondHTML(ri,gi,ci,c){
     <div class="chips arv">${vals}</div>${/^(wx|pop|tmax|tmin)$/.test(c.t)?`<div class="who" style="font-size:11px">天気の条件は予報がある日（約2週間先まで）だけ判定し、予報が変わると入れ直します</div>`:""}</div>`;
 }
 function arRuleHTML(r,ri){
-  const next=[...Array(60)].map((_,i)=>addDays(today(),i)).filter(d=>arMatch(r,d)===true).slice(0,5), shared=r.kind==="event"||r.kind==="item";
+  const next=[...Array(60)].map((_,i)=>addDays(today(),i)).filter(d=>arMatch(r,d)===true).slice(0,5), shared=["event","item","shop","chore"].includes(r.kind);
   const J=(key,cur,extra)=>`<div class="seg">${[["and","かつ"],["or","または"]].map(([v,l])=>`<button type="button" data-ar="${key}" data-ri="${ri}" ${extra||""} data-v="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</div>`;
   const gs=r.groups||[];
   return `<div class="arule">
     <div class="edit-row"><input type="text" data-arf="name" data-ri="${ri}" value="${esc(r.name)}" maxlength="40" style="flex:1" aria-label="予定の名前"><div class="seg">${[["1","オン"],["0","オフ"]].map(([v,l])=>`<button type="button" data-ar="on" data-ri="${ri}" data-v="${v}" aria-pressed="${(r.on?"1":"0")===v}">${l}</button>`).join("")}</div></div>
-    <div class="edit-row"><span class="who mlbl">時間</span><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s)}"><span class="who">〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e)}"></div>
-    <div class="edit-row"><label>入れる先 <select data-arf="kind" data-ri="${ri}">${[["block","🔒じぶんの予定"],["task","🔒じぶんのタスク"],["event","ふたりの予定（相手にも見える）"],["item","ふたりのやること（相手にも見える）"]].map(([v,l])=>`<option value="${v}" ${(r.kind||"block")===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
-    ${shared?`<div class="edit-row"><label>担当 <select data-arf="who" data-ri="${ri}">${[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([v,l])=>`<option value="${v}" ${(r.who||"both")===v?"selected":""}>${l}</option>`).join("")}</select></label><span class="who">時間を空にすると終日</span></div>`:""}
+    ${r.kind==="shop"||r.kind==="chore"?"":`<div class="edit-row"><span class="who mlbl">時間</span><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s)}"><span class="who">〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e)}"></div>`}
+    <div class="edit-row"><label>入れる先 <select data-arf="kind" data-ri="${ri}">${[["block","🔒じぶんの予定"],["task","🔒じぶんのタスク"],["event","ふたりの予定"],["item","ふたりのやること"],["shop","買い物リスト"],["chore","家事（条件の日に出る）"]].map(([v,l])=>`<option value="${v}" ${(r.kind||"block")===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    ${shared?`<div class="edit-row"><label>担当 <select data-arf="who" data-ri="${ri}">${[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([v,l])=>`<option value="${v}" ${(r.who||"both")===v?"selected":""}>${l}</option>`).join("")}</select></label>${r.kind==="event"||r.kind==="item"?`<span class="who">時間を空にすると終日</span>`:""}</div>`:""}
     <div class="edit-row"><label>入れる日 <select data-arf="off" data-ri="${ri}">${[["0","条件に合う日"],["-1","その前日"],["-2","その2日前"],["1","その翌日"]].map(([v,l])=>`<option value="${v}" ${String(r.off||0)===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
     <div class="who" style="margin:4px 0">条件（かつ＝すべて満たす／または＝どれか1つ満たす）</div>
     ${gs.map((g,gi)=>`${gi?`<div class="arjoin">${J("rmode",r.mode)}</div>`:""}<div class="argroup"><div class="arg-head"><span class="who">グループ${gi+1}</span>${(g.conds||[]).length>1?J("gmode",g.mode,`data-gi="${gi}"`):""}<button type="button" class="x" data-ar="delg" data-ri="${ri}" data-gi="${gi}" aria-label="グループを消す">×</button></div>
@@ -6046,7 +6052,10 @@ __AI_CTX__
 ${hist?`\n【これまでの会話】\n${hist}\n`:""}
 ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフト・天気・大事な予定・期限・話す議題）を3〜5行で。そのあと今日のタイムテーブルを組んだ結果を時刻順に書き、acts で並べ替え・追加を出す（最大15個）\n":""}【質問】${q}`;
   const prompt=prompt0.replace("__AI_CTX__",()=>aiCtx().slice(0,Math.max(3000,AI_PROMPT_MAX-500-prompt0.length))); /* v193: 状況は入る限り多く渡す（上限内） */
-  const RF={...(state.ai.refs||{})},d=await aiRequest(state._smt,prompt,{modelTier:"pro",onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},ctl,opt.brief?90000:60000); /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
+  /* v212: 「追加して・変更して」などの操作は速いモデル、相談はPro。Proが時間切れ・接続エラーのときは速いモデルで自動でやり直す */
+  const isOp=!opt.brief&&q.length<=80&&/(して|しといて|しておいて|に変更|に変えて|追加|登録|消して|削除|入れて|戻して|にして|変えて|設定)[。！!]?\s*$/.test(q.trim());
+  const RF={...(state.ai.refs||{})}, req=(tier,c2)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},c2,tier==="pro"?(opt.brief?90000:60000):45000);
+  let d; try{ d=await req(isOp?"quick":"pro",ctl); }catch(e1){ if(isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
     if(A.runId!==runId)return;
     const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null,...(Array.isArray(x.refs)?{_rs:x.refs.map(k=>RF[k]).filter(Boolean)}:{})}));
