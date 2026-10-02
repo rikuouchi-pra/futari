@@ -507,6 +507,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v218: 洗濯の乾きやすさ */
+.wxd-dry{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;margin:-2px 0 8px 0;font-size:12px;color:var(--muted)}
+.wxd-dry i{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--cal) var(--v),color-mix(in srgb,var(--muted) 22%,transparent) var(--v))}
+.wxd-dry b{color:var(--ink);font-size:12px}.wx-dry{font-size:12px;margin-left:6px}
 /* v217: カードやリストが隙間なく重ならないように（縦の余白を統一。マージンは相殺されるので二重にはならない） */
 #main > :is(.list,.empty,.card,.chart,section,.dstrip,details,.banner,.duo,.hcard) + :is(.card,.chart,section,details,.banner,.list,.duo,.hcard,.empty){margin-top:12px}
 #main details > summary + .list,#main details > summary + ul{margin-top:8px}
@@ -1825,7 +1829,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="217";
+const APP_VERSION="218";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5638,7 +5642,7 @@ function arSave(){ prefs.autoRules=JSON.stringify(arRules()); clearTimeout(arSav
 /* v207: 条件にごみの日・天気・降水確率・気温・ふたり休みを追加。天気は予報がある日（約2週間先）だけ判定し、分からない日は null（何もしない） */
 const AR_WXC=[["晴","晴れ"],["曇","くもり"],["雨","雨"],["雪","雪"]];
 const wxCat=k=>/^(sun|moon|sunc|moonc)$/.test(k)?"晴":/^(cloud|fog)$/.test(k)?"曇":/^(rain|storm)$/.test(k)?"雨":k==="snow"?"雪":"";
-const AR_T=[["shift:h",()=>nameOf("h")+"のシフト"],["shift:w",()=>nameOf("w")+"のシフト"],["off",()=>"ふたり休み"],["wd",()=>"曜日"],["dom",()=>"毎月◯日"],["gomi",()=>"ごみの日"],["wx",()=>"天気"],["pop",()=>"降水確率"],["tmax",()=>"最高気温"],["tmin",()=>"最低気温"]];
+const AR_T=[["shift:h",()=>nameOf("h")+"のシフト"],["shift:w",()=>nameOf("w")+"のシフト"],["off",()=>"ふたり休み"],["wd",()=>"曜日"],["dom",()=>"毎月◯日"],["gomi",()=>"ごみの日"],["wx",()=>"天気"],["pop",()=>"降水確率"],["tmax",()=>"最高気温"],["tmin",()=>"最低気温"],["dry",()=>"洗濯の乾きやすさ"]];
 const arTKey=c=>c.t==="shift"?"shift:"+(c.r||"h"):c.t;
 const gomiKinds=()=>gomiRules().w.map(r=>r.k);
 function arCond(c,d){
@@ -5647,6 +5651,7 @@ function arCond(c,d){
   else if(c.t==="off") m=offState(d)==="both";
   else if(c.t==="dom"){ const p=parse(d), last=new Date(p.getFullYear(),p.getMonth()+1,0).getDate(); m=(c.v||[]).some(v=>v==="末"?p.getDate()===last:Number(v)===p.getDate()||(Number(v)>last&&p.getDate()===last)); }
   else if(c.t==="gomi"){ const G=gomiOn(d), v=c.v||[]; if(!v.length) return false; m=v.some(k=>k==="なし"?!G.length:k==="*"?G.length>0:G.includes(k)); }
+  else if(c.t==="dry"){ const W=wxDay(d); if(!W||!W.dry) return null; if(!(c.v||[]).length) return false; m=(c.v||[]).includes(W.dry.l); }
   else if(c.t==="wx"||c.t==="pop"||c.t==="tmax"||c.t==="tmin"){ const W=wxDay(d); if(!W) return null; const n=Number(c.n);
     if(c.t==="wx"){ if(!(c.v||[]).length) return false; m=(c.v||[]).includes(wxCat(W.k)); }
     else { if(c.n===""||c.n==null||isNaN(n)) return false; m=c.t==="pop"?W.pop>=n:c.t==="tmax"?W.max>=n:W.min<=n; } }
@@ -5711,6 +5716,7 @@ function arDesc(r){
     :c.t==="dom"?`毎月${L((c.v||[]).map(v=>v==="末"?"末日":v+"日"))}${N}`
     :c.t==="gomi"?`ごみが${L((c.v||[]).map(v=>v==="*"?"何か出せる日":v==="なし"?"収集なし":v))}${N}`
     :c.t==="wx"?`天気が${L((c.v||[]).map(v=>(AR_WXC.find(w=>w[0]===v)||[0,v])[1]))}${N}`
+    :c.t==="dry"?`洗濯が${L(c.v||[])}${N}`
     :c.t==="pop"?`降水確率が${c.n||"?"}%以上${N}`:c.t==="tmax"?`最高気温が${c.n||"?"}℃以上${N}`:c.t==="tmin"?`最低気温が${c.n||"?"}℃以下${N}`
     :`${nameOf(c.r)}が${L((c.v||[]).map(v=>v||"未入力"))}${N}`; };
   const gs=(r.groups||[]).filter(g=>(g.conds||[]).length).map(g=>g.conds.map(cd).join(g.mode==="or"?" または ":" かつ "));
@@ -5721,6 +5727,7 @@ function arCondHTML(ri,gi,ci,c){
   const vals=c.t==="wd"?AR_WD.map(([v,l])=>chip(v,l,(c.v||[]).map(Number).includes(v))).join("")
     :c.t==="gomi"?[["*","何か出せる日"],...gomiKinds().map(k=>[k,`${gomiIcon(k)}${esc(k)}`]),["なし","収集なし"]].map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
     :c.t==="wx"?AR_WXC.map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
+    :c.t==="dry"?DRY_LV.map(([,l,ic])=>chip(l,`${ic}${l}`,(c.v||[]).includes(l))).join("")
     :c.t==="dom"?[...[...Array(31)].map((_,i)=>[String(i+1),String(i+1)]),["末","末日"]].map(([v,l])=>chip(v,l,(c.v||[]).map(String).includes(v))).join("")
     :c.t==="pop"||c.t==="tmax"||c.t==="tmin"?`<label class="who">${c.t==="pop"?"":""}<input type="number" inputmode="numeric" class="minp" data-arcn="1" ${A} value="${esc(c.n??"")}" style="width:70px" aria-label="数値"> ${c.t==="pop"?"%以上":c.t==="tmax"?"℃以上":"℃以下"}</label>`
     :c.t==="off"?`<span class="who">${esc(nameOf("h"))}と${esc(nameOf("w"))}が両方「休」の日</span>`
@@ -5728,7 +5735,7 @@ function arCondHTML(ri,gi,ci,c){
   return `<div class="arc"><div class="arc-top"><select data-arct="1" ${A} aria-label="条件の種類">${AR_T.map(([k,f])=>`<option value="${k}" ${arTKey(c)===k?"selected":""}>${esc(f())}</option>`).join("")}</select>
     <div class="seg">${[["0","である"],["1","でない"]].map(([v,l])=>`<button type="button" data-ar="not" ${A} data-v="${v}" aria-pressed="${(c.not?"1":"0")===v}">${l}</button>`).join("")}</div>
     <button type="button" class="x" data-ar="delc" ${A} aria-label="条件を消す">×</button></div>
-    <div class="chips arv">${vals}</div>${/^(wx|pop|tmax|tmin)$/.test(c.t)?`<div class="who" style="font-size:11px">天気の条件は予報がある日（約2週間先まで）だけ判定し、予報が変わると入れ直します</div>`:""}</div>`;
+    <div class="chips arv">${vals}</div>${/^(wx|pop|tmax|tmin|dry)$/.test(c.t)?`<div class="who" style="font-size:11px">天気の条件は予報がある日（約2週間先まで）だけ判定し、予報が変わると入れ直します</div>`:""}</div>`;
 }
 function arRuleHTML(r,ri){
   const next=[...Array(60)].map((_,i)=>addDays(today(),i)).filter(d=>arMatch(r,d)===true).slice(0,5), shared=["event","item","shop","chore"].includes(r.kind);
@@ -7384,11 +7391,11 @@ const WXI={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M
   storm:'<path d="M7 14h10.5a3.8 3.8 0 0 0 .4-7.6 5.3 5.3 0 0 0-10.2 1.3A3.2 3.2 0 0 0 7 14z"/><path d="M12.5 15l-2 3.5h3l-2 3.5"/>'};
 const wxSvg=k=>`<svg class="wxs ${k}" viewBox="0 0 24 24" aria-hidden="true">${WXI[k]||WXI.cloud}</svg>`;
 async function wxLoad(force){
-  if(prefs.wx==="off") return; const L=wxLoc(), key=`futari.wx.${L.lat.toFixed(2)},${L.lon.toFixed(2)}`;
+  if(prefs.wx==="off") return; const L=wxLoc(), key=`futari.wx2.${L.lat.toFixed(2)},${L.lon.toFixed(2)}`;
   try{ const c=JSON.parse(localStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
   if(state.wxBusy) return; state.wxBusy=true;
-  try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=16`;
-    const r=await fetch(u); if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
+  try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms&timezone=Asia%2FTokyo&forecast_days=16`;
+    let r=await fetch(u); if(!r.ok) r=await fetch(u.replace(/,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms/,"")); /* v218: 追加の項目が使えないときは従来の内容で */ if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
   catch(e){ state.wxErr=true; }
   state.wxBusy=false; }
 function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=today(), i=W.daily.time.indexOf(t); if(i<0) return null;
@@ -7399,8 +7406,14 @@ function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=toda
 /* v189: 日ごとの天気（16日先まで）とごみ出し */
 /* v213: Yahoo!天気（刈谷市）へのリンク。Yahoo!天気の予報データは外部に提供されていないため、アプリ内の数字は Open-Meteo のまま */
 const YAHOO_WX="https://weather.yahoo.co.jp/weather/jp/23/5110/23210.html";
-function wxDay(d){ const W=state.wx; if(!W||!W.daily||prefs.wx==="off") return null; const i=W.daily.time.indexOf(d); if(i<0) return null;
-  return {max:Math.round(W.daily.temperature_2m_max[i]),min:Math.round(W.daily.temperature_2m_min[i]),pop:W.daily.precipitation_probability_max[i]||0,k:wxKind(W.daily.weather_code[i],1)}; }
+function wxDay(d){ const W=state.wx; if(!W||!W.daily||prefs.wx==="off") return null; const i=W.daily.time.indexOf(d); if(i<0) return null; const D=W.daily, g=(k)=>D[k]?D[k][i]:null;
+  const o={max:Math.round(D.temperature_2m_max[i]),min:Math.round(D.temperature_2m_min[i]),pop:D.precipitation_probability_max[i]||0,k:wxKind(D.weather_code[i],1)};
+  o.dry=laundryIdx({tmax:g("temperature_2m_max"),pop:o.pop,rain:g("precipitation_sum"),sun:g("sunshine_duration"),wind:g("wind_speed_10m_max"),rh:g("relative_humidity_2m_mean")}); return o; }
+/* v218: 洗濯の乾きやすさ（0〜100）。日本気象協会の洗濯指数と同じ5段階の言い方で、気温・日照・風・湿度・雨から計算 */
+const DRY_LV=[[80,"大変よく乾く","🌞"],[60,"よく乾く","👕"],[40,"乾く","👕"],[20,"やや乾きにくい","🌥️"],[0,"乾きにくい・部屋干し","🏠"]];
+function laundryIdx(x){ if(x.rh==null||x.sun==null) return null; let v=Math.min(30,Math.max(0,(x.tmax-5)*1.5))+Math.min(30,x.sun/3600*3.5)+Math.min(10,(x.wind||0)*1.6)+Math.min(30,Math.max(0,(85-x.rh)*0.9));
+  v*=1-Math.min(0.9,(x.pop||0)/100*0.9); if((x.rain||0)>=5) v=Math.min(v,15); else if((x.rain||0)>=1) v=Math.min(v,35); v=Math.round(Math.max(0,Math.min(100,v)));
+  const L=DRY_LV.find(([t])=>v>=t); return {v,l:L[1],ic:L[2]}; }
 /* 刈谷市オープンデータ「ごみ収集日（基準日：令和8年4月1日）」井ケ谷町＝A地区 */
 const GOMI_EX=`燃やせるごみ: 月 木
 不燃ごみ: 第1月
@@ -7434,7 +7447,7 @@ function gomiOn(d){ const R=gomiRules(); if(!R.w.length&&!Object.keys(R.add).len
   const out=off?[]:R.w.filter(r=>(r.mon[p.getMonth()+1]||r.days).some(x=>x.wd===p.getDay()&&(!x.n||Math.ceil(p.getDate()/7)===x.n))).map(r=>r.k);
   for(const k of R.add[d]||[]) if(!out.includes(k)) out.push(k); return out; }
 function dayInfoHTML(d){ const W=wxDay(d), G=gomiOn(d); if(!W&&!G.length) return "";
-  return `<div class="dinfo">${W?`<span class="di-wx">${wxSvg(W.k)}<b>${esc(WXN[W.k])}</b><span>${W.max}°/${W.min}°</span>${W.pop?`<span class="wx-p">☂${W.pop}%</span>`:""}</span>`:""}${G.length?`<span class="di-gm">${G.map(k=>`<span class="gm">${gomiIcon(k)} ${esc(k)}</span>`).join("")}</span>`:(gomiTxt()?`<span class="di-gm none">ごみ収集なし</span>`:"")}</div>`; }
+  return `<div class="dinfo">${W?`<span class="di-wx">${wxSvg(W.k)}<b>${esc(WXN[W.k])}</b><span>${W.max}°/${W.min}°</span>${W.pop?`<span class="wx-p">☂${W.pop}%</span>`:""}${W.dry?`<span class="wx-dry">${W.dry.ic} 洗濯：${esc(W.dry.l)}</span>`:""}</span>`:""}${G.length?`<span class="di-gm">${G.map(k=>`<span class="gm">${gomiIcon(k)} ${esc(k)}</span>`).join("")}</span>`:(gomiTxt()?`<span class="di-gm none">ごみ収集なし</span>`:"")}</div>`; }
 function gomiBarHTML(){ const t=today(), hr=new Date().getHours(), g0=hr<12?gomiOn(t):[], g1=hr>=15?gomiOn(addDays(t,1)):[];
   const row=(lb,g,sub)=>`<button class="gmbar" data-go2="cal">${ic("trash")}<span><b>${lb}</b> ${g.map(k=>`${gomiIcon(k)}${esc(k)}`).join("・")}<small>${sub}</small></span></button>`;
   return (g0.length?row("今日のごみ",g0,"朝8時までに"):"")+(g1.length?row("明日のごみ",g1,"前の晩にまとめておく"):""); }
@@ -7451,9 +7464,9 @@ function wxRender(){
   const L=wxLoc(), dn=["今日","明日","あさって"];
   pn.innerHTML=`<div class="wxp-h"><b>${esc(L.name)}の天気</b><span class="who">${esc(WXN[k])}・今 ${Math.round(W.current.temperature_2m)}°</span></div>
     <div class="wxp-hr">${hs.map(i=>{ const p=W.hourly.precipitation_probability[i]||0; return `<div class="wxh"><small>${Number(W.hourly.time[i].slice(11,13))}時</small>${wxSvg(wxKind(W.hourly.weather_code[i],W.hourly.is_day[i]))}<b>${Math.round(W.hourly.temperature_2m[i])}°</b><span class="wxh-p" style="--p:${p}%">${p?p+"%":""}</span></div>`; }).join("")}</div>
-    <div class="wxp-d">${W.daily.time.slice(0,3).map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>`).join("")}</div>
+    <div class="wxp-d">${W.daily.time.slice(0,3).map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>${(()=>{ const z=wxDay(d); return z&&z.dry?`<div class="wxd-dry"><span>洗濯</span><i style="--v:${z.dry.v}%"></i><b>${z.dry.ic} ${esc(z.dry.l)}</b><small>${z.dry.v}</small></div>`:""; })()}`).join("")}</div>
     <a class="btn wxp-y" href="${esc(YAHOO_WX)}" target="_blank" rel="noopener">Yahoo!天気で見る（刈谷市）↗</a>
-    <div class="who wxp-f">上の数字は Open-Meteo の予報・30分ごとに更新・場所は 設定 › 天気</div>`;
+    <div class="who wxp-f">予報と洗濯の乾きやすさはアプリで計算（データ：Open-Meteo）。Yahoo!天気の予報・指数はアプリに取り込めないため、ボタンから開いて確認してください・場所は 設定 › 天気</div>`;
   const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px";
 }
 $("hfold").addEventListener("click",e=>{ e.stopPropagation(); prefs.hdrFold=prefs.hdrFold==="1"?"0":"1"; haptic("tick"); savePrefs(true); render(); });
