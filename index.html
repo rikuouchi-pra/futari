@@ -507,6 +507,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v217: カードやリストが隙間なく重ならないように（縦の余白を統一。マージンは相殺されるので二重にはならない） */
+#main > :is(.list,.empty,.card,.chart,section,.dstrip,details,.banner,.duo,.hcard) + :is(.card,.chart,section,details,.banner,.list,.duo,.hcard,.empty){margin-top:12px}
+#main details > summary + .list,#main details > summary + ul{margin-top:8px}
+#main section.card + section.card{margin-top:12px}
 /* v216: ふたりのタイムテーブル */
 .duo{margin:4px 0 14px}.duo>summary{cursor:pointer;list-style:none}.duo>summary::-webkit-details-marker{display:none}
 .duo-h{display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;margin:4px 0}.duo-n{font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center;justify-content:center}
@@ -1806,7 +1810,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 /* ================= constants & utils ================= */
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
-const TITLES={log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
+const TITLES={duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
   habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
@@ -1821,7 +1825,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="216";
+const APP_VERSION="217";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3156,7 +3160,11 @@ function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h",
 document.addEventListener("click",e=>{
   const ev=e.target.closest("#main [data-duo-ev]"); if(ev){ const [c,id]=ev.dataset.duoEv.split("|"); openEdit(c,id); return; }
   const cl=e.target.closest("#main .duo-col"); if(cl&&!e.target.closest(".duo-b")){ const g=cl.closest(".duo-g"), st=Number(g.dataset.duoSt), r=cl.getBoundingClientRect(), hr=Math.min(23,st+Math.floor((e.clientY-r.top)/DUO_PPH));
-    state.pendShared=cl.dataset.duoRole; state.pendTime=`${String(hr).padStart(2,"0")}:00`; state.pendEnd=`${String(Math.min(23,hr+1)).padStart(2,"0")}:00`; state.sel=g.dataset.duoDate; openSheet("event"); return; } });
+    state.pendShared=cl.dataset.duoRole; state.pendTime=`${String(hr).padStart(2,"0")}:00`; state.pendEnd=`${String(Math.min(23,hr+1)).padStart(2,"0")}:00`; state.duoDate=g.dataset.duoDate; openSheet("event"); return; } });
+/* v217: ふたりのタイムテーブルは「ふたり」タブの中の「ふたりの予定」に */
+function viewDuo(){ const d=state.duoDate||(state.duoDate=today()), t=today();
+  return `<div class="dstrip" data-strip="duo"><button class="icon-btn" data-act="duoday" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="duoday" data-n="1" aria-label="次の日">›</button></div>
+    ${d!==t?`<div class="tools"><button class="pill" data-act="duoday" data-n="0">今日</button></div>`:""}${offState(d)==="both"?'<div class="who" style="margin:0 4px 6px;color:var(--s-off);font-weight:700">ふたり休み</div>':""}${dayInfoHTML(d)}${duoTTHTML(d)}`; }
 document.addEventListener("toggle",e=>{ if(e.target.matches&&e.target.matches("[data-duo-det]")) state.duoClosed=!e.target.open; },true);
 function mySchedRange(from,to){
   const mine=x=>state.psFilter==="all"||["both",myRole()].includes(getWho(x)), out=[], inR=d=>d&&d>=from&&d<=to;
@@ -3645,7 +3653,7 @@ function viewCal(){
   const myD=state.priv.find(d=>d.id===state.sel)||state.diary.find(d=>d.date===state.sel&&isMine(d));
   const ptD=state.diary.filter(d=>d.date===state.sel&&!isMine(d)&&d.text);
   const sh=shiftOf("h",state.sel), sw_=shiftOf("w",state.sel);
-  h+=pschedDayHTML(byP).replace('<div class="tt-tray">',duoTTHTML(state.sel)+'<div class="tt-tray">');
+  h+=pschedDayHTML(byP);
   const shSeg=(name,cur)=>`<div class="seg" data-seg="${name}">${SHIFTS.map(([v,n])=>`<button type="button" class="s-${v}" data-sv="${v}" aria-pressed="${cur===v}" aria-label="${n}">${v}</button>`).join("")}<button type="button" data-sv="" aria-label="未入力" aria-pressed="${!cur}">−</button></div>`;
   h+=`<details class="gdet"><summary>この日のシフトを変える</summary><div class="shiftset" style="margin-top:8px">${[["h",sh],["w",sw_]].map(([r,v])=>`<div class="shs-row"><div class="shs-h"><span class="shs-n ${r}">${esc(nameOf(r))}</span><span class="shs-v">${esc(SHIFT_NAME[v]||"未入力")}</span></div>${shSeg("sh_"+r,v)}</div>`).join("")}</div></details>`;
   h+=`<div class="section-label"><span>この日の日記</span><button class="link" data-act="godiary">${myD&&myD.text?"日記を開く":"日記を書く"} ›</button></div>`;
@@ -3978,7 +3986,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="usage"?viewUsage(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="usage"?viewUsage(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -4354,6 +4362,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="chskip"){ const li3=b.closest("[data-id]"); const c=li3&&state.chores.find(q=>q.id===li3.dataset.id); if(c){ const t=today(), v=chSkip(c,t)?null:myRole(); applyLocal("chores",c.id,{skip:{[t]:v}}); dupd("chores",c.id,{skip:{[t]:v}}); haptic("tick"); toast(v?`「${c.text}」は今日はやらない（明日また出ます）`:`「${c.text}」を今日やる家事に戻しました`); render(); } }
   else if(a==="recAdd"){ state.sheet.htarget="wd"; openSheet("rtask"); }
   else if(a==="cardReset"){ Object.assign(prefs,{cardTone:"auto",cardAlpha:"65",lineTone:"auto",textTone:"auto"}); savePrefs(); applyPrefs(); render(); }
+  else if(a==="duoday"){ const n=Number(b.dataset.n); state.duoDate=n?addDays(state.duoDate||today(),n):today(); render(n>0?40:n<0?-40:0); }
   else if(a==="wxOpen"){ const w=$("wx"); if(w&&!w.hidden){ setTimeout(()=>w.click(),0); } else go("home"); }
   else if(a==="shremGo5"){ const r=b.dataset.r||myRole(), t=today(), d=[...Array(5)].map((_,i)=>addDays(t,i)).find(x=>!shiftOf(r,x))||t; go("cal"); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=r; render(); haptic("tick"); }
   else if(a==="shremGo"){ const r=b.dataset.r||myRole(), m=shiftMissing(r); const d=m[0]||today(); state.sel=d; state.calMonth=new Date(parse(d).getFullYear(),parse(d).getMonth(),1); state.paint.on=true; state.paint.who=r; render(); haptic("tick"); }
@@ -6460,12 +6469,12 @@ function moneyChartsHTML(){
 function baseItem(list,text,due,time,who){ const now=Date.now(); const it={list,text,done:false,createdAt:now,updatedAt:now,by:state.me||null,who:who||"both"}; if(due){it.due=due; if(time) it.time=time;} return it; }
 function openSheet(kind){
   const v=state.view, S=state.sheet;
-  S.kind=kind||({cal:"task",shop:"shop",trouble:"trouble",caution:"caution",future:state.fut==="_mine"?"pwish":"plan",talk:"topic",habit:"habit",ptask:"ptask",pshop:"pshop",psched:state.psMode==="cal"?"block":"ptask",pwish:"pwish",money:({month:"recur",goal:"goal"})[state.moneyTab]||"spend"})[v]||"task";
+  S.kind=kind||({cal:"task",shop:"shop",trouble:"trouble",caution:"caution",future:state.fut==="_mine"?"pwish":"plan",talk:"topic",duo:"event",habit:"habit",ptask:"ptask",pshop:"pshop",psched:state.psMode==="cal"?"block":"ptask",pwish:"pwish",money:({month:"recur",goal:"goal"})[state.moneyTab]||"spend"})[v]||"task";
   if(state.pendShared){ S.who=state.pendShared; S.evPriv=false; S.bshare=false; state.pendShared=null; }
   else if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
   if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
-  S.date= (v==="cal"||v==="psched")?state.sel:(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
+  S.date= (v==="cal"||v==="psched")?state.sel:v==="duo"?(state.duoDate||today()):(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
@@ -6756,6 +6765,7 @@ function endSwipe(){
     else if(s.strip&&s.strip.dataset.strip==="fut") shiftFut(n);
     else if(s.strip&&s.strip.dataset.strip==="talk"){ const d=addDays(state.talkDate,n); if(d<=today()){ state.talkDate=d; render(n>0?40:-40); } }
     else if(s.strip&&s.strip.dataset.strip==="reflect") shiftRef(n);
+    else if(s.strip&&s.strip.dataset.strip==="duo"){ state.duoDate=addDays(state.duoDate||today(),n); render(n>0?40:-40); }
     else if(s.strip&&s.strip.dataset.strip==="money") shiftMoney(n);
     else if(s.strip&&s.strip.dataset.strip==="mmon"){ const r=parse(state.moneyRef); state.moneyRef=ymd(new Date(r.getFullYear(),r.getMonth()+n,1)); render(n>0?40:-40); }
     else goRel(n);
@@ -7461,7 +7471,7 @@ function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在
 const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"],["habit","習慣"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
-  {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
+  {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["duo","ふたりの予定"],["dec","決めたこと"],["trouble","気になること"]]},
   {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
