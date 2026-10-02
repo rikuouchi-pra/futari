@@ -1810,7 +1810,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="214";
+const APP_VERSION="215";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4235,6 +4235,7 @@ $("main").addEventListener("click",e=>{
   const arb=e.target.closest("[data-ar]"); if(arb){ arAct(arb); return; }
   const to=e.target.closest("[data-toff]"); if(to){ const S=talkOffSet(), k=to.dataset.toff; if(S.has(k)) S.delete(k); else S.add(k); state.kakei={...(state.kakei||{}),talkOff:[...S],updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("tick"); toast(`${nameOf("w")}さんが「${[...S].join("・")||"なし"}」の日は話し合いお休み`); render(); return; }
   const rpb=e.target.closest("[data-rpb]"); if(rpb){ const k=`${rpb.dataset.rpb}|${rpb.dataset.ym}|${rpb.dataset.role}`; if(rampLast.k===k&&Date.now()-rampLast.t<1500) return; /* v208: 金額を入れた直後の○タップで消えないように */ setRecurPaidBy(rpb.dataset.rpb,rpb.dataset.ym,rpb.dataset.role,null); return; }
+  const np=e.target.closest("[data-nopay]"); if(np){ const [c,id]=np.dataset.nopay.split("|"), x=(state[c]||[]).find(i=>i.id===id); if(x){ const v=!x.noPay; x.noPay=v; dupd(c,id,{noPay:v}); haptic("tick"); toast(v?`「${x.text}」は支払い不要にしました`:`支払い不要を取り消しました`); render(); } return; }
   const rsk=e.target.closest("[data-rskip]"); if(rsk){ setRecurSkip(rsk.dataset.rskip,rsk.dataset.ym); return; }
   const rp=e.target.closest("[data-rpay]"); if(rp){ const r=state.recur.find(x=>x.id===rp.dataset.rpay); if(r&&(rPaid(r,rp.dataset.ym)||{}).skip){ setRecurSkip(r.id,rp.dataset.ym); return; } if(r&&rPaid(r,rp.dataset.ym)&&(rPaid(r,rp.dataset.ym).h||rPaid(r,rp.dataset.ym).w)){ const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[rp.dataset.ym]:null}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; toast(`未確認に戻しました：${r.text}`,u,"done"); render(); return; } if(r&&!rPaid(r,rp.dataset.ym)){ const ym=rp.dataset.ym, val={h:{amount:Math.round(rShare(r,"h")),at:Date.now()},w:{amount:Math.round(rShare(r,"w")),at:Date.now()}}; val.amount=val.h.amount+val.w.amount; val.at=Date.now(); val.role=myRole(); const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; haptic("done"); celebrate(); toast(`振込確認：${r.text} ${yen(val.amount)}（ふたり分）`,u,"done"); render(); return; } toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
   const ck=e.target.closest("[data-chk]"); if(ck){ goCheck(ck.dataset.chk); return; }
@@ -4734,7 +4735,10 @@ function moneyFields(x,amountMode,c){
 function moneyTag(x){ const b=Number(x.budget||0), a=Number(actOf(x)||0); if(!b&&!a) return "";
   const cc=MCATS[catOf({c:x.cat&&!x.list?"plans":"items",x})]||MCATS.other;
   const rp=x.receipt&&x.receipt.photo?`<button class="phbtn" data-photo="${esc(x.receipt.photo)}" aria-label="レシートの写真を見る"><img src="${photoUrl(x.receipt.photo)}" alt="" loading="lazy">写真</button>`:"";
-  return rp+`<span class="tag" style="--tc:${cc.c}">${esc(cc.l)}</span><span class="mtag ${b&&a>b?"over":""}">${b?`予算${yen(b)}`:""}${b&&a?"・":""}${a?`実績${yen(a)}${x.actualAt?`（${short(x.actualAt)}）`:""}`:b?"・実績未入力":""}</span>`; }
+  /* v215: 明細にも状態（支払い済／未払い／支払い不要）。未払いの明細は「不要」を押せる */
+  const col=x.list?"items":x.cat?"plans":"items", st=x.noPay?"skip":a?"paid":"due";
+  const pill=`<span class="rst ${RST[st][1]}">${RST[st][0]}</span>${!a?`<button type="button" class="chip mini mnopay" data-nopay="${col}|${esc(x.id||"")}" aria-pressed="${!!x.noPay}">${x.noPay?"不要を取り消す":"不要にする"}</button>`:""}`;
+  return rp+pill+`<span class="tag" style="--tc:${cc.c}">${esc(cc.l)}</span><span class="mtag ${b&&a>b?"over":""}">${b?`予算${yen(b)}`:""}${b&&a?"・":""}${a?`実績${yen(a)}${x.actualAt?`（${short(x.actualAt)}）`:""}`:""}</span>`; }
 const ymdOf=t=>t?ymd(new Date(t)):null;
 function moneyEntries(){
   const out=[], t=today(), IC={task:"task",shop:"shop",wish:"wish"};
@@ -4784,7 +4788,8 @@ function viewMoneySum(){
   if(state.moneyP!=="year"){ const y=parse(P.s).getFullYear(), Y={s:`${y}-01-01`,e:`${y+1}-01-01`}; const ya=all.filter(e=>e.actual&&inP(e.aDate,Y)).reduce((s,e)=>s+e.actual,0), yb=all.filter(e=>e.budget&&inP(e.bDate,Y)).reduce((s,e)=>s+e.budget,0);
     h+=`<div class="who" style="margin:6px 2px">${y}年の合計　実績 ${yen(ya)}・予算 ${yen(yb)}（「年」で月ごとに見られます）</div>`; }
   const recN=acts0.concat(buds0).filter(e=>e.c==="recur"); if(recN.length){ const rb=buds0.filter(e=>e.c==="recur").reduce((s,e)=>s+e.budget,0), ra=acts0.filter(e=>e.c==="recur").reduce((s,e)=>s+e.actual,0);
-    h+=`<button class="banner" data-act="gomonthly" style="border:0;width:100%;text-align:left;cursor:pointer;background:color-mix(in srgb,var(--habit) 12%,var(--surface))">毎月の固定費・変動費・貯金：予定 ${yen(rb)}／振込確認済み ${yen(ra)}　›</button>`; }
+    const ymC=ymOf(today()), st={}; byWho(state.recur).filter(r=>rActive(r,ymC)).forEach(r=>{ const k=rStatus(r,ymC); if(k!=="off") st[k]=(st[k]||0)+1; });
+    h+=`<button class="banner" data-act="gomonthly" style="border:0;width:100%;text-align:left;cursor:pointer;background:color-mix(in srgb,var(--habit) 12%,var(--surface))"><b>毎月の固定費・変動費・貯金（今月）</b>　予定 ${yen(rb)}／振込確認済み ${yen(ra)}<span class="rst-sum" style="margin:6px 0 0">${["paid","part","due","skip","wait"].filter(k=>st[k]).map(k=>`<span class="rst ${RST[k][1]}">${RST[k][0]} ${st[k]}</span>`).join("")}</span><small class="who">項目ごとの状態は「毎月・振込」で見る ›</small></button>`; }
   const need=all.filter(e=>e.c!=="recur"&&e.budget&&!e.actual&&((e.x.done||e.c==="plans"&&planDone(e.x))||(e.bDate&&e.bDate<today())));
   if(need.length) h+=`<div class="section-label" style="color:var(--danger)">実績が未入力（${need.length}）</div><ul class="list">${need.slice(0,20).map(moneyRow).join("")}</ul>`;
   const undated=all.filter(e=>e.c!=="recur"&&e.budget&&!e.bDate&&!e.actual);
