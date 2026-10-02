@@ -507,6 +507,15 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v220: ふたりのタイムテーブルの編集 */
+.duo-b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
+.duo-b.sel{outline:2px solid var(--accent);outline-offset:1px;z-index:2}.duo-b.drag{opacity:.85;z-index:5;box-shadow:0 6px 18px rgb(0 0 0/.3)}
+.duo-ck{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--task);color:transparent}.duo-ck svg{width:12px;height:12px}
+.duo-ck:active{color:var(--task)}
+.duo-rs{position:absolute;left:30%;right:30%;bottom:0;height:12px;cursor:ns-resize;touch-action:none}.duo-rs::after{content:"";position:absolute;left:0;right:0;bottom:3px;height:4px;border-radius:2px;background:var(--accent)}
+.duo-bar{position:sticky;bottom:calc(var(--tbH,72px) + 8px);z-index:6;margin-top:8px;padding:10px 12px;border-radius:14px;background:var(--surface);box-shadow:0 6px 20px rgb(0 0 0/.25);display:flex;flex-direction:column;gap:8px}
+.duo-bar-t{display:flex;gap:8px;align-items:center}.duo-bar-t b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.duo-bar-t span{font-variant-numeric:tabular-nums;color:var(--muted)}
+.duo-bar-r{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.duo-bar .pill.danger{color:var(--danger)}
 /* v219: ふたりのタイムテーブルのトレイ */
 .duo-tray{margin-bottom:10px}.duo-tb{all:unset;box-sizing:border-box;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;gap:2px 8px;align-items:center;width:100%;padding:10px 14px;cursor:pointer}
 .duo-tb .tag{grid-row:1/3}.duo-tb b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.duo-tb small{grid-column:2;color:var(--muted);font-size:11px}
@@ -1833,7 +1842,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="219";
+const APP_VERSION="220";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3158,17 +3167,59 @@ function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h",
   const col=role=>{ const L=timed.filter(o=>o.w===role||o.w==="both").sort((a,b)=>a.s-b.s||b.e-a.e), lanes=[]; for(const o of L){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o["l"+role]=k; } for(const o of L) o["n"+role]=1+Math.max(...L.filter(p=>p.s<o.e&&p.e>o.s).map(p=>p["l"+role]));
     const sh=shiftOf(role,d);
     return `<div class="duo-col" data-duo-role="${role}" style="height:${H*DUO_PPH}px">${L.map(o=>{ const top=(o.s-st*60)*DUO_PPH/60, ht=Math.max(18,(o.e-o.s)*DUO_PPH/60), k=o["l"+role], w=100/o["n"+role];
-      return `<button class="duo-b ${o.w==="both"?"both":""} k-${o.k}" data-duo-ev="${o.c}|${esc(o.x.id)}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}${o.k==="e"?`–${hhmm(o.e%1440)}`:""}${o.w==="both"?"・ふたり":""}</small></button>`; }).join("")}</div>`; };
+      const key=`${o.c}|${o.x.id}`, sel=state.duoSel===key;
+      return `<div class="duo-b ${o.w==="both"?"both":""} k-${o.k} ${sel?"sel":""}" role="button" tabindex="0" data-duo-ev="${esc(key)}" data-s="${o.s}" data-e="${o.e}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}${o.w==="both"?"・ふたり":""}</small>${o.c==="items"?`<i class="duo-ck" data-duo-ck="${esc(o.x.id)}" role="button" aria-label="完了">${CHECK}</i>`:""}${sel?`<i class="duo-rs" data-duo-rs="1" aria-label="長さを変える"></i>`:""}</div>`; }).join("")}</div>`; };
   const allD=R.map(role=>E.filter(o=>o.all&&(o.w===role||o.w==="both")).map(o=>`<button class="gchip duo-all" data-duo-ev="events|${esc(o.x.id)}">終日｜${esc(o.t)}</button>`).join("")||"");
   return `<details class="duo" ${state.duoClosed?"":"open"} data-duo-det="1"><summary class="subttl"><span>ふたりのタイムテーブル</span><span class="who">空いた時間をタップで予定を追加</span></summary>
     <div class="duo-h"><span></span>${R.map(role=>`<span class="duo-n ${role}">${esc(nameOf(role))} ${shiftBadge(shiftOf(role,d),role)}</span>`).join("")}</div>
     ${allD.some(Boolean)?`<div class="duo-h duo-alls"><span></span>${allD.map(x=>`<span>${x}</span>`).join("")}</div>`:""}
     <div class="duo-g" data-duo-st="${st}" data-duo-date="${d}"><div class="duo-t" style="height:${H*DUO_PPH}px">${[...Array(H)].map((_,i)=>`<span style="top:${i*DUO_PPH}px">${st+i}</span>`).join("")}</div>${R.map(col).join("")}</div>
-    <div class="who" style="margin:4px 2px 0">ふたりの予定・時間を決めたやることだけ表示（🔒じぶん専用は出ません）</div></details>`; }
+    ${duoBarHTML()}
+    <div class="who" style="margin:4px 2px 0">タップで選ぶ→下のボタンで時間・長さを調整／長押しでつかんで移動（左右で担当も変更）／選んだ予定の下端をドラッグで長さ。🔒じぶん専用は出ません</div></details>`; }
+/* v220: ふたりのタイムテーブルの編集（個人のタイムテーブルと同じ操作） */
+function duoGet(key){ const [c,id]=String(key||"").split("|"), x=(state[c]||[]).find(i=>i.id===id); return x?{c,id,x}:null; }
+function duoSE(c,x){ if(c==="events"){ const s0=tmin(x.start), e0=x.end?tmin(x.end):s0+60; return [s0,e0<=s0?1440:e0]; } const s0=tmin(x.time); return [s0,s0+(x.dur||30)]; }
+function duoSet(key,s0,e0,role,silent){ const g=duoGet(key); if(!g) return; const {c,id,x}=g; s0=Math.max(0,Math.min(1440-15,s0)); e0=Math.max(s0+15,Math.min(1440,e0)); const u=snapUndo(c,id), ch={};
+  if(c==="events"){ ch.start=hhmm(s0); ch.end=e0>=1440?"00:00":hhmm(e0); } else { ch.time=hhmm(s0); ch.dur=e0-s0; }
+  if(role&&getWho(x)!=="both"&&getWho(x)!==role) ch.who=role;
+  Object.assign(x,ch); dupd(c,id,ch); haptic("tick"); if(!silent) toast(`${x.text}：${hhmm(s0)}–${hhmm(e0%1440)}${ch.who?`（${nameOf(ch.who)}）`:""}`,u,"done"); render(); }
+function duoBarHTML(){ const g=duoGet(state.duoSel); if(!g) return ""; const [s0,e0]=duoSE(g.c,g.x);
+  return `<div class="duo-bar"><div class="duo-bar-t"><b>${esc(g.x.text)}</b><span>${hhmm(s0)}–${hhmm(e0%1440)}</span><button class="x" data-duo-a="close" aria-label="閉じる">×</button></div>
+    <div class="duo-bar-r"><span class="who">時間</span><button class="pill" data-duo-a="mv-15">‹ 15分</button><button class="pill" data-duo-a="mv15">15分 ›</button><span class="who">長さ</span><button class="pill" data-duo-a="ln-15">−15</button><button class="pill" data-duo-a="ln15">＋15</button></div>
+    <div class="duo-bar-r">${g.c==="items"?`<button class="pill" data-duo-a="done">✓ 完了</button><button class="pill" data-duo-a="untime">時間を外す</button>`:`<button class="pill" data-duo-a="allday">終日にする</button>`}${getWho(g.x)!=="both"?`<button class="pill" data-duo-a="both">ふたりにする</button>`:""}<button class="pill" data-duo-a="edit">編集</button><button class="pill danger" data-duo-a="del">削除</button></div></div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-duo-a]"); if(!b) return; const a=b.dataset.duoA, key=state.duoSel, g=duoGet(key); if(a==="close"||!g){ state.duoSel=null; render(); return; }
+  const [s0,e0]=duoSE(g.c,g.x);
+  if(a==="mv-15") duoSet(key,s0-15,e0-15,null,true); else if(a==="mv15") duoSet(key,s0+15,e0+15,null,true);
+  else if(a==="ln-15") duoSet(key,s0,e0-15,null,true); else if(a==="ln15") duoSet(key,s0,e0+15,null,true);
+  else if(a==="done"){ state.duoSel=null; rightAction(g.c,g.id); render(); }
+  else if(a==="untime"){ const u=snapUndo(g.c,g.id); const ch={time:null,dur:null}; Object.assign(g.x,ch); dupd(g.c,g.id,ch); state.duoSel=null; toast("時間を外しました（上の一覧に戻りました）",u,"done"); render(); }
+  else if(a==="allday"){ const u=snapUndo(g.c,g.id); const ch={start:null,end:null}; Object.assign(g.x,ch); dupd(g.c,g.id,ch); state.duoSel=null; toast("終日の予定にしました",u,"done"); render(); }
+  else if(a==="both"){ const u=snapUndo(g.c,g.id); g.x.who="both"; dupd(g.c,g.id,{who:"both"}); toast("ふたりの予定にしました",u,"done"); render(); }
+  else if(a==="edit"){ state.duoSel=null; openEdit(g.c,g.id); }
+  else if(a==="del"){ state.duoSel=null; removeWithUndo(g.c,[g.id],"削除しました"); render(); } });
+/* 長押しでつかんで移動（上下＝時刻、左右＝担当）、選んだ予定の下端で長さ */
+{ let D=null, suppress=0;
+  const snap=m=>Math.round(m/15)*15;
+  document.addEventListener("pointerdown",e=>{ const blk=e.target.closest("#main .duo-b"); if(!blk||e.target.closest(".duo-ck")) return; const rs=!!e.target.closest(".duo-rs");
+    D={blk,key:blk.dataset.duoEv,x0:e.clientX,y0:e.clientY,s:Number(blk.dataset.s),e:Number(blk.dataset.e),rs,on:rs,moved:false,role:blk.closest(".duo-col").dataset.duoRole,pid:e.pointerId};
+    if(rs){ e.preventDefault(); try{blk.setPointerCapture(e.pointerId)}catch(_){} } else D.timer=setTimeout(()=>{ if(!D) return; D.on=true; haptic("arm"); blk.classList.add("drag"); blk.style.pointerEvents="none"; try{blk.setPointerCapture(D.pid)}catch(_){} },380); },true);
+  document.addEventListener("pointermove",e=>{ if(!D||e.pointerId!==D.pid) return; const dx=e.clientX-D.x0, dy=e.clientY-D.y0;
+    if(!D.on){ if(Math.abs(dx)>8||Math.abs(dy)>8){ clearTimeout(D.timer); D=null; } return; }
+    D.moved=true; const dm=snap(dy*60/DUO_PPH);
+    if(D.rs){ D.blk.style.height=Math.max(18,(D.e-D.s+dm)*DUO_PPH/60)+"px"; D.ne=D.e+dm; D.ns=D.s; }
+    else { D.blk.style.transform=`translate(${dx}px,${dm*DUO_PPH/60}px)`; D.ns=D.s+dm; D.ne=D.e+dm; const el=document.elementFromPoint(e.clientX,e.clientY), col=el&&el.closest&&el.closest(".duo-col"); D.nr=col?col.dataset.duoRole:D.role; } },true);
+  const end=e=>{ if(!D) return; clearTimeout(D.timer); const d=D; D=null; if(!d.on) return; suppress=Date.now(); d.blk.classList.remove("drag");
+    if(d.moved&&d.ns!=null) duoSet(d.key,d.ns,d.ne,d.rs?null:(d.nr!==d.role?d.nr:null)); else render(); };
+  document.addEventListener("pointerup",end,true); document.addEventListener("pointercancel",end,true);
+  document.addEventListener("touchmove",e=>{ if(D&&D.on) e.preventDefault(); },{passive:false,capture:true});
+  document.addEventListener("click",e=>{ if(Date.now()-suppress<350&&e.target.closest("#main .duo-g")){ e.stopPropagation(); e.preventDefault(); } },true);
+  document.addEventListener("contextmenu",e=>{ if(e.target.closest("#main .duo-b")) e.preventDefault(); }); }
 document.addEventListener("click",e=>{
-  const ev=e.target.closest("#main [data-duo-ev]"); if(ev){ const [c,id]=ev.dataset.duoEv.split("|"); openEdit(c,id); return; }
+  const ck=e.target.closest("#main [data-duo-ck]"); if(ck){ state.duoSel=null; rightAction("items",ck.dataset.duoCk); render(); return; }
+  const ev=e.target.closest("#main [data-duo-ev]"); if(ev){ if(ev.closest(".duo-alls")){ const [c,id]=ev.dataset.duoEv.split("|"); openEdit(c,id); return; } state.duoSel=state.duoSel===ev.dataset.duoEv?null:ev.dataset.duoEv; haptic("tick"); render(); return; }
   const pk=e.target.closest("#main [data-duo-pick]"); if(pk){ const id=pk.dataset.duoPick; state.duoPick=state.duoPick&&state.duoPick.id===id?null:{id}; haptic("tick"); render(); if(state.duoPick) setTimeout(()=>{ const g=document.querySelector("#main .duo-g"); if(g) g.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
-  const cl=e.target.closest("#main .duo-col"); if(cl&&!e.target.closest(".duo-b")){ const g=cl.closest(".duo-g"), st=Number(g.dataset.duoSt), r=cl.getBoundingClientRect(), y=e.clientY-r.top, hr=Math.min(23,st+Math.floor(y/DUO_PPH)), mi=(y%DUO_PPH)>=DUO_PPH/2?30:0;
+  const cl=e.target.closest("#main .duo-col"); if(cl&&!e.target.closest(".duo-b")&&state.duoSel&&!state.duoPick){ state.duoSel=null; render(); return; }
+  if(cl&&!e.target.closest(".duo-b")){ const g=cl.closest(".duo-g"), st=Number(g.dataset.duoSt), r=cl.getBoundingClientRect(), y=e.clientY-r.top, hr=Math.min(23,st+Math.floor(y/DUO_PPH)), mi=(y%DUO_PPH)>=DUO_PPH/2?30:0;
     if(state.duoPick){ const it=state.items.find(x=>x.id===state.duoPick.id); state.duoPick=null; if(it){ const role=cl.dataset.duoRole, tm=`${String(hr).padStart(2,"0")}:${mi?"30":"00"}`, ch={time:tm,due:g.dataset.duoDate}; if(getWho(it)!=="both"&&getWho(it)!==role) ch.who=role; const u=snapUndo("items",it.id); Object.assign(it,ch); dupd("items",it.id,ch); haptic("done"); toast(`「${it.text}」を${tm}に入れました`,u,"done"); } render(); return; }
     state.pendShared=cl.dataset.duoRole; state.pendTime=`${String(hr).padStart(2,"0")}:00`; state.pendEnd=`${String(Math.min(23,hr+1)).padStart(2,"0")}:00`; state.duoDate=g.dataset.duoDate; openSheet("event"); return; } });
 /* v217: ふたりのタイムテーブルは「ふたり」タブの中の「ふたりの予定」に */
@@ -6744,7 +6795,7 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.target.closest("#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
-  if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar")) return;
+  if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar,.duo-g,.duo-bar")) return;
   if(grid&&state.paint.on){ startPaint(e); return; }
   const ttEl=state.view==="cal"?e.target.closest("#tt,.day-nav"):null;
   sw={x:e.clientX,y:e.clientY,row,grid,strip,tt:ttEl?$("tt"):null,li:row&&row.closest("li"),dx:0,dy:0,on:false,axis:null,pid:e.pointerId};
