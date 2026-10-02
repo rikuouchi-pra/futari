@@ -507,6 +507,25 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 #grid .cthumb{width:14px;max-width:14px;right:2px;bottom:2px;border-radius:4px;opacity:.85}
 /* v203: 人別の実績欄がスワイプ用の背景の下に隠れてタップできなかった */
 .item .rsub{position:relative;z-index:1}.item .rsub .ramt::placeholder{color:var(--muted);opacity:.6;font-size:13px}
+/* v208: 決めたこと（話したい内容／決めたこと）の分けた編集 */
+.dec2-l{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:6px 2px 3px}
+.dec-ed{padding:12px 14px}.dec-ed textarea,.ck-ed.dec2 textarea{width:100%;box-sizing:border-box}.dec-ed .edit-actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.dec-r .dec-none{color:var(--muted);font-size:12px}
+/* v208: 記念日のドット表示 */
+.anv{padding:14px 14px 10px}.anv button{all:unset;display:block;width:100%;box-sizing:border-box;cursor:pointer}
+.anv-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}.anv-h b{display:block;font-size:17px}.anv-h small{color:var(--muted);font-size:12px}
+.anv-pct{font-size:20px;font-variant-numeric:tabular-nums}
+.anv-g{display:grid;grid-template-columns:repeat(21,1fr);gap:5px}.anv-g i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.anv-g i.g{background:var(--ink)}.anv-g i.t{background:transparent;box-shadow:inset 0 0 0 2px var(--ink)}
+.anv-r{text-align:center;color:var(--muted);font-size:13px;margin:10px 0 4px}.anv-r b{color:var(--ink);font-size:18px}
+.anv-l{border-top:1px solid var(--line);margin-top:8px;padding-top:4px}
+.anv-s{display:grid!important;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:4px 10px;padding:8px 0!important}
+.anv-n b{font-size:14px}.anv-n small{color:var(--muted);font-size:11px;margin-left:6px}.anv-d{font-size:13px;font-weight:700;text-align:right}
+.anv-n{grid-column:1;grid-row:1}.anv-d{grid-column:2;grid-row:1}.anv-bar{grid-row:2;grid-column:1/3;display:grid;grid-template-columns:repeat(26,1fr);gap:3px}.anv-bar i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}.anv-bar i.g{background:var(--ink)}.anv-bar i.t{box-shadow:inset 0 0 0 1.5px var(--ink);background:transparent}
+/* v208: キーボードが出ている間は下のタブバー・＋・✦を隠す（iPhoneで画面の途中に浮くため） */
+body.kbd .tabbar,body.kbd #plus,body.kbd #aiFab,body.kbd .tabmore{display:none!important}
+/* v207: 自動ルールの時間欄を1行に */
+.arule .edit-row{flex-wrap:wrap}.arule input[type=time]{width:auto;min-width:0;flex:1 1 0;max-width:150px}.arule .arc-top select{flex:1;min-width:0}
 body.mini .mx,body.mini .hint,body.mini .htile small{display:none!important}
 body.mini .htile{min-height:0}
 
@@ -1761,7 +1780,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="206";
+const APP_VERSION="208";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1840,7 +1859,7 @@ const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","
 const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -2038,10 +2057,11 @@ function err(e){
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
 async function dset(c,id,data){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
-async function dupd(c,id,ch){ if(guestBlock(c)) return; netMark(); ch.updatedAt=Date.now(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
+async function dupd(c,id,ch){ if(guestBlock(c)) return; netMark(); ch.updatedAt=Date.now();
+  { const ex0=(state[c]||[]).find(i=>i.id===id); if(ex0&&ex0.auto&&!arWriting&&!("touched" in ch)&&["text","date","start","end","due","time","who"].some(k=>k in ch)) ch.touched=true; } /* v207: 自動で入ったものを手で直したら、以後は自動で変えない */ if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
 async function ddel(c,id){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
 function removeWithUndo(c,ids,msg){
-  if(c==="blocks"||c==="pitems"){ const ks=ids.map(id=>id.match(/^auto_(.+)_(\d{4}-\d{2}-\d{2})$/)).filter(Boolean).map(m=>`${m[1]}:${m[2]}`); if(ks.length){ const sk=arSkip(); ks.forEach(k=>sk.add(k)); prefs.autoSkip=[...sk].filter(k=>k.slice(-10)>=addDays(today(),-7)).join(","); savePrefs(true); } }
+  if(c==="blocks"||c==="pitems"||c==="events"||c==="items"){ const ks=ids.map(id=>id.match(/^auto_(.+)_(\d{4}-\d{2}-\d{2})$/)).filter(Boolean).map(m=>`${m[1]}:${m[2]}`); if(ks.length){ const sk=arSkip(); ks.forEach(k=>sk.add(k)); prefs.autoSkip=[...sk].filter(k=>k.slice(-10)>=addDays(today(),-7)).join(","); savePrefs(true); } }
   const saved=ids.map(id=>state[c].find(i=>i.id===id)).filter(Boolean);
   saved.forEach(i=>ddel(c,i.id)); haptic("del");
   toast(msg,()=>saved.forEach(({id,...rest})=>dset(c,id,rest)));
@@ -2254,6 +2274,14 @@ function annivInfo(p){
   const days=Math.round((occ-t)/864e5);
   return {occ:ymd(occ),days,years:occ.getFullYear()-y,cycle:String(days<=30?occ.getFullYear():occ.getFullYear()-1)};
 }
+/* v208: 記念日を「前回から次回までの1年」をドットで。黒＝過ぎた日・○＝今日・薄い＝残り */
+function annivSpan(p){ const a=annivInfo(p); if(!a) return null; const occ=parse(a.occ), prev=new Date(occ.getFullYear()-1,occ.getMonth(),occ.getDate()), total=Math.round((occ-prev)/864e5), gone=total-a.days; return {...a,total,gone,pct:Math.round(gone/total*1000)/10,prev:ymd(prev)}; }
+function annivDotsHTML(arr){ if(!arr.length) return ""; const S=arr.map(p=>({p,s:annivSpan(p)})).filter(x=>x.s); if(!S.length) return "";
+  const big=({p,s})=>{ const dots=[...Array(s.total)].map((_,i)=>`<i class="${i<s.gone?"g":i===s.gone?"t":""}"></i>`).join("");
+    return `<button class="anv-big" data-anv="${esc(p.id)}"><div class="anv-h"><span><b>${esc(p.text)}</b><small>${esc(jpDate(s.occ))}${s.years>0?`・${s.years}年目`:""}</small></span><span class="anv-pct">${s.days===0?"今日！":`${s.pct}%`}</span></div><div class="anv-g">${dots}</div><div class="anv-r">${s.days===0?"おめでとう":`あと <b>${s.days}</b> 日`}</div></button>`; };
+  const small=({p,s})=>{ const W=26, f=Math.round(s.gone/s.total*W); return `<button class="anv-s" data-anv="${esc(p.id)}"><span class="anv-n"><b>${esc(p.text)}</b><small>${esc(short(s.occ))}${s.years>0?`・${s.years}年目`:""}</small></span><span class="anv-bar">${[...Array(W)].map((_,i)=>`<i class="${i<f?"g":i===f?"t":""}"></i>`).join("")}</span><span class="anv-d">${s.days===0?"今日":`あと${s.days}日`}</span></button>`; };
+  return `<section class="card anv">${big(S[0])}${S.length>1?`<div class="anv-l">${S.slice(1).map(small).join("")}</div>`:""}</section>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-anv]"); if(!b) return; state.editing={c:"plans",id:b.dataset.anv}; render(); setTimeout(()=>{ const el=document.querySelector(`#main [data-id="${CSS.escape(b.dataset.anv)}"]`); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); });
 function planDone(p){ if(p.cat==="anniv"){ const a=annivInfo(p); return !!(a&&p.celebrated===a.cycle); } return !!p.done; }
 function planSoon(p){ return p.cat!=="anniv"&&p.date&&!p.done&&p.date<=addDays(today(),30); }
 
@@ -2261,7 +2289,7 @@ const yen=n=>"¥"+Number(n).toLocaleString("ja-JP");
 function checksHTML(x){
   const cs=x.checks||[];
   /* v196: 各項目に「ふたりで決めたこと・結果」を書ける */
-  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<small class="ck-m">→ ${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</small>`:""}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="決めたことを書く">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed"><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
+  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<small class="ck-m">→ ${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</small>`:""}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="話したい内容・決めたことを編集">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed dec2"><label class="dec2-l">💬 話したい内容</label><textarea id="ckTopic" rows="2" maxlength="200">${esc(c.t||"")}</textarea><label class="dec2-l">✅ 決めたこと</label><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
 }
 function planMeta(p,showCat){
   const C=PCATS[p.cat]||PCATS.wish, bits=[];
@@ -2313,7 +2341,7 @@ function checkOp(act,i){
   const ed=state.editing; if(!ed||ed.c!=="plans") return; const x=state.plans.find(p=>p.id===ed.id); if(!x) return;
   let checks=(x.checks||[]).map(c=>({...c}));
   if(act==="cknote"){ state.ckEdit=state.ckEdit===i?null:i; $("ckList").innerHTML=checksHTML(x); const n=$("ckNote"); if(n) n.focus(); return; }
-  if(act==="cknsave"){ const n=$("ckNote"), v=n?n.value.trim().slice(0,300):""; checks[i]={...checks[i],m:v,mAt:v?Date.now():null,mBy:v?myRole():null}; state.ckEdit=null; }
+  if(act==="cknsave"){ const n=$("ckNote"), v=n?n.value.trim().slice(0,300):"", tp=$("ckTopic"), tv=tp?tp.value.trim().slice(0,200):""; const o=checks[i]; checks[i]={...o,...(tv?{t:tv}:{}),m:v,mAt:v?(v===o.m?o.mAt||Date.now():Date.now()):null,mBy:v?(v===o.m?o.mBy||myRole():myRole()):null}; state.ckEdit=null; }
   else if(act==="ck") checks[i].done=!checks[i].done;
   else if(act==="ckdel") checks.splice(i,1);
   else { const inp=$("ckText"), t=inp.value.trim(); if(!t) return; checks.push({t,done:false}); inp.value=""; inp.focus(); }
@@ -2359,6 +2387,7 @@ function viewFutCat(k){
   const sect=(label,arr)=>arr.length?`<div class="section-label">${label}（${arr.length}）</div><ul class="list">${arr.map(p=>planRow(p)).join("")}</ul>`:"";
   if(k==="anniv"){
     const arr=list.filter(p=>p.date).sort((a,b)=>annivInfo(a).days-annivInfo(b).days).concat(list.filter(p=>!p.date));
+    h+=annivDotsHTML(arr.filter(p=>p.date));
     h+=arr.length?sect("近い順",arr):`<div class="section-label">近い順</div><div class="empty">記念日はまだありません<br>候補をタップするか、下に引っぱって追加</div>`;
     return h+hint("項目：→でお祝いした・←で削除・タップで編集<br>カテゴリ名の帯を←→で切替");
   }
@@ -3549,7 +3578,7 @@ function viewCal(){
   h+=`<div class="section-label"><span>この日の日記</span><button class="link" data-act="godiary">${myD&&myD.text?"日記を開く":"日記を書く"} ›</button></div>`;
   const peeks=[...(myD&&myD.text?[{role:myRole(),text:myD.text}]:[]),...ptD];
   if(peeks.length) h+=`<div class="diary-peek">${peeks.map(d=>`<div><div class="who">${esc(nameOf(d.role||authorRole(d)))}</div><div class="peek">${esc(d.text)}</div></div>`).join("")}</div>`;
-  h+=offHeatHTML();
+  h+=offHeatHTML(); h+=autoCardHTML(); /* v207: 自動で入る予定（「じぶんの予定」統合後もカレンダーから設定できるように） */
   return h+`<p class="hint">カレンダー上：↓で「${short(state.sel)}に追加」・←→で月移動<br>それ以外の場所：←→でタブ切替</p>`;
 }
 
@@ -3959,6 +3988,9 @@ function markCommentsSeen(){ if(counts().diaryC){ prefs.seenC=Date.now(); savePr
 $("dots").addEventListener("click",e=>{ const b=e.target.closest("[data-go]"); if(b){ const i=ORDER.indexOf(state.view), j=ORDER.indexOf(b.dataset.go); go(b.dataset.go,j>i?40:-40); } });
 function appHScroll(el){ for(let n=el;n&&n!==document.body;n=n.parentElement){ if(n.scrollWidth>n.clientWidth+4&&/(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true; } return false; }
 /* v205: 下のタブバー表示では、左右スワイプは「今のハブの中（上の切替の順）→ 端で隣のハブ」に動く。旧レイヤー順は使わない */
+{ const isTxt=el=>el&&(el.tagName==="TEXTAREA"||el.isContentEditable||(el.tagName==="INPUT"&&!/^(checkbox|radio|button|submit|range|color|file)$/.test(el.type))||el.tagName==="SELECT");
+  document.addEventListener("focusin",e=>{ if(isTxt(e.target)) document.body.classList.add("kbd"); });
+  document.addEventListener("focusout",()=>setTimeout(()=>{ if(!isTxt(document.activeElement)) document.body.classList.remove("kbd"); },80)); }
 function hubSeq(){ const hs=hiddenTabs(); return HUBS.flatMap(h=>h.v.map(([k])=>k).filter(k=>!hs.has(k)||k===state.view||["home","settings","usage","dec","meal"].includes(k))); }
 function goRel(n){ if(prefs.nav==="tab"){ const Q=hubSeq(), v=state.view==="caution"?"trouble":state.view, i=Q.indexOf(v); if(i<0) return; const j=i+n; if(j<0||j>=Q.length) return; go(Q[j],n>0?40:-40); return; }
   const i=ORDER.indexOf(state.view==="caution"?"trouble":state.view); if(i<0) return; const j=i+n;
@@ -4163,8 +4195,8 @@ $("main").addEventListener("click",e=>{
   const cge=e.target.closest("[data-cge]"); if(cge&&!e.target.closest(".cr-edit")){ const k=cge.dataset.cge; state.cgEdit=state.cgEdit===k?null:k; render(); setTimeout(()=>{ const i=document.querySelector(`.cr-edit [data-cgin="${k}"]`); if(i) i.focus(); },50); return; }
   const arb=e.target.closest("[data-ar]"); if(arb){ arAct(arb); return; }
   const to=e.target.closest("[data-toff]"); if(to){ const S=talkOffSet(), k=to.dataset.toff; if(S.has(k)) S.delete(k); else S.add(k); state.kakei={...(state.kakei||{}),talkOff:[...S],updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("tick"); toast(`${nameOf("w")}さんが「${[...S].join("・")||"なし"}」の日は話し合いお休み`); render(); return; }
-  const rpb=e.target.closest("[data-rpb]"); if(rpb){ setRecurPaidBy(rpb.dataset.rpb,rpb.dataset.ym,rpb.dataset.role,null); return; }
-  const rp=e.target.closest("[data-rpay]"); if(rp){ const r=state.recur.find(x=>x.id===rp.dataset.rpay); if(r&&rPaid(r,rp.dataset.ym)&&(rPaid(r,rp.dataset.ym).h||rPaid(r,rp.dataset.ym).w)){ const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[rp.dataset.ym]:null}; dupd("recur",r.id,{paid:{[rp.dataset.ym]:null}}); toast(`未確認に戻しました：${r.text}`,u,"done"); render(); return; } if(r&&!rPaid(r,rp.dataset.ym)){ const ym=rp.dataset.ym, val={h:{amount:Math.round(rShare(r,"h")),at:Date.now()},w:{amount:Math.round(rShare(r,"w")),at:Date.now()}}; val.amount=val.h.amount+val.w.amount; val.at=Date.now(); val.role=myRole(); const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",r.id,{paid:{[ym]:val}}); haptic("done"); celebrate(); toast(`振込確認：${r.text} ${yen(val.amount)}（ふたり分）`,u,"done"); render(); return; } toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
+  const rpb=e.target.closest("[data-rpb]"); if(rpb){ const k=`${rpb.dataset.rpb}|${rpb.dataset.ym}|${rpb.dataset.role}`; if(rampLast.k===k&&Date.now()-rampLast.t<1500) return; /* v208: 金額を入れた直後の○タップで消えないように */ setRecurPaidBy(rpb.dataset.rpb,rpb.dataset.ym,rpb.dataset.role,null); return; }
+  const rp=e.target.closest("[data-rpay]"); if(rp){ const r=state.recur.find(x=>x.id===rp.dataset.rpay); if(r&&rPaid(r,rp.dataset.ym)&&(rPaid(r,rp.dataset.ym).h||rPaid(r,rp.dataset.ym).w)){ const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[rp.dataset.ym]:null}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; toast(`未確認に戻しました：${r.text}`,u,"done"); render(); return; } if(r&&!rPaid(r,rp.dataset.ym)){ const ym=rp.dataset.ym, val={h:{amount:Math.round(rShare(r,"h")),at:Date.now()},w:{amount:Math.round(rShare(r,"w")),at:Date.now()}}; val.amount=val.h.amount+val.w.amount; val.at=Date.now(); val.role=myRole(); const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; haptic("done"); celebrate(); toast(`振込確認：${r.text} ${yen(val.amount)}（ふたり分）`,u,"done"); render(); return; } toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
   const ck=e.target.closest("[data-chk]"); if(ck){ goCheck(ck.dataset.chk); return; }
   const ht=e.target.closest("[data-htpl]"); if(ht){ const now=Date.now(); dset("habits",newId(),{text:ht.dataset.htpl,entryKind:"habit",showInTimetable:false,target:7,log:{},createdAt:now,updatedAt:now}); toast(`習慣「${ht.dataset.htpl}」を追加しました`); return; }
   const md=e.target.closest("[data-mood]"); if(md){ const v=Number(md.dataset.mood); document.querySelectorAll("[data-mood]").forEach(b=>b.setAttribute("aria-pressed",String(b===md))); saveReflect({mood:v}); return; }
@@ -4398,7 +4430,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
-$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.ramtp){ const v=String(e.target.value).trim(); setRecurPaidBy(e.target.dataset.ramtp,e.target.dataset.ym,e.target.dataset.role,v===""?null:money(v)); return; } if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(v) r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
+$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.ramtp){ const v=String(e.target.value).trim(); rampLast={k:`${e.target.dataset.ramtp}|${e.target.dataset.ym}|${e.target.dataset.role}`,t:Date.now()}; setRecurPaidBy(e.target.dataset.ramtp,e.target.dataset.ym,e.target.dataset.role,v===""?null:money(v)); return; } if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); autoCook(); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&(e.target.dataset.arct||e.target.dataset.arcn)){ const D=e.target.dataset, g=((arRules()[Number(D.ri)]||{}).groups||[])[Number(D.gi)], c=g&&(g.conds||[])[Number(D.ci)]; if(c){ if(D.arct){ const [t,r]=e.target.value.split(":"); g.conds[Number(D.ci)]={t,...(r?{r}:{}),v:[],not:false}; } else c.n=e.target.value.trim(); state.autoOpen=true; arSave(); const y=window.scrollY; render(); window.scrollTo(0,y); } return; }
+  if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(f==="off") r.off=Number(v)||0; else if(v||f==="s"||f==="e") r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
 $("main").addEventListener("input",e=>{
   if(e.target.id==="aiIn"){state.ai.q=e.target.value.slice(0,2000);return;}
   if(e.target.id==="fridgeEdit"){ state.fridgeDraft=e.target.value; return; }
@@ -5251,7 +5284,9 @@ const ymOf=d=>d.slice(0,7);
 const ymAdd=(ym,n)=>{ const [y,m]=ym.split("-").map(Number), d=new Date(y,m-1+n,1); return ymd(d).slice(0,7); };
 const dayIn=(ym,day)=>{ const [y,m]=ym.split("-").map(Number), last=new Date(y,m,0).getDate(); return `${ym}-${String(Math.min(Math.max(1,Number(day)||1),last)).padStart(2,"0")}`; };
 const rActive=(r,ym)=>r.active!==false&&(!r.from||ym>=r.from)&&(!r.until||ym<=r.until);
+var rampLast={k:"",t:0};
 const rPaid=(r,ym)=>(r.paid||{})[ym]||null;
+const rPaidAmt=(r,ym)=>{ const p=rPaid(r,ym); if(!p) return 0; return p.h||p.w?(p.h?Number(p.h.amount||0):0)+(p.w?Number(p.w.amount||0):0):Number(p.amount||0); }; /* v208: 人別があればその合計を正とする */
 function recurEntries(){
   const out=[], t=today(), start=ymAdd(ymOf(t),-24), end=ymAdd(ymOf(t),12);
   for(const r of state.recur){ for(let ym=r.from&&r.from>start?r.from:start; ym<=end; ym=ymAdd(ym,1)){ if(!rActive(r,ym)) continue; const p=rPaid(r,ym), d=dayIn(ym,r.day);
@@ -5263,7 +5298,7 @@ function monthsLeft(due){ if(!due) return 0; const t=parse(today()), d=parse(due
 function toggleRecurPaid(id,ym,amount){
   const r=state.recur.find(x=>x.id===id); if(!r) return; const u=snapUndo("recur",id), p=rPaid(r,ym);
   const val=p&&amount==null?null:{amount:amount!=null?amount:Number(r.amount||0),at:Date.now(),by:state.me||null,role:myRole()};
-  r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",id,{paid:{[ym]:val}});
+  r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */;
   haptic(val?"done":"tick"); if(val&&!p) celebrate();
   toast(val?`振込確認：${r.text} ${yen(val.amount)}`:`未確認に戻しました：${r.text}`,u,"done"); render();
 }
@@ -5277,7 +5312,7 @@ function setRecurPaidBy(id,ym,role,amount){ const r=state.recur.find(x=>x.id===i
   const cur=p[role]&&p[role].amount!=null, v=amount==null?(cur?null:rShare(r,role)):amount;
   if(v==null||v===0&&amount==null) delete p[role]; else p[role]={amount:Number(v),at:Date.now(),by:state.me||null};
   const tot=(p.h?Number(p.h.amount||0):0)+(p.w?Number(p.w.amount||0):0), val=p.h||p.w?{...p,amount:tot,at:Date.now(),role:myRole()}:null;
-  r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",id,{paid:{[ym]:val}}); haptic(val?"done":"tick");
+  r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; haptic(val?"done":"tick");
   toast(v!=null?`${nameOf(role)}の振込：${r.text} ${yen(v)}`:`${nameOf(role)}の振込を未確認に戻しました`,u,"done"); render(); }
 const M10=x=>Math.round(x*10000);
 /* 家計内訳（スクリーンショット 2026-10）。万円→円。振込先・名義・金額根拠つき */
@@ -5320,7 +5355,7 @@ function personHistHTML(ym){ const months=[...Array(12)].map((_,i)=>ymAdd(ym,-i)
   const body=months.map(row).join(""); return body?`<div class="chart pm"><h3>月別の振込実績（人別）</h3><table class="pm-t pm-h"><thead><tr><th></th>${R.map(r=>`<th>${esc(nameOf(r))}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table><div class="who">行をタップでその月を開き、人ごとに直せます</div></div>`:""; }
 /* v200: 予定額に対して払えていない額（期日が来た月だけ） */
 function recurStart(r){ const ks=Object.keys(r.paid||{}).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort(); return r.from||(r.createdAt?ymOf(ymd(new Date(r.createdAt))):"")||ks[0]||ymOf(today()); }
-function recurShort(r,ym){ if(!rActive(r,ym)||ym<recurStart(r)) return 0; const due=Number(r.amount||0), p=rPaid(r,ym); if(!due) return 0; if(!p) return dayIn(ym,r.day)<=today()?due:0; return Math.max(0,due-Number(p.amount||0)); }
+function recurShort(r,ym){ if(!rActive(r,ym)||ym<recurStart(r)) return 0; const due=Number(r.amount||0), p=rPaid(r,ym); if(!due) return 0; if(!p) return dayIn(ym,r.day)<=today()?due:0; return Math.max(0,due-rPaidAmt(r,ym)); }
 function recurUnpaidList(){ const out=[], cur=ymOf(today()); for(const r of byWho(state.recur)) for(let i=0;i<12;i++){ const ym=ymAdd(cur,-i), n=recurShort(r,ym); if(n>0) out.push({r,ym,n,paid:rPaid(r,ym)}); } return out.sort((a,b)=>a.ym<b.ym?1:-1); }
 function recurHistHTML(ym){ const rs=byWho(state.recur).filter(r=>[...Array(12)].some((_,i)=>rActive(r,ymAdd(ym,-i)))), months=[...Array(12)].map((_,i)=>ymAdd(ym,i-11)); if(!rs.length) return "";
   const cell=(r,m)=>{ if(!rActive(r,m)||m<recurStart(r)) return `<i class="rh-c off"></i>`; const p=rPaid(r,m), sh=recurShort(r,m), cls=p?(sh>0?"part":"ok"):(sh>0?"miss":"wait"); return `<button class="rh-c ${cls}" data-rhym="${m}" title="${m} ${p?yen(p.amount):"未入力"}${sh?` 未払い${yen(sh)}`:""}"></button>`; };
@@ -5342,8 +5377,8 @@ function recurRow(r,ym){
       ${editWho(r)}${editActions("recur",r)}</div></li>`;
   return `<li class="item" data-c="recur" data-id="${esc(r.id)}"><div class="swipe-bg"><span class="l"></span><span class="r">削除</span></div><div class="row">
     <button class="check ${p&&!recurShort(r,ym)?"on":""}" style="--c:${K.c}${p&&recurShort(r,ym)?";opacity:.55":""}" data-rpay="${esc(r.id)}" data-ym="${ym}" aria-label="${p?"未確認に戻す":"振込を確認した"}">${CHECK}</button>
-    <div class="body" data-act="edit"><div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(r.text)}</span><b style="font-variant-numeric:tabular-nums">${yen(p?p.amount:r.amount||0)}</b></div>
-      <div class="meta">${whoTag(r)}<span class="tag" style="--tc:${K.c}">${K.l}</span><span class="due ${late?"over":d===today()?"today":""}">${parse(d).getMonth()+1}/${parse(d).getDate()}${late?" 未確認":""}</span>${p?`<span>${esc(nameOf(p.role||"h"))}が確認</span>`:""}${g?`<span>→ ${esc(g.text)}</span>`:""}${p&&r.kind!=="save"&&Number(p.amount)!==Number(r.amount)?`<span class="${Number(p.amount)>Number(r.amount)?"mtag over":""}">予定${yen(r.amount)}</span>`:""}</div></div>
+    <div class="body" data-act="edit"><div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(r.text)}</span><b style="font-variant-numeric:tabular-nums">${yen(p?rPaidAmt(r,ym):r.amount||0)}</b></div>
+      <div class="meta">${whoTag(r)}<span class="tag" style="--tc:${K.c}">${K.l}</span><span class="due ${late?"over":d===today()?"today":""}">${parse(d).getMonth()+1}/${parse(d).getDate()}${late?" 未確認":""}</span>${p?`<span>${esc(nameOf(p.role||"h"))}が確認</span>`:""}${g?`<span>→ ${esc(g.text)}</span>`:""}${p&&r.kind!=="save"&&rPaidAmt(r,ym)!==Number(r.amount)?`<span class="${rPaidAmt(r,ym)>Number(r.amount)?"mtag over":""}">予定${yen(r.amount)}</span>`:""}</div></div>
     </div>${["w","h"].filter(role=>rShare(r,role)).map(role=>{ const pb=p&&(p[role]||(!p.h&&!p.w))?Math.round(rPaidBy(r,ym,role)):null, sh=rShortBy(r,ym,role); return `<div class="rsub rp"><button type="button" class="rp-c ${pb!=null&&!sh?"on":pb?"part":""}" data-rpb="${esc(r.id)}" data-ym="${ym}" data-role="${role}" aria-label="${esc(nameOf(role))}の振込を確認">${CHECK}</button><span class="rp-n">${esc(nameOf(role))}</span><input type="text" inputmode="numeric" class="ramt" data-ramtp="${esc(r.id)}" data-role="${role}" data-ym="${ym}" placeholder="未入力" value="${pb!=null?pb:""}" enterkeyhint="done" aria-label="${esc(nameOf(role))}が払った額"><span class="who">/ ${yen(Math.round(rShare(r,role)))}</span>${sh&&(p||late)?`<span class="r-short">未払い ${yen(sh)}</span>`:""}</div>`; }).join("")}${r.bank||r.basis?`<div class="rsub rinfo">${r.bank?`<span>🏦 ${esc(r.bank)}${r.holder?`（${esc(r.holder)}名義）`:""}</span>`:""}${r.basis?`<span>根拠 ${esc(r.basis)}</span>`:""}</div>`:""}</li>`; /* v200: どの費目も月ごとの実績を入れて直せる */
 }
 function viewMoneyMonthly(){
@@ -5505,51 +5540,92 @@ function arLoad(){
 let AR=null; const arRules=()=>AR||(AR=arLoad());
 let arSaveT=null;
 function arSave(){ prefs.autoRules=JSON.stringify(arRules()); clearTimeout(arSaveT); arSaveT=setTimeout(()=>savePrefs(true),400); autoCook(); }
+/* v207: 条件にごみの日・天気・降水確率・気温・ふたり休みを追加。天気は予報がある日（約2週間先）だけ判定し、分からない日は null（何もしない） */
+const AR_WXC=[["晴","晴れ"],["曇","くもり"],["雨","雨"],["雪","雪"]];
+const wxCat=k=>/^(sun|moon|sunc|moonc)$/.test(k)?"晴":/^(cloud|fog)$/.test(k)?"曇":/^(rain|storm)$/.test(k)?"雨":k==="snow"?"雪":"";
+const AR_T=[["shift:h",()=>nameOf("h")+"のシフト"],["shift:w",()=>nameOf("w")+"のシフト"],["off",()=>"ふたり休み"],["wd",()=>"曜日"],["gomi",()=>"ごみの日"],["wx",()=>"天気"],["pop",()=>"降水確率"],["tmax",()=>"最高気温"],["tmin",()=>"最低気温"]];
+const arTKey=c=>c.t==="shift"?"shift:"+(c.r||"h"):c.t;
+const gomiKinds=()=>gomiRules().w.map(r=>r.k);
 function arCond(c,d){
   let m;
   if(c.t==="wd") m=(c.v||[]).map(Number).includes(parse(d).getDay());
+  else if(c.t==="off") m=offState(d)==="both";
+  else if(c.t==="gomi"){ const G=gomiOn(d), v=c.v||[]; if(!v.length) return false; m=v.some(k=>k==="なし"?!G.length:k==="*"?G.length>0:G.includes(k)); }
+  else if(c.t==="wx"||c.t==="pop"||c.t==="tmax"||c.t==="tmin"){ const W=wxDay(d); if(!W) return null; const n=Number(c.n);
+    if(c.t==="wx"){ if(!(c.v||[]).length) return false; m=(c.v||[]).includes(wxCat(W.k)); }
+    else { if(c.n===""||c.n==null||isNaN(n)) return false; m=c.t==="pop"?W.pop>=n:c.t==="tmax"?W.max>=n:W.min<=n; } }
   else m=(c.v||[]).includes(shiftOf(c.r,d)||"");
   return c.not?!m:m;
 }
-function arGroup(g,d){ const cs=g.conds||[]; if(!cs.length) return false; return g.mode==="or"?cs.some(c=>arCond(c,d)):cs.every(c=>arCond(c,d)); }
-function arMatch(r,d){ const gs=(r.groups||[]).filter(g=>(g.conds||[]).length); if(!gs.length) return false; return r.mode==="and"?gs.every(g=>arGroup(g,d)):gs.some(g=>arGroup(g,d)); }
-const cookDay=d=>arRules().some(r=>r.on&&arMatch(r,d));
+const arAll=a=>a.some(x=>x===false)?false:a.some(x=>x===null)?null:true;
+const arAny=a=>a.some(x=>x===true)?true:a.some(x=>x===null)?null:false;
+function arGroup(g,d){ const cs=g.conds||[]; if(!cs.length) return false; const a=cs.map(c=>arCond(c,d)); return g.mode==="or"?arAny(a):arAll(a); }
+/* r.off：何日ずらすか（-1＝条件の日の前日に入れる） */
+function arMatch(r,d){ const gs=(r.groups||[]).filter(g=>(g.conds||[]).length); if(!gs.length) return false; const d0=addDays(d,-Number(r.off||0)), a=gs.map(g=>arGroup(g,d0)); return r.mode==="and"?arAll(a):arAny(a); }
+const cookDay=d=>arRules().some(r=>r.on&&arMatch(r,d)===true);
 function arSkip(){ const out=new Set(); for(const x of (prefs.autoSkip||"").split(",").filter(Boolean)) out.add(x.includes(":")?x:"cook:"+x); return out; }
-let autoTimer=null;
+let autoTimer=null; var arWriting=false;
+const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items"};
+const AR_SHARED=new Set(["events","items"]);
+function arMade(){ return new Set((prefs.autoMade||"").split(",").filter(Boolean)); }
 function autoCook(){ clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   if((db&&!privBase)||!state.blocksLoaded||!state.pitemsLoaded||!state.shiftsLoaded) return;
-  const t=today(), skip=arSkip(), now=Date.now(), rules=arRules(), ids=new Set(rules.map(r=>r.id));
-  for(const r of rules) for(let i=0;i<60;i++){ const d=addDays(t,i), id=`auto_${r.id}_${d}`, c=r.kind==="task"?"pitems":"blocks", other=c==="pitems"?"blocks":"pitems", ex=state[c].find(b=>b.id===id), prev=state[other].find(b=>b.id===id), want=r.on&&arMatch(r,d)&&!skip.has(`${r.id}:${d}`);
-    if(prev&&prev.auto&&!prev.touched&&!prev.done) ddel(other,id);
-    const fields=c==="pitems"?{list:"task",due:d,time:r.s,dur:Math.max(15,(tmin(r.e)-tmin(r.s)+1440)%1440)}:{date:d,from:null,start:r.s,end:r.e,rep:"none",color:"shop"};
-    if(want&&!ex&&!prev?.touched&&!prev?.done) dset(c,id,{text:r.name,...fields,...(c==="pitems"?{done:false}:{}),auto:r.id,createdAt:now,updatedAt:now});
-    else if(!want&&ex&&ex.auto&&!ex.touched&&!ex.done) ddel(c,id);
-    else if(want&&ex&&ex.auto&&!ex.touched&&!ex.done&&(ex.text!==r.name||Object.keys(fields).some(k=>ex[k]!==fields[k]))) dupd(c,id,{...fields,text:r.name}); }
+  const ld=c=>c==="blocks"||c==="pitems"||!db||state[c+"Loaded"];
+  const t=today(), skip=arSkip(), now=Date.now(), rules=arRules(), ids=new Set(rules.map(r=>r.id)), made=arMade(), made0=prefs.autoMade||"";
+  arWriting=true;
+  try{
+  for(const r of rules){ const c=AR_COL[r.kind]||"blocks"; if(!ld(c)) continue;
+    for(let i=0;i<60;i++){ const d=addDays(t,i), id=`auto_${r.id}_${d}`, key=`${r.id}:${d}`, ex=state[c].find(b=>b.id===id), M=r.on?arMatch(r,d):false;
+      for(const o of Object.values(AR_COL)) if(o!==c&&ld(o)){ const prev=state[o].find(b=>b.id===id); if(prev&&prev.auto&&!prev.touched&&!prev.done) ddel(o,id); }
+      if(M===null) continue; /* 天気などがまだ分からない日はそのまま */
+      const want=M&&!skip.has(key), who=r.who||"both", tm=r.s||"";
+      const fields=c==="pitems"?{list:"task",due:d,time:r.s,dur:Math.max(15,(tmin(r.e)-tmin(r.s)+1440)%1440)}
+        :c==="blocks"?{date:d,from:null,start:r.s,end:r.e,rep:"none",color:"shop"}
+        :c==="events"?{date:d,who,...(tm?{start:tm,end:r.e||hhmm(Math.min(tmin(tm)+60,1439))}:{start:null,end:null})}
+        :{list:"task",due:d,who,time:tm||null};
+      if(want&&!ex){ if(AR_SHARED.has(c)&&made.has(key)) continue; /* 相手が消したものは作り直さない */
+        dset(c,id,{text:r.name,...fields,...(c==="pitems"||c==="items"?{done:false}:{}),auto:r.id,...(AR_SHARED.has(c)?{by:state.me||null,role:myRole(),autoBy:myRole()}:{}),createdAt:now,updatedAt:now}); if(AR_SHARED.has(c)) made.add(key); }
+      else if(!want&&ex&&ex.auto&&!ex.touched&&!ex.done){ ddel(c,id); made.delete(key); }
+      else if(want&&ex&&ex.auto&&!ex.touched&&!ex.done&&(ex.text!==r.name||Object.keys(fields).some(k=>(ex[k]??null)!==(fields[k]??null)))) dupd(c,id,{...fields,text:r.name}); } }
   /* 削除されたルールの、まだ触っていない先の予定は片付ける */
-  for(const c of ["blocks","pitems"]) for(const b of state[c]) if(b.auto&&!ids.has(b.auto)&&!b.touched&&!b.done&&(b.date||b.due)>=t) ddel(c,b.id);
+  for(const c of Object.values(AR_COL)) if(ld(c)) for(const b of state[c]) if(b.auto&&b.auto!=="shift"&&String(b.id).startsWith("auto_")&&(!AR_SHARED.has(c)||b.autoBy===myRole())&&!ids.has(b.auto)&&!b.touched&&!b.done&&(b.date||b.due)>=t) ddel(c,b.id);
+  } finally { arWriting=false; }
+  const mk=[...made].filter(k=>k.slice(-10)>=addDays(t,-7)).join(","); if(mk!==made0){ prefs.autoMade=mk; savePrefs(true); }
   },1200); }
 function arDesc(r){
-  const cd=c=>c.t==="wd"?`曜日が${(c.v||[]).map(v=>(AR_WD.find(w=>w[0]===Number(v))||[0,"?"])[1]).join("・")||"（未選択）"}${c.not?"でない":""}`:`${nameOf(c.r)}が${(c.v||[]).map(v=>v||"未入力").join("・")||"（未選択）"}${c.not?"でない":""}`;
+  const L=a=>a.join("・")||"（未選択）";
+  const cd=c=>{ const N=c.not?"でない":""; return c.t==="wd"?`曜日が${L((c.v||[]).map(v=>(AR_WD.find(w=>w[0]===Number(v))||[0,"?"])[1]))}${N}`
+    :c.t==="off"?`ふたり休み${c.not?"でない":""}`
+    :c.t==="gomi"?`ごみが${L((c.v||[]).map(v=>v==="*"?"何か出せる日":v==="なし"?"収集なし":v))}${N}`
+    :c.t==="wx"?`天気が${L((c.v||[]).map(v=>(AR_WXC.find(w=>w[0]===v)||[0,v])[1]))}${N}`
+    :c.t==="pop"?`降水確率が${c.n||"?"}%以上${N}`:c.t==="tmax"?`最高気温が${c.n||"?"}℃以上${N}`:c.t==="tmin"?`最低気温が${c.n||"?"}℃以下${N}`
+    :`${nameOf(c.r)}が${L((c.v||[]).map(v=>v||"未入力"))}${N}`; };
   const gs=(r.groups||[]).filter(g=>(g.conds||[]).length).map(g=>g.conds.map(cd).join(g.mode==="or"?" または ":" かつ "));
-  return gs.length?(gs.length>1?gs.map(x=>`（${x}）`).join(r.mode==="and"?" かつ ":" または "):gs[0]):"条件なし";
+  const off=Number(r.off||0); return (gs.length?(gs.length>1?gs.map(x=>`（${x}）`).join(r.mode==="and"?" かつ ":" または "):gs[0]):"条件なし")+(off?`（その${-off}日前に入れる）`:"");
 }
 function arCondHTML(ri,gi,ci,c){
-  const who=c.t==="wd"?"wd":c.r;
-  const vals=c.t==="wd"?AR_WD.map(([v,l])=>`<button type="button" class="chip mini" data-ar="val" data-ri="${ri}" data-gi="${gi}" data-ci="${ci}" data-v="${v}" aria-pressed="${(c.v||[]).map(Number).includes(v)}">${l}</button>`).join("")
-    :AR_SHIFTS.map(([v,l])=>`<button type="button" class="chip mini" data-ar="val" data-ri="${ri}" data-gi="${gi}" data-ci="${ci}" data-v="${v}" aria-pressed="${(c.v||[]).includes(v)}">${l}</button>`).join("");
-  return `<div class="arc"><div class="arc-top"><div class="seg">${[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))],["wd","曜日"]].map(([v,l])=>`<button type="button" data-ar="who" data-ri="${ri}" data-gi="${gi}" data-ci="${ci}" data-v="${v}" aria-pressed="${who===v}">${l}</button>`).join("")}</div>
-    <span class="who">が</span><div class="seg">${[["0","である"],["1","でない"]].map(([v,l])=>`<button type="button" data-ar="not" data-ri="${ri}" data-gi="${gi}" data-ci="${ci}" data-v="${v}" aria-pressed="${(c.not?"1":"0")===v}">${l}</button>`).join("")}</div>
-    <button type="button" class="x" data-ar="delc" data-ri="${ri}" data-gi="${gi}" data-ci="${ci}" aria-label="条件を消す">×</button></div>
-    <div class="chips arv">${vals}</div></div>`;
+  const A=`data-ri="${ri}" data-gi="${gi}" data-ci="${ci}"`, chip=(v,l,on)=>`<button type="button" class="chip mini" data-ar="val" ${A} data-v="${esc(v)}" aria-pressed="${on}">${l}</button>`;
+  const vals=c.t==="wd"?AR_WD.map(([v,l])=>chip(v,l,(c.v||[]).map(Number).includes(v))).join("")
+    :c.t==="gomi"?[["*","何か出せる日"],...gomiKinds().map(k=>[k,`${gomiIcon(k)}${esc(k)}`]),["なし","収集なし"]].map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
+    :c.t==="wx"?AR_WXC.map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("")
+    :c.t==="pop"||c.t==="tmax"||c.t==="tmin"?`<label class="who">${c.t==="pop"?"":""}<input type="number" inputmode="numeric" class="minp" data-arcn="1" ${A} value="${esc(c.n??"")}" style="width:70px" aria-label="数値"> ${c.t==="pop"?"%以上":c.t==="tmax"?"℃以上":"℃以下"}</label>`
+    :c.t==="off"?`<span class="who">${esc(nameOf("h"))}と${esc(nameOf("w"))}が両方「休」の日</span>`
+    :AR_SHIFTS.map(([v,l])=>chip(v,l,(c.v||[]).includes(v))).join("");
+  return `<div class="arc"><div class="arc-top"><select data-arct="1" ${A} aria-label="条件の種類">${AR_T.map(([k,f])=>`<option value="${k}" ${arTKey(c)===k?"selected":""}>${esc(f())}</option>`).join("")}</select>
+    <div class="seg">${[["0","である"],["1","でない"]].map(([v,l])=>`<button type="button" data-ar="not" ${A} data-v="${v}" aria-pressed="${(c.not?"1":"0")===v}">${l}</button>`).join("")}</div>
+    <button type="button" class="x" data-ar="delc" ${A} aria-label="条件を消す">×</button></div>
+    <div class="chips arv">${vals}</div>${/^(wx|pop|tmax|tmin)$/.test(c.t)?`<div class="who" style="font-size:11px">天気の条件は予報がある日（約2週間先まで）だけ判定し、予報が変わると入れ直します</div>`:""}</div>`;
 }
 function arRuleHTML(r,ri){
-  const next=[...Array(60)].map((_,i)=>addDays(today(),i)).filter(d=>arMatch(r,d)).slice(0,5);
+  const next=[...Array(60)].map((_,i)=>addDays(today(),i)).filter(d=>arMatch(r,d)===true).slice(0,5), shared=r.kind==="event"||r.kind==="item";
   const J=(key,cur,extra)=>`<div class="seg">${[["and","かつ"],["or","または"]].map(([v,l])=>`<button type="button" data-ar="${key}" data-ri="${ri}" ${extra||""} data-v="${v}" aria-pressed="${cur===v}">${l}</button>`).join("")}</div>`;
   const gs=r.groups||[];
   return `<div class="arule">
     <div class="edit-row"><input type="text" data-arf="name" data-ri="${ri}" value="${esc(r.name)}" maxlength="40" style="flex:1" aria-label="予定の名前"><div class="seg">${[["1","オン"],["0","オフ"]].map(([v,l])=>`<button type="button" data-ar="on" data-ri="${ri}" data-v="${v}" aria-pressed="${(r.on?"1":"0")===v}">${l}</button>`).join("")}</div></div>
     <div class="edit-row"><span class="who mlbl">時間</span><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s)}"><span class="who">〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e)}"></div>
-    <div class="edit-row"><label>追加する種類 <select data-arf="kind" data-ri="${ri}"><option value="block" ${r.kind!=="task"?"selected":""}>じぶんの予定</option><option value="task" ${r.kind==="task"?"selected":""}>じぶんのタスク（完了チェック付き）</option></select></label></div>
+    <div class="edit-row"><label>入れる先 <select data-arf="kind" data-ri="${ri}">${[["block","🔒じぶんの予定"],["task","🔒じぶんのタスク"],["event","ふたりの予定（相手にも見える）"],["item","ふたりのやること（相手にも見える）"]].map(([v,l])=>`<option value="${v}" ${(r.kind||"block")===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    ${shared?`<div class="edit-row"><label>担当 <select data-arf="who" data-ri="${ri}">${[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([v,l])=>`<option value="${v}" ${(r.who||"both")===v?"selected":""}>${l}</option>`).join("")}</select></label><span class="who">時間を空にすると終日</span></div>`:""}
+    <div class="edit-row"><label>入れる日 <select data-arf="off" data-ri="${ri}">${[["0","条件に合う日"],["-1","その前日"],["-2","その2日前"],["1","その翌日"]].map(([v,l])=>`<option value="${v}" ${String(r.off||0)===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
     <div class="who" style="margin:4px 0">条件（かつ＝すべて満たす／または＝どれか1つ満たす）</div>
     ${gs.map((g,gi)=>`${gi?`<div class="arjoin">${J("rmode",r.mode)}</div>`:""}<div class="argroup"><div class="arg-head"><span class="who">グループ${gi+1}</span>${(g.conds||[]).length>1?J("gmode",g.mode,`data-gi="${gi}"`):""}<button type="button" class="x" data-ar="delg" data-ri="${ri}" data-gi="${gi}" aria-label="グループを消す">×</button></div>
       ${(g.conds||[]).map((c,ci)=>`${ci?`<div class="arand">${g.mode==="or"?"または":"かつ"}</div>`:""}${arCondHTML(ri,gi,ci,c)}`).join("")}
@@ -5563,7 +5639,7 @@ function autoCardHTML(){
   return `<details class="chart autocard" ${state.autoOpen?"open":""}><summary><b>自動で入る予定・タスク</b><span class="who">　${R.filter(r=>r.on).length}件のルール</span></summary>
     ${R.map(arRuleHTML).join("")||'<div class="who" style="margin:8px 0">まだありません</div>'}
     <button type="button" class="btn" data-ar="addr" style="margin-top:8px">＋ ルールを追加</button>
-    <div class="who" style="margin-top:8px">シフトや曜日が条件に合う日（今日から60日先まで）に、選んだ種類でじぶんの予定・タスクへ自動で入ります。条件から外れると自動で取り消し、消した日は再追加しません。編集・完了したものはそのまま残します。</div></details>`;
+    <div class="who" style="margin-top:8px">シフト・曜日・ごみの日・天気・気温などが条件に合う日（今日から60日先まで）に、選んだ先へ自動で入ります。条件から外れると自動で取り消し、消した日は再追加しません。手で直したもの・完了したものはそのまま残します。</div></details>`;
 }
 function arAct(b){
   const R=arRules(), a=b.dataset.ar, ri=Number(b.dataset.ri), gi=Number(b.dataset.gi), ci=Number(b.dataset.ci), v=b.dataset.v, r=R[ri];
@@ -7176,7 +7252,7 @@ async function wxLoad(force){
   try{ const c=JSON.parse(localStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
   if(state.wxBusy) return; state.wxBusy=true;
   try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=16`;
-    const r=await fetch(u); if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); }
+    const r=await fetch(u); if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
   catch(e){ state.wxErr=true; }
   state.wxBusy=false; }
 function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=today(), i=W.daily.time.indexOf(t); if(i<0) return null;
@@ -7275,11 +7351,22 @@ function viewDecisions(){ const P=[], T=[], N=[];
   for(const k of state.talks||[]) if(k.notes&&String(k.notes).trim()) N.push(k);
   N.sort((a,b)=>a.id<b.id?1:-1);
   let h=`<div class="dec-sum"><div><b>${P.length}</b><small>将来の決定</small></div><div><b>${T.length}</b><small>話し終えた議題</small></div><div><b>${N.length}</b><small>話し合いの記録</small></div></div>`;
-  h+=`<div class="section-label">将来（防災・子育てなど）で決めたこと</div>`+(P.length?`<ul class="list dec-l">${P.slice(0,60).map(({p,c})=>`<li class="item"><button class="dec-r" data-decp="${esc(p.id)}" data-cat="${esc(p.cat)}"><span class="tag" style="--tc:var(--future)">${esc((PCATS[p.cat]||PCATS.wish).label)}</span><b>${esc(p.text)} › ${esc(c.t)}</b><span>→ ${esc(c.m)}</span><small>${c.mAt?short(ymd(new Date(c.mAt))):""}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}</small></button></li>`).join("")}</ul>`:`<div class="empty">将来の項目のチェックリストで ✎ を押すと、決めたことを書けます</div>`);
-  h+=`<div class="section-label">話し合いで決まったこと</div>`+(T.length?`<ul class="list dec-l">${T.slice(0,60).map(t=>`<li class="item"><button class="dec-r" data-dect="${esc(t.doneDate||"")}"><b>${esc(t.text)}</b>${t.note?`<span>→ ${esc(t.note)}</span>`:""}<small>${t.doneDate?short(t.doneDate):""}</small></button></li>`).join("")}</ul>`:`<div class="empty">「話す」で議題を話し終えると、ここに残ります</div>`);
+  const E=state.decEdit, ed=(key,topic,dec,tl,dl)=>`<div class="dec-ed" data-deck="${esc(key)}"><label class="dec2-l">💬 ${tl}</label><textarea class="dec-tp" rows="2" maxlength="200">${esc(topic)}</textarea><label class="dec2-l">✅ ${dl}</label><textarea class="dec-dc" rows="3" maxlength="300" placeholder="ふたりで決めたこと">${esc(dec)}</textarea><div class="edit-actions"><button class="btn primary" data-decsave="${esc(key)}">保存</button><button class="btn" data-decx="1">やめる</button><button class="link" data-decopen="${esc(key)}">元の画面で開く ›</button></div></div>`;
+  h+=`<div class="who" style="margin:0 4px 6px">タップで「話したい内容」と「決めたこと」を分けて直せます</div>`;
+  h+=`<div class="section-label">将来（防災・子育てなど）で決めたこと</div>`+(P.length?`<ul class="list dec-l">${P.slice(0,60).map(({p,c})=>{ const key=`p|${p.id}|${(p.checks||[]).indexOf(c)}`; return E===key?`<li class="item">${ed(key,c.t,c.m,"話したい内容（項目）","決めたこと")}</li>`:`<li class="item"><button class="dec-r" data-dece="${esc(key)}"><span class="tag" style="--tc:var(--future)">${esc((PCATS[p.cat]||PCATS.wish).label)}</span><b>${esc(p.text)} › ${esc(c.t)}</b><span>→ ${esc(c.m)}</span><small>${c.mAt?short(ymd(new Date(c.mAt))):""}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}</small></button></li>`; }).join("")}</ul>`:`<div class="empty">将来の項目のチェックリストで ✎ を押すと、決めたことを書けます</div>`);
+  h+=`<div class="section-label">話し合いで決まったこと</div>`+(T.length?`<ul class="list dec-l">${T.slice(0,60).map(t=>{ const key=`t|${t.id}`; return E===key?`<li class="item">${ed(key,t.text,t.note||"","話したい内容（議題）","決めたこと")}</li>`:`<li class="item"><button class="dec-r" data-dece="${esc(key)}"><b>${esc(t.text)}</b>${t.note?`<span>→ ${esc(t.note)}</span>`:`<span class="dec-none">決めたことは未記入</span>`}<small>${t.doneDate?short(t.doneDate):""}</small></button></li>`; }).join("")}</ul>`:`<div class="empty">「話す」で議題を話し終えると、ここに残ります</div>`);
   h+=`<div class="section-label">話し合いの記録</div>`+(N.length?`<ul class="list dec-l">${N.slice(0,30).map(k=>`<li class="item"><button class="dec-r" data-dect="${esc(k.id)}"><small>${esc(jpDate(k.id))}</small><span class="dec-n">${esc(String(k.notes).slice(0,200))}${String(k.notes).length>200?"…":""}</span></button></li>`).join("")}</ul>`:`<div class="empty">まだありません</div>`);
   return h; }
-document.addEventListener("click",e=>{ const p=e.target.closest("#main [data-decp]"); if(p){ state.fut=p.dataset.cat; state.editing={c:"plans",id:p.dataset.decp}; go("future"); return; }
+document.addEventListener("click",e=>{
+  const de=e.target.closest("#main [data-dece]"); if(de){ state.decEdit=de.dataset.dece; render(); setTimeout(()=>{ const t=document.querySelector("#main .dec-ed .dec-dc"); if(t){ t.focus(); t.scrollIntoView({block:"center"}); } },60); return; }
+  if(e.target.closest("#main [data-decx]")){ state.decEdit=null; render(); return; }
+  const dop=e.target.closest("#main [data-decopen]"); if(dop){ const [k,id]=dop.dataset.decopen.split("|"); state.decEdit=null; if(k==="p"){ const pl=state.plans.find(x=>x.id===id); if(pl){ state.fut=pl.cat; state.editing={c:"plans",id}; go("future"); } } else { const tp=(state.topics||[]).find(x=>x.id===id); if(tp&&tp.doneDate) state.talkDate=tp.doneDate; go("talk"); } return; }
+  const ds=e.target.closest("#main [data-decsave]"); if(ds){ const box=ds.closest(".dec-ed"), tv=box.querySelector(".dec-tp").value.trim(), dv=box.querySelector(".dec-dc").value.trim(), [k,id,ix]=ds.dataset.decsave.split("|");
+    if(!tv){ toast("話したい内容を入れてください"); return; }
+    if(k==="p"){ const pl=state.plans.find(x=>x.id===id); if(pl){ const checks=(pl.checks||[]).map(c=>({...c})), i=Number(ix), o=checks[i]; if(o){ checks[i]={...o,t:tv.slice(0,200),m:dv.slice(0,300),mAt:dv?(dv===o.m?o.mAt||Date.now():Date.now()):null,mBy:dv?(dv===o.m?o.mBy||myRole():myRole()):null}; pl.checks=checks; dupd("plans",id,{checks}); } } }
+    else { const tp=(state.topics||[]).find(x=>x.id===id); if(tp){ const ch={}; if(tv!==tp.text) ch.text=tv.slice(0,200); if(dv!==(tp.note||"")) ch.note=dv.slice(0,600); if(Object.keys(ch).length){ Object.assign(tp,ch); dupd("topics",id,ch); } } }
+    state.decEdit=null; haptic("done"); toast("保存しました"); render(); return; }
+  const p=e.target.closest("#main [data-decp]"); if(p){ state.fut=p.dataset.cat; state.editing={c:"plans",id:p.dataset.decp}; go("future"); return; }
   const t=e.target.closest("#main [data-dect]"); if(t){ if(t.dataset.dect) state.talkDate=t.dataset.dect; go("talk"); } });
 /* v194: 下のタブバー（いまどきのスマホアプリの形）。ホーム＋よく使う3つ＋「その他」。並びは 設定 › メニュー の並び順 */
 function tbarTabs(){ const hs=hiddenTabs(); return tabOrder().filter(k=>!hs.has(k)); }
@@ -7810,7 +7897,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",shareArrived); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
+  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",requestRender); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",requestRender); sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });

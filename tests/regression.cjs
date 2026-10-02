@@ -228,7 +228,7 @@ test('favorite template remains after original task is removed and prefs reload'
   const saved=JSON.stringify(c.prefs);c.prefs=JSON.parse(saved);assert.equal(run(c,'itemFavorites()[0].text'),'買う');assert.equal(run(c,'itemFavorites()[0].private'),true);
 });
 test('automatic rule AND/OR combinations and empty conditions', () => {
-  const c=env(['arGroup','arMatch'],{arCond:x=>x.match}); c.r={mode:'and',groups:[{mode:'or',conds:[{match:true},{match:false}]},{mode:'and',conds:[{match:false}]}]};
+  const c=env(['arAll','arAny','arGroup','arMatch'],{arCond:x=>x.match}); c.r={mode:'and',groups:[{mode:'or',conds:[{match:true},{match:false}]},{mode:'and',conds:[{match:false}]}]};
   assert.equal(run(c,"arMatch(r,'2026-09-28')"),false);c.r.mode='or';assert.equal(run(c,"arMatch(r,'2026-09-28')"),true);c.r.groups=[];assert.equal(run(c,"arMatch(r,'2026-09-28')"),false);
 });
 test('bug list includes all active requests and folds closed ones', () => {
@@ -291,7 +291,7 @@ test('AI prompt retains question and stays within the backend 40k limit', async 
   await run(c,"aiAsk('質問'.repeat(2000))");assert.ok(prompt.length<=40000,`prompt=${prompt.length}`);assert.ok(prompt.indexOf('【今回の質問】')<300);assert.equal(c.state.ai.busy,false);
 });
 test('auto rules create private tasks, retain completed items and honor skips', () => {
-  const c=env(['tmin','autoCook'],{setTimeout:f=>{f();return 1;},clearTimeout(){},autoTimer:null,db:null,privBase:null,arSkip:()=>new Set(['rule:2026-09-29']),arRules:()=>[{id:'rule',kind:'task',on:true,name:'料理',s:'18:00',e:'19:00'}],arMatch:()=>true});
+  const c=env(['tmin','arMade','AR_COL','AR_SHARED','autoCook'],{setTimeout:f=>{f();return 1;},clearTimeout(){},autoTimer:null,arWriting:false,db:null,privBase:null,arSkip:()=>new Set(['rule:2026-09-29']),arRules:()=>[{id:'rule',kind:'task',on:true,name:'料理',s:'18:00',e:'19:00'}],arMatch:()=>true});
   Object.assign(c.state,{blocksLoaded:true,pitemsLoaded:true,shiftsLoaded:true});
   c.state.pitems=[{id:'auto_rule_2026-09-28',auto:'rule',done:true,text:'完了済み',due:'2026-09-28'}];run(c,'autoCook()');
   assert.ok(c.writes.every(x=>x.c==='pitems'));assert.ok(c.writes.every(x=>!['auto_rule_2026-09-28','auto_rule_2026-09-29'].includes(x.id)));assert.equal(c.writes.length,58);
@@ -664,7 +664,7 @@ test('v199 hubs group views by time and couple axes; unknown views fall into そ
   assert.equal(run(c,'hubOf("caution").k'),'us'); assert.equal(run(c,'hubOf("money").k'),'fut'); assert.equal(run(c,'hubOf("log").k'),'more');
 });
 test('v200 recurring payments show the unpaid amount per month and only once due', () => {
-  const c = env(['ymOf','ymAdd','dayIn','rActive','rPaid','recurStart','recurShort','recurUnpaidList'], { byWho:x=>x });
+  const c = env(['ymOf','ymAdd','dayIn','rActive','rPaid','rPaidAmt','recurStart','recurShort','recurUnpaidList'], { byWho:x=>x });
   c.state.recur=[{id:'rent',text:'家賃',amount:80000,day:1,paid:{'2026-08':{amount:80000},'2026-09':{amount:50000}}},{id:'late',text:'保険',amount:5000,day:31}];
   assert.equal(run(c,'recurShort(state.recur[0],"2026-08")'),0);
   assert.equal(run(c,'recurShort(state.recur[0],"2026-09")'),30000);
