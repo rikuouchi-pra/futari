@@ -2039,7 +2039,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="247";
+const APP_VERSION="248";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6330,10 +6330,10 @@ function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); win
       else if(want&&ex&&ex.auto&&ex.target==="ar"&&(stableJSON(ex.ar)!==stableJSON(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
       continue; }
     if(r.kind==="topic"){ /* v214: 議題は「次の1回」だけ入れる。話し終えたら次の回。話していない前回分があれば増やさない */
-      const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done");
+      const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done"&&b.status!=="hold"); /* v248: 「期日まで残す」にした回は次の回を止めない */
       if(!r.on){ for(const b of open) if(!b.touched&&(b.on||"")>=t) ddel("topics",b.id); continue; }
       if(open.some(b=>(b.on||"")<t)) continue;
-      let nd=null; for(let i=0;i<60&&!nd;i++){ const d=addDays(t,i), M=arMatch(r,d); if(M===true&&!skip.has(`${r.id}:${d}`)&&!mine.some(b=>b.on===d&&b.status==="done")) nd=d; }
+      let nd=null; for(let i=0;i<60&&!nd;i++){ const d=addDays(t,i), M=arMatch(r,d); if(M===true&&!skip.has(`${r.id}:${d}`)&&!mine.some(b=>(b.status==="done"&&(b.on===d||b.doneDate===d))||(b.status==="hold"&&(b.on===d||b.talkedOn===d)))) nd=d; /* v248: 持ち越した回を今日話したら、今日の分は済み扱い（すぐ同じ議題が出ないように） */ }
       for(const b of open) if(b.on!==nd&&!b.touched&&(b.on||"")>=t){ ddel("topics",b.id); made.delete(`${r.id}:${b.on}`); }
       if(nd){ const id=`auto_${r.id}_${nd}`, ex=mine.find(b=>b.id===id), key=`${r.id}:${nd}`;
         if(!ex&&!made.has(key)){ dset("topics",id,{text:r.name,who:"both",status:"open",note:"",ref:null,on:nd,auto:r.id,autoBy:myRole(),by:state.me||null,createdAt:now,updatedAt:now}); made.add(key); }
