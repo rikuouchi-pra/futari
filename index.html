@@ -629,6 +629,33 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .thist{display:flex;flex-direction:column;gap:4px;margin:6px 0;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--talk,var(--accent)) 8%,transparent)}
 .th-r{display:grid;grid-template-columns:4.6em 1fr;gap:8px;font-size:13px;line-height:1.5}.th-r small{color:var(--muted);font-variant-numeric:tabular-nums}.th-r span{white-space:pre-wrap}
 .tser{margin-top:6px;font-size:12px;line-height:1.5;color:var(--muted);padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--talk,var(--accent)) 8%,transparent);cursor:pointer}.tser b{margin-left:6px;color:var(--accent);font-weight:700}
+/* v246: 子どもとの1日・旅程 */
+.kd{display:flex;flex-direction:column;gap:10px}.kd-h{display:flex;flex-direction:column;gap:2px}.kd-h b{font-size:16px}
+.kd-st{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.kd-st button{all:unset;flex:none;cursor:pointer;display:flex;flex-direction:column;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent);border:2px solid transparent}
+.kd-st button b{font-size:13px}.kd-st button small{font-size:11px;color:var(--muted)}.kd-st button[aria-pressed="true"],.kd-pat button[aria-pressed="true"],.tr-dtabs button[aria-pressed="true"],.tr-kinds button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.kd-pat{display:flex;gap:6px}.kd-pat button{all:unset;cursor:pointer;flex:1;text-align:center;padding:8px;border-radius:12px;font-weight:700;background:color-mix(in srgb,var(--ink) 5%,transparent);border:2px solid transparent}
+.kd-bar{position:relative;height:18px;border-radius:9px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.kd-bar i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.9}
+.kd-ax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px}
+.kd-bal{display:flex;flex-direction:column;gap:4px}.kd-bal div{display:grid;grid-template-columns:12px 4.5em 1fr 5.5em;gap:6px;align-items:center;font-size:12px}.kd-sw{width:10px;height:10px;border-radius:3px}.kd-bt{height:8px;border-radius:4px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.kd-bt i{display:block;height:100%}.kd-bal small{color:var(--muted);text-align:right}
+.kd-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.kd-l li[data-kdi]{display:grid;grid-template-columns:4.6em 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 12%,transparent);border-left:4px solid var(--c);cursor:pointer}
+.kd-t{font-weight:800;font-variant-numeric:tabular-nums;font-size:14px;display:flex;flex-direction:column}.kd-t small{font-size:10px;color:var(--muted);font-weight:600}.kd-x{font-size:14px}.kd-wc{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--c) 30%,transparent)}
+.kd-e{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--accent) 8%,transparent)}.kd-er{display:flex;gap:8px;align-items:center;justify-content:space-between}.kd-er input{flex:1;min-height:40px}
+.kd-who{display:flex;gap:6px;flex-wrap:wrap}.kd-who button{all:unset;cursor:pointer;padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700;border:2px solid transparent;background:color-mix(in srgb,var(--c) 18%,transparent)}.kd-who button[aria-pressed="true"]{border-color:var(--c)}
+.kd-f{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.chip.trip-chip{margin-top:6px;font-size:12px;padding:5px 11px;min-height:0;font-weight:700}
+.tr-top{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}.tr-top label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.tr-days{display:flex;align-items:center;gap:8px}.tr-days button{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;text-align:center;line-height:34px;font-size:18px;font-weight:800;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.tr-dtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.tr-dtabs button{all:unset;flex:none;cursor:pointer;display:flex;flex-direction:column;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent);border:2px solid transparent}.tr-dtabs small{font-size:11px;color:var(--muted)}
+.tr-l{list-style:none;margin:0;padding:0 0 0 2px;display:flex;flex-direction:column;gap:6px;position:relative}
+.tr-i{display:grid;grid-template-columns:3.6em 30px 1fr;gap:8px;align-items:start;cursor:pointer;padding:8px 6px;border-radius:12px}.tr-i:active{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.tr-t{font-weight:800;font-variant-numeric:tabular-nums;font-size:14px;display:flex;flex-direction:column}.tr-t small{font-size:10px;color:var(--muted);font-weight:600}
+.tr-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,transparent);box-shadow:0 0 0 2px var(--c) inset;font-size:15px}
+.tr-b{display:flex;flex-direction:column;gap:2px;min-width:0}.tr-b b{font-size:15px}.tr-b small{font-size:12px;color:var(--muted);white-space:pre-wrap}.tr-pl{font-size:12px;color:var(--accent);text-decoration:none;font-weight:700}
+.tr-gap{margin-left:3.6em;padding:2px 0 2px 46px;font-size:11px;color:var(--muted);border-left:2px dashed var(--line)}
+.tr-e{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 8%,transparent)}.tr-e input[type=text],.tr-e textarea{width:100%;box-sizing:border-box}
+.tr-kinds{display:flex;gap:6px;flex-wrap:wrap}.tr-kinds button{all:unset;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--ink) 6%,transparent);border:2px solid transparent}
+.tr-add{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.tr-add button{all:unset;cursor:pointer;padding:8px 12px;border-radius:99px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--accent) 12%,transparent)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2002,7 +2029,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="245";
+const APP_VERSION="246";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2536,12 +2563,63 @@ function planMeta(p,showCat){
   const cm=p.cat==="care"?["h","w"].map(r=>((p.conf||{})[r]||{}).m?`${nameOf(r)}：${((p.conf||{})[r]).m}`:"").filter(Boolean).join("／"):"";
   return `<div class="meta">${bits.join("")}</div>${cm?`<div class="meta plg">💬 ${esc(cm.slice(0,70))}${cm.length>70?"…":""}</div>`:""}${lg?`<div class="meta plg">📝 ${short(ymd(new Date(lg.at)))} ${esc(lg.t.slice(0,50))}${lg.t.length>50?"…":""}${(p.log||[]).length>1?`（記録${p.log.length}）`:""}</div>`:""}${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
 }
+/* v246: 旅行ごとの旅程。日ごとに時間・種類（移動・観光・食事・宿）・場所・メモを並べ、空き時間も見える。ふたりで共有 */
+const TRK={move:["🚗","移動","#6aa0e0"],see:["📍","観光","#e39a4f"],eat:["🍴","食事","#d9707f"],stay:["🏨","宿","#8a7fbf"],other:["✨","その他","#7aa889"]};
+function tripOf(p){ const T=p.trip||{}; return {days:Math.max(1,Math.min(14,Number(T.days)||1)),items:Array.isArray(T.items)?T.items:[]}; }
+function tripChip(p){ if(p.cat!=="travel") return ""; const T=tripOf(p); return `<button type="button" class="chip trip-chip" data-trip="${esc(p.id)}">🗺 ${T.items.length?`旅程 ${T.days}日・${T.items.length}件`:"旅程を立てる"}</button>`; }
+let TP=null;
+function tripOpen(id){ TP={id,day:0,edit:null}; tripRender(); haptic("arm"); }
+function tripClose(){ const m=$("trp"); TP=null; if(m){ m.classList.remove("open"); setTimeout(()=>m.remove(),180); } render(); }
+function tripSave(p,T,msg){ const trip={days:T.days,items:T.items.slice().sort((a,b)=>a.d-b.d||String(a.t).localeCompare(String(b.t)))}; p.trip=trip; dupd("plans",p.id,{trip}); if(msg) toast(msg); tripRender(); }
+const TR_TPL0=[["08:00","","move","出発"],["12:00","13:00","eat","お昼ごはん"],["13:30","15:00","see","観光"],["15:30","","stay","チェックイン"],["18:30","20:00","eat","夕ごはん"]];
+const TR_TPLM=[["08:00","09:00","eat","朝ごはん"],["10:00","12:00","see","観光"],["12:00","13:00","eat","お昼ごはん"],["14:00","17:00","see","観光・買い物"],["18:30","20:00","eat","夕ごはん"]];
+const TR_TPLL=[["08:00","09:00","eat","朝ごはん"],["10:00","","stay","チェックアウト"],["10:30","12:00","see","観光・お土産"],["12:00","13:00","eat","お昼ごはん"],["15:00","","move","帰る"]];
+function tripRender(){ if(!TP) return; const p=state.plans.find(x=>x.id===TP.id); let m=$("trp"); if(!p){ if(m) m.remove(); TP=null; return; }
+  if(!m){ m=document.createElement("div"); m.id="trp"; m.className="tqm"; m.setAttribute("role","dialog"); document.body.appendChild(m); tripBind(m); requestAnimationFrame(()=>m.classList.add("open")); }
+  const sc=(m.querySelector(".tqm-card")||{}).scrollTop||0, T=tripOf(p), d0=p.date||"", D=Math.min(TP.day,T.days-1), its=T.items.map((x,i)=>({...x,_i:i})).filter(x=>(x.d||0)===D).sort((a,b)=>String(a.t).localeCompare(String(b.t)));
+  const dl=k=>d0?`${short(addDays(d0,k))}（${WD[parse(addDays(d0,k)).getDay()]}）`:`${k+1}日目`;
+  const gap=(a,b)=>{ const e=tmin(a.e||a.t), s=tmin(b.t); const g=s-e; return a.t&&b.t&&g>=60&&!(a.k==="move"&&!a.e)?`<div class="tr-gap">空き ${Math.floor(g/60)}時間${g%60?g%60+"分":""}</div>`:""; };
+  const map=q=>`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  m.innerHTML=`<div class="tqm-card tr-card"><div class="tqm-h"><b>🗺 ${esc(p.text)}</b><button class="tqm-x" data-tq="close" aria-label="閉じる">×</button></div>
+    <div class="tr-top"><label>出発日 <input type="date" data-trf="date" value="${esc(d0)}"></label><span class="tr-days"><button type="button" data-tra="dminus" aria-label="1日減らす">−</button><b>${T.days}日</b><button type="button" data-tra="dplus" aria-label="1日増やす">＋</button></span></div>
+    <div class="tr-dtabs">${[...Array(T.days)].map((_,k)=>`<button type="button" data-trd="${k}" aria-pressed="${k===D}"><b>${k+1}日目</b><small>${esc(dl(k))}・${T.items.filter(x=>(x.d||0)===k).length}件</small></button>`).join("")}</div>
+    <ol class="tr-l">${its.map((x,j)=>{ const K=TRK[x.k]||TRK.other; if(TP.edit===x._i) return `<li class="tr-e"><div class="tr-kinds">${Object.entries(TRK).map(([k,v])=>`<button type="button" data-tra="kind" data-i="${x._i}" data-v="${k}" aria-pressed="${(x.k||"other")===k}">${v[0]} ${v[1]}</button>`).join("")}</div>
+        <div class="are-time"><input type="time" data-trf="t" data-i="${x._i}" value="${esc(x.t||"")}" aria-label="開始"><span>〜</span><input type="time" data-trf="e" data-i="${x._i}" value="${esc(x.e||"")}" aria-label="終了"></div>
+        <input type="text" data-trf="x" data-i="${x._i}" value="${esc(x.x||"")}" maxlength="60" placeholder="やること（例：〇〇寺を見る）">
+        <input type="text" data-trf="pl" data-i="${x._i}" value="${esc(x.pl||"")}" maxlength="80" placeholder="場所（地図で開けます）">
+        <textarea data-trf="m" data-i="${x._i}" rows="2" maxlength="300" placeholder="メモ（予約番号・持ち物・リンクなど）">${esc(x.m||"")}</textarea>
+        <div class="are-foot">${T.days>1?`<label class="who">日を移す <select data-trf="d" data-i="${x._i}">${[...Array(T.days)].map((_,k)=>`<option value="${k}" ${k===D?"selected":""}>${k+1}日目</option>`).join("")}</select></label>`:""}<span style="flex:1"></span><button type="button" class="link danger" data-tra="del" data-i="${x._i}">削除</button><button type="button" class="btn primary" data-tra="ok">完了</button></div></li>`;
+      return `${j?gap(its[j-1],x):""}<li class="tr-i" data-tri="${x._i}" style="--c:${K[2]}"><span class="tr-t">${esc(x.t||"--:--")}${x.e?`<small>〜${esc(x.e)}</small>`:""}</span><span class="tr-dot">${K[0]}</span><span class="tr-b"><b>${esc(x.x||K[1])}</b>${x.pl?`<a href="${esc(map(x.pl))}" target="_blank" rel="noopener" class="tr-pl">📍${esc(x.pl)}</a>`:""}${x.m?`<small>${esc(x.m)}</small>`:""}</span></li>`; }).join("")}</ol>
+    ${its.length?"":`<div class="who" style="text-align:center;margin:8px 0">この日の予定はまだありません</div><button type="button" class="btn" data-tra="tpl" style="align-self:center">${D===0?"1日目":D===T.days-1&&T.days>1?"最終日":"中日"}のひな形で埋める</button>`}
+    <div class="tr-add">${Object.entries(TRK).map(([k,v])=>`<button type="button" data-tra="add" data-v="${k}">＋${v[0]} ${v[1]}</button>`).join("")}</div>
+    <div class="tqm-hint">項目をタップで編集。ふたりで共有されます</div></div>`;
+  const c=m.querySelector(".tqm-card"); if(c) c.scrollTop=sc; }
+function tripBind(m){ m.addEventListener("click",ev=>{ if(ev.target===m){ tripClose(); return; } if(ev.target.closest("a")) return; const p=state.plans.find(x=>x.id===(TP&&TP.id)); if(!p) return; const T=tripOf(p); T.items=T.items.map(x=>({...x}));
+    const b=ev.target.closest("button,[data-tri]"); if(!b) return; ev.stopPropagation();
+    if(b.dataset.tq==="close") return tripClose();
+    if(b.dataset.trd!=null){ TP.day=Number(b.dataset.trd); TP.edit=null; haptic("tick"); return tripRender(); }
+    if(b.dataset.tri!=null){ TP.edit=Number(b.dataset.tri); return tripRender(); }
+    const a=b.dataset.tra, i=Number(b.dataset.i), D=Math.min(TP.day,T.days-1);
+    if(a==="ok"){ TP.edit=null; tripRender(); }
+    else if(a==="dplus"){ T.days=Math.min(14,T.days+1); TP.day=T.days-1; tripSave(p,T); }
+    else if(a==="dminus"){ if(T.days<=1) return; const n=T.items.filter(x=>(x.d||0)===T.days-1).length; if(n&&!confirm(`${T.days}日目の${n}件も消えます。減らしますか？`)) return; T.items=T.items.filter(x=>(x.d||0)<T.days-1); T.days--; TP.day=Math.min(TP.day,T.days-1); tripSave(p,T); }
+    else if(a==="kind"){ T.items[i].k=b.dataset.v; tripSave(p,T); }
+    else if(a==="del"){ const prev=JSON.parse(JSON.stringify(p.trip||{})); T.items.splice(i,1); TP.edit=null; tripSave(p,T); toast("削除しました",()=>{ p.trip=prev; dupd("plans",p.id,{trip:prev}); tripRender(); }); }
+    else if(a==="add"){ const day=T.items.filter(x=>(x.d||0)===D).sort((x,y)=>String(x.t).localeCompare(String(y.t))), last=day[day.length-1], t0=last?hhmm(Math.min(1380,tmin(last.e||last.t||"09:00")+30)):"09:00";
+      const n={id:newId().slice(-8),d:D,t:t0,e:"",k:b.dataset.v,x:"",pl:"",m:""}; T.items.push(n); TP.edit=T.items.length-1; const trip={days:T.days,items:T.items}; p.trip=trip; dupd("plans",p.id,{trip}); tripRender(); setTimeout(()=>{ const el=m.querySelector('[data-trf="x"]'); if(el) el.focus(); },60); }
+    else if(a==="tpl"){ const tp=D===0?TR_TPL0:D===T.days-1&&T.days>1?TR_TPLL:TR_TPLM; for(const [t,e,k,x] of tp) T.items.push({id:newId().slice(-8),d:D,t,e,k,x,pl:"",m:""}); tripSave(p,T,"ひな形を入れました。タップで直せます"); } });
+  m.addEventListener("change",ev=>{ const f=ev.target.dataset&&ev.target.dataset.trf; if(!f) return; const p=state.plans.find(x=>x.id===(TP&&TP.id)); if(!p) return; const v=ev.target.value;
+    if(f==="date"){ if(v){ p.date=v; dupd("plans",p.id,{date:v}); tripRender(); } return; }
+    const T=tripOf(p); T.items=T.items.map(x=>({...x})); const i=Number(ev.target.dataset.i), x=T.items[i]; if(!x) return;
+    if(f==="d"){ x.d=Number(v); TP.day=x.d; } else x[f]=String(v).slice(0,f==="m"?300:80);
+    const trip={days:T.days,items:T.items}; p.trip=trip; dupd("plans",p.id,{trip}); if(f==="d"||f==="t") tripRender(); }); }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-trip]"); if(!b) return; e.stopPropagation(); e.preventDefault(); if(state.editing) saveEdit(); tripOpen(b.dataset.trip); },true);
 function planRow(p,showCat){
   if(isEditing("plans",p.id)) return planEdit(p);
   const done=planDone(p);
   return wrapRow("plans",p,done&&p.cat!=="anniv"?"done":"",
     `<button class="check ${done?"on":""}" style="--c:var(--future)" data-act="right" aria-label="${rightLabel("plans",p)}">${CHECK}</button>`,
-    `<div class="text">${esc(p.text)}</div>${planMeta(p,showCat)}`);
+    `<div class="text">${esc(p.text)}</div>${planMeta(p,showCat)}${tripChip(p)}`);
 }
 function planEdit(p){
   const C=PCATS[p.cat]||PCATS.wish, pid=partnerId();
@@ -2554,6 +2632,7 @@ function planEdit(p){
     ${p.cat!=="anniv"?`<div class="edit-row"><span class="who">いつ頃</span>${seg("phz",p.horizon||"someday",HORIZON)}</div>`:""}
     <div class="edit-row"><span class="who">${C.dateL}</span><input type="date" id="editDue" value="${esc(p.date||"")}" aria-label="${C.dateL}"></div>
     ${p.budget||actOf(p)||p.cat==="wish"||p.cat==="travel"?moneyFields(p):`<details class="mny"><summary class="who">お金（予算・実際にかかった額）</summary>${moneyFields(p)}</details>`}
+    ${p.cat==="travel"?`<div class="edit-row">${tripChip(p)}</div>`:""}
     <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="${(p.memo||"").length>60?5:2}" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
     ${p.cat==="care"?`<div class="who">事前の確認（やり方・必要な物・分担を確かめたか）</div><div class="pconf" id="pConf">${confHTML(p)}</div>`:""}
     <div class="who">結果・記録（やったこと・確認した内容を日付つきで残す）</div><div class="plog" id="pLog">${planLogHTML(p)}</div>
@@ -3508,7 +3587,54 @@ function pgItemHTML(o,open){ const n=pgNow(), late=!o.done&&o.due<today(), D=o.d
       <div class="edit-row"><span class="who">担当</span><div class="seg">${[["both","ふたり"],["h",nameOf("h")],["w",nameOf("w")]].map(([k,l])=>`<button data-pgwho="${k}" aria-pressed="${o.who===k}">${esc(l)}</button>`).join("")}</div></div>
       <textarea id="pgEdMemo" rows="2" maxlength="300" placeholder="メモ（病院名・持ち物・決めたことなど）">${esc(o.memo||"")}</textarea>
       <div class="edit-actions"><button class="btn" data-pg="cal">📅 カレンダーに入れる</button>${o.cu?`<button class="btn danger" data-pg="del">削除</button>`:o.ck?"":`<button class="btn" data-pg="hide">この項目は使わない</button>`}<button class="btn primary" data-pg="save">保存</button></div></li>`:""}`; }
-function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+hint("母子手帳や病院の説明が優先です。ここの時期は一般的な目安です");
+/* v246: 子どもとの1日のタイムライン（新生児〜小学生）。時期ごと・平日／休日ごとに、だれが何をするかを前もってふたりで決めておける */
+const KD_ST=[["nb","新生児","0〜1か月",0],["m1","乳児・前半","1〜6か月",1],["m6","乳児・後半","6〜12か月",6],["y1","1〜2歳","保育園など",12],["y3","3〜5歳","保育園・幼稚園",36],["es","小学生","6〜12歳",72]];
+const KD_W={h:["--who-h"],w:["--who-w"],both:["--who-b"],kid:["#8fc9a8"]};
+const kdWho=w=>w==="kid"?"子ども":w==="both"?"ふたり":nameOf(w);
+const kdCol=w=>w==="kid"?"#8fc9a8":`var(${(KD_W[w]||KD_W.both)[0]})`;
+const KD_T={
+ nb:{wd:[["00:00","00:45","夜の授乳・おむつ","w"],["03:00","03:45","夜の授乳（ミルクなら交代）","h"],["06:00","06:45","授乳・おむつ","w"],["07:00","08:00","大人の朝ごはん・洗濯","h"],["09:00","09:45","授乳・おむつ","w"],["10:00","11:30","赤ちゃんと一緒に休む","w"],["12:00","12:45","授乳","w"],["15:00","15:45","授乳","w"],["18:00","18:45","授乳","w"],["19:00","19:30","沐浴","h"],["19:30","20:30","夕飯・片付け","h"],["21:00","21:45","授乳・寝かしつけ","both"]]},
+ m1:{wd:[["07:00","07:30","起きる・授乳","w"],["07:30","08:15","大人の朝ごはん","both"],["10:00","10:45","お散歩・外気浴","w"],["12:00","12:30","授乳","w"],["13:00","15:00","お昼寝","kid"],["16:00","16:30","授乳","w"],["18:00","18:30","お風呂","h"],["18:30","19:30","夕飯・片付け","h"],["19:30","20:00","授乳・寝かしつけ","w"],["23:00","23:30","夜中の授乳","both"]]},
+ m6:{wd:[["07:00","07:15","起きる","both"],["07:30","08:00","離乳食・朝ごはん","w"],["09:30","10:30","お散歩・遊び","w"],["11:00","11:30","離乳食","w"],["12:30","14:30","お昼寝","kid"],["15:00","15:30","おやつ・授乳","w"],["18:00","18:30","離乳食","h"],["19:00","19:30","お風呂","h"],["20:00","20:30","寝かしつけ","both"]]},
+ y1:{wd:[["06:30","06:45","起きる・着替え","both"],["07:00","07:30","朝ごはん","w"],["08:00","08:20","保育園へ送る","h"],["08:30","17:30","保育園","kid"],["17:45","18:05","お迎え","w"],["18:15","19:00","夕飯","w"],["19:30","20:00","お風呂","h"],["20:00","20:30","絵本・寝かしつけ","both"]],
+     we:[["07:00","07:30","起きる・朝ごはん","both"],["09:30","11:30","公園・おでかけ","both"],["12:00","12:30","お昼ごはん","w"],["13:00","15:00","お昼寝","kid"],["15:30","17:00","遊び・買い物","h"],["18:00","18:45","夕飯","w"],["19:30","20:00","お風呂","h"],["20:00","20:30","寝かしつけ","both"]]},
+ y3:{wd:[["06:30","07:00","起きる・身支度","both"],["07:00","07:30","朝ごはん","w"],["08:00","08:20","送る","h"],["08:30","16:00","保育園・幼稚園","kid"],["16:00","17:00","お迎え・習い事","w"],["18:00","18:45","夕飯","w"],["19:00","19:30","お風呂","h"],["20:00","20:30","絵本・寝る準備","both"]],
+     we:[["07:00","07:30","起きる・朝ごはん","both"],["09:30","12:00","おでかけ・公園","both"],["12:00","12:45","お昼ごはん","h"],["13:30","15:00","お昼寝・ゆっくり","kid"],["15:00","17:00","遊び・お手伝い","h"],["18:00","18:45","夕飯","w"],["19:00","19:30","お風呂","h"],["20:30","21:00","就寝","both"]]},
+ es:{wd:[["06:30","07:00","起きる・身支度","both"],["07:00","07:30","朝ごはん","w"],["07:40","07:50","登校の見送り","h"],["08:00","15:00","学校","kid"],["15:00","17:30","学童・習い事","kid"],["17:30","17:50","お迎え","w"],["18:00","18:30","宿題を見る","h"],["18:30","19:15","夕飯","w"],["19:30","20:00","お風呂","h"],["20:30","20:45","明日の準備","both"],["21:00","21:15","就寝","both"]],
+     we:[["07:00","07:30","起きる・朝ごはん","both"],["09:00","10:00","宿題・習い事","h"],["10:00","12:00","おでかけ・遊び","both"],["12:00","12:45","お昼ごはん","w"],["13:00","17:00","友だちと遊ぶ・自由時間","kid"],["18:00","18:45","夕飯","w"],["19:00","19:30","お風呂","h"],["21:00","21:15","就寝","both"]]}};
+function kdData(){ return (state.kakei||{}).kidDay||{}; }
+function kdStageNow(){ const P=pgD&&pgD(); if(!P||!(P.born||P.due)) return "nb"; const b=P.born||P.due; if(today()<b) return "nb"; const d=parse(b), t=parse(today()), mo=(t.getFullYear()-d.getFullYear())*12+t.getMonth()-d.getMonth(); let k="nb"; for(const x of KD_ST) if(mo>=x[3]) k=x[0]; return k; }
+function kdList(st,pat){ const D=kdData()[st]||{}, T=KD_T[st]||{}; const own=D[pat]; if(Array.isArray(own)) return own; const tp=(pat==="we"&&T.we)||T.wd||[]; return tp.map(([s,e,t,w])=>({s,e,t,w})); }
+function kdSave(st,pat,L,msg){ const all={...kdData()}; all[st]={...(all[st]||{}),[pat]:L.slice().sort((a,b)=>a.s<b.s?-1:1)}; state.kakei={...(state.kakei||{}),kidDay:all,updatedAt:Date.now()}; if(typeof kakeiPut==="function") kakeiPut({kidDay:all,updatedAt:Date.now()}).catch(()=>{}); if(msg) toast(msg); render(); }
+const kdMin=x=>{ const a=tmin(x.s), b=tmin(x.e||x.s); return Math.max(0,(b>=a?b-a:b+1440-a)); };
+function kidDayHTML(){ const now=kdStageNow(), st=state.kdSt||now, S=KD_ST.find(x=>x[0]===st)||KD_ST[0], hasWe=!!(KD_T[st]||{}).we||!!(kdData()[st]||{}).we, pat=hasWe?(state.kdPat||"wd"):"wd", L=kdList(st,pat), E=state.kdEdit, own=Array.isArray((kdData()[st]||{})[pat]);
+  const ribbon=L.map(x=>{ const a=tmin(x.s), m=kdMin(x); return `<i style="left:${a/14.4}%;width:${Math.max(.8,Math.min(m,1440-a)/14.4)}%;background:${kdCol(x.w)}" title="${esc(x.s+" "+x.t)}"></i>`; }).join("");
+  const sum={h:0,w:0,both:0}; for(const x of L) if(sum[x.w]!=null) sum[x.w]+=kdMin(x); const tot=sum.h+sum.w+sum.both||1, hm=m=>m>=60?`${Math.floor(m/60)}時間${m%60?m%60+"分":""}`:`${m}分`;
+  return `<section class="card kd"><div class="kd-h"><b>🕰 子どもとの1日</b><span class="who">時期ごとに、だれが何をするか前もって決めておく</span></div>
+   <div class="kd-st">${KD_ST.map(([k,l,a])=>`<button type="button" data-kds="${k}" aria-pressed="${k===st}"><b>${l}</b><small>${a}${k===now?"・いま":""}</small></button>`).join("")}</div>
+   ${hasWe?`<div class="kd-pat">${[["wd","平日"],["we","休日"]].map(([k,l])=>`<button type="button" data-kdp="${k}" aria-pressed="${k===pat}">${l}</button>`).join("")}</div>`:`<div class="who" style="margin:4px 2px">この時期は平日も休日もほぼ同じ流れです</div>`}
+   <div class="kd-rib"><div class="kd-bar">${ribbon}</div><div class="kd-ax"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>
+   <div class="kd-bal">${["h","w","both"].map(w=>`<div><span class="kd-sw" style="background:${kdCol(w)}"></span><b>${esc(kdWho(w))}</b><span class="kd-bt"><i style="width:${sum[w]/tot*100}%;background:${kdCol(w)}"></i></span><small>${hm(sum[w])}</small></div>`).join("")}</div>
+   <ul class="kd-l">${L.map((x,i)=>E===i?`<li class="kd-e"><div class="kd-er"><input type="time" data-kdf="s" data-i="${i}" value="${esc(x.s)}" aria-label="開始"><span>〜</span><input type="time" data-kdf="e" data-i="${i}" value="${esc(x.e||"")}" aria-label="終了"></div>
+      <input type="text" data-kdf="t" data-i="${i}" value="${esc(x.t)}" maxlength="40" aria-label="内容">
+      <div class="kd-who">${["h","w","both","kid"].map(w=>`<button type="button" data-kda="who" data-i="${i}" data-v="${w}" aria-pressed="${x.w===w}" style="--c:${kdCol(w)}">${esc(kdWho(w))}</button>`).join("")}</div>
+      <div class="kd-er"><button type="button" class="link danger" data-kda="del" data-i="${i}">削除</button><button type="button" class="btn primary" data-kda="ok">完了</button></div></li>`
+     :`<li data-kdi="${i}" style="--c:${kdCol(x.w)}"><span class="kd-t">${esc(x.s)}${x.e?`<small>〜${esc(x.e)}</small>`:""}</span><span class="kd-x">${esc(x.t)}</span><span class="kd-wc">${esc(kdWho(x.w))}</span></li>`).join("")}</ul>
+   <div class="kd-f"><button type="button" class="btn" data-kda="add">＋ 追加</button>${own?`<button type="button" class="link" data-kda="reset">ひな形に戻す</button>`:`<span class="who">一般的な例です。タップで自分たち用に直せます</span>`}</div></section>`; }
+document.addEventListener("click",e=>{ if(state.view!=="baby") return; const t=e.target;
+  const sb=t.closest("#main [data-kds]"); if(sb){ e.stopPropagation(); state.kdSt=sb.dataset.kds; state.kdEdit=null; haptic("tick"); render(); return; }
+  const pb=t.closest("#main [data-kdp]"); if(pb){ e.stopPropagation(); state.kdPat=pb.dataset.kdp; state.kdEdit=null; render(); return; }
+  const st=state.kdSt||kdStageNow(), hasWe=!!(KD_T[st]||{}).we||!!(kdData()[st]||{}).we, pat=hasWe?(state.kdPat||"wd"):"wd";
+  const ri=t.closest("#main [data-kdi]"); if(ri){ e.stopPropagation(); state.kdEdit=Number(ri.dataset.kdi); render(); return; }
+  const a=t.closest("#main [data-kda]"); if(!a) return; e.stopPropagation(); const L=kdList(st,pat).map(x=>({...x})), i=Number(a.dataset.i), k=a.dataset.kda;
+  if(k==="ok"){ state.kdEdit=null; render(); }
+  else if(k==="who"){ L[i].w=a.dataset.v; kdSave(st,pat,L); state.kdEdit=L.slice().sort((x,y)=>x.s<y.s?-1:1).indexOf(L[i]); render(); }
+  else if(k==="del"){ L.splice(i,1); state.kdEdit=null; kdSave(st,pat,L,"削除しました"); }
+  else if(k==="add"){ const last=L[L.length-1], s0=last?hhmm(Math.min(1380,tmin(last.e||last.s)+30)):"09:00"; const n={s:s0,e:hhmm(Math.min(1439,tmin(s0)+30)),t:"新しい予定",w:"both"}; L.push(n); const sorted=L.slice().sort((x,y)=>x.s<y.s?-1:1); kdSave(st,pat,sorted); state.kdEdit=sorted.indexOf(n); render(); setTimeout(()=>{ const el=document.querySelector('#main .kd-e input[data-kdf="t"]'); if(el){ el.focus(); el.select(); } },60); }
+  else if(k==="reset"){ const all={...kdData()}; const prev=JSON.parse(JSON.stringify(all)); if(all[st]){ const o={...all[st]}; delete o[pat]; all[st]=o; } state.kakei={...(state.kakei||{}),kidDay:all}; kakeiPut({kidDay:all,updatedAt:Date.now()}).catch(()=>{}); state.kdEdit=null; toast("ひな形に戻しました",()=>{ state.kakei={...(state.kakei||{}),kidDay:prev}; kakeiPut({kidDay:prev,updatedAt:Date.now()}).catch(()=>{}); render(); }); render(); } },true);
+document.addEventListener("change",e=>{ if(state.view!=="baby") return; const f=e.target.dataset&&e.target.dataset.kdf; if(!f) return; const st=state.kdSt||kdStageNow(), hasWe=!!(KD_T[st]||{}).we||!!(kdData()[st]||{}).we, pat=hasWe?(state.kdPat||"wd"):"wd", L=kdList(st,pat).map(x=>({...x})), i=Number(e.target.dataset.i); if(!L[i]) return;
+  const v=e.target.value.trim(); if(f==="t") L[i].t=(v||"予定").slice(0,40); else if(v) L[i][f]=v; const x=L[i], sorted=L.slice().sort((a,b)=>a.s<b.s?-1:1); kdSave(st,pat,sorted); state.kdEdit=sorted.indexOf(x); render(); });
+function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+kidDayHTML()+hint("母子手帳や病院の説明が優先です。ここの時期は一般的な目安です");
   const n=pgNow(), L=pgItems(), W=Math.max(0,Math.min(48,state.pgW!=null?state.pgW:n.w)), ph=pgPh(Math.min(Math.max(n.w,0),48)), pct=Math.max(0,Math.min(100,n.d/280*100));
   const born=P.born, wkLbl=n.d<0?"妊娠前":n.w>=42||born?`生まれて${Math.max(0,dDiff(today(),born||P.due))}日`:`妊娠${n.w}週${n.r}日`;
   let h=`<section class="card pg-hero" style="--pc:${ph[3]}"><div class="pg-ring" style="--p:${pct}"><div><b>${n.w<0?"-":Math.min(n.w,42)}</b><small>週</small></div></div>
@@ -3533,6 +3659,7 @@ function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+hint("�
   const ck=L.filter(o=>o.ck), cd=ck.filter(o=>o.done).length;
   h+=`<details class="card pg-sec" style="--c:#7fb3e0"><summary><span class="pg-dot"></span><b>🩺 妊婦健診</b><small>標準 ${ck.length}回</small><span class="pg-pr"><i style="width:${cd/ck.length*100}%"></i></span><em>${cd}/${ck.length}</em></summary><p class="who" style="margin:4px 2px">目安：23週までは4週ごと、24〜35週は2週ごと、36週からは毎週。病院の指示に合わせて日付を入れてください。</p><ul class="pg-l">${ck.map(o=>pgItemHTML(o,state.pgOpen===o.id&&!(o.a<=W&&o.b>=W))).join("")}</ul></details>`;
   setTimeout(()=>{ const c=$("pgCols"), x=c&&c.querySelector(".pg-col.sel"); if(c&&x) c.scrollLeft=x.offsetLeft-c.clientWidth/2+x.offsetWidth/2; },0);
+  h+=kidDayHTML();
   return h+hint("時期は一般的な目安です。病院・母子手帳・市役所の案内を優先してください。ここで入れた内容はふたりで共有されます"); }
 function pgCurItem(id){ return pgItems().find(o=>o.id===id); }
 document.addEventListener("click",async e=>{ if(state.view!=="baby") return; const t=e.target;
