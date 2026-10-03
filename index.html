@@ -539,6 +539,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 /* v236: 習慣化済み */
 .habdet>summary{list-style:none;cursor:pointer}.habdet>summary::-webkit-details-marker{display:none}.habdet>summary span::after{content:" ▸";color:var(--muted)}.habdet[open]>summary span::after{content:" ▾"}
 .item.habit .text{color:var(--muted)}
+/* v238: よく使う画面 */
+.hjump{display:grid!important;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px!important}
+.hjump button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,transparent);font-size:12px;font-weight:600;position:relative;text-align:center}
+.hjump .hj-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}.hjump i{position:absolute;top:2px;right:6px;font-style:normal;font-size:10px;background:var(--danger);color:#fff;border-radius:99px;padding:0 5px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1912,7 +1916,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="237";
+const APP_VERSION="238";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -1988,7 +1992,9 @@ const PRESETS={
   night:{pal:"yozora",mode:"dark",pattern:"none",font:"kaku",shape:"round",icon:"fill",density:"compact",celebrate:"confetti"}
 };
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
-const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+/* v238: 開いたときの画面を「よく使う画面」に自動で合わせる候補 */
+const AUTO_SV=["home","cal","talk","task","shop","money","future","diary","duo","chore","meal","baby"];
+const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -2033,7 +2039,7 @@ function applyPrefs(){
 applyPrefs();
 
 /* ================= state ================= */
-const state={usage:[],usageReports:[],usagePer:"7",view:(prefs.startView==="cal"?"cal":"home"),items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
+const state={usage:[],usageReports:[],usagePer:"7",view:(prefs.startView==="cal"?"cal":prefs.startView==="auto"&&AUTO_SV.includes(prefs.autoStartV)?prefs.autoStartV:"home"),items:[],topics:[],talks:[],pitems:[],habits:[],reflect:[],blocks:[],gsync:[],bugs:[],gEvents:{},gErr:"",gsBusy:"",gsMsg:"",mcp:null,psMode:"cal",
   fam:{h:"陸功",w:"紀香"},owner:null,talkDate:today(),refDate:today(),troubles:[],cautions:[],activity:[],chores:[],qa:[],music:[],shOcr:null,diary:[],priv:[],thanks:[],dinner:[],spend:[],events:[],photos:[],recur:[],goals:[],kakei:{},moneyTab:"sum",moneyP:"month",moneyRef:today(),shifts:[],comments:[],plans:[],history:[],fut:null,futFilter:"all",me:null,names:{},
   paint:{on:false,val:"休",who:""},refFilter:"all",psFilter:"mine",
   busy:false,dirty:false,editing:null,ai:{q:"",busy:false,log:[]},sel:today(),calMonth:(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1)})(),calWeek:false,
@@ -4227,7 +4233,7 @@ function viewSettings(){
     <div class="opts"><button class="opt" data-act="tabOrderReset">並びを最初に戻す</button></div>
     <h2>フリックのメニュー</h2><p class="who">上の並びの前から順に、キーの真ん中 → 上 → 内側 → 外側 に入ります（1番目が親指にいちばん近いキー）。ホームのキーは 上＝更新ログ・横＝設定。</p>
     <div class="opts">${["3","4","5"].map(v=>opt("flickKeys",v,`キー${v}つ`)).join("")}</div>${flickPlanHTML()}
-    <h2>アプリを開いたときの画面</h2><div class="opts">${opt("startView","home","ホーム")}${opt("startView","cal","カレンダー（今日）")}${opt("startView","last","前回の画面")}</div>
+    <h2>アプリを開いたときの画面</h2><div class="opts">${opt("startView","auto","よく使う画面（自動）")}${opt("startView","home","ホーム")}${opt("startView","cal","カレンダー（今日）")}${opt("startView","last","前回の画面")}</div>${prefs.startView==="auto"?`<p class="who">いまは「${esc(TITLES[prefs.autoStartV]||"ホーム")}」で開きます（直近14日でいちばん長く使った画面）</p>`:""}
     <h2>タイムテーブルの開始時刻</h2><div class="opts">${["3","4","5","6","7","8"].map(v=>opt("ttStart",v,v+":00から")).join("")}</div>
     <h2>あいさつで呼ぶ名前</h2><div class="edit-row"><input type="text" id="nickIn" value="${esc(prefs.nick)}" maxlength="12" placeholder="${esc(nameOf(myRole()))}" style="flex:1"></div></section>
   <section class="card"><h2>日記</h2><p>日記は一人ずつ別々に保存されます。「自分だけ」にした日記はパートナーからは見えません。</p>
@@ -6667,8 +6673,8 @@ function qaPopClose(later){ const d=today(), el=$("qpop"); state.qaPopOpen=false
   if(later&&!qaAns(d,myRole())){ prefs.qaPopDay=d; savePrefs(true); } if(qaAns(d,myRole())&&qaAns(d,otherRole())){ prefs.qaSeen=d; savePrefs(true); } render(); }
 /* v173: ホームはウィジェットの組み合わせ。並び順・表示／非表示を変えられる */
 const CHK_LOOK={talk:["talk","--talk"],task:["task","--task"],shop:["shop","--shop"],chore:["chore","--future"],habit:["habit","--habit"],trouble:["trouble","--trouble"],shift:["cal","--cal"],evening:["diary","--diary"],comment:["diary","--diary"],qa:["talk","--talk"],money:["money","--habit"],bousai:["future","--caution"],bug:["settings","--muted"]};
-const HOME_W=[["baby","妊娠・出産（予定日を入れたとき）"],["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["mood","今日の気分（🔒自分だけ）"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["memory","思い出（○年前の今日）"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
-function homeOrder(){ const base=HOME_W.map(w=>w[0]), o=String(prefs.homeOrder||"").split(",").filter(k=>base.includes(k)); return [...o,...base.filter(k=>!o.includes(k))]; }
+const HOME_W=[["jump","よく使う画面（使い方に合わせて自動）"],["baby","妊娠・出産（予定日を入れたとき）"],["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["mood","今日の気分（🔒自分だけ）"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["memory","思い出（○年前の今日）"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
+function homeOrder(){ const base=HOME_W.map(w=>w[0]), o=String(prefs.homeOrder||"").split(",").filter(k=>base.includes(k)); return [...(o.includes("jump")?[]:["jump"]),...o,...base.filter(k=>!o.includes(k)&&k!=="jump")]; }
 const homeHidden=()=>new Set(String(prefs.homeHide||"").split(",").filter(Boolean));
 function homeWeekHTML(){ const t=today(), me=myRole(), ot=otherRole(), mine=x=>["both",me].includes(getWho(x));
   const days=[...Array(7)].map((_,i)=>addDays(t,i)), cnt=d=>state.events.filter(x=>x.date===d&&mine(x)).length+state.items.filter(i=>i.due===d&&!myDone(i)&&mine(i)).length+state.pitems.filter(i=>i.due===d&&!i.done).length+state.plans.filter(p=>p.cat!=="anniv"&&p.date===d&&!p.done).length;
@@ -6683,6 +6689,8 @@ function homeSchedHTML(){ const t=today(), me=myRole(), S=6*60, E=24*60, ents=da
   const rows=[...up.map(o=>`<li><button data-hgo="cal"><span class="ht">${hhmm(o.s%1440)}</span><span class="hdot" style="--bc:var(--${o.col})"></span><span>${esc(o.t)}</span></button></li>`),...evAll.map(x=>`<li><button data-hgo="cal"><span class="ht">終日</span><span class="hdot" style="--bc:var(--cal)"></span><span>${esc(x.text)}</span></button></li>`),...untimed.slice(0,3).map(o=>`<li><button data-hgo="cal"><span class="ht">未定</span><span class="hdot" style="--bc:var(--task)"></span><span>${esc(o.x.text)}</span></button></li>`)];
   return homeCard(`今日のタイムライン <span class="who" style="font-weight:500">${ents.length}件${untimed.length?`・時間未定 ${untimed.length}`:""}</span>`,`<div class="htl"><div class="htl-b">${bars}${nowM>=S?`<b class="htl-now" style="left:${pos(nowM)}%"></b>`:""}</div><div class="htl-x"><span>6</span><span>12</span><span>18</span><span>24</span></div></div>${rows.length?`<ul class="hlist">${rows.join("")}</ul>`:`<div class="hempty">これからの予定はありません</div>`}`,"cal"); }
 function homeWidget(k){ const t=today(), n=counts();
+  if(k==="jump"){ let L=usgTopViews(8).map(([k])=>k).filter(k=>k!=="home"&&k!==state.view); for(const d of ["cal","talk","task","money"]) if(L.length<4&&!L.includes(d)) L.push(d); L=L.slice(0,4);
+    return `<section class="card hjump" aria-label="よく使う画面">${L.map(k=>`<button data-hgo="${k}"><span class="hj-i">${tabIcon(k)||"・"}</span><span>${esc(TITLES[k]||k)}</span>${Number(tabBadge(k))?`<i>${tabBadge(k)}</i>`:""}</button>`).join("")}</section>`; }
   if(k==="baby"){ const P=pgD(); if(!P||!P.due) return ""; const nw=pgNow(), ph=pgPh(Math.max(0,Math.min(nw.w,48))), L=pgItems().filter(o=>!o.done&&o.k!=="目安"&&o.a<=nw.w+1&&o.b>=nw.w-2).slice(0,3);
     return `<section class="card pg-home" style="--pc:${ph[3]}" data-hgo="baby"><div class="pg-ring sm" style="--p:${Math.max(0,Math.min(100,nw.d/280*100))}"><div><b>${P.born?"👶":Math.max(0,Math.min(nw.w,42))}</b>${P.born?"":"<small>週</small>"}</div></div><div class="pg-hd"><b>${P.born?`生まれて${dDiff(t,P.born)}日`:`妊娠${nw.w}週${nw.r}日`}</b><span>${P.born?"":nw.left>0?`予定日まで <em>${nw.left}</em>日`:"予定日を過ぎました"}</span>${L.length?`<small class="who">今やること：${L.map(o=>esc(o.t)).join("・")}</small>`:""}</div></section>`; }
   if(k==="today") return briefHTML(true);
@@ -7940,11 +7948,11 @@ function wxLocate(){ if(!navigator.geolocation){ toast("この端末では現在
 
 /* v199: 全体の構成＝時間軸＋ふたり軸。下のタブは「今日／予定／ふたり／将来／その他」、それぞれの中を上の切り替えで移動 */
 const HUBS=[
-  {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"],["habit","習慣"]]},
+  {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["duo","ふたりの予定"],["dec","決めたこと"],["trouble","気になること"]]},
   {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["baby","妊娠・出産"],["money","お金"]]},
-  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
+  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
 function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"||k==="meal"); if(items.length<2) return "";
@@ -8483,7 +8491,10 @@ function usageReport(days){ const {A,from,t}=usgAgg(days), R=["h","w"], top=(o,n
 async function usageSaveReport(auto){ const days=auto?7:Number(state.usagePer)||7, id=today()+(auto?"":"_"+new Date().toTimeString().slice(0,5).replace(":","")), doc={at:Date.now(),role:myRole(),days,auto:!!auto,ver:APP_VERSION,text:usageReport(days)};
   const r=colRef("usageReports"); if(r) await r.doc(id).set(doc).catch(()=>{}); else { state.usageReports=state.usageReports.filter(x=>x.id!==id); state.usageReports.push({id,...doc}); }
   const old=state.usageReports.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(20); if(r) old.forEach(x=>r.doc(x.id).delete().catch(()=>{})); return id; }
-function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded) return; state.usgAutoDone=true; setTimeout(usgPrune,8000);
+function usgTopViews(n,days){ const {A}=usgAgg(days||14), V={...(A[myRole()]||{views:{}}).views}; for(const k of Object.keys(V)) if(k.startsWith("🔒")){ const b=k.slice(2); if(TITLES[b]) V[b]=(V[b]||0)+V[k]; delete V[k]; }
+  return Object.entries(V).filter(([k])=>AUTO_SV.includes(k)||k==="habit"||k==="reflect"||k==="trouble").sort((a,b)=>b[1]-a[1]).slice(0,n); }
+function usgAutoStart(){ const L=usgTopViews(12), hm=(L.find(([k])=>k==="home")||[0,0])[1], top=L.find(([k])=>AUTO_SV.includes(k)&&k!=="home"); const v=top&&top[1]>=Math.max(600,hm*1.2)?top[0]:"home"; if(prefs.autoStartV!==v){ prefs.autoStartV=v; savePrefs(true); } }
+function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded) return; state.usgAutoDone=true; setTimeout(usgAutoStart,3000); setTimeout(usgPrune,8000);
   const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>usageSaveReport(true),10000); }
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast("コピーしました。改修を頼むときに貼り付けてください"); }catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("コピーできませんでした。ファイルで保存してください"); } ta.remove(); } }
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=ug],#main [data-ugcopy]"); if(!b||state.view!=="usage") return; e.stopPropagation(); const a=b.dataset.act;
@@ -8562,9 +8573,10 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
     const first=firstPrefs; firstPrefs=false;
     if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
     if(!s.fromCache&&next.voiceMig!=="196"){ next.voiceMig="196"; if(next.voiceAI==="on") next.voiceAI="fix"; setTimeout(()=>savePrefs(true),500); } /* v196: 録音方式で「？」になる問題のため、端末の聞き取り＋AI補正を標準に */
+    if(!s.fromCache&&next.svMig!=="238"){ next.svMig="238"; if((next.startView||"home")==="home") next.startView="auto"; setTimeout(()=>savePrefs(true),600); } /* v238: 使用履歴でホームをすぐ離れることが多かったので、よく使う画面で開く（設定で戻せる） */
     if(!s.fromCache&&next.navMig!=="194"){ next.navMig="194"; if(next.nav!=="tab"){ next.navPrev=next.nav; next.nav="tab"; } setTimeout(()=>savePrefs(true),500); } /* v194: 一度だけ下のタブメニューへ（設定で戻せる） */
     if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
-      if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
+      if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="auto"?(AUTO_SV.includes(prefs.autoStartV)?prefs.autoStartV:"home"):prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
       render(); placeRail(false); }
     if(first){bindFavorites();if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
 })();
