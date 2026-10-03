@@ -618,14 +618,17 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .lpm-chips{display:flex;gap:4px;flex-wrap:wrap;padding:0 8px 4px}.lpm-chips button{all:unset;cursor:pointer;padding:7px 11px;border-radius:99px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--ink) 6%,transparent);border:2px solid transparent}
 #lpm{overflow:auto}#lpm .lpm-del{color:var(--danger)}
 .tabbar{transition:transform .22s ease}body.nav-hide .tabbar{transform:translateY(110%)}
-#toTop{position:fixed;z-index:21;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translate(-50%,-20px);opacity:0;pointer-events:none;border:none;border-radius:99px;padding:9px 16px;font-weight:700;font-size:13px;background:var(--ink);color:var(--surface);box-shadow:var(--shadow);transition:opacity .2s,transform .2s}
-#toTop.on{opacity:.92;transform:translate(-50%,0);pointer-events:auto}
+#toTop{position:fixed;z-index:21;left:16px;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateY(20px);opacity:0;pointer-events:none;border:none;border-radius:99px;padding:9px 16px;font-weight:700;font-size:13px;background:var(--ink);color:var(--surface);box-shadow:var(--shadow);transition:opacity .2s,transform .2s}
+#toTop.on{opacity:.92;transform:none;pointer-events:auto}body.nav-hide #toTop{bottom:calc(20px + env(safe-area-inset-bottom))}
 .gg{display:grid;gap:6px;margin-top:8px}.gg div{display:grid;grid-template-columns:8.5em 1fr;gap:8px;font-size:13px;align-items:baseline}.gg b{font-size:13px}
 .tt-dup{margin-top:12px}.tt-dup>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);padding:10px 4px}
 .chip.sharebtn{margin-top:6px;font-size:12px;padding:4px 10px;min-height:0}
 .tdo-below{font-size:12px;margin-top:6px}
 .chart-empty{display:flex;align-items:center;gap:10px;padding:14px 12px;margin:6px 0;border-radius:14px;background:color-mix(in srgb,var(--ink) 4%,transparent);font-size:13px;color:var(--muted);line-height:1.5}.chart-empty span{font-size:22px;opacity:.7}
 .setg>summary{font-size:15px}
+.thist{display:flex;flex-direction:column;gap:4px;margin:6px 0;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--talk,var(--accent)) 8%,transparent)}
+.th-r{display:grid;grid-template-columns:4.6em 1fr;gap:8px;font-size:13px;line-height:1.5}.th-r small{color:var(--muted);font-variant-numeric:tabular-nums}.th-r span{white-space:pre-wrap}
+.tser{margin-top:6px;font-size:12px;line-height:1.5;color:var(--muted);padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--talk,var(--accent)) 8%,transparent);cursor:pointer}.tser b{margin-left:6px;color:var(--accent);font-weight:700}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1999,7 +2002,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="244";
+const APP_VERSION="245";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2689,6 +2692,15 @@ const REF_LABEL={items:"やること・買い物",troubles:"困りごと",cautio
 /* v149: 議題を種類ごとに色分け（ふつうの議題／やること／買い物／困りごと／注意／将来） */
 function topicKind(t){ const r=t.ref; if(!r) return {k:"talk",l:"議題"}; if(r.c==="items"){ const x=state.items.find(i=>i.id===r.id); return x&&x.list==="shop"?{k:"shop",l:"買い物から"}:{k:"task",l:"やることから"}; }
   if(r.c==="troubles") return {k:"trouble",l:"困りごとから"}; if(r.c==="cautions") return {k:"caution",l:"注意から"}; if(r.c==="plans") return {k:"future",l:"将来から"}; return {k:"talk",l:"項目から"}; }
+/* v245: 同じ議題（同じ「定期的に話すこと」、または同じ名前の議題）を1つの系列として、前回までの決めたことを毎回見られるように */
+const tNorm=s=>String(s||"").replace(/\s+/g,"").toLowerCase();
+const tDay=x=>x.doneDate||x.talkedOn||x.on||(x.createdAt?ymd(new Date(x.createdAt)):"");
+function topicSeries(t){ return (state.topics||[]).filter(x=>x.id!==t.id&&(t.auto?x.auto===t.auto:(!x.auto&&tNorm(x.text)===tNorm(t.text)))); }
+function topicPastDecs(t){ return topicSeries(t).filter(x=>String(x.note||"").trim()).sort((a,b)=>tDay(a)<tDay(b)?1:-1); }
+function topicHistHTML(t,max){ const L=topicPastDecs(t); if(!L.length) return "";
+  return `<div class="thist"><div class="tqm-l">🔁 これまでの決めたこと（${L.length}件）</div>${L.slice(0,max||10).map(x=>`<div class="th-r"><small>${esc(short(tDay(x)))}</small><span>${esc(x.note)}</span></div>`).join("")}${L.length>(max||10)?`<div class="who">ほか ${L.length-(max||10)}件は「決めたこと」で見られます</div>`:""}</div>`; }
+function topicSerLine(t){ const L=topicPastDecs(t); if(!L.length) return ""; const x=L[0];
+  return `<div class="tser" data-tdec="${esc(t.id)}">📌 前回（${esc(short(tDay(x)))}）：${esc(String(x.note).replace(/\s+/g," ").slice(0,40))}${String(x.note).length>40?"…":""}${L.length>1?`<b>ほか${L.length-1}件</b>`:""}</div>`; }
 function topicRow(t){
   const done=t.status==="done";
   if(isEditing("topics",t.id)) return `<li class="item" data-c="topics" data-id="${esc(t.id)}"><div class="edit">
@@ -2696,6 +2708,7 @@ function topicRow(t){
       ${editWho(t)}
       <div class="edit-row"><span class="who">話す日</span><input type="date" id="editOn" value="${esc(t.on||"")}" aria-label="話す日"><button type="button" class="chip" data-ton="${talkNext0()}">次の話し合い</button><button type="button" class="chip" data-ton="">指定なし</button></div>
       <textarea id="editNote" rows="3" maxlength="800" placeholder="決まったこと・メモ">${esc(t.note||"")}</textarea>
+      ${topicHistHTML(t,5)}
       <div class="thold-box"><div class="who">🕒 話した・期日まで残す（対応期日をえらぶ）</div><div class="tqm-chips">${TQ_DAYS.map(([l,n])=>`<button type="button" data-tholdq="${addDays(today(),n)}">${l}<small>${short(addDays(today(),n))}</small></button>`).join("")}<label class="tqm-date">📅<input type="date" id="editHold" value="${esc(t.holdUntil||"")}" aria-label="対応期日"></label></div>${t.status==="hold"?'<button type="button" class="link" data-act="tholdoff">期日を外して戻す</button>':""}</div>
       
       <div class="edit-row">${t.ref?'<button type="button" class="btn" data-act="openref">元の項目を開く</button>':""}<button type="button" class="btn" data-act="totask">やることにする</button></div>
@@ -2704,7 +2717,7 @@ function topicRow(t){
   const K=topicKind(t);
   return wrapRow("topics",t,`${done?"done":""} ${hold&&t.holdUntil>td?"hold":""} tpk tpk-${K.k}`,
     `<button class="check ${done?"on":""}" style="--c:var(--${K.k})" data-act="right" aria-label="${rightLabel("topics",t)}">${CHECK}</button>`,
-    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:done||t.status==="hold"?`<div class="meta"><button class="link tdec-add" data-tdec="${esc(t.id)}">＋ 決めたことを書く</button></div>`:""}`);
+    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${topicSerLine(t)}${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:done||t.status==="hold"?`<div class="meta"><button class="link tdec-add" data-tdec="${esc(t.id)}">＋ 決めたことを書く</button></div>`:""}`);
 }
 function week7(){
   const days=[...Array(7)].map((_,i)=>addDays(today(),i));
@@ -6203,7 +6216,7 @@ function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); win
   },1200); }
 function arDesc(r){
   const L=a=>a.join("・")||"（未選択）";
-  const cd=c=>{ const N=c.not?"でない":""; return c.t==="wd"?`曜日が${L((c.v||[]).map(v=>(AR_WD.find(w=>w[0]===Number(v))||[0,"?"])[1]))}${N}`
+  const cd=c=>{ const N=c.not?"でない":""; return c.t==="wd"?((c.v||[]).length===7?(c.not?"（どの曜日でもない）":"毎日"):`曜日が${L(AR_WD.filter(w=>(c.v||[]).map(Number).includes(w[0])).map(w=>w[1]))}${N}`)
     :c.t==="off"?`ふたり休み${c.not?"でない":""}`
     :c.t==="dom"?`毎月${L((c.v||[]).map(v=>v==="末"?"末日":v+"日"))}${N}`
     :c.t==="gomi"?`ごみが${L((c.v||[]).map(v=>v==="*"?"何か出せる日":v==="なし"?"収集なし":v))}${N}`
@@ -6262,8 +6275,9 @@ function topicRepRule(text){ const S=state.sheet, k=S.trep; if(!k||k==="none") r
 const AR_KIND=[["block","🔒","じぶんの予定"],["task","🔒","じぶんのタスク"],["event","📅","ふたりの予定"],["item","✅","ふたりのやること"],["shop","🛒","買い物"],["chore","🧹","家事"],["topic","💬","話すこと"]];
 const arKind=k=>AR_KIND.find(x=>x[0]===(k||"block"))||AR_KIND[0];
 function arNext(r,n){ const o=[]; for(let i=0;i<60&&o.length<(n||1);i++){ const d=addDays(today(),i); if(arMatch(r,d)===true) o.push(d); } return o; }
-function arCardHTML(r,ri){ const K=arKind(r.kind), nx=r.on?arNext(r)[0]:null, tm=r.s&&!["shop","chore","topic"].includes(r.kind)?`・${r.s}${r.e?"〜"+r.e:""}`:"";
-  return `<div class="arcard ${r.on?"":"off"}" data-ared="${esc(r.id)}" role="button" tabindex="0"><span class="arc-ic" aria-hidden="true">${K[1]}</span><span class="arc-b"><b>${esc(r.name)}</b><small>${esc(arDesc(r))}${esc(tm)}</small><small class="arc-n">${esc(K[2])}・${r.on?(nx?"次は "+esc(dayLabel(nx)):"60日以内になし"):"お休み中"}</small></span><button type="button" class="tgl" data-ar="on" data-ri="${ri}" data-v="${r.on?"0":"1"}" aria-pressed="${!!r.on}" aria-label="${r.on?"オフにする":"オンにする"}"><i></i></button></div>`; }
+function arTopicStat(r){ const I=(state.topics||[]).filter(x=>x.auto===r.id); return {I,done:I.filter(x=>x.status==="done").length,dec:I.filter(x=>String(x.note||"").trim()).length}; }
+function arCardHTML(r,ri){ const K=arKind(r.kind), nx=r.on?arNext(r)[0]:null, tm=r.s&&!["shop","chore","topic"].includes(r.kind)?`・${r.s}${r.e?"〜"+r.e:""}`:"", TS=r.kind==="topic"?arTopicStat(r):null;
+  return `<div class="arcard ${r.on?"":"off"}" data-ared="${esc(r.id)}" role="button" tabindex="0"><span class="arc-ic" aria-hidden="true">${K[1]}</span><span class="arc-b"><b>${esc(r.name)}</b><small>${esc(arDesc(r))}${esc(tm)}</small><small class="arc-n">${esc(K[2])}・${r.on?(nx?"次は "+esc(dayLabel(nx)):"60日以内になし"):"お休み中"}</small>${TS&&TS.done?`<small>これまで 話した ${TS.done}回・決めたこと ${TS.dec}件</small>`:""}</span><button type="button" class="tgl" data-ar="on" data-ri="${ri}" data-v="${r.on?"0":"1"}" aria-pressed="${!!r.on}" aria-label="${r.on?"オフにする":"オンにする"}"><i></i></button></div>`; }
 function autoCardHTML(only){
   const R=arRules(), L=R.map((r,i)=>[r,i]).filter(([r])=>only?r.kind===only:r.kind!=="topic");
   if(only==="topic") return `<section class="arsec"><div class="arsec-h"><b>🔁 定期的に話すこと</b><span class="who">${L.filter(([r])=>r.on).length}件オン</span><button type="button" class="chip" data-arnew="topic">＋ 追加</button></div>
@@ -6277,7 +6291,7 @@ const AR_Q=[["daily","毎日"],["wd","曜日"],["dom","毎月◯日"],["off","�
 function arQCond(k){ const d=parse(today()); return k==="daily"?{t:"wd",v:[0,1,2,3,4,5,6],not:false}:k==="wd"?{t:"wd",v:[d.getDay()],not:false}:k==="dom"?{t:"dom",v:[String(d.getDate())],not:false}:k==="off"?{t:"off",not:false}:k==="me"?{t:"shift",r:myRole(),v:["休"],not:false}:k==="pt"?{t:"shift",r:otherRole(),v:["休"],not:false}:k==="gomi"?{t:"gomi",v:["*"],not:false}:{t:"wx",v:["雨"],not:false}; }
 function arQKey(c){ if(!c) return ""; return c.t==="wd"?((c.v||[]).length===7?"daily":"wd"):c.t==="shift"?(c.r===myRole()?"me":"pt"):c.t; }
 let AE=null, aeNameT=null;
-function arEdOpen(id,pick){ AE={id:id||null,pick:pick!=null?pick:null,adv:false}; arEdRender(); haptic("arm"); }
+function arEdOpen(id,pick){ const r0=id&&arRules().find(x=>x.id===id); AE={id:id||null,pick:pick!=null?pick:null,adv:false,only:r0&&r0.kind==="topic"?"topic":null}; /* v245: 話すことのルールは入れる先を話すことだけに */ arEdRender(); haptic("arm"); }
 function arEdClose(){ const m=$("are"); AE=null; if(m){ m.classList.remove("open"); setTimeout(()=>m.remove(),180); } render(); }
 function arEdRender(){ if(!AE) return; let m=$("are"); const first=!m;
   if(first){ m=document.createElement("div"); m.id="are"; m.className="tqm"; m.setAttribute("role","dialog"); document.body.appendChild(m); arEdBind(m); requestAnimationFrame(()=>m.classList.add("open")); }
@@ -6298,6 +6312,8 @@ function arEdRender(){ if(!AE) return; let m=$("are"); const first=!m;
     <div class="tqm-sec"><div class="tqm-l">入れる日</div><div class="tqm-chips are-q">${[["0","その日"],["-1","前日"],["-2","2日前"],["1","翌日"]].map(([v,l])=>ch("data-aroff",v,l,String(r.off||0)===v)).join("")}</div></div>
     ${timed?`<div class="tqm-sec"><div class="tqm-l">時間${r.kind==="event"||r.kind==="item"?"（空にすると終日）":""}</div><div class="are-time"><input type="time" data-arf="s" data-ri="${ri}" value="${esc(r.s||"")}" aria-label="開始"><span>〜</span><input type="time" data-arf="e" data-ri="${ri}" value="${esc(r.e||"")}" aria-label="終了"></div></div>`:""}
     ${shared?`<div class="tqm-sec"><div class="tqm-l">担当</div><div class="tqm-chips are-q">${[["both","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([v,l])=>ch("data-arwho",v,l,(r.who||"both")===v)).join("")}</div></div>`:""}
+    ${r.kind==="topic"?(()=>{ const TS=arTopicStat(r), L=TS.I.filter(x=>x.status==="done"||String(x.note||"").trim()).sort((a,b)=>tDay(a)<tDay(b)?1:-1);
+      return `<div class="tqm-sec"><div class="tqm-l">これまでの記録（話した ${TS.done}回・決めたこと ${TS.dec}件）</div>${L.length?`<div class="thist">${L.slice(0,20).map(x=>`<div class="th-r"><small>${esc(short(tDay(x)))} ${x.status==="done"?"✓":"・"}</small><span>${x.note?esc(x.note):'<i class="who">決めたことなし</i>'}</span></div>`).join("")}</div>`:'<div class="who">まだ記録はありません。話したら → で「話した」、決めたことはダブルタップで書けます</div>'}</div>`; })():""}
     <div class="are-foot"><label class="are-on"><button type="button" class="tgl" data-ar="on" data-ri="${ri}" data-v="${r.on?"0":"1"}" aria-pressed="${!!r.on}" aria-label="オン・オフ"><i></i></button>${r.on?"オン":"オフ"}</label><button type="button" class="link" data-ardup="1">複製</button><button type="button" class="btn danger" data-ar="delr" data-ri="${ri}">削除</button></div>
     <div class="tqm-hint">変更はすぐ保存されます。手で直した予定・完了したものは自動で上書きしません</div></div>`;
   const card=m.querySelector(".tqm-card"); if(card) card.scrollTop=sc; }
@@ -7950,6 +7966,7 @@ function topicMenu(id,mode,li){ const t=(state.topics||[]).find(x=>x.id===id); i
     ${mode==="note"?"":`<div class="tqm-sec"><div class="tqm-l">🕒 話した・期日まで残す</div><div class="tqm-chips">${TQ_DAYS.map(([l,n])=>`<button data-tq="hold" data-d="${addDays(td,n)}">${l}<small>${short(addDays(td,n))}</small></button>`).join("")}<label class="tqm-date">📅<input type="date" data-tq-date="hold" value="${esc(t.holdUntil||"")}"></label></div></div>`}
     <div class="tqm-sec"><div class="tqm-l">✅ 決めたこと</div><textarea id="tqNote" rows="3" maxlength="600" placeholder="ふたりで決めたこと">${esc(t.note||"")}</textarea>
       <div class="tqm-row"><button class="btn" data-tq="note">保存</button>${done?"":`<button class="btn primary" data-tq="notedone">保存して話した</button>`}</div></div>
+    ${topicHistHTML(t,10)}
     ${mode==="note"?"":`<div class="tqm-sec"><div class="tqm-l">📅 話す日</div><div class="tqm-chips">${[["今日",td],["次の話し合い",talkNext0()],["明日",addDays(td,1)],["土曜",sat]].filter((x,i,a)=>a.findIndex(y=>y[1]===x[1])===i).map(([l,d])=>`<button data-tq="on" data-d="${d}">${l}<small>${short(d)}</small></button>`).join("")}<button data-tq="on" data-d="">指定なし</button></div></div>
     <div class="tqm-acts">${done?`<button data-tq="undone">↩ 話していないに戻す</button>`:`<button data-tq="done">✓ 話した</button>`}<button data-tq="task">→ やることにする</button><button data-tq="edit">✎ くわしく編集</button><button data-tq="del" class="danger">削除</button></div>`}
     <div class="tqm-hint">項目を ← 削除／→ 話した・長押しでこのメニュー・ダブルタップで決めたこと</div></div>`;
@@ -8193,7 +8210,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#hubBar [data-h
 /* ふたりで決めたこと：話し合いで終わった議題・話し合いメモ・将来の項目に書いた決定を1か所で見返す */
 /* v240: 決めたこと＝話し合いの日ごとに「決めたこと」が並ぶタイムライン。検索・絞り込み・その場で追加 */
 function decEntries(){ const L=[];
-  for(const t of state.topics||[]){ if(t.status==="done"&&t.doneDate) L.push({key:`t|${t.id}`,d:t.doneDate,src:"talk",title:t.text,dec:t.note||"",who:t.updBy||"",ref:t.ref}); else if(t.status==="hold"&&t.talkedOn) L.push({key:`t|${t.id}`,d:t.talkedOn,src:"talk",title:t.text,dec:t.note||"",hold:t.holdUntil}); }
+  for(const t of state.topics||[]){ if(t.auto&&!String(t.note||"").trim()) continue; /* v245 */ if(t.status==="done"&&t.doneDate) L.push({key:`t|${t.id}`,d:t.doneDate,src:"talk",title:t.text,dec:t.note||"",who:t.updBy||"",ref:t.ref}); else if(t.status==="hold"&&t.talkedOn) L.push({key:`t|${t.id}`,d:t.talkedOn,src:"talk",title:t.text,dec:t.note||"",hold:t.holdUntil}); }
   for(const p of state.plans) (p.checks||[]).forEach((c,i)=>{ if(c.m) L.push({key:`p|${p.id}|${i}`,d:c.mAt?ymd(new Date(c.mAt)):(p.updatedAt?ymd(new Date(p.updatedAt)):today()),src:"future",cat:(PCATS[p.cat]||PCATS.wish).label,title:`${p.text} › ${c.t}`,dec:c.m,who:c.mBy||""}); });
   for(const k of state.talks||[]) if(k.notes&&String(k.notes).trim()) L.push({key:`n|${k.id}`,d:k.id,src:"note",title:"話し合いのメモ",dec:String(k.notes)});
   return L.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0); }
