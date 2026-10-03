@@ -645,7 +645,7 @@ test('v196 voice results that are only question marks are treated as empty', () 
 test('v196 checklist items keep a decision with author and the AI can fill it', () => {
   const c = env(['checksHTML'], { CHECK:'✓', short: d => d.slice(5) });
   const h = run(c, 'checksHTML({checks:[{t:"夜中の当番を決める",done:false,m:"平日は<b>りく</b>",mAt:Date.UTC(2026,9,1),mBy:"h"}]})');
-  assert.match(h, /→ 平日は&lt;b&gt;りく/); assert.match(h, /data-act="cknote"/);
+  assert.match(h, /決めたこと：平日は&lt;b&gt;りく/); assert.match(h, /data-act="cknote"/);
 });
 
 test('v198 voice keeps listening after an automatic stop and keeps earlier words', async () => {

@@ -495,6 +495,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .duo-b.done b{text-decoration:line-through;opacity:.6}.duo-ck.on{color:var(--task)}
 .duo-b.short .duo-ck{top:50%;margin-top:-9px}
 .duo-now{position:absolute;left:0;right:0;height:2px;background:var(--danger);z-index:3;pointer-events:none}
+/* v229: 決めたこと・事前の確認 */
+.ck-mb,.ck-add{all:unset;cursor:pointer;display:block;font-size:12px;line-height:1.4}.ck-add{color:var(--accent);font-weight:600;margin-top:2px}
+.pconf{display:flex;flex-direction:column;gap:8px;margin:4px 0 8px}.pc-r{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:var(--surface)}.pc-r .check{flex:none;margin-top:2px}.pc-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.pc-b .edit-row{margin:0}
+.tag.pc-ok{--tc:var(--future);color:var(--future)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1868,7 +1872,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="228";
+const APP_VERSION="229";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2383,7 +2387,7 @@ const yen=n=>"¥"+Number(n).toLocaleString("ja-JP");
 function checksHTML(x){
   const cs=x.checks||[];
   /* v196: 各項目に「ふたりで決めたこと・結果」を書ける */
-  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<small class="ck-m">→ ${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</small>`:""}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="話したい内容・決めたことを編集">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed dec2"><label class="dec2-l">💬 話したい内容</label><textarea id="ckTopic" rows="2" maxlength="200">${esc(c.t||"")}</textarea><label class="dec2-l">✅ 決めたこと</label><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
+  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<button type="button" class="ck-m ck-mb" data-act="cknote" data-i="${i}">✅ 決めたこと：${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</button>`:state.ckEdit===i?"":`<button type="button" class="ck-add" data-act="cknote" data-i="${i}">＋ 決めたことを残す</button>`}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="話したい内容・決めたことを編集">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed dec2"><label class="dec2-l">💬 話したい内容</label><textarea id="ckTopic" rows="2" maxlength="200">${esc(c.t||"")}</textarea><label class="dec2-l">✅ 決めたこと</label><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
 }
 function planMeta(p,showCat){
   const C=PCATS[p.cat]||PCATS.wish, bits=[];
@@ -2393,9 +2397,11 @@ function planMeta(p,showCat){
   if(p.cat==="anniv"){ const a=annivInfo(p); if(a) bits.push(`<span class="due ${a.days<=7?"today":""}">${a.days===0?"今日！":`あと${a.days}日`}・${short(a.occ)}${a.years>0&&!p.noYear?`・${a.years}${/誕生/.test(p.text)?"歳":"周年"}`:""}</span>`); }
   else if(p.date){ const over=!p.done&&p.date<today(); bits.push(`<span class="due ${over?"over":p.date===today()?"today":""}">${p.cat==="bousai"?"期限 ":""}${dayLabel(p.date)}${over?" 過ぎています":""}</span>`); }
   { const mt=moneyTag(p); if(mt) bits.push(mt); }
+  { const ct=confTag(p); if(ct) bits.push(ct); }
   const cs=p.checks||[]; if(cs.length) bits.push(`<span>チェック ${cs.filter(c=>c.done).length}/${cs.length}${cs.some(c=>c.m)?`・決定 ${cs.filter(c=>c.m).length}`:""}</span>`);
   const lg=(p.log||[]).slice().sort((a,b)=>b.at-a.at)[0];
-  return `<div class="meta">${bits.join("")}</div>${lg?`<div class="meta plg">📝 ${short(ymd(new Date(lg.at)))} ${esc(lg.t.slice(0,50))}${lg.t.length>50?"…":""}${(p.log||[]).length>1?`（記録${p.log.length}）`:""}</div>`:""}${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
+  const cm=p.cat==="care"?["h","w"].map(r=>((p.conf||{})[r]||{}).m?`${nameOf(r)}：${((p.conf||{})[r]).m}`:"").filter(Boolean).join("／"):"";
+  return `<div class="meta">${bits.join("")}</div>${cm?`<div class="meta plg">💬 ${esc(cm.slice(0,70))}${cm.length>70?"…":""}</div>`:""}${lg?`<div class="meta plg">📝 ${short(ymd(new Date(lg.at)))} ${esc(lg.t.slice(0,50))}${lg.t.length>50?"…":""}${(p.log||[]).length>1?`（記録${p.log.length}）`:""}</div>`:""}${p.memo?`<div class="meta">${esc(p.memo.slice(0,50))}${p.memo.length>50?"…":""}</div>`:""}`;
 }
 function planRow(p,showCat){
   if(isEditing("plans",p.id)) return planEdit(p);
@@ -2416,12 +2422,22 @@ function planEdit(p){
     <div class="edit-row"><span class="who">${C.dateL}</span><input type="date" id="editDue" value="${esc(p.date||"")}" aria-label="${C.dateL}"></div>
     ${p.budget||actOf(p)||p.cat==="wish"||p.cat==="travel"?moneyFields(p):`<details class="mny"><summary class="who">お金（予算・実際にかかった額）</summary>${moneyFields(p)}</details>`}
     <div class="who">メモ（準備するもの・場所・リンクなど）</div><textarea id="editMemo" rows="${(p.memo||"").length>60?5:2}" maxlength="600" placeholder="例：保管場所は玄関の収納、賞味期限 2027/3">${esc(p.memo||"")}</textarea>
+    ${p.cat==="care"?`<div class="who">事前の確認（やり方・必要な物・分担を確かめたか）</div><div class="pconf" id="pConf">${confHTML(p)}</div>`:""}
     <div class="who">結果・記録（やったこと・確認した内容を日付つきで残す）</div><div class="plog" id="pLog">${planLogHTML(p)}</div>
     <div class="edit-row"><input type="text" id="pLogText" maxlength="300" placeholder="例：水を12L買い足した／避難所は○○小学校と確認" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="plogadd">記録</button></div>
-    <div class="who">チェックリスト（✎ でふたりで決めたことを書けます）</div><div class="cklist" id="ckList">${checksHTML(p)}</div>${tplX(p.text)&&tplX(p.text).c.some(t=>!(p.checks||[]).some(c=>c.t===t))?`<button type="button" class="chip mini" data-act="tplFill">＋ 具体的なやること（${tplX(p.text).c.length}件）を入れる</button>`:""}
+    <div class="who">チェックリスト（項目ごとに「＋ 決めたことを残す」で、ふたりで決めたことを残せます）</div><div class="cklist" id="ckList">${checksHTML(p)}</div>${tplX(p.text)&&tplX(p.text).c.some(t=>!(p.checks||[]).some(c=>c.t===t))?`<button type="button" class="chip mini" data-act="tplFill">＋ 具体的なやること（${tplX(p.text).c.length}件）を入れる</button>`:""}
     <div class="edit-row"><input type="text" id="ckText" maxlength="80" placeholder="項目を追加（持ち物・準備など）" style="flex:1" enterkeyhint="send"><button type="button" class="btn" data-act="ckadd">追加</button></div>
     ${editActions("plans",p,gdate?`<a class="glink" href="${esc(gcalUrl({due:gdate,text:(p.cat==="anniv"?"記念日: ":"")+p.text,list:"task"}))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
 }
+/* v229: 子育ての家事は、ふたりそれぞれ「事前に確認したか」をコメントつきで残す */
+function confHTML(p){ const C=p.conf||{};
+  return ["h","w"].map(r=>{ const o=C[r]||{}; return `<div class="pc-r ${o.ok?"on":""}"><button type="button" class="check ${o.ok?"on":""}" style="--c:var(--future)" data-act="pconf" data-r="${r}" aria-label="${esc(nameOf(r))}の確認${o.ok?"を取り消す":"済みにする"}">${CHECK}</button><div class="pc-b"><b>${esc(nameOf(r))}</b><span class="who">${o.ok?`確認済み${o.at?`・${short(ymd(new Date(o.at)))}`:""}${o.by&&o.by!==r?`（${esc(nameOf(o.by))}が記入）`:""}`:"まだ確認していない"}</span><div class="edit-row"><input type="text" id="pcm_${r}" maxlength="200" value="${esc(o.m||"")}" placeholder="コメント（例：沐浴の手順を動画で確認した）" style="flex:1" enterkeyhint="done"><button type="button" class="btn" data-act="pconfsave" data-r="${r}">保存</button></div></div></div>`; }).join(""); }
+function confOp(a,r){ const ed=state.editing; if(!ed||ed.c!=="plans"||!["h","w"].includes(r)) return; const x=state.plans.find(p=>p.id===ed.id); if(!x) return;
+  const C={...(x.conf||{})}, o={...(C[r]||{})}, inp=$("pcm_"+r), m=inp?inp.value.trim().slice(0,200):(o.m||"");
+  if(a==="pconf"){ o.ok=!o.ok; o.at=o.ok?Date.now():null; if(o.ok) celebrate(); }
+  else { if(!o.ok&&m) { o.ok=true; o.at=Date.now(); } }
+  o.m=m; o.by=myRole(); C[r]=o; x.conf=C; dupd("plans",x.id,{conf:C}); haptic("tick"); const el=$("pConf"); if(el) el.innerHTML=confHTML(x); if(a==="pconfsave") toast(`${nameOf(r)}の確認を保存しました`); }
+function confTag(p){ if(p.cat!=="care") return ""; const C=p.conf||{}; return ["h","w"].map(r=>{ const o=C[r]||{}; return `<span class="tag ${o.ok?"pc-ok":"tc-muted"}">${esc(nameOf(r))} ${o.ok?"✓確認済":"未確認"}</span>`; }).join(""); }
 /* v191: 将来の項目ごとに「結果・記録」を日付・記入者つきで残す（防災の点検結果、子育ての準備の内容など） */
 function planLogHTML(p){ const L=(p.log||[]).slice().sort((a,b)=>b.at-a.at);
   return L.length?L.map(e=>`<div class="pl-e"><span class="pl-d">${short(ymd(new Date(e.at)))}${e.by?`・${esc(nameOf(e.by))}`:""}</span><span class="pl-t">${esc(e.t)}</span><button type="button" class="x" data-act="plogdel" data-at="${e.at}" aria-label="この記録を削除">×</button></div>`).join(""):`<div class="who">まだ記録はありません</div>`; }
@@ -2475,7 +2491,7 @@ function viewFutCat(k){
     ${k==="wish"?`<div class="tools">${seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]])}</div>`:""}${whoBar()}`;
   const have=new Set(state.plans.filter(p=>p.cat===k).flatMap(p=>[p.text,TPL_ALIAS[p.text]]));
   const tpl=C.tpl.filter(t=>!have.has(t)), all=state.plans.filter(p=>p.cat===k), dn=all.filter(planDone).length, D=PDESC[k]||["・",""];
-  h+=`<section class="card fut-sum"><div class="fs-h"><span class="fr-ic">${D[0]}</span><div><small>${D[1]}</small></div>${k!=="anniv"&&all.length?`<span class="fr-n">${dn}<small>/${all.length} ${C.doneL}</small></span>`:""}</div>
+  h+=`<section class="card fut-sum"><div class="fs-h"><span class="fr-ic">${D[0]}</span><div><small>${D[1]}</small></div>${k!=="anniv"&&all.length?`<span class="fr-n">${dn}<small>/${all.length} ${C.doneL}</small></span>`:""}</div>${k==="care"&&all.length?`<div class="who">事前の確認：${["h","w"].map(r=>`${esc(nameOf(r))} ${all.filter(p=>((p.conf||{})[r]||{}).ok).length}/${all.length}`).join("・")}</div>`:""}
     ${k!=="anniv"&&all.length?`<span class="prog"><i style="width:${Math.round(dn/all.length*100)}%"></i></span>`:""}
     <div class="fut-add"><input type="text" id="futAddIn" maxlength="120" placeholder="${esc(C.label)}に追加（例：${esc(C.tpl[0]||"やりたいこと")}）" enterkeyhint="done"><button class="btn primary" data-act="futAdd">追加</button></div>
     ${tpl.length?`<details class="fut-tpl" ${all.length?"":"open"}><summary>よくある項目から選ぶ（${tpl.length}）</summary><div class="chips">${tpl.map(t=>`<button class="chip" data-tpl="${esc(t)}">＋ ${esc(t)}</button>`).join("")}</div></details>`:""}</section>`;
@@ -4527,6 +4543,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="totask"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t){ dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); } }
   else if(a==="ck"||a==="ckdel"||a==="ckadd"||a==="cknote"||a==="cknsave") checkOp(a,Number(b.dataset.i));
   else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
+  else if(a==="pconf"||a==="pconfsave") confOp(a,b.dataset.r);
   else if(a==="tplFill"){ const ed=state.editing, x=ed&&state.plans.find(p=>p.id===ed.id), X=x&&tplX(x.text); if(X){ const have=new Set((x.checks||[]).map(c=>c.t)), checks=[...(x.checks||[]),...X.c.filter(t=>!have.has(t)).map(t=>({t,done:false}))], memo=x.memo||X.m; x.checks=checks; x.memo=memo; dupd("plans",x.id,{checks,memo}); render(); toast("具体的なやることを入れました"); } }
   else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(state.fut,t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
   else if(a==="fprev"||a==="fnext") shiftFut(a==="fprev"?-1:1);
