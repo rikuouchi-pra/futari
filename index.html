@@ -505,6 +505,12 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .ug-insl{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.5}
 .ug-tbl{display:flex;flex-direction:column;gap:4px;font-size:13px}.ug-tbl div{display:grid;grid-template-columns:1fr 44px 44px 44px;gap:6px;align-items:center}.ug-tbl b{text-align:right}.ug-tbl b.bad{color:var(--danger)}
 .ug-tbl div:first-child::before{content:none}
+/* v234: チェック項目の「決めたこと」編集欄を縦に並べる。完了した項目でも「決めたこと」には取り消し線を付けない */
+.ck-ed.dec2{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin:2px 0 8px 34px}
+.ck-ed.dec2 .dec2-l{margin:4px 2px 0}.ck-ed.dec2 textarea{width:100%;min-height:52px;writing-mode:horizontal-tb}
+.ck-ed.dec2 .btn{align-self:flex-end;min-width:88px}
+.ck.on .ck-t>.ck-mb,.ck.on .ck-t>.ck-add,.ck.on .ck-t .ck-mb *{text-decoration:none}
+.ck .ck-t{text-decoration:none!important}.ck.on .ck-t{color:inherit}.ck.on .ck-t>.ck-txt{text-decoration:line-through;color:var(--muted)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -888,7 +894,7 @@ ol.steps{margin:0;padding-left:20px;font-size:13px;line-height:1.8;color:var(--m
 .ck .box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--accent);background:transparent;padding:0;display:grid;place-items:center;cursor:pointer}
 .ck .box svg{width:12px;height:12px;opacity:0;stroke:var(--on-accent)}
 .ck.on .box{background:var(--accent)} .ck.on .box svg{opacity:1}
-.ck span{flex:1;overflow-wrap:anywhere} .ck.on span{text-decoration:line-through;color:var(--muted)}
+.ck span{flex:1;overflow-wrap:anywhere} .ck.on .ck-txt,.ck.on>span:not(.ck-t){text-decoration:line-through;color:var(--muted)}
 .ck .x{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 6px}
 .edit label.who{display:flex;gap:8px;align-items:center}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--ground);border-radius:12px;padding:10px 8px 10px 14px;display:flex;align-items:center;gap:12px;font-size:14px;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
@@ -1878,7 +1884,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="233";
+const APP_VERSION="234";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2393,7 +2399,7 @@ const yen=n=>"¥"+Number(n).toLocaleString("ja-JP");
 function checksHTML(x){
   const cs=x.checks||[];
   /* v196: 各項目に「ふたりで決めたこと・結果」を書ける */
-  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t">${esc(c.t)}${c.m?`<button type="button" class="ck-m ck-mb" data-act="cknote" data-i="${i}">✅ 決めたこと：${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</button>`:state.ckEdit===i?"":`<button type="button" class="ck-add" data-act="cknote" data-i="${i}">＋ 決めたことを残す</button>`}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="話したい内容・決めたことを編集">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed dec2"><label class="dec2-l">💬 話したい内容</label><textarea id="ckTopic" rows="2" maxlength="200">${esc(c.t||"")}</textarea><label class="dec2-l">✅ 決めたこと</label><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
+  return cs.length?cs.map((c,i)=>`<div class="ck ${c.done?"on":""}"><button type="button" class="box" data-act="ck" data-i="${i}" aria-label="${c.done?"未完了に戻す":"完了にする"}">${CHECK}</button><span class="ck-t"><span class="ck-txt">${esc(c.t)}</span>${c.m?`<button type="button" class="ck-m ck-mb" data-act="cknote" data-i="${i}">✅ 決めたこと：${esc(c.m)}${c.mAt?`<i>（${short(ymd(new Date(c.mAt)))}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}）</i>`:""}</button>`:state.ckEdit===i?"":`<button type="button" class="ck-add" data-act="cknote" data-i="${i}">＋ 決めたことを残す</button>`}</span><button type="button" class="x ck-e" data-act="cknote" data-i="${i}" aria-label="話したい内容・決めたことを編集">✎</button><button type="button" class="x" data-act="ckdel" data-i="${i}" aria-label="削除">×</button></div>${state.ckEdit===i?`<div class="ck-ed dec2"><label class="dec2-l">💬 話したい内容</label><textarea id="ckTopic" rows="2" maxlength="200">${esc(c.t||"")}</textarea><label class="dec2-l">✅ 決めたこと</label><textarea id="ckNote" rows="2" maxlength="300" placeholder="ふたりで決めたこと・結果（例：平日はりく、休日は紀香）">${esc(c.m||"")}</textarea><button type="button" class="btn primary" data-act="cknsave" data-i="${i}">保存</button></div>`:""}`).join(""):`<div class="who">まだありません</div>`;
 }
 function planMeta(p,showCat){
   const C=PCATS[p.cat]||PCATS.wish, bits=[];
