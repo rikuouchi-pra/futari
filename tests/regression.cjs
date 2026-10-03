@@ -480,7 +480,7 @@ test('task view includes private and shared recurring tasks but no habits',()=>{
   c.prefs.whoF='w';c.byWho=x=>x.filter(y=>y.who==='w');const partner=run(c,'viewList("task")');assert.match(partner,/相手の繰り返しタスク/);assert.doesNotMatch(partner,/自分の繰り返しタスク/);
 });
 test('habit view includes every habit frequency and excludes private tasks',()=>{
-  const c=separatedEnv(['viewHabit'],{weekGoal:()=>1,habitStats:()=>({count:0}),hTodayHTML:()=>'',HABIT_TPL:[],habitRow:x=>x.text,weekStarts:()=>[],barChart:()=>'',short:x=>x,habitHeatHTML:()=>''});mixedHabits(c);
+  const c=separatedEnv(['viewHabit'],{weekGoal:()=>1,habitStats:()=>({count:0}),hTodayHTML:()=>'',HABIT_TPL:[],habitRow:x=>x.text,weekStarts:()=>[],barChart:()=>'',short:x=>x,habitHeatHTML:()=>'',hTodayList:()=>[]});mixedHabits(c);
   const html=run(c,'viewHabit()');assert.match(html,/毎日の習慣/);assert.match(html,/週1の習慣/);assert.doesNotMatch(html,/繰り返しタスク|やること」でも/);
 });
 test('habit reminders never include private recurring tasks',()=>{

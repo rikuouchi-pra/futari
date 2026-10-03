@@ -624,6 +624,8 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .tt-dup{margin-top:12px}.tt-dup>summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);padding:10px 4px}
 .chip.sharebtn{margin-top:6px;font-size:12px;padding:4px 10px;min-height:0}
 .tdo-below{font-size:12px;margin-top:6px}
+.chart-empty{display:flex;align-items:center;gap:10px;padding:14px 12px;margin:6px 0;border-radius:14px;background:color-mix(in srgb,var(--ink) 4%,transparent);font-size:13px;color:var(--muted);line-height:1.5}.chart-empty span{font-size:22px;opacity:.7}
+.setg>summary{font-size:15px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1982,8 +1984,8 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 /* ================= constants & utils ================= */
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
-const TITLES={baby:"妊娠・出産",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
-  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
+const TITLES={baby:"妊娠・出産",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来の計画",
+  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"お金",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
@@ -1997,7 +1999,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="243";
+const APP_VERSION="244";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2974,6 +2976,7 @@ function barChart(title,vals,labels,max,target,unit,aria){
   const ticks=[0,max/2,max].map(v=>`<line class="gl" x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${pl-4}" y="${y(v)+3}" text-anchor="end">${Math.round(v)}</text>`).join("");
   const tl=target?`<line x1="${pl}" x2="${W}" y1="${y(target)}" y2="${y(target)}" stroke="var(--ink)" stroke-dasharray="3 3" stroke-width="1"/><text class="ax" x="${W}" y="${y(target)-3}" text-anchor="end">目標</text>`:"";
   const xl=[0,Math.floor(vals.length/2),vals.length-1].map(i=>`<text class="ax" x="${pl+i*bw+bw/2}" y="${H-4}" text-anchor="middle">${labels[i]}</text>`).join("");
+  if(!vals.some(Boolean)) return `<div class="chart"><h3>${title}</h3>${chartEmpty("記録するとここにグラフが出ます")}</div>`;
   return `<div class="chart"><h3>${title}</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(aria)}">${ticks}${bars}${tl}${xl}</svg></div>`;
 }
 function habitCharts(h){
@@ -3015,7 +3018,7 @@ function habitRow(h){
       `<button class="check ${D.status==="done"?"on":""}" style="--c:var(--habit)" data-act="right" aria-label="今日やった">${CHECK}</button>`,
       `<div class="text">${esc(h.text)}</div><div class="meta">${ttTag(h)}${rtag}${dueTag(h)}${D.kind==="day"?"":`<span>${esc(D.text)}</span>`}<span>${esc(tgtLabel(h))}</span></div>
        <div class="pcells">${cells.map(x=>`<i class="pc ${x.cls}" title="${esc(x.tt)}"><b></b><small>${esc(x.lb)}</small></i>`).join("")}</div>
-       <div class="meta"><span>${D.kind==="iv"?"期限内":"達成"} ${S2.ok}/${S2.n}${S2.n?`（${S2.rate}%）`:""}</span><span>連続 ${S2.streak}回</span>${(D.status==="today"||D.status==="soon"||D.status==="over"||D.status==="skip")?`<button class="hmissb ${D.status==="skip"?"on":""}" data-act="hmiss">${D.status==="skip"?"今日はできなかった ✓":"今日はできない"}</button>`:""}</div>`); }
+       <div class="meta">${S2.n?`<span>${D.kind==="iv"?"期限内":"達成"} ${S2.ok}/${S2.n}（${S2.rate}%）</span>`:""}${S2.streak?`<span>連続 ${S2.streak}回</span>`:""}${(D.status==="today"||D.status==="soon"||D.status==="over"||D.status==="skip")?`<button class="hmissb ${D.status==="skip"?"on":""}" data-act="hmiss">${D.status==="skip"?"今日はできなかった ✓":"今日はできない"}</button>`:""}</div>`); }
   const days=[...Array(7)].map((_,i)=>addDays(t,i-6)), mT=hMiss(h,t);
   const tg=tgtLabel(h);
   return wrapRow(C,h,REC?"rectask":"",
@@ -3038,8 +3041,10 @@ function viewHabit(){
   const t=today(), hs=habitItems().slice().sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
   let h=hs.length?hTodayHTML(false):"";
   const have=new Set(hs.map(x=>x.text)), tpl=HABIT_TPL.filter(x=>!have.has(x));
-  h+=`<div class="section-label"><span>習慣（すべての頻度）</span></div>`;
+  const hFold=hs.length&&hTodayList().length; /* v244: 上の「今日の習慣」と同じ項目が並ぶので、一覧（記録の修正用）は折りたたむ */
+  h+=hFold?`<details class="tt-dup" data-hall="1" ${state.hAllOpen?"open":""}><summary>すべての習慣と記録の修正（${hs.length}件）</summary>`:`<div class="section-label"><span>習慣（すべての頻度）</span></div>`;
   h+=hs.length?`<ul class="list">${hs.map(habitRow).join("")}</ul>`:`<div class="empty">習慣にしたいことを追加しましょう<br>下の候補をタップ、または上から↓で追加</div>`;
+  if(hFold) h+=`</details>`;
   if(tpl.length) h+=`<div class="section-label">候補（タップで追加）</div><div class="chips">${tpl.slice(0,8).map(x=>`<button class="chip" data-htpl="${esc(x)}">＋ ${esc(x)}</button>`).join("")}</div>`;
   if(hs.length){
     const ws=weekStarts(8);
@@ -3072,11 +3077,11 @@ function viewReflect(){
   const grid=[1,3,5].map(v=>`<line class="gl" x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${pl-5}" y="${y(v)+3}" text-anchor="end">${v}</text>`).join("");
   const xl=[0,14,29].map(i=>`<text class="ax" x="${x(i)}" y="${H-3}" text-anchor="middle">${short(days[i])}</text>`).join("");
   const rec=state.reflect.filter(q=>q.mood&&q.id>=days[0]), good=rec.filter(q=>q.mood>=4).length;
-  h+=`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）　記録${rec.length}日・よい日${good}日</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="直近30日の気分。記録${rec.length}日、よい日${good}日">${grid}<path d="${path}" fill="none" stroke="var(--reflect)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots.join("")}${xl}</svg></div>`;
+  h+=!rec.length?`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）</h3>${chartEmpty("気分を選ぶと、30日の推移がここに出ます")}</div>`:`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）　記録${rec.length}日・よい日${good}日</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="直近30日の気分。記録${rec.length}日、よい日${good}日">${grid}<path d="${path}" fill="none" stroke="var(--reflect)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots.join("")}${xl}</svg></div>`;
   { const d30=addDays(today(),-29), R30=state.reflect.filter(q=>q.id>=d30), fc={}; for(const q of R30) for(const f of q.feel||[]) fc[f]=(fc[f]||0)+1; const top=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6), mx=top.length?top[0][1]:1;
     const en=[...Array(14)].map((_,i)=>addDays(today(),i-13)).map(dd=>(state.reflect.find(q=>q.id===dd)||{}).energy||0);
     h+=`<div class="chart"><h3>よく出た気持ち（30日）</h3>${top.length?`<div class="fbar">${top.map(([f,n])=>{ const F=FEELS.find(x=>x[0]===f)||[f,"--muted"]; return `<div class="fb-r"><span>${esc(f)}</span><span class="fb-b"><i style="width:${Math.round(n/mx*100)}%;background:var(${F[1]})"></i></span><b>${n}</b></div>`; }).join("")}</div>`:`<div class="who">気持ちを選ぶと、ここに集計されます</div>`}
-      <h3 style="margin-top:12px">エネルギー（14日）</h3><div class="enw">${en.map((v,i)=>`<i title="${short(addDays(today(),i-13))}：${v||"—"}" style="height:${v?v*20:4}%;opacity:${v?1:.25}"></i>`).join("")}</div></div>`;
+      <h3 style="margin-top:12px">エネルギー（14日）</h3>${en.some(Boolean)?"":chartEmpty("エネルギーを選ぶと、14日分がここに出ます")}<div class="enw" ${en.some(Boolean)?"":"hidden"}>${en.map((v,i)=>`<i title="${short(addDays(today(),i-13))}：${v||"—"}" style="height:${v?v*20:4}%;opacity:${v?1:.25}"></i>`).join("")}</div></div>`;
     if(aiText()) h+=`<div class="chart"><div class="hc-head"><h3>AIのふりかえり（直近7日・🔒自分だけ）</h3><button class="btn" data-act="refAi" ${state.refAiBusy?"disabled":""}>${state.refAiBusy?'<span class="spin"></span>':"まとめる"}</button></div>${state.refAi?`<div class="ai-a" style="max-width:100%">${esc(state.refAi).replace(/\n/g,"<br>")}</div>`:`<div class="who">気分・気持ち・書いたことから、傾向と小さなヒントをまとめます</div>`}</div>`; }
   const list=state.reflect.filter(q=>q.good||q.bad||q.learn).filter(q=>state.refFilter==="good"?q.good:state.refFilter==="bad"?q.bad:state.refFilter==="learn"?q.learn:true).sort((a,b)=>a.id<b.id?1:-1).slice(0,60);
   h+=`<div class="section-label">見返す</div><div class="tools" style="margin-top:0;margin-bottom:8px">${seg("rfilter",state.refFilter,[["all","すべて"],["good","良かった"],["bad","うまくいかず"],["learn","学び"]])}</div>`;
@@ -3344,7 +3349,9 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   if(dupN) h+=`</details>`;
   if(dayItems.length) h+=`<div class="section-label">時間なしの予定</div><ul class="list">${dayItems.map(schedRow).join("")}</ul>`;
   return h; }
-document.addEventListener("toggle",e=>{ if(e.target&&e.target.dataset&&e.target.dataset.ttdup) state.ttDup=e.target.open; },true);
+document.addEventListener("toggle",e=>{ if(e.target&&e.target.dataset&&e.target.dataset.ttdup) state.ttDup=e.target.open; if(e.target&&e.target.dataset&&e.target.dataset.hall) state.hAllOpen=e.target.open; },true);
+/* v244: 記録がまだないグラフは、空の軸の代わりに一言の案内を出す */
+const chartEmpty=msg=>`<div class="chart-empty"><span aria-hidden="true">📊</span>${esc(msg)}</div>`;
 /* v216: ふたりのタイムテーブル（共有の予定・時間つきのやることだけ。相手の🔒じぶん専用は出さない）。空いた時間をタップでふたり／どちらかの予定を追加 */
 const DUO_PPH=46;
 const duoTR=(i,r)=>myT(i);
@@ -3901,7 +3908,7 @@ function onbSteps(){
     {k:"shift",title:"シフト",body:`<div class="onb-art"><div class="demo-card"><b>カレンダー › シフト入力</b><span>記号を選んで日付をタップ、またはなぞってまとめて入力</span></div></div>
       <ul class="onb-list"><li>入＝夜勤入り　明＝夜勤明け　休＝休み　早＝早番　日＝日勤</li><li>空いている日があると、<b>3日前に「やること」へ自動で追加</b>され、ホームにも表示されます。入力が済むと自動で完了します。</li><li>話し合いは、夜勤入りの日はお休みの日になります。</li></ul>`},
     {k:"settings",title:"設定",body:`<div class="onb-art"><div class="demo-card"><b>設定（歯車）</b><span>よく使う／見た目／メニュー・画面の配置／データ・ヘルプ</span></div></div>
-      <ul class="onb-list"><li><b>よく使う</b>：名前・お知らせ・表示するタブ・日記・AI・天気</li><li><b>見た目</b>：スタイル・色・枠と文字の色・アイコン（ホーム画面のアイコンも）</li><li><b>メニュー・画面の配置</b>：メニューの形・位置・並び、上部の表示</li><li><b>データ・ヘルプ</b>：このチュートリアル・バックアップ・不具合の報告</li></ul><button class="btn" data-onbgo="settings">設定を開いてみる</button>`}
+      <ul class="onb-list"><li><b>ふたり・お知らせ・AI・天気・タブ</b>：名前・通知・AI・天気／今日の1曲・表示するタブ</li><li><b>見た目</b>：スタイル・色・枠と文字の色・アイコン（ホーム画面のアイコンも）</li><li><b>メニュー・画面の配置</b>：メニューの形・位置・並び、上部の表示</li><li><b>データ・ヘルプ</b>：このチュートリアル・バックアップ・不具合の報告</li></ul><button class="btn" data-onbgo="settings">設定を開いてみる</button>`}
   ];
   const ready={k:"ready",title:"準備チェック",body:`<p class="onb-lead">あとはこれだけ。タップするとその画面へ移動します。</p>
       <div class="onb-checks">
@@ -4197,7 +4204,8 @@ function renderDiaryDynamic(){
 }
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("tt-more")) state.ttMore=e.target.open; },true);
 document.addEventListener("focusout",e=>{ if(e.target.dataset&&e.target.dataset.centry) setTimeout(()=>{ if(diaryRenderDeferred&&state.view==="diary") renderDiaryDynamic(); },150); });
-const SET_GROUPS=[["basic","よく使う",["ふたりの名前","お知らせ","表示するタブ","日記","AI機能","AIに伝える基本情報","天気","今日の1曲"]],["look","見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","メニュー・画面の配置",["メニュー","上部の表示","追加画面の種類"]],["data","データ・アカウント・ヘルプ",[]]];
+/* v244: 「よく使う」に何でも入って長かったので、目的ごとの小さなグループに分け、最初はすべて閉じた一覧にする */
+const SET_GROUPS=[["basic","👫 ふたり・日記",["ふたりの名前","日記"]],["notify","🔔 お知らせ・通知",["スマホへの通知","お知らせ"]],["ai","✦ AI",["AI機能","AIに伝える基本情報"]],["daily","☀️ 天気・今日の1曲・ごみ出し",["天気","今日の1曲","ごみ出し"]],["tabs","🧭 タブ・開いたときの画面",["表示するタブ"]],["look","🎨 見た目（色・文字・背景）",["スタイル","背景の色","テーマカラー","枠と文字の色","背景の模様","ボタンとアイコン","楽しさ"]],["menu","📐 メニュー・画面の配置",["メニュー","上部の表示","追加画面の種類"]],["data","🗂 データ・アカウント・ヘルプ",[]]];
 document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classList.contains("phist")) state.phOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("hmore")) state.hmoreOpen=e.target.open; if(e.target.classList&&e.target.classList.contains("tmore")) state[state.view==="shop"?"smoreOpen":"tmoreOpen"]=e.target.open; },true);
 let setAnchor=null;
 document.addEventListener("click",e=>{ if(state.view!=="settings") return; const b=e.target.closest("#main button,#main [data-pref]"); if(!b) return;
@@ -4205,7 +4213,7 @@ document.addEventListener("click",e=>{ if(state.view!=="settings") return; const
   if(at) setAnchor={sel:at,top:b.getBoundingClientRect().top,t:Date.now()}; },true);
 function setAnchorApply(){ if(!setAnchor||Date.now()-setAnchor.t>2500) return; const el=document.querySelector("#main "+setAnchor.sel); if(!el) return; const d=el.getBoundingClientRect().top-setAnchor.top; if(Math.abs(d)>2) window.scrollBy(0,d); }
 function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"); const box={};
-  for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{basic:1})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{basic:1}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
+  for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
   for(const sc of secs){ const h=(sc.querySelector("h2")||{}).textContent||""; const g=SET_GROUPS.find(([k,l,hs])=>hs.some(x=>h.startsWith(x))); box[g?g[0]:"data"].appendChild(sc); } }
 function viewSettings(){
   const sw=Object.entries(PALETTES).map(([k,p])=>`<button class="sw" data-pal="${k}" aria-pressed="${prefs.pal===k}"><span class="cs">${["task","shop","cal","trouble","diary"].map(c=>`<i style="background:${p.light[c]}"></i>`).join("")}</span>${p.name}</button>`).join("");
@@ -5283,7 +5291,7 @@ function moneyEntries(){
 function viewMoney(){
   const t=state.moneyTab||"sum";
   const head=whoBar()+`<div class="tools">${seg("mtab",t,[["sum","集計"],["month","毎月・振込"],["goal","目標"]])}</div>`;
-  return head+(t==="sum"?`<div class="chart">${paceHTML()}</div>`:"")+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():viewMoneySum());
+  return head+(t==="sum"&&Number((state.kakei||{}).limit||0)?`<div class="chart">${paceHTML()}</div>`:"") /* v244: 上限がないときは下の「支出の実績」と同じ数字になるので出さない */+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():viewMoneySum());
 }
 function viewMoneySum(){
   const P=moneyPeriod(state.moneyP,state.moneyRef), all=byWho(moneyEntries()), inP=(d,Q=P)=>d&&d>=Q.s&&d<Q.e;
@@ -5539,7 +5547,7 @@ function balanceHTML(compact){
     const weeks=[...Array(8)].map((_,i)=>addDays(mondayOf(t),-7*(7-i)));
     const vals=weeks.map(w=>{ const e=addDays(w,7), x=ev.filter(v=>v.d>=w&&v.d<e); return {w,h:x.filter(v=>v.r==="h").reduce((a,v)=>a+v.p,0),wf:x.filter(v=>v.r==="w").reduce((a,v)=>a+v.p,0)}; });
     const mx=Math.max(4,...vals.map(v=>v.h+v.wf)), HH=90;
-    h+=`<div class="wk-cols" role="img" aria-label="週ごとの家事ポイント">${vals.map(v=>{ const hh=v.h/mx*HH, ww=v.wf/mx*HH;
+    h+=!vals.some(v=>v.h+v.wf)?phistHTML():`<div class="wk-cols" role="img" aria-label="週ごとの家事ポイント">${vals.map(v=>{ const hh=v.h/mx*HH, ww=v.wf/mx*HH;
       return `<div class="wk" data-tip="${short(v.w)}の週：${esc(nameOf("h"))} ${v.h}pt・${esc(nameOf("w"))} ${v.wf}pt"><div class="wk-st" style="height:${HH}px">${ww?`<i class="w" style="height:${ww}px"></i>`:""}${hh?`<i class="h" style="height:${hh}px"></i>`:""}</div><span>${parse(v.w).getMonth()+1}/${parse(v.w).getDate()}</span></div>`; }).join("")}</div>
       <div class="cap">週ごと（直近8週）・棒をタップで数値</div>`+phistHTML(); }
   return h+`</div>`;
@@ -7047,6 +7055,7 @@ function rcptHTML(){
 function monthsBack(n){ const t=parse(today()); return [...Array(n)].map((_,i)=>ymd(new Date(t.getFullYear(),t.getMonth()-(n-1-i),1)).slice(0,7)); }
 function chartTip(label,val){ return `data-tip="${esc(label)}：${esc(val)}"`; }
 function moneyTrendSVG(vals,labels,goal,colorOf){
+  if(!vals.some(Boolean)&&!goal) return chartEmpty("支出を記録すると、ここにグラフが出ます");
   const W=320,H=150,pl=34,pb=20,pt=10, n=vals.length, mx=niceTop(Math.max(...vals,goal||0,1)), bw=(W-pl)/n, y=v=>pt+(H-pt-pb)*(1-v/mx);
   const k=mx>=10000?1000:1, fmt=v=>k>1?`${Math.round(v/1000)}千`:Math.round(v);
   const grid=[0,mx/2,mx].map(v=>`<line class="gl" x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${pl-4}" y="${y(v)+3}" text-anchor="end">${fmt(v)}</text>`).join("");
@@ -8169,7 +8178,7 @@ const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["duo","ふたりの予定"],["dec","決めたこと"],["trouble","気になること"]]},
-  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["baby","妊娠・出産"],["money","お金"]]},
+  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","将来の計画"],["baby","妊娠・出産"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
