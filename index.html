@@ -545,6 +545,18 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .hjump .hj-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}.hjump i{position:absolute;top:2px;right:6px;font-style:normal;font-size:10px;background:var(--danger);color:#fff;border-radius:99px;padding:0 5px}
 /* v239: 話した・期日まで残す */
 .item.hold .text{color:var(--muted)}.tag.hold-due{font-weight:700}.thold-row input[type=date]{flex:1;min-width:0}
+/* v240: 決めたこと */
+.dec-add{display:flex;flex-direction:column;gap:6px;padding:12px 16px!important}.dec-add[open]{gap:8px}.dec-add>summary{list-style:none;cursor:pointer;color:var(--accent)}.dec-add>summary::-webkit-details-marker{display:none}.dec-add[open] input{margin-top:8px}.dec-add-h{font-weight:700;font-size:14px}.dec-add input,.dec-add textarea{width:100%;box-sizing:border-box}.dec-add .edit-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dec-tools{display:flex;flex-direction:column;gap:6px;margin:4px 0 10px}.dec-tools input{width:100%;box-sizing:border-box;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px}.dec-tools .chip{white-space:nowrap;flex:none}.dec-tools .chips{flex-wrap:nowrap;overflow-x:auto}.dec-tools .chip b{font-weight:800;margin-left:2px}
+.dec-day{margin:0 0 14px}.dec-dh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 4px 6px}.dec-dh b{font-size:15px}.dec-dh span{font-size:12px;color:var(--accent)}.dec-dh em{font-style:normal;font-size:12px;color:var(--muted)}.dec-dh .link{margin-left:auto;font-size:12px}
+.dec-ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.dec-c{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:16px;background:var(--surface);box-shadow:inset 4px 0 0 var(--talk)}
+.dec-c.src-future{box-shadow:inset 4px 0 0 var(--future)}.dec-c.src-note{box-shadow:inset 4px 0 0 var(--muted)}
+.dec-t{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}.dec-t .tag{font-style:normal}
+.dec-d{font-size:15px;font-weight:700;line-height:1.5;white-space:pre-wrap;color:var(--ink)}.dec-d::before{content:"✅ "}
+.dec-w{font-size:13px;font-weight:700;color:var(--accent)}.dec-c.empty{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.dec-c small{font-size:11px;color:var(--muted);text-align:right}
+.tdec-add{font-size:12px;font-weight:700}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1918,7 +1930,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="239";
+const APP_VERSION="240";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2623,7 +2635,7 @@ function topicRow(t){
   const K=topicKind(t);
   return wrapRow("topics",t,`${done?"done":""} ${hold&&t.holdUntil>td?"hold":""} tpk tpk-${K.k}`,
     `<button class="check ${done?"on":""}" style="--c:var(--${K.k})" data-act="right" aria-label="${rightLabel("topics",t)}">${CHECK}</button>`,
-    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:""}`);
+    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:done||t.status==="hold"?`<div class="meta"><button class="link tdec-add" data-tdec="${esc(t.id)}">＋ 決めたことを書く</button></div>`:""}`);
 }
 function week7(){
   const days=[...Array(7)].map((_,i)=>addDays(today(),i));
@@ -7976,20 +7988,31 @@ function hubMount(){ setTimeout(stickVars,0); const main=$("main"); let el=$("hu
   if(!el||el.parentNode!==main){ el=document.createElement("div"); el.id="hubBar"; main.prepend(el); } else if(main.firstElementChild!==el) main.prepend(el); el.innerHTML=html; }
 document.addEventListener("click",e=>{ const b=e.target.closest("#hubBar [data-hub]"); if(!b) return; haptic("tick"); const k=b.dataset.hub; if(k==="talk"||k==="duo") usToday(); if(k===state.view){ if(k==="talk"||k==="duo") render(); return; } state.hubLast=state.hubLast||{}; state.hubLast[hubOf(k).k]=k; go(k); });
 /* ふたりで決めたこと：話し合いで終わった議題・話し合いメモ・将来の項目に書いた決定を1か所で見返す */
-function viewDecisions(){ const P=[], T=[], N=[];
-  for(const p of state.plans) for(const c of p.checks||[]) if(c.m) P.push({p,c});
-  P.sort((a,b)=>(b.c.mAt||0)-(a.c.mAt||0));
-  for(const t of state.topics||[]) if(t.status==="done") T.push(t);
-  T.sort((a,b)=>String(b.doneDate||"")<String(a.doneDate||"")?-1:1);
-  for(const k of state.talks||[]) if(k.notes&&String(k.notes).trim()) N.push(k);
-  N.sort((a,b)=>a.id<b.id?1:-1);
-  let h=`<div class="dec-sum"><div><b>${P.length}</b><small>将来の決定</small></div><div><b>${T.length}</b><small>話し終えた議題</small></div><div><b>${N.length}</b><small>話し合いの記録</small></div></div>`;
-  const E=state.decEdit, ed=(key,topic,dec,tl,dl)=>`<div class="dec-ed" data-deck="${esc(key)}"><label class="dec2-l">💬 ${tl}</label><textarea class="dec-tp" rows="2" maxlength="200">${esc(topic)}</textarea><label class="dec2-l">✅ ${dl}</label><textarea class="dec-dc" rows="3" maxlength="300" placeholder="ふたりで決めたこと">${esc(dec)}</textarea><div class="edit-actions"><button class="btn primary" data-decsave="${esc(key)}">保存</button><button class="btn" data-decx="1">やめる</button><button class="link" data-decopen="${esc(key)}">元の画面で開く ›</button></div></div>`;
-  h+=`<div class="who" style="margin:0 4px 6px">タップで「話したい内容」と「決めたこと」を分けて直せます</div>`;
-  h+=`<div class="section-label">将来（防災・子育てなど）で決めたこと</div>`+(P.length?`<ul class="list dec-l">${P.slice(0,60).map(({p,c})=>{ const key=`p|${p.id}|${(p.checks||[]).indexOf(c)}`; return E===key?`<li class="item">${ed(key,c.t,c.m,"話したい内容（項目）","決めたこと")}</li>`:`<li class="item"><button class="dec-r" data-dece="${esc(key)}"><span class="tag" style="--tc:var(--future)">${esc((PCATS[p.cat]||PCATS.wish).label)}</span><b>${esc(p.text)} › ${esc(c.t)}</b><span>→ ${esc(c.m)}</span><small>${c.mAt?short(ymd(new Date(c.mAt))):""}${c.mBy?`・${esc(nameOf(c.mBy))}`:""}</small></button></li>`; }).join("")}</ul>`:`<div class="empty">将来の項目のチェックリストで ✎ を押すと、決めたことを書けます</div>`);
-  h+=`<div class="section-label">話し合いで決まったこと</div>`+(T.length?`<ul class="list dec-l">${T.slice(0,60).map(t=>{ const key=`t|${t.id}`; return E===key?`<li class="item">${ed(key,t.text,t.note||"","話したい内容（議題）","決めたこと")}</li>`:`<li class="item"><button class="dec-r" data-dece="${esc(key)}"><b>${esc(t.text)}</b>${t.note?`<span>→ ${esc(t.note)}</span>`:`<span class="dec-none">決めたことは未記入</span>`}<small>${t.doneDate?short(t.doneDate):""}</small></button></li>`; }).join("")}</ul>`:`<div class="empty">「話す」で議題を話し終えると、ここに残ります</div>`);
-  h+=`<div class="section-label">話し合いの記録</div>`+(N.length?`<ul class="list dec-l">${N.slice(0,30).map(k=>`<li class="item"><button class="dec-r" data-dect="${esc(k.id)}"><small>${esc(jpDate(k.id))}</small><span class="dec-n">${esc(String(k.notes).slice(0,200))}${String(k.notes).length>200?"…":""}</span></button></li>`).join("")}</ul>`:`<div class="empty">まだありません</div>`);
-  return h; }
+/* v240: 決めたこと＝話し合いの日ごとに「決めたこと」が並ぶタイムライン。検索・絞り込み・その場で追加 */
+function decEntries(){ const L=[];
+  for(const t of state.topics||[]){ if(t.status==="done"&&t.doneDate) L.push({key:`t|${t.id}`,d:t.doneDate,src:"talk",title:t.text,dec:t.note||"",who:t.updBy||"",ref:t.ref}); else if(t.status==="hold"&&t.talkedOn) L.push({key:`t|${t.id}`,d:t.talkedOn,src:"talk",title:t.text,dec:t.note||"",hold:t.holdUntil}); }
+  for(const p of state.plans) (p.checks||[]).forEach((c,i)=>{ if(c.m) L.push({key:`p|${p.id}|${i}`,d:c.mAt?ymd(new Date(c.mAt)):(p.updatedAt?ymd(new Date(p.updatedAt)):today()),src:"future",cat:(PCATS[p.cat]||PCATS.wish).label,title:`${p.text} › ${c.t}`,dec:c.m,who:c.mBy||""}); });
+  for(const k of state.talks||[]) if(k.notes&&String(k.notes).trim()) L.push({key:`n|${k.id}`,d:k.id,src:"note",title:"話し合いのメモ",dec:String(k.notes)});
+  return L.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0); }
+function viewDecisions(){ const all=decEntries(), F=state.decF||"all", q=String(state.decQ||"").trim().toLowerCase(), E=state.decEdit;
+  const cnt=k=>k==="all"?all.length:k==="todo"?all.filter(x=>x.src==="talk"&&!x.dec).length:all.filter(x=>x.src===k||(k==="talk"&&x.src==="note")).length;
+  const L=all.filter(x=>(F==="all"||(F==="todo"?x.src==="talk"&&!x.dec:F==="talk"?x.src==="talk"||x.src==="note":x.src===F))&&(!q||(x.title+" "+x.dec+" "+(x.cat||"")).toLowerCase().includes(q)));
+  const ed=(key,topic,dec,tl,dl)=>`<div class="dec-ed" data-deck="${esc(key)}"><label class="dec2-l">💬 ${tl}</label><textarea class="dec-tp" rows="2" maxlength="200">${esc(topic)}</textarea><label class="dec2-l">✅ ${dl}</label><textarea class="dec-dc" rows="3" maxlength="600" placeholder="ふたりで決めたこと">${esc(dec)}</textarea><div class="edit-actions"><button class="btn primary" data-decsave="${esc(key)}">保存</button><button class="btn" data-decx="1">やめる</button><button class="link" data-decopen="${esc(key)}">元の画面で開く ›</button></div></div>`;
+  let h=`<details class="dec-add card" ${state.decAddOpen?"open":""}><summary class="dec-add-h">＋ 決めたことを書きとめる</summary><input type="text" id="decAddT" maxlength="100" placeholder="何について（例：夜中の授乳）"><textarea id="decAddD" rows="2" maxlength="600" placeholder="決めたこと（例：平日はりく、休日はのり）"></textarea><div class="edit-actions"><span class="who">今日の話し合いに残ります</span><button class="btn primary" data-decadd="1">追加</button></div></details>`;
+  h+=`<div class="dec-tools"><input type="search" id="decQ" value="${esc(state.decQ||"")}" placeholder="🔍 決めたことをさがす" enterkeyhint="search"><div class="chips">${[["all","すべて"],["talk","話し合い"],["future","将来"],["todo","決めたこと未記入"]].map(([k,l])=>`<button class="chip" data-decf="${k}" aria-pressed="${F===k}">${l} <b>${cnt(k)}</b></button>`).join("")}</div></div>`;
+  if(!L.length) return h+`<div class="empty">${q?"見つかりませんでした":"まだありません。「話す」で議題を話し終えるか、上から書きとめてください"}</div>`;
+  const G={}; for(const x of L) (G[x.d]=G[x.d]||[]).push(x);
+  for(const d of Object.keys(G).sort().reverse()){ const xs=G[d], n=xs.filter(x=>x.dec).length;
+    h+=`<section class="dec-day"><div class="dec-dh"><b>${jpDate(d)}</b><span>${d===today()?"今日":dDiff(today(),d)===1?"昨日":""}</span><em>決めたこと ${n}件</em>${xs.some(x=>x.src!=="future")?`<button class="link" data-dect="${d}">この日の話し合い ›</button>`:""}</div><ul class="dec-ul">${xs.map(x=>{
+      if(E===x.key&&x.src!=="note"){ const [k]=x.key.split("|"); return `<li>${ed(x.key,k==="p"?(x.title.split(" › ").slice(1).join(" › ")):x.title,x.dec,k==="p"?"話したい内容（項目）":"話したい内容（議題）","決めたこと")}</li>`; }
+      return `<li><button class="dec-c ${x.dec?"":"empty"} src-${x.src}" ${x.src==="note"?`data-dect="${x.d}"`:`data-dece="${esc(x.key)}"`}><span class="dec-t">${x.src==="future"?`<i class="tag" style="--tc:var(--future)">${esc(x.cat)}</i>`:x.src==="note"?`<i class="tag" style="--tc:var(--talk)">メモ</i>`:""}${esc(x.title)}${x.hold?`<i class="tag tc-talk">🕒 ${short(x.hold)}まで対応</i>`:""}</span>${x.dec?`<span class="dec-d">${esc(x.dec.length>220?x.dec.slice(0,220)+"…":x.dec)}</span>`:`<span class="dec-w">＋ 決めたことを書く</span>`}${x.who?`<small>${esc(nameOf(x.who))}</small>`:""}</button></li>`; }).join("")}</ul></section>`; }
+  return h+hint("カードをタップで「話したい内容」と「決めたこと」を直せます。日付の「この日の話し合い」でその日の話す画面へ"); }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-tdec]"); if(!b) return; e.stopPropagation(); e.preventDefault(); openEdit("topics",b.dataset.tdec); setTimeout(()=>{ const n=$("editNote"); if(n){ n.focus(); n.scrollIntoView({block:"center"}); } },80); },true);
+document.addEventListener("click",e=>{ const f=e.target.closest("#main [data-decf]"); if(f){ state.decF=f.dataset.decf; state.decEdit=null; render(); return; }
+  const a=e.target.closest("#main [data-decadd]"); if(a){ const t=(($("decAddT")||{}).value||"").trim(), d=(($("decAddD")||{}).value||"").trim(); if(!d){ toast("決めたことを書いてください"); return; } const now=Date.now(), id=newId(), td=today();
+    dset("topics",id,{text:(t||"その場で決めたこと").slice(0,120),who:"both",status:"done",doneAt:now,doneDate:td,note:d.slice(0,600),ref:null,by:state.me||null,createdAt:now,updatedAt:now}); haptic("done"); toast("決めたことを残しました",()=>ddel("topics",id),"done"); render(); return; } });
+document.addEventListener("toggle",e=>{ if(e.target&&e.target.classList&&e.target.classList.contains("dec-add")) state.decAddOpen=e.target.open; },true);
+document.addEventListener("input",e=>{ if(e.target&&e.target.id==="decQ"){ state.decQ=e.target.value; clearTimeout(window.__decQ); window.__decQ=setTimeout(()=>{ const pos=e.target.selectionStart; render(); const n=$("decQ"); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} } },250); } });
 document.addEventListener("click",e=>{
   const de=e.target.closest("#main [data-dece]"); if(de){ state.decEdit=de.dataset.dece; render(); setTimeout(()=>{ const t=document.querySelector("#main .dec-ed .dec-dc"); if(t){ t.focus(); t.scrollIntoView({block:"center"}); } },60); return; }
   if(e.target.closest("#main [data-decx]")){ state.decEdit=null; render(); return; }
