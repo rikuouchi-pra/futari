@@ -656,6 +656,16 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .tr-e{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 8%,transparent)}.tr-e input[type=text],.tr-e textarea{width:100%;box-sizing:border-box}
 .tr-kinds{display:flex;gap:6px;flex-wrap:wrap}.tr-kinds button{all:unset;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--ink) 6%,transparent);border:2px solid transparent}
 .tr-add{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.tr-add button{all:unset;cursor:pointer;padding:8px 12px;border-radius:99px;font-size:13px;font-weight:700;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+/* v247: 将来の計画のタイル */
+.fut-soon .fs-t{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ft-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ft-tile{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:18px;background:var(--glass,var(--surface));border:var(--glassb,1px solid var(--line));min-height:128px;transition:transform .12s}
+.ft-tile:active{transform:scale(.97)}.ft-tile.mine{background:color-mix(in srgb,var(--ink) 4%,var(--surface))}
+.ft-top{display:flex;justify-content:space-between;align-items:center}.ft-ic{font-size:26px;line-height:1}.ft-ring{width:34px;height:34px}
+.ft-l{font-size:15px;font-weight:800}.ft-s{font-size:11.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+.ft-n{display:flex;align-items:baseline;gap:3px}.ft-n b{font-size:20px;font-weight:800;color:var(--future);font-variant-numeric:tabular-nums}.ft-n small{font-size:11px;color:var(--muted)}
+.futbar button i{font-style:normal;font-size:10px;margin-left:4px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff}
+.pg-dayl{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px}.pg-dayl>span:first-child{font-size:26px}.pg-dayl b{display:block}.pg-dayl small{font-size:12px;color:var(--muted)}.pg-dayl .chev{margin-left:auto;font-size:20px;color:var(--muted)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2014,7 +2024,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 /* ================= constants & utils ================= */
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
-const TITLES={baby:"妊娠・出産",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来の計画",
+const TITLES={baby:"子ども・子育て",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来の計画",
   habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"お金",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
@@ -2029,7 +2039,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="246";
+const APP_VERSION="247";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2047,6 +2057,10 @@ const PCATS={
   kids:{label:"子育てでやりたいこと",layer:"family",dateL:"目標日",doneL:"叶った",tpl:["お宮参り","家族写真を撮る","動物園に行く","絵本の読み聞かせ"]}
 };
 const FCATS=Object.keys(PCATS);
+/* v247: 階層の整理。「将来の計画」＝ふたりの楽しみと備え（やりたい・旅行・記念日・防災・🔒じぶん）、子育ての3つは「子ども」タブへまとめる */
+const FUT_CATS=["wish","travel","anniv","bousai"], FAM_CATS=["prep","care","kids"];
+const futCur=()=>state.view==="baby"&&FAM_CATS.includes(state.babyTab)?state.babyTab:state.fut;
+const BABY_TABS=[["preg","🤰 妊娠・出産"],["day","🕰 1日の流れ"],["prep","🍼 準備"],["care","🧺 お世話の分担"],["kids","🎈 やりたいこと"]];
 const HORIZON=[["soon","近いうち"],["year","今年中"],["someday","いつか"]];
 const TLEVEL={high:{l:"大",name:"すごく困る",tc:"tc-danger",o:0},mid:{l:"中",name:"困る",tc:"tc-trouble",o:1},low:{l:"小",name:"ちょっと",tc:"tc-muted",o:2}};
 const CLEVEL={important:{l:"重要",tc:"tc-danger",o:0},warn:{l:"注意",tc:"tc-amber",o:1},info:{l:"お知らせ",tc:"tc-blue",o:2}};
@@ -2672,36 +2686,31 @@ function checkOp(act,i){
   if(allDone){ x.done=true; x.doneAt=Date.now(); celebrate(); toast(`チェックが全部済んだので「${(x.text||"").slice(0,20)}」を${(PCATS[x.cat]||PCATS.wish).doneL||"完了"}にしました`,()=>{ x.done=false; dupd("plans",x.id,{done:false,doneAt:null}); render(); },"done"); }
 }
 
-function viewFuture(){ if(state.fut==="_mine") return `<button class="link" data-act="futBack" style="margin:8px 2px">‹ 将来の一覧へ</button><div class="lock" style="margin:4px 2px 0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>`+viewList("wish","pitems"); return state.fut?viewFutCat(state.fut):viewFutHome(); }
+function futBarHTML(k){ return `<nav class="hubbar futbar" aria-label="将来の計画のカテゴリ"><button data-act="futhome" class="${k?"":"on"}">一覧</button>${FUT_CATS.map(c=>`<button data-fc="${c}" class="${c===k?"on":""}">${(PDESC[c]||["",""])[0]} ${esc(PCATS[c].label)}</button>`).join("")}<button data-fc="_mine" class="${k==="_mine"?"on":""}">🔒 じぶん</button></nav>`; }
+function viewFuture(){ if(state.fut==="_mine") return futBarHTML("_mine")+`<div class="lock" style="margin:4px 2px 0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>`+viewList("wish","pitems"); return state.fut?viewFutCat(state.fut):viewFutHome(); }
 function viewFutHome(){
-  const P=state.plans; let h="";
+  const P=state.plans; let h=futBarHTML(null);
   const annivs=P.filter(p=>p.cat==="anniv"&&p.date).map(p=>({p,a:annivInfo(p)})).sort((x,y)=>x.a.days-y.a.days);
-  const soon=P.filter(planSoon).sort((a,b)=>a.date<b.date?-1:1);
-  /* 期限が近いもの・次の記念日を1枚にまとめる */
-  const up=[...soon.slice(0,3).map(p=>`<button class="fut-up" data-fc="${p.cat}"><span>${PDESC[p.cat]?PDESC[p.cat][0]:"・"}</span><b>${esc(p.text)}</b><span class="due ${p.date<today()?"over":""}">${dayLabel(p.date)}</span></button>`),
-    ...(annivs[0]&&annivs[0].a.days<=30?[`<button class="fut-up" data-fc="anniv"><span>🎂</span><b>${esc(annivs[0].p.text)}</b><span class="due today">${annivs[0].a.days===0?"今日！":`あと${annivs[0].a.days}日`}</span></button>`]:[])];
-  if(up.length) h+=`<section class="card fut-soon"><div class="who">30日以内</div>${up.join("")}${soon.length>3?`<div class="who">ほか ${soon.length-3}件</div>`:""}</section>`;
-  for(const [lk,ln] of LAYERS){
-    h+=`<div class="section-label">${ln}</div><div class="fut-list">`;
-    for(const k of FCATS.filter(k=>PCATS[k].layer===lk)){
-      const C=PCATS[k], D=PDESC[k]||["・",""], list=P.filter(p=>p.cat===k), done=list.filter(planDone).length, open=list.length-done;
-      let sub=D[1];
-      if(k==="anniv"){ const n=annivs[0]; if(n) sub=`次：${esc(n.p.text)}（あと${n.a.days}日）`; }
-      else { const dated=list.filter(p=>p.date&&!p.done).sort((a,b)=>a.date<b.date?-1:1)[0]; if(dated) sub=`次：${esc(dated.text)}（${dayLabel(dated.date)}）`; }
-      const pct=list.length&&k!=="anniv"?Math.round(done/list.length*100):-1;
-      h+=`<button class="fut-row" data-fc="${k}"><span class="fr-ic">${D[0]}</span><span class="fr-b"><b>${C.label}</b><small>${sub}</small>${pct>=0?`<span class="prog"><i style="width:${pct}%"></i></span>`:""}</span><span class="fr-n">${k==="anniv"?`${list.length}<small>件</small>`:list.length?`${done}<small>/${list.length}</small>`:`<small>未登録</small>`}</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button>`;
-    }
-    h+=`</div>`;
-  }
-  { const W=state.pitems.filter(i=>i.list==="wish"), o=W.filter(i=>!i.done).length;
-    h+=`<div class="section-label">${LKI} じぶんだけ</div><div class="fut-list"><button class="fut-row" data-fc="_mine"><span class="fr-ic">🔒</span><span class="fr-b"><b>じぶんのやりたいこと</b><small>${esc(nameOf(myRole()))}だけに見えます</small></span><span class="fr-n">${o}<small>件</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></div>`; }
-  return h+hint("右の数字は「済んだ数／全部」");
+  const soon=P.filter(p=>planSoon(p)&&!FAM_CATS.includes(p.cat)).sort((a,b)=>a.date<b.date?-1:1);
+  const up=[...soon.slice(0,4).map(p=>({d:p.date,html:`<button class="fut-up" data-fc="${p.cat}"><span>${PDESC[p.cat]?PDESC[p.cat][0]:"・"}</span><b>${esc(p.text)}</b><span class="due ${p.date<today()?"over":p.date===today()?"today":""}">${dayLabel(p.date)}</span></button>`})),
+    ...(annivs[0]&&annivs[0].a.days<=30?[{d:annivs[0].a.occ,html:`<button class="fut-up" data-fc="anniv"><span>🎂</span><b>${esc(annivs[0].p.text)}</b><span class="due today">${annivs[0].a.days===0?"今日！":`あと${annivs[0].a.days}日`}</span></button>`}]:[])].sort((a,b)=>a.d<b.d?-1:1).map(x=>x.html);
+  h+=`<section class="card fut-soon"><div class="fs-t"><b>📅 30日以内</b>${soon.length>4?`<span class="who">ほか ${soon.length-4}件</span>`:""}</div>${up.length?up.join(""):`<div class="who">30日以内に期限・予定のあるものはありません</div>`}</section>`;
+  const ring=(pct,c)=>{ const R=15,C=2*Math.PI*R; return `<svg class="ft-ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="${R}" fill="none" stroke="var(--line)" stroke-width="4"/><circle cx="18" cy="18" r="${R}" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 18 18)"/></svg>`; };
+  const tile=k=>{ const C=PCATS[k], D=PDESC[k]||["・",""], list=P.filter(p=>p.cat===k), done=list.filter(planDone).length;
+    let sub=D[1];
+    if(k==="anniv"){ const n=annivs[0]; if(n) sub=`次：${esc(n.p.text)}（あと${n.a.days}日）`; }
+    else { const dated=list.filter(p=>p.date&&!p.done).sort((a,b)=>a.date<b.date?-1:1)[0]; if(dated) sub=`次：${esc(dated.text)}（${dayLabel(dated.date)}）`; else { const o=list.find(p=>!p.done); if(o) sub=esc(o.text); } }
+    const num=k==="anniv"?`<b>${list.length}</b><small>件</small>`:list.length?`<b>${done}</b><small>/${list.length} ${esc(C.doneL)}</small>`:`<small>まだありません</small>`;
+    return `<button class="ft-tile" data-fc="${k}"><span class="ft-top"><span class="ft-ic">${D[0]}</span>${k!=="anniv"&&list.length?ring(done/list.length,"var(--future)"):""}</span><b class="ft-l">${esc(C.label)}</b><small class="ft-s">${sub}</small><span class="ft-n">${num}</span></button>`; };
+  h+=`<div class="section-label">ふたりの楽しみ</div><div class="ft-grid">${["wish","travel","anniv"].map(tile).join("")}${(()=>{ const W=state.pitems.filter(i=>i.list==="wish"), o=W.filter(i=>!i.done).length; return `<button class="ft-tile mine" data-fc="_mine"><span class="ft-top"><span class="ft-ic">🔒</span></span><b class="ft-l">じぶんのやりたいこと</b><small class="ft-s">${esc(nameOf(myRole()))}だけに見えます</small><span class="ft-n"><b>${o}</b><small>件</small></span></button>`; })()}</div>`;
+  h+=`<div class="section-label">備える</div><div class="ft-grid">${tile("bousai")}<button class="ft-tile" data-go2="baby"><span class="ft-top"><span class="ft-ic">👶</span></span><b class="ft-l">子ども・子育て</b><small class="ft-s">妊娠・出産、1日の流れ、準備、お世話の分担は「子ども」タブへ</small><span class="ft-n"><small>開く ›</small></span></button></div>`;
+  return h+hint("カテゴリをタップで開く・上の帯で切り替え");
 }
 function viewFutCat(k){
   const C=PCATS[k]; let list=byWho(state.plans.filter(p=>p.cat===k));
   if(k==="wish"&&state.futFilter!=="all") list=list.filter(p=>(p.kind==="buy"?"buy":"do")===state.futFilter);
   /* v209: カテゴリは上に固定したチップで直接切り替え（‹ › と「一覧」ボタンを統合） */
-  let h=`<nav class="hubbar futbar" aria-label="将来のカテゴリ"><button data-act="futhome">一覧</button>${FCATS.map(c=>`<button data-fc="${c}" class="${c===k?"on":""}">${(PDESC[c]||["",""])[0]} ${esc(PCATS[c].label)}</button>`).join("")}</nav>
+  let h=`${FAM_CATS.includes(k)?"":futBarHTML(k)}
     ${k==="wish"?`<div class="tools">${seg("wfilter",state.futFilter,[["all","すべて"],["do","やりたい"],["buy","欲しい"]])}</div>`:""}${whoBar()}`;
   const have=new Set(state.plans.filter(p=>p.cat===k).flatMap(p=>[p.text,TPL_ALIAS[p.text]]));
   const tpl=C.tpl.filter(t=>!have.has(t)), all=state.plans.filter(p=>p.cat===k), dn=all.filter(planDone).length, D=PDESC[k]||["・",""];
@@ -2724,7 +2733,7 @@ function viewFutCat(k){
   if(!list.length) body=`<div class="empty">まだありません。上の欄に書くか、よくある項目から選んでください</div>`;
   return h+body+hint(`項目をタップ：メモ・チェックリスト・結果の記録／○で${C.doneL}`);
 }
-function shiftFut(n){ const i=FCATS.indexOf(state.fut); state.fut=FCATS[(i+n+FCATS.length)%FCATS.length]; state.futFilter="all"; render(n>0?40:-40); }
+function shiftFut(n){ const Q=[...FUT_CATS,"_mine"], i=Q.indexOf(state.fut); state.fut=Q[(i+n+Q.length)%Q.length]; state.futFilter="all"; render(n>0?40:-40); }
 /* v192: 候補ごとの具体的な中身（追加するとメモとチェックリストに入る）。金額・期限は2026年秋時点の一般的な制度。最新は市・勤務先・産院に確認 */
 const TPLX={
  "妊娠届・母子健康手帳":{m:"刈谷市は妊娠届を出すと母子健康手帳と妊婦健診の受診票がもらえる。マイナンバーと本人確認書類を持っていく",c:["妊娠届を市に出す","母子健康手帳を受け取る","妊婦健診の受診票（補助券）を受け取る","妊婦健診の予定をカレンダーに入れる","会社に妊娠を伝える時期を決める"]},
@@ -3634,7 +3643,13 @@ document.addEventListener("click",e=>{ if(state.view!=="baby") return; const t=e
   else if(k==="reset"){ const all={...kdData()}; const prev=JSON.parse(JSON.stringify(all)); if(all[st]){ const o={...all[st]}; delete o[pat]; all[st]=o; } state.kakei={...(state.kakei||{}),kidDay:all}; kakeiPut({kidDay:all,updatedAt:Date.now()}).catch(()=>{}); state.kdEdit=null; toast("ひな形に戻しました",()=>{ state.kakei={...(state.kakei||{}),kidDay:prev}; kakeiPut({kidDay:prev,updatedAt:Date.now()}).catch(()=>{}); render(); }); render(); } },true);
 document.addEventListener("change",e=>{ if(state.view!=="baby") return; const f=e.target.dataset&&e.target.dataset.kdf; if(!f) return; const st=state.kdSt||kdStageNow(), hasWe=!!(KD_T[st]||{}).we||!!(kdData()[st]||{}).we, pat=hasWe?(state.kdPat||"wd"):"wd", L=kdList(st,pat).map(x=>({...x})), i=Number(e.target.dataset.i); if(!L[i]) return;
   const v=e.target.value.trim(); if(f==="t") L[i].t=(v||"予定").slice(0,40); else if(v) L[i][f]=v; const x=L[i], sorted=L.slice().sort((a,b)=>a.s<b.s?-1:1); kdSave(st,pat,sorted); state.kdEdit=sorted.indexOf(x); render(); });
-function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+kidDayHTML()+hint("母子手帳や病院の説明が優先です。ここの時期は一般的な目安です");
+function babyBarHTML(){ const t=state.babyTab||"preg"; return `<nav class="hubbar futbar" aria-label="子どもの中">${BABY_TABS.map(([k,l])=>`<button data-btab="${k}" class="${k===t?"on":""}">${l}${FAM_CATS.includes(k)?(()=>{ const L=state.plans.filter(p=>p.cat===k), o=L.filter(p=>!planDone(p)).length; return o?`<i>${o}</i>`:""; })():""}</button>`).join("")}</nav>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-btab]"); if(!b) return; e.stopPropagation(); state.babyTab=b.dataset.btab; state.editing=null; state.kdEdit=null; haptic("tick"); window.scrollTo(0,0); render(); },true);
+function viewBaby(){ const bt=state.babyTab||"preg";
+  if(bt==="day") return babyBarHTML()+kidDayHTML()+hint("一般的な例をもとに、ふたりの働き方に合わせて直してください。ふたりで共有されます");
+  if(FAM_CATS.includes(bt)) return babyBarHTML()+viewFutCat(bt);
+  return babyBarHTML()+viewBabyPreg(); }
+function viewBabyPreg(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+hint("母子手帳や病院の説明が優先です。ここの時期は一般的な目安です");
   const n=pgNow(), L=pgItems(), W=Math.max(0,Math.min(48,state.pgW!=null?state.pgW:n.w)), ph=pgPh(Math.min(Math.max(n.w,0),48)), pct=Math.max(0,Math.min(100,n.d/280*100));
   const born=P.born, wkLbl=n.d<0?"妊娠前":n.w>=42||born?`生まれて${Math.max(0,dDiff(today(),born||P.due))}日`:`妊娠${n.w}週${n.r}日`;
   let h=`<section class="card pg-hero" style="--pc:${ph[3]}"><div class="pg-ring" style="--p:${pct}"><div><b>${n.w<0?"-":Math.min(n.w,42)}</b><small>週</small></div></div>
@@ -3659,7 +3674,7 @@ function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+kidDayHT
   const ck=L.filter(o=>o.ck), cd=ck.filter(o=>o.done).length;
   h+=`<details class="card pg-sec" style="--c:#7fb3e0"><summary><span class="pg-dot"></span><b>🩺 妊婦健診</b><small>標準 ${ck.length}回</small><span class="pg-pr"><i style="width:${cd/ck.length*100}%"></i></span><em>${cd}/${ck.length}</em></summary><p class="who" style="margin:4px 2px">目安：23週までは4週ごと、24〜35週は2週ごと、36週からは毎週。病院の指示に合わせて日付を入れてください。</p><ul class="pg-l">${ck.map(o=>pgItemHTML(o,state.pgOpen===o.id&&!(o.a<=W&&o.b>=W))).join("")}</ul></details>`;
   setTimeout(()=>{ const c=$("pgCols"), x=c&&c.querySelector(".pg-col.sel"); if(c&&x) c.scrollLeft=x.offsetLeft-c.clientWidth/2+x.offsetWidth/2; },0);
-  h+=kidDayHTML();
+  h+=`<button class="card pg-dayl" data-btab="day"><span>🕰</span><span><b>生まれてからの1日の流れ</b><small>新生児〜小学生まで、だれが何をするか前もって決めておく</small></span><span class="chev">›</span></button>`;
   return h+hint("時期は一般的な目安です。病院・母子手帳・市役所の案内を優先してください。ここで入れた内容はふたりで共有されます"); }
 function pgCurItem(id){ return pgItems().find(o=>o.id===id); }
 document.addEventListener("click",async e=>{ if(state.view!=="baby") return; const t=e.target;
@@ -4579,7 +4594,7 @@ function renderChrome(){ applyTabOrder();
   { const pc=pendingChecks().length, bc=$("b-chk"), bh=$("b-home"); bc.hidden=!pc; bc.textContent=pc; if(bh){ bh.hidden=!pc; bh.textContent=pc; } $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
   setTimeout(tbarRender,0);
   const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?null: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
-  $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"じぶんのやりたいこと":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
+  $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"やりたいこと🔒":PCATS[state.fut].label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
   document.querySelectorAll(".rtab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v||(v==="caution"&&b.dataset.v==="trouble"))));
@@ -4600,7 +4615,7 @@ function hintsApply(v){ let hs={}; try{ hs=JSON.parse(localStorage.getItem("fl_h
   if(!off&&!hs[v]){ hintSess.add(v); hs[v]=1; try{ localStorage.setItem("fl_hints",JSON.stringify(hs)); }catch(_){} } }
 function render(anim){
   state.dirty=false;
-  if(VIEW_ALIAS[state.view]) state.view=VIEW_ALIAS[state.view]; if(state.view==="pwish"){ state.view="future"; state.fut="_mine"; }
+  if(VIEW_ALIAS[state.view]) state.view=VIEW_ALIAS[state.view]; if(state.view==="future"&&FAM_CATS.includes(state.fut)){ state.babyTab=state.fut; state.fut=null; state.view="baby"; } /* v247 */ if(state.view==="pwish"){ state.view="future"; state.fut="_mine"; }
   const v=state.view;
   renderChrome();
   if(v==="diary"){
@@ -4909,7 +4924,7 @@ $("main").addEventListener("click",e=>{
   const rd=e.target.closest("[data-rdate]"); if(rd){ state.refDate=rd.dataset.rdate; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   const pv=e.target.closest("[data-pv]"); if(pv){ state.paint.val=pv.dataset.pv; document.querySelectorAll("[data-pv]").forEach(x=>x.setAttribute("aria-pressed",String(x===pv))); return; }
   const fc=e.target.closest("[data-fc]"); if(fc){ state.fut=fc.dataset.fc; state.futFilter="all"; window.scrollTo(0,0); render(40); return; }
-  const tp=e.target.closest("[data-tpl]"); if(tp){ tplNew(state.fut,tp.dataset.tpl); toast(`「${tp.dataset.tpl}」を追加しました`); return; }
+  const tp=e.target.closest("[data-tpl]"); if(tp){ tplNew(futCur(),tp.dataset.tpl); toast(`「${tp.dataset.tpl}」を追加しました`); return; }
   const fav=e.target.closest("[data-favorite]"); if(fav){ const [c,id]=fav.dataset.favorite.split("|"); toggleItemFavorite(c,id); return; }
   const fa=e.target.closest("[data-favadd]"); if(fa){ const f=itemFavorites()[Number(fa.dataset.favadd)]; if(!f) return; const c=f.private?"pitems":"items", it=baseItem(f.list,f.text,today(),"",f.who); if(f.private){delete it.who;delete it.by;} dset(c,newId(),it); toast(`「${f.text}」を今日に追加しました`); return; }
   const fr=e.target.closest("[data-favremove]"); if(fr){ const old=itemFavorites(), a=old.slice(), i=Number(fr.dataset.favremove);a.splice(i,1);saveItemFavorites(a).then(ok=>{if(ok){render();toast("お気に入りから外しました",()=>saveItemFavorites(old).then(()=>render()));}});return; }
@@ -4954,7 +4969,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
   else if(a==="pconf"||a==="pconfsave") confOp(a,b.dataset.r);
   else if(a==="tplFill"){ const ed=state.editing, x=ed&&state.plans.find(p=>p.id===ed.id), X=x&&tplX(x.text); if(X){ const have=new Set((x.checks||[]).map(c=>c.t)), checks=[...(x.checks||[]),...X.c.filter(t=>!have.has(t)).map(t=>({t,done:false}))], memo=x.memo||X.m; x.checks=checks; x.memo=memo; dupd("plans",x.id,{checks,memo}); render(); toast("具体的なやることを入れました"); } }
-  else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(state.fut,t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
+  else if(a==="futAdd"){ const el=$("futAddIn"), t=el?el.value.trim():""; if(!t){ if(el) el.focus(); return; } newPlan(futCur(),t); el.value=""; toast(`「${t.slice(0,20)}」を追加しました`); }
   else if(a==="fprev"||a==="fnext") shiftFut(a==="fprev"?-1:1);
   else if(a==="qaSave") qaSave(b.dataset.qd);
   else if(a==="qaRe"){ state.qaRe=true; qaEnsure(b.dataset.qd,true).then(()=>{ state.qaRe=false; }); }
@@ -5171,7 +5186,7 @@ $("main").addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.id==="replyText"){e.preventDefault();sendReply();return;}
   if(e.key==="Enter"&&e.target.id==="ckText"){e.preventDefault();checkOp("ckadd");return;}
   if(e.key==="Enter"&&e.target.id==="pLogText"){e.preventDefault();planLogOp("plogadd");return;}
-  if(e.key==="Enter"&&e.target.id==="futAddIn"){e.preventDefault();const t=e.target.value.trim(); if(t){ newPlan(state.fut,t); e.target.value=""; toast(`「${t.slice(0,20)}」を追加しました`); } return;}
+  if(e.key==="Enter"&&e.target.id==="futAddIn"){e.preventDefault();const t=e.target.value.trim(); if(t){ newPlan(futCur(),t); e.target.value=""; toast(`「${t.slice(0,20)}」を追加しました`); } return;}
   if(e.key==="Enter"&&e.target.dataset.centry){e.preventDefault();sendComment(e.target.dataset.centry);return;}
   if(e.key==="Enter"&&e.target.id==="editText"&&e.target.tagName==="INPUT"){e.preventDefault();saveEdit();}
   if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.ramtp){ e.preventDefault(); e.target.blur(); }
@@ -7242,6 +7257,7 @@ function openSheet(kind){
   if(state.pendShared){ S.who=state.pendShared; S.evPriv=false; S.bshare=false; state.pendShared=null; }
   else if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
+  if(v==="baby"&&FAM_CATS.includes(state.babyTab)&&!kind){ S.kind="plan"; S.pcat=state.babyTab; S.phz="soon"; } /* v247 */
   if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.trep="none"; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
   S.date= (v==="cal"||v==="psched")?state.sel:v==="duo"?(state.duoDate||today()):(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
@@ -8322,7 +8338,7 @@ const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["duo","ふたりの予定"],["dec","決めたこと"],["trouble","気になること"]]},
-  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","将来の計画"],["baby","妊娠・出産"],["money","お金"]]},
+  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","将来の計画"],["baby","子ども"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
