@@ -499,6 +499,8 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .ck-mb,.ck-add{all:unset;cursor:pointer;display:block;font-size:12px;line-height:1.4}.ck-add{color:var(--accent);font-weight:600;margin-top:2px}
 .pconf{display:flex;flex-direction:column;gap:8px;margin:4px 0 8px}.pc-r{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:var(--surface)}.pc-r .check{flex:none;margin-top:2px}.pc-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.pc-b .edit-row{margin:0}
 .tag.pc-ok{--tc:var(--future);color:var(--future)}
+/* v232 */
+.qa-aq{display:block;font-size:11px;color:var(--muted);margin:2px 0}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1872,7 +1874,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="231";
+const APP_VERSION="232";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6482,13 +6484,14 @@ function qaPopMaybe(){ if(prefs.qaPop==="off"||state.qaPopOpen||prefs.onboarded!
   if(!m&&prefs.qaPopDay!==d&&!state.qaPopShown) qaPopOpen(); else if(m&&o&&prefs.qaSeen!==d) qaPopOpen(); }
 function qaPopHTML(){ const d=today(), me=myRole(), ot=otherRole(), m=qaAns(d,me), o=qaAns(d,ot);
   return `<div class="qpop-card" role="dialog" aria-label="今日の質問"><div class="qpop-k">💬 今日の質問</div><div class="qpop-q">${esc(qaQ(d))}</div>
-    ${m?`<div class="qa-as"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span><p>${esc(m.t)}</p></div><div class="qa-a ${ot} ${o?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${o?`<p>${esc(o.t)}</p>`:`<p class="qa-wait">${LKI}<span>回答待ち</span></p>`}</div></div>
+    ${m?`<div class="qa-as"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span>${qaAnsQ(m,d)}<p>${esc(m.t)}</p></div><div class="qa-a ${ot} ${o?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${o?`${qaAnsQ(o,d)}<p>${esc(o.t)}</p>`:`<p class="qa-wait">${LKI}<span>回答待ち</span></p>`}</div></div>
       <div class="qpop-b">${o?`<button class="btn" data-qp="topic">話し合いの議題にする</button>`:""}<button class="btn primary" data-qp="close">閉じる</button></div>`
     :`<textarea id="qpIn" rows="3" maxlength="300" placeholder="思ったままに一言でも"></textarea><div class="who">${o?`${esc(nameOf(ot))}は答えました。答えると見られます 👀`:`${esc(nameOf(ot))}はまだです。ふたりとも答えると見せ合えます`}</div>
       <div class="qpop-b"><button class="btn" data-qp="later">あとで</button><button class="btn primary" data-qp="save">答える</button></div>`}</div>`; }
 function qaPopOpen(){ state.qaPopShown=true; state.qaPopOpen=true;
   /* v222: ポップアップで見せた質問をその日の質問として固定（あとでAIの質問に差し替わって、ホームの表示と食い違うのを防ぐ） */
-  { const d=today(), x=qaOf(d); if(state.qaGen!==d&&!(x&&x.q)){ const q=qaQ(d), now=Date.now(); if(x){ x.q=q; dupd("qa",d,{q,gen:"pop"}); } else { state.qa.push({id:d,q,gen:"pop"}); dset("qa",d,{q,gen:"pop",createdAt:now,updatedAt:now}); } } } let el=$("qpop"); if(!el){ el=document.createElement("div"); el.id="qpop"; el.className="qpop"; document.body.appendChild(el);
+  /* v232: 先に決まった質問（相手の端末で決まったものも）に合わせる */
+  { const d=today(), x=qaOf(d); if(!(x&&x.q)) qaClaim(d,qaQ(d),"pop").then(q=>{ const el=$("qpop"), qe=el&&el.querySelector(".qpop-q"); if(qe&&qe.textContent!==q) qe.textContent=q; render(); }); } let el=$("qpop"); if(!el){ el=document.createElement("div"); el.id="qpop"; el.className="qpop"; document.body.appendChild(el);
     el.addEventListener("click",async e=>{ if(e.target===el){ qaPopClose(true); return; } const b=e.target.closest("[data-qp]"); if(!b) return; const a=b.dataset.qp, d=today();
       if(a==="later") qaPopClose(true); else if(a==="close") qaPopClose(false); else if(a==="topic"){ addTopicText(`今日の質問「${qaQ(d)}」の答えについて`); qaPopClose(false); }
       else if(a==="save"){ const v=($("qpIn")||{}).value||""; if(!v.trim()){ toast("ひとことでも書いてください"); return; } await qaSave(d,v); if(qaAns(d,otherRole())) celebrate(); el.innerHTML=qaPopHTML(); } }); }
@@ -7296,6 +7299,15 @@ function fGo(t){ if(t==="@add"){ openSheet(); return; } if(t==="@me"||t==="@us")
 const QA_BANK=["最近、相手にしてもらってうれしかったことは？","今週いちばん笑ったことは？","ふたりで行ってみたい場所は？","最近ちょっと疲れたなと思った瞬間は？","子どもの頃に好きだった食べ物は？","相手の「ここが好き」を1つ教えて","次のふたり休みにしたいことは？","最近ハマっていることは？","家の中で1つだけ変えられるなら何を変える？","1年後のふたりはどうなっていたい？","最近、家事でしんどいと感じるものは？","相手に今いちばん伝えたい「ありがとう」は？","今の仕事でうれしかったことは？","もし1週間休みがあったら何をする？","ふたりの思い出で、ふと思い出すものは？","最近買ってよかったものは？","今食べたいものは？","自分の小さな自慢を1つ","相手にもっと頼りたいことは？","週末の理想の過ごし方は？","今年中にやりたいことを1つ","最近気になっているニュースや話題は？","寝る前にしている習慣は？","相手の料理で好きなものは？","今の家で好きな場所は？","最近ちょっとイラッとしたこと（相手以外で）は？","ふたりで始めてみたい習慣は？","元気がないときにしてほしいことは？","結婚してよかったと思う瞬間は？","行ってみたい国は？","今月がんばったことは？","最近見た動画・番組で面白かったものは？","10年後に住んでいたい場所は？","お金を気にせず1つ買えるなら？","相手の意外な一面だと思うところは？","ふたりの家のルールで気に入っているものは？","最近よく眠れている？眠れない理由はある？","夜勤・早番のとき、してもらうと助かることは？","今の悩みを一言で言うと？","明日の自分に一言","相手に挑戦してみてほしいことは？","好きな季節とその理由は？","ふたりで観たい映画やドラマは？","最近自分をほめたいことは？","家族や友だちで最近話したい人は？","休みの日に絶対したいことは？","相手に聞いてみたかったことは？","来月の楽しみは？","ふたりの記念日にしたいことは？","今いちばんほしい時間は？"];
 const qaOf=d=>state.qa.find(q=>q.id===d)||null;
 function qaQ(d){ const x=qaOf(d); if(x&&x.q) return x.q; const n=Math.round(parse(d)/864e5); return QA_BANK[((n*7)%QA_BANK.length+QA_BANK.length)%QA_BANK.length]; }
+/* v232: 今日の質問は「先に決まったもの」を使う。ふたりの端末で別々に決めて食い違う（答えと質問が合わない）のを防ぐ */
+async function qaClaim(d,q,gen){ const r=colRef("qa"); let out=q;
+  if(r){ try{ const ref=r.doc(d);
+      if(db&&typeof db.runTransaction==="function") out=await db.runTransaction(async tx=>{ const sn=await tx.get(ref), cur=sn.exists?sn.data():null; if(cur&&cur.q) return cur.q; tx.set(ref,{q,gen:gen||"pop",updatedAt:Date.now(),...(cur?{}:{createdAt:Date.now()})},{merge:true}); return q; });
+      else { const sn=await ref.get(), cur=sn.exists?sn.data():null; if(cur&&cur.q) out=cur.q; else await ref.set({q,gen:gen||"pop",updatedAt:Date.now()},{merge:true}); } }
+    catch(e){ out=(qaOf(d)||{}).q||q; } }
+  else { const x0=qaOf(d); if(x0&&x0.q) out=x0.q; else if(x0){ dupd("qa",d,{q,gen:gen||"pop"}); } else dset("qa",d,{q,gen:gen||"pop",createdAt:Date.now(),updatedAt:Date.now()}); }
+  const x=qaOf(d); if(x) x.q=out; else state.qa.push({id:d,q:out,gen:gen||"pop"}); return out; }
+const qaAnsQ=(a,d)=>a&&a.q&&a.q!==qaQ(d)?`<small class="qa-aq">「${esc(a.q)}」への答え</small>`:"";
 const qaAns=(d,r)=>{ const x=qaOf(d), a=x&&x["a_"+r]; return a&&a.t?a:null; };
 function qaCardHTML(d,cls){
   const me=myRole(), ot=otherRole(), mine=qaAns(d,me), his=qaAns(d,ot), ed=state.qaEdit===d, isT=d===today(), X=qaOf(d);
@@ -7305,15 +7317,15 @@ function qaCardHTML(d,cls){
   if(isT&&!mine&&!his&&aiText()&&!gen) b+=`<button class="link qa-re" data-act="qaRe" data-qd="${d}">別の質問にする</button>`;
   if(!mine||ed) b+=`<textarea id="qaIn" rows="2" maxlength="300" placeholder="思ったままに一言でも">${esc(mine?mine.t:"")}</textarea>
     <div class="qa-f"><span class="who">${his?`${esc(nameOf(ot))}は回答済み・答えると見られます`:`${esc(nameOf(ot))}はまだです`}</span><button class="btn primary" data-act="qaSave" data-qd="${d}">${mine?"書き直す":"答える"}</button></div>`;
-  else b+=`<div class="qa-as"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span><p>${esc(mine.t)}</p><button class="link" data-act="qaEdit" data-qd="${d}">書き直す</button></div>
-    <div class="qa-a ${ot} ${his?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${his?`<p>${esc(his.t)}</p>`:`<p class="qa-wait">${LKI}<span>回答待ち</span></p>`}</div></div>`;
+  else b+=`<div class="qa-as"><div class="qa-a ${me}"><span class="qa-n">${esc(nameOf(me))}</span>${qaAnsQ(mine,d)}<p>${esc(mine.t)}</p><button class="link" data-act="qaEdit" data-qd="${d}">書き直す</button></div>
+    <div class="qa-a ${ot} ${his?"":"wait"}"><span class="qa-n">${esc(nameOf(ot))}</span>${his?`${qaAnsQ(his,d)}<p>${esc(his.t)}</p>`:`<p class="qa-wait">${LKI}<span>回答待ち</span></p>`}</div></div>`;
   return `<section class="qa ${cls||""}" data-qa="${d}"><div class="qa-h"><span class="qa-k">${isT?"今日の質問":`${short(d)}の質問`}</span>${mine&&his?`<button class="link" data-act="qaTopic" data-qd="${d}">話し合いの議題にする</button>`:""}</div>${b}</section>`;
 }
 async function qaSave(d,val){
   const v=String(val!=null?val:(($("qaIn")||{}).value||"")).trim(); if(!v){ toast("ひとことでも書いてください"); return; }
-  const r=myRole(), a={t:v,at:Date.now()}, x=qaOf(d);
+  const r=myRole(), x0=qaOf(d), q=x0&&x0.q?x0.q:await qaClaim(d,qaQ(d),"ans"), a={t:v,at:Date.now(),q}, x=qaOf(d);
   state.qaEdit=null;
-  if(x){ x["a_"+r]=a; dupd("qa",d,{["a_"+r]:a}); } else { const doc={q:qaQ(d),["a_"+r]:a,createdAt:Date.now(),updatedAt:Date.now()}; state.qa.push({id:d,...doc}); dset("qa",d,doc); }
+  if(x){ x["a_"+r]=a; } else state.qa.push({id:d,q,["a_"+r]:a}); dupd("qa",d,{["a_"+r]:a});
   haptic("done"); toast(qaAns(d,otherRole())?`${nameOf(otherRole())}の答えが見られるようになりました`:"答えました。相手が答えると見られます"); render();
 }
 function qaPastHTML(){
@@ -7978,7 +7990,7 @@ async function qaEnsure(d,force){
 ${up.length||an.length?`- 参考（使っても使わなくてもよい）：${[...up,...an].join("、")}\n`:""}- 最近の質問と似たものは避ける：${past.join(" / ")||"なし"}
 JSONだけを返す：{"q":"質問"}`,{modelTier:"quick"});
     const q=String(r&&r.q||"").trim().slice(0,60); const cur=qaOf(d);
-    if(q&&!(cur&&(cur.a_h||cur.a_w))&&(!cur||!cur.q||force)){ if(cur){ cur.q=q; dupd("qa",d,{q,gen:"ai"}); } else { state.qa.push({id:d,q,gen:"ai"}); dset("qa",d,{q,gen:"ai",createdAt:Date.now(),updatedAt:Date.now()}); } }
+    if(q&&!(cur&&(cur.a_h||cur.a_w))&&(!cur||!cur.q||force)){ if(force&&cur&&cur.q){ cur.q=q; dupd("qa",d,{q,gen:"ai"}); } else await qaClaim(d,q,"ai"); }
   }catch(e){}
   state.qaGen=null; render(); if(state.qaPopOpen&&typeof qaPopHTML==="function"){ const el=$("qpop"); if(el&&el.querySelector(".qpop-q")) el.querySelector(".qpop-q").textContent=qaQ(d); } }
 
