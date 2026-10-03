@@ -687,6 +687,14 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .arcard .chev{font-size:20px;color:var(--muted)}
 .arlink{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:18px;background:var(--glass,var(--surface));border:var(--glassb,1px solid var(--line))}
 .arlink .arc-b small{font-size:12px;color:var(--muted)}.arlink .chev{font-size:20px;color:var(--muted)}
+/* v253: 背景写真の上でも見出し・説明が読めるように（カードの外の文字に、すりガラスの下地） */
+html.has-bgphoto #main :is(.section-label,.subttl,p.hint,.tt-more>summary,.tt-dup>summary,.habdet>summary,.dec-dh,.arsec-h,.duo-h){background:color-mix(in srgb,var(--surface) 78%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:12px;padding:6px 10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--line) 60%,transparent) inset}
+html.has-bgphoto #main :is(.section-label,.subttl,.tt-more>summary,.tt-dup>summary){width:fit-content;max-width:100%;box-sizing:border-box}
+html.has-bgphoto #main .subttl{width:auto;display:flex}
+html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:var(--ink)}
+.sm-empty{padding:10px 12px!important;font-size:13px}
+/* 終日の予定は点線ではなく、予定と同じ色の帯に */
+.gchip.duo-all{border:0;border-left:3px solid var(--cal);background:color-mix(in srgb,var(--cal) 18%,var(--surface));font-weight:700;border-radius:8px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2060,7 +2068,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="252";
+const APP_VERSION="253";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3813,7 +3821,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act
   document.addEventListener("touchmove",e=>{ if(G) e.preventDefault(); },{passive:false,capture:true}); }
 function duoTrayHTML(d){ const {day,none}=duoTray(d);
   return `<div class="duo-tray"><div class="subttl"><span>この日のやること・買い物（時間なし ${day.length}）</span><button class="link" data-act="duoAdd">＋ 追加</button></div>
-    ${day.length?`<ul class="list">${day.map(duoRow).join("")}</ul>`:`<div class="empty" style="padding:12px">この日の時間なしのやること・買い物はありません</div>`}
+    ${day.length?`<ul class="list">${day.map(duoRow).join("")}</ul>`:`<div class="empty sm-empty">時間の決まっていないやること・買い物はありません</div>`}
     ${none.length?`<details class="tt-more" ${state.duoMore?"open":""} data-duo-more="1"><summary>期限なしのやること・買い物（${none.length}）</summary><ul class="list">${none.map(duoRow).join("")}</ul></details>`:""}
     ${state.duoPick?`<div class="banner" style="background:color-mix(in srgb,var(--accent) 14%,var(--surface))">「${esc(((state.items.find(x=>x.id===state.duoPick.id))||{}).text||"")}」を入れる時間を、下のタイムテーブルの入れたい人の列でタップ　<button class="link" data-act="duoPickX">やめる</button></div>`:""}</div>`; }
 document.addEventListener("toggle",e=>{ if(e.target.matches&&e.target.matches("[data-duo-more]")) state.duoMore=e.target.open; },true);
