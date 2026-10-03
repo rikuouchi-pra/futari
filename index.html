@@ -1912,7 +1912,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="236";
+const APP_VERSION="237";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2496,7 +2496,9 @@ function checkOp(act,i){
   else if(act==="ck") checks[i].done=!checks[i].done;
   else if(act==="ckdel") checks.splice(i,1);
   else { const inp=$("ckText"), t=inp.value.trim(); if(!t) return; checks.push({t,done:false}); inp.value=""; inp.focus(); }
-  x.checks=checks; dupd("plans",x.id,{checks}); $("ckList").innerHTML=checksHTML(x);
+  x.checks=checks; const allDone=checks.length>0&&checks.every(c=>c.done)&&act==="ck"&&!x.done&&x.cat!=="anniv";
+  dupd("plans",x.id,allDone?{checks,done:true,doneAt:Date.now()}:{checks}); $("ckList").innerHTML=checksHTML(x);
+  if(allDone){ x.done=true; x.doneAt=Date.now(); celebrate(); toast(`チェックが全部済んだので「${(x.text||"").slice(0,20)}」を${(PCATS[x.cat]||PCATS.wish).doneL||"完了"}にしました`,()=>{ x.done=false; dupd("plans",x.id,{done:false,doneAt:null}); render(); },"done"); }
 }
 
 function viewFuture(){ if(state.fut==="_mine") return `<button class="link" data-act="futBack" style="margin:8px 2px">‹ 将来の一覧へ</button><div class="lock" style="margin:4px 2px 0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>`+viewList("wish","pitems"); return state.fut?viewFutCat(state.fut):viewFutHome(); }
@@ -2547,7 +2549,7 @@ function viewFutCat(k){
   const open=list.filter(p=>!p.done), done=list.filter(p=>p.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   const soon=open.filter(planSoon).sort((a,b)=>a.date<b.date?-1:1), rest=open.filter(p=>!planSoon(p));
   const byH=hz=>rest.filter(p=>(p.horizon||"someday")===hz).sort((a,b)=>((a.date||"9")<(b.date||"9")?-1:(a.date||"9")>(b.date||"9")?1:b.createdAt-a.createdAt));
-  let body=sect("30日以内",soon)+HORIZON.map(([hz,l])=>sect(l,byH(hz))).join("")+sect(C.doneL,done);
+  let body=sect("30日以内",soon)+HORIZON.map(([hz,l])=>sect(l,byH(hz))).join("")+(done.length?`<details class="habdet"><summary class="section-label"><span>${C.doneL}（${done.length}）</span></summary><ul class="list">${done.map(p=>planRow(p)).join("")}</ul></details>`:"");
   if(!list.length) body=`<div class="empty">まだありません。上の欄に書くか、よくある項目から選んでください</div>`;
   return h+body+hint(`項目をタップ：メモ・チェックリスト・結果の記録／○で${C.doneL}`);
 }
@@ -2725,7 +2727,7 @@ function viewTalk(){
     if(later.length) h+=`<div class="subttl">30日以内の将来</div><ul class="list">${later.map(p=>planRow(p,true)).join("")}</ul>`;
   }
   h+=qaPastHTML();
-  if(isT) h+=autoCardHTML("topic"); /* v214: 定期的に話すこと */
+  h+=autoCardHTML("topic"); /* v214: 定期的に話すこと（v237：どの日でも表示） */
   return h+`<p class="hint">議題：→で話した・←で削除・タップでメモ／やることにする<br>確認の項目はその場で編集できます・日付の帯←→で過去の話し合い<br>上から↓で議題を追加・←→でタブ切替</p>`;
 }
 function makeTopicFrom(c,x){
@@ -6011,6 +6013,8 @@ function arLoad(){
 }
 let AR=null; const arRules=()=>AR||(AR=arLoad());
 let arSaveT=null;
+/* v237: キーの並び順に左右されない比較（Firestoreは保存時にキーの順番が変わるため、毎回「変わった」と判定して書き込み続けていた） */
+const stableJSON=o=>JSON.stringify(o,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,x)=>(a[x]=v[x],a),{}):v);
 function arSave(){ prefs.autoRules=JSON.stringify(arRules()); clearTimeout(arSaveT); arSaveT=setTimeout(()=>savePrefs(true),400); autoCook(); }
 /* v207: 条件にごみの日・天気・降水確率・気温・ふたり休みを追加。天気は予報がある日（約2週間先）だけ判定し、分からない日は null（何もしない） */
 const AR_WXC=[["晴","晴れ"],["曇","くもり"],["雨","雨"],["雪","雪"]];
@@ -6053,7 +6057,7 @@ function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); win
       const id=`auto_${r.id}`, ex=state.chores.find(b=>b.id===id), ar={mode:r.mode||"or",groups:r.groups||[],off:Number(r.off||0)}, want=!!r.on;
       if(want&&!ex){ dset("chores",id,{text:r.name,every:1,target:"ar",ar,who:r.who||"both",pts:1,log:{},auto:r.id,autoBy:myRole(),by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); }
       else if(!want&&ex&&ex.auto) ddel("chores",id);
-      else if(want&&ex&&ex.auto&&ex.target==="ar"&&(JSON.stringify(ex.ar)!==JSON.stringify(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
+      else if(want&&ex&&ex.auto&&ex.target==="ar"&&(stableJSON(ex.ar)!==stableJSON(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
       continue; }
     if(r.kind==="topic"){ /* v214: 議題は「次の1回」だけ入れる。話し終えたら次の回。話していない前回分があれば増やさない */
       const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done");
@@ -6128,6 +6132,17 @@ function arRuleHTML(r,ri){
     <div class="ardesc"><b>いまの条件：</b>${esc(arDesc(r))}<br><b>次の対象日：</b>${next.length?next.map(d=>esc(dayLabel(d))).join("・"):"60日以内になし"}</div>
     <div style="text-align:right"><button type="button" class="btn danger" data-ar="delr" data-ri="${ri}">このルールを削除</button></div></div>`;
 }
+/* v237: 話すことの「くり返し」（定期的に話すこと）。保存すると「条件で自動」の議題ルールになり、次の1回が自動で入る */
+const TREP=[["none","1回だけ"],["wd","毎週"],["dom","毎月"],["off","ふたり休み"],["off1","ふたり休みの前日"]];
+function topicRepHTML(){ const S=state.sheet, base=S.date||today(), wd=S.twd!=null?S.twd:parse(base).getDay(), dm=S.tdom||String(parse(base).getDate());
+  return `<div class="edit-row"><span class="lbl">くり返し</span><div class="chips">${TREP.map(([k,l])=>`<button type="button" class="chip" data-trep="${k}" aria-pressed="${(S.trep||"none")===k}">${l}</button>`).join("")}</div></div>
+  ${S.trep==="wd"?`<div class="edit-row"><span class="lbl"></span><div class="chips">${AR_WD.map(([n,l])=>`<button type="button" class="chip" data-twd="${n}" aria-pressed="${Number(wd)===n}">${l}</button>`).join("")}</div></div>`:""}
+  ${S.trep==="dom"?`<div class="edit-row"><span class="lbl"></span><select id="sTdom">${[...Array(31)].map((_,i)=>String(i+1)).concat(["末"]).map(v=>`<option value="${v}" ${dm===v?"selected":""}>${v==="末"?"月末":v+"日"}</option>`).join("")}</select><span class="who">に話す</span></div>`:""}
+  ${S.trep&&S.trep!=="none"?`<div class="who" style="margin:0 0 6px 2px">条件に合う次の日に議題として自動で入り、話し終えるとその次の回が入ります</div>`:""}`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#sheet [data-trep],#sheet [data-twd]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const S=state.sheet; if(b.dataset.trep){ S.trep=b.dataset.trep; if(S.trep==="wd"&&S.twd==null) S.twd=parse(S.date||today()).getDay(); } else S.twd=Number(b.dataset.twd); const v=$("input")?$("input").value:""; renderSheet(); if($("input")) $("input").value=v; },true);
+function topicRepRule(text){ const S=state.sheet, k=S.trep; if(!k||k==="none") return null; const dm=($("sTdom")&&$("sTdom").value)||S.tdom||String(parse(S.date||today()).getDate());
+  const c=k==="wd"?{t:"wd",v:[S.twd!=null?S.twd:parse(S.date||today()).getDay()],not:false}:k==="dom"?{t:"dom",v:[dm],not:false}:{t:"off",not:false};
+  return {id:newId().slice(-6),name:String(text).slice(0,40),s:"",e:"",on:true,mode:"or",kind:"topic",who:"both",off:k==="off1"?-1:0,groups:[{mode:"and",conds:[c]}]}; }
 function autoCardHTML(only){
   const R=arRules(), L=R.map((r,i)=>[r,i]).filter(([r])=>only?r.kind===only:r.kind!=="topic");
   if(only==="topic") return `<details class="chart autocard" ${state.autoOpenT?"open":""} data-aopen="T"><summary><b>定期的に話すこと</b><span class="who">　${L.filter(([r])=>r.on).length}件</span></summary>
@@ -6904,7 +6919,7 @@ function openSheet(kind){
   if(state.pendShared){ S.who=state.pendShared; S.evPriv=false; S.bshare=false; state.pendShared=null; }
   else if(state.pendPrivate||v==="cal"||v==="psched"){ S.who="priv"; S.evPriv=true; S.bshare=false; state.pendPrivate=false; }
   else if(!S.who) S.who=prefs.whoF!=="all"?prefs.whoF:"both"; if(!S.htarget) S.htarget="7";
-  if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
+  if(v==="future"&&state.fut!=="_mine"){ S.pcat=state.fut||"wish"; S.pkind=state.futFilter==="buy"?"buy":"do"; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; } S.budget=""; S.amount=""; S.trep="none"; S.mcat=MCATS[S.mcat]&&!CAT_LEGACY[S.mcat]?S.mcat:"food"; S.rkind=S.rkind||"fixed"; S.rday=S.rday||"27";
   S.date= (v==="cal"||v==="psched")?state.sel:v==="duo"?(state.duoDate||today()):(v==="money"?today():""); S.time=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendTime?state.pendTime:""; state.pendTime=""; S.end=(S.kind==="block"||S.kind==="task"||S.kind==="event")&&state.pendEnd?state.pendEnd:""; state.pendEnd=""; S.brep=S.brep||"none"; S.bcol=S.bcol||"cal";
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
@@ -6925,7 +6940,7 @@ function renderSheet(){
   const budRow=`<div class="edit-row"><span class="lbl">予算</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="任意（円）" style="width:130px"></div>`;
   if(S.kind==="topic"){ const tn=talkNext0(), tq=[["次の話し合い",tn],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]].filter((x,i,a)=>i===0||x[1]!==tn);
     o=`<div class="edit-row"><span class="lbl">話す日</span><div class="chips">${tq.map(([l,s2])=>`<button type="button" class="chip" data-qd="${s2}" aria-pressed="${S.date===s2}">${l}${l==="次の話し合い"?`（${s2===t?"今日":short(s2)}）`:""}</button>`).join("")}</div></div>
-    <div class="edit-row"><span class="lbl"></span><input type="date" id="sDate" value="${esc(S.date)}" aria-label="話す日">${S.date?'<button type="button" class="link" data-sx="clear">指定なし</button>':'<span class="who">指定なし＝次の話し合いで</span>'}</div>`; }
+    <div class="edit-row"><span class="lbl"></span><input type="date" id="sDate" value="${esc(S.date)}" aria-label="話す日">${S.date?'<button type="button" class="link" data-sx="clear">指定なし</button>':'<span class="who">指定なし＝次の話し合いで</span>'}</div>${topicRepHTML()}`; }
   else if(S.kind==="gevent"){ const st=S.time||"09:00", en=S.end||hhmm(Math.min(tmin(st)+60,1439));
     o=`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||state.sel)}" aria-label="日付"></div>
       <div class="edit-row"><span class="lbl">時間</span><input type="time" id="sTime" value="${esc(st)}" aria-label="開始"><span class="lbl">〜</span><input type="time" id="sEnd" value="${esc(en)}" aria-label="終了"></div>
@@ -7034,6 +7049,7 @@ $("form").addEventListener("submit",e=>{
     if(S.bshare&&S.brep==="none"){ dset("events",newId(),{text:t,date:d,start:st,end:en,who:myRole(),by:state.me||null,role:myRole(),fromMe:true,createdAt:now,updatedAt:now}); $("input").value=""; toast(`ふたりの予定に「${t}」を追加しました（${nameOf(otherRole())}にも表示）`); if(state.view==="cal"){ closeSheet(); return; } closeSheet(); /* v140: 追加したら閉じる */ return; }
     dset("blocks",newId(),{text:t,date:d,from:S.brep==="none"?null:d,start:st,end:en,rep:S.brep,color:S.bcol,createdAt:now,updatedAt:now}); }
   else if(S.kind==="habit"||S.kind==="rtask"){ if(S.kind==="rtask"&&String(S.htarget)==="7") S.htarget="wd"; const hv={text:t,entryKind:S.kind==="habit"?"habit":"task",...(S.kind==="habit"?{showInTimetable:!!S.hTimetable}:{}),target:tgtVal(S.htarget),log:{},createdAt:now,updatedAt:now}; if(S.htarget==="wd"||S.htarget==="mn"){ hv.wd=(S.hwd||[]).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(S.htarget==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } } if(S.htarget==="iv") hv.every=Number(($("sEvery")&&$("sEvery").value)||S.hevery||30)||30; if(S.htarget==="mo") Object.assign(hv,moRead("sMo")); { const st=($("sTime")&&$("sTime").value)||S.time||"", en=($("sEnd")&&$("sEnd").value)||S.end||""; if(st){ hv.time=st; if(en&&tmin(en)>tmin(st)) hv.dur=tmin(en)-tmin(st); } } if(S.kind==="rtask"&&S.who!=="priv") dset("items",newId(),{...hv,list:"rtask",who:S.who||"both",by:state.me||null}); else dset("habits",newId(),hv); if(String(S.htarget)!=="7") setTimeout(()=>toast(S.kind==="habit"?"習慣に追加しました":"繰り返しタスクを追加しました"),300); }
+  else if(S.kind==="topic"&&S.trep&&S.trep!=="none"){ const r=topicRepRule(t); AR=[...arRules(),r]; arSave(); state.autoOpenT=true; toast(`定期的に話すことに追加：${t.slice(0,20)}（${arDesc(r)}）`,()=>{ AR=arRules().filter(q=>q.id!==r.id); arSave(); render(); },"done"); S.trep="none"; }
   else if(S.kind==="topic") dset("topics",newId(),{text:t,who:S.who,status:"open",note:"",ref:null,...(S.date?{on:S.date}:{}),by:state.me||null,createdAt:now,updatedAt:now});
   else if(S.kind==="trouble") dset("troubles",newId(),{text:t,detail:"",level:S.tlevel,status:"open",assignee:null,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,replies:[]});
   else if(S.kind==="caution"){ const c={text:t,level:S.clevel,who:S.who,by:state.me||null,createdAt:now,updatedAt:now,ack:{}}; if(S.date) c.date=S.date; dset("cautions",newId(),c); }
@@ -8358,7 +8374,7 @@ function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},vi
 function usageFeat(k,n){ try{ const u=usgTouch(); u.feats[k]=(u.feats[k]||0)+(n==null?1:n); }catch(e){} }
 let usgSheet=null;
 function usageAct(c,op){ try{ if(USG_SKIP.has(c)) return; const u=usgTouch(); u.acts[op]=(u.acts[op]||0)+1; if(op==="add"&&usgSheet) usgSheet.adds++; const k=PRIVATE.has(c)||c==="priv"?"🔒じぶん":c; u.cols[k]=(u.cols[k]||0)+1; }catch(e){} }
-function usageErr(m){ const u=usgTouch(); u.errs++; m=`${String(m).slice(0,110)} [${state.view||"?"}・v${APP_VERSION}]`; if(u.errMsg.length<8&&!u.errMsg.includes(m)) u.errMsg.push(m); }
+function usageErr(m){ if(/^Script error\.?\s*@?\s*$/.test(String(m||"").trim())) return; const u=usgTouch(); u.errs++; m=`${String(m).slice(0,110)} [${state.view||"?"}・v${APP_VERSION}]`; if(u.errMsg.length<8&&!u.errMsg.includes(m)) u.errMsg.push(m); }
 function usageFlush(force){ const u=UG; if(!u||!u.dirty) return; u.dirty=false; const {dirty,...doc}=u; try{ store.set("futari.usage",JSON.stringify(u)); }catch(e){}
   const r=colRef("usage"); if(r&&!state.guest&&!state.needCode){ r.doc(u.id).set(doc).catch(()=>{}); } else { state.usage=state.usage.filter(x=>x.id!==u.id); state.usage.push({...doc}); } }
 { const act=()=>{ usgLastAct=Date.now(); }; ["pointerdown","keydown","scroll","touchstart"].forEach(ev=>addEventListener(ev,act,{passive:true,capture:true}));
@@ -8462,7 +8478,7 @@ function usageReport(days){ const {A,from,t}=usgAgg(days), R=["h","w"], top=(o,n
   s+=`\n## 操作したデータの種類\n`; for(const r of R) s+=`- ${nameOf(r)}：${top(A[r].cols,10).map(([k,v])=>`${k} ${v}`).join("・")||"-"}\n`;
   const E=R.flatMap(r=>A[r].errMsg.map(m=>`${nameOf(r)}：${m}`)); s+=`\n## エラー\n${E.length?E.map(x=>"- "+x).join("\n"):"なし"}\n`;
   s+=`\n## 設定（${nameOf(myRole())}の画面）\n- メニュー：${prefs.nav}・並び ${tabOrder().map(k=>TITLES[k]).join(">")}・フリックのキー ${prefs.flickKeys}\n- 開いたときの画面：${prefs.startView}・ホームの並び ${homeOrder().filter(k=>!homeHidden().has(k)).join(",")}・非表示 ${[...homeHidden()].join(",")||"なし"}\n- AI：${prefs.ai}・今日の質問ポップアップ：${prefs.qaPop}\n`;
-  s+=`\n## 未解決の不具合報告\n${state.bugs.filter(b=>!["fixed","rejected"].includes(b.status)).map(b=>`- [${b.status}] ${String(b.text).slice(0,100)}`).join("\n")||"なし"}\n`;
+  s+=`\n## 未解決の不具合報告\n${state.bugs.map(b=>typeof bugDisplay==="function"?bugDisplay(b):b).filter(b=>!["fixed","rejected"].includes(b.status)).map(b=>`- [${b.status}] ${String(b.text).slice(0,100)}`).join("\n")||"なし"}\n`;
   return s; }
 async function usageSaveReport(auto){ const days=auto?7:Number(state.usagePer)||7, id=today()+(auto?"":"_"+new Date().toTimeString().slice(0,5).replace(":","")), doc={at:Date.now(),role:myRole(),days,auto:!!auto,ver:APP_VERSION,text:usageReport(days)};
   const r=colRef("usageReports"); if(r) await r.doc(id).set(doc).catch(()=>{}); else { state.usageReports=state.usageReports.filter(x=>x.id!==id); state.usageReports.push({id,...doc}); }
