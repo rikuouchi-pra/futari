@@ -511,6 +511,31 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .ck-ed.dec2 .btn{align-self:flex-end;min-width:88px}
 .ck.on .ck-t>.ck-mb,.ck.on .ck-t>.ck-add,.ck.on .ck-t .ck-mb *{text-decoration:none}
 .ck .ck-t{text-decoration:none!important}.ck.on .ck-t{color:inherit}.ck.on .ck-t>.ck-txt{text-decoration:line-through;color:var(--muted)}
+/* v235: 妊娠・出産 */
+.pg-home{display:flex!important;flex-direction:row!important;gap:12px;align-items:center;cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 24%,var(--surface)),var(--surface))}.pg-ring.sm{width:62px;height:62px}.pg-ring.sm>div{width:48px;height:48px}.pg-ring.sm b{font-size:18px}
+.pg-setup{text-align:center}.pg-hero0{font-size:44px}.pg-setup .seg{justify-content:center;margin:8px auto}.pg-setup .edit-row{margin-top:8px}
+.pg-hero{display:flex!important;flex-direction:row!important;gap:16px;align-items:center;position:relative;background:linear-gradient(135deg,color-mix(in srgb,var(--pc) 28%,var(--surface)),var(--surface))}
+.pg-ring{--p:0;flex:none;width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--pc) calc(var(--p)*1%),color-mix(in srgb,var(--line) 70%,transparent) 0);display:grid;place-items:center}
+.pg-ring>div{width:72px;height:72px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center}.pg-ring b{font-size:28px;line-height:1}.pg-ring small{font-size:11px;color:var(--muted)}
+.pg-hd{display:flex;flex-direction:column;gap:3px;min-width:0}.pg-hd>b{font-size:20px}.pg-hd em{font-style:normal;font-weight:800;font-size:18px;color:var(--pc)}.pg-ph{align-self:flex-start;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--pc);color:#222}
+.pg-cfg{position:absolute;top:10px;right:12px;font-size:12px}
+.pg-tlh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.pg-phs{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}.pg-phs span{flex:none!important;padding:1px 8px!important}.pg-phs span{font-size:10px;text-align:center;border-radius:4px;background:color-mix(in srgb,var(--c) 45%,transparent);padding:1px 0;white-space:nowrap;overflow:hidden}
+.pg-cols{display:flex;gap:2px;overflow-x:auto;padding:2px 0 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.pg-col{all:unset;flex:none;width:30px;height:86px;border-radius:8px;background:color-mix(in srgb,var(--c) 22%,transparent);display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;box-sizing:border-box;cursor:pointer;position:relative;scroll-snap-align:center}
+.pg-col.now{box-shadow:inset 0 0 0 2px var(--danger)}.pg-col.sel{background:var(--c);transform:translateY(-2px)}.pg-col.sel .pg-wn{color:#222;font-weight:800}
+.pg-wn{font-size:10px;color:var(--muted);height:12px}.pg-bar{display:flex;flex-direction:column;gap:2px;align-items:center}.pg-bar i{width:14px;height:6px;border-radius:3px;background:color-mix(in srgb,var(--ink) 55%,transparent)}.pg-bar i.m{width:6px;border-radius:50%}.pg-bar i.d{background:var(--task)}
+.pg-ck{font-size:11px;position:absolute;bottom:16px}.pg-star{font-size:13px;color:#f2b400;position:absolute;bottom:2px}.pg-ok{font-size:11px;color:var(--task);position:absolute;bottom:2px}
+.pg-wkh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pg-wkh>div{flex:1;text-align:center;display:flex;flex-direction:column}.pg-wkh b{font-size:18px}.pg-wkh small{color:var(--muted);font-size:12px}
+.pg-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.pg-it{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}.pg-it .check{flex:none}
+.pg-tx{all:unset;flex:1;min-width:0;display:grid;grid-template-columns:auto 1fr;gap:1px 6px;cursor:pointer}.pg-k{grid-row:1/3;font-size:16px}.pg-tx b{font-size:14px;line-height:1.35}.pg-tx small{grid-column:2;font-size:11px;color:var(--muted)}
+.pg-it.done .pg-tx b{text-decoration:line-through;color:var(--muted)}.pg-it.late .pg-tx small{color:var(--danger)}.pg-it.mile .pg-tx b{font-weight:600;color:var(--muted)}
+.pg-ed{padding:8px 4px 10px;display:flex;flex-direction:column;gap:6px}.pg-ed textarea{width:100%;box-sizing:border-box}.pg-ed .edit-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pg-add{margin-top:8px}
+.pg-sec>summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer}.pg-sec>summary::-webkit-details-marker{display:none}.pg-dot{width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}.pg-sec summary small{color:var(--muted);font-size:11px}
+.pg-pr{flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden}.pg-pr i{display:block;height:100%;background:var(--c)}.pg-sec summary em{font-style:normal;font-size:12px;color:var(--muted)}
+.pg-sec[open]>summary{margin-bottom:6px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1869,7 +1894,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 /* ================= constants & utils ================= */
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
-const TITLES={duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
+const TITLES={baby:"妊娠・出産",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来",
   habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"出費",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
@@ -1884,7 +1909,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="234";
+const APP_VERSION="235";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3298,6 +3323,113 @@ document.addEventListener("click",e=>{
     if(state.duoPick){ const it=state.items.find(x=>x.id===state.duoPick.id); state.duoPick=null; if(it){ const role=cl.dataset.duoRole, tm=`${String(hr).padStart(2,"0")}:${mi?"30":"00"}`, ch={...duoTimeCh(it,null,tm),due:g.dataset.duoDate}; if(getWho(it)!=="both"&&getWho(it)!==role) ch.who=role; const u=snapUndo("items",it.id); Object.assign(it,ch); dupd("items",it.id,ch); haptic("done"); toast(`「${it.text}」を${tm}に入れました`,u,"done"); } render(); return; }
     state.pendShared=cl.dataset.duoRole; state.pendTime=`${String(hr).padStart(2,"0")}:00`; state.pendEnd=`${String(Math.min(23,hr+1)).padStart(2,"0")}:00`; state.duoDate=g.dataset.duoDate; openSheet("event"); return; } });
 /* v217: ふたりのタイムテーブルは「ふたり」タブの中の「ふたりの予定」に */
+/* v235: 妊娠・出産のスケジュール（予定日から週ごとに、やること・健診・手続きを並べる。ふたりで共有） */
+const PG_PH=[["初期",0,15,"#f4a6b7"],["中期",16,27,"#f6c27a"],["後期",28,36,"#8fc9a8"],["正期産",37,41,"#7fb3e0"],["産後",42,48,"#b9a7e6"]];
+const PG_T=[
+ ["p_test",4,6,"妊娠検査薬・産婦人科を受診","w","受診"],
+ ["p_heart",6,8,"心拍の確認","both","目安"],
+ ["p_due",8,10,"出産予定日が決まる","both","目安"],
+ ["p_boshi",8,11,"妊娠届・母子手帳と健診の補助券を受け取る（市役所）","w","手続き"],
+ ["p_kyufu",8,12,"妊婦のための支援給付（1回目）を申請","w","お金"],
+ ["p_hosp",8,14,"出産する病院を決めて分娩予約","both","準備"],
+ ["p_sato",10,20,"里帰り出産するか決める（するなら先の病院へ連絡）","both","相談"],
+ ["p_work_w",12,16,"職場に報告（"+"のり"+"）","w","仕事"],
+ ["p_work_h",12,20,"職場に報告・育休の相談（"+"りく"+"）","h","仕事"],
+ ["p_money",12,20,"出産費用・家計・保険の見直し","both","お金"],
+ ["p_antei",16,16,"安定期に入るころ（体調を見て用事や旅行）","both","目安"],
+ ["p_taido",18,22,"胎動を感じるころ","w","目安"],
+ ["p_class",20,30,"両親学級・母親学級に参加","both","準備"],
+ ["p_name",20,36,"名前の候補を考える","both","相談"],
+ ["p_leave",24,30,"育休の期間を決めて申請（産後パパ育休も）","h","仕事"],
+ ["p_room",24,32,"赤ちゃんのスペース・部屋の準備","both","準備"],
+ ["p_goods",24,32,"ベビー用品をそろえる（肌着・ベビーカー・チャイルドシートなど）","both","買い物"],
+ ["p_seat",28,34,"チャイルドシートを車に取り付け","h","準備"],
+ ["p_bag",32,36,"入院バッグの準備","both","準備"],
+ ["p_route",32,36,"陣痛のときの連絡手順・病院までの移動（陣痛タクシー登録）","both","準備"],
+ ["p_sanzen",34,34,"産前休業スタート（予定日の6週前）","w","仕事"],
+ ["p_house",34,37,"産後の家事分担・作り置きや宅配の準備","h","準備"],
+ ["p_birth",40,40,"出産予定日","both","目安"],
+ ["a_birth",40,42,"出生届を出す（生まれて14日以内）","h","手続き"],
+ ["a_jidou",40,42,"児童手当を申請（生まれた翌日から15日以内）","h","手続き"],
+ ["a_hoken",40,42,"赤ちゃんの健康保険・医療証の手続き","h","手続き"],
+ ["a_money",40,44,"出産育児一時金・出産手当金・育休の給付の手続き","both","お金"],
+ ["a_kyufu",40,44,"妊婦のための支援給付（2回目）を申請","w","お金"],
+ ["a_papa",40,48,"産後パパ育休（生まれてから8週以内に最大4週）","h","仕事"],
+ ["a_1m",44,44,"1か月健診","both","受診"]];
+const PG_CK=[8,12,16,20,24,26,28,30,32,34,36,37,38,39];
+const PG_KIND={受診:"🩺",目安:"📍",手続き:"📝",お金:"💴",準備:"🧺",相談:"💬",仕事:"💼",買い物:"🛍️",自分で:"✏️"};
+const pgD=()=>(state.kakei||{}).preg||null;
+function pgLmp(){ const P=pgD(); return P&&P.due?addDays(P.due,-280):null; }
+const pgDate=w=>addDays(pgLmp(),Math.round(w*7));
+function pgNow(){ const L=pgLmp(); if(!L) return null; const n=dDiff(today(),L); return {d:n,w:Math.floor(n/7),r:((n%7)+7)%7,left:dDiff(pgD().due,today())}; }
+const pgPh=w=>PG_PH.find(p=>w>=p[1]&&w<=p[2])||PG_PH[PG_PH.length-1];
+function pgItems(){ const P=pgD()||{}, I=P.items||{}, out=PG_T.filter(t=>!(P.off||[]).includes(t[0])).map(([id,a,b,t,who,k])=>({id,a,b,t:id==="p_work_w"?`職場に報告（${nameOf("w")}）`:id==="p_work_h"?`職場に報告・育休の相談（${nameOf("h")}）`:t,who,k,...(I[id]||{})}));
+  for(const c of P.custom||[]) out.push({id:c.id,a:c.w,b:c.w,t:c.t,who:c.who||"both",k:"自分で",cu:1,...(I[c.id]||{})});
+  for(const w of PG_CK){ const id="ck_"+w; out.push({id,a:w,b:w,t:`妊婦健診（${w}週）`,who:"w",k:"受診",ck:1,...(I[id]||{})}); }
+  return out.map(o=>({...o,due:o.date||addDays(pgDate(o.b),6)})).sort((x,y)=>x.a-y.a||x.b-y.b); }
+async function pgSave(P,msg){ const prev=pgD(); state.kakei={...(state.kakei||{}),preg:P,updatedAt:Date.now()}; render(); try{ await kakeiPut({preg:P,updatedAt:Date.now()}); if(msg) toast(msg,()=>{ state.kakei={...(state.kakei||{}),preg:prev}; kakeiPut({preg:prev}); render(); }); }catch(e){ err(e); } }
+function pgSet(id,ch){ const P={...(pgD()||{})}; P.items={...(P.items||{}),[id]:{...((P.items||{})[id]||{}),...ch}}; return pgSave(P); }
+function pgSetupHTML(){ return `<section class="card pg-setup"><div class="pg-hero0">👶</div><h2>はじめての妊娠・出産</h2><p class="who">出産予定日（または最終月経の開始日）を入れると、妊娠週数に合わせて「健診・手続き・準備」を週ごとに並べます。ふたりで同じ画面を見られます。</p>
+  <div class="seg pg-base">${[["due","出産予定日"],["lmp","最終月経の開始日"]].map(([k,l])=>`<button data-pgbase="${k}" aria-pressed="${(state.pgBase||"due")===k}">${l}</button>`).join("")}</div>
+  <div class="edit-row"><input type="date" id="pgDateIn" style="flex:1"><button class="btn primary" data-pg="start">はじめる</button></div>
+  <p class="who">まだ分からなければ、だいたいの日付で始めて、あとから直せます。</p></section>`; }
+function pgItemHTML(o,open){ const n=pgNow(), late=!o.done&&o.due<today(), D=o.date?`${short(o.date)}に予定`:o.a===o.b?`${o.a}週・${short(pgDate(o.a))}ごろ`:`${o.a}〜${o.b}週（${short(pgDate(o.a))}〜${short(pgDate(o.b+0.86))}）`;
+  return `<li class="pg-it ${o.done?"done":""} ${late?"late":""} ${o.k==="目安"?"mile":""}" data-pgid="${esc(o.id)}"><button class="check ${o.done?"on":""}" style="--c:${pgPh(o.a)[3]}" data-pg="done" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button>
+    <button class="pg-tx" data-pg="open"><span class="pg-k">${PG_KIND[o.k]||"・"}</span><b>${esc(o.t)}</b><small>${D}・${o.who==="both"?"ふたり":esc(nameOf(o.who))}${late?"・過ぎています":""}${o.ev?"・📅カレンダー":""}${o.memo?"・📝":""}</small></button></li>
+    ${open?`<li class="pg-ed"><div class="edit-row"><span class="who">日付</span><input type="date" id="pgEdDate" value="${esc(o.date||"")}"><span class="who">（空なら目安の時期）</span></div>
+      <div class="edit-row"><span class="who">担当</span><div class="seg">${[["both","ふたり"],["h",nameOf("h")],["w",nameOf("w")]].map(([k,l])=>`<button data-pgwho="${k}" aria-pressed="${o.who===k}">${esc(l)}</button>`).join("")}</div></div>
+      <textarea id="pgEdMemo" rows="2" maxlength="300" placeholder="メモ（病院名・持ち物・決めたことなど）">${esc(o.memo||"")}</textarea>
+      <div class="edit-actions"><button class="btn" data-pg="cal">📅 カレンダーに入れる</button>${o.cu?`<button class="btn danger" data-pg="del">削除</button>`:o.ck?"":`<button class="btn" data-pg="hide">この項目は使わない</button>`}<button class="btn primary" data-pg="save">保存</button></div></li>`:""}`; }
+function viewBaby(){ const P=pgD(); if(!P||!P.due) return pgSetupHTML()+hint("母子手帳や病院の説明が優先です。ここの時期は一般的な目安です");
+  const n=pgNow(), L=pgItems(), W=Math.max(0,Math.min(48,state.pgW!=null?state.pgW:n.w)), ph=pgPh(Math.min(Math.max(n.w,0),48)), pct=Math.max(0,Math.min(100,n.d/280*100));
+  const born=P.born, wkLbl=n.d<0?"妊娠前":n.w>=42||born?`生まれて${Math.max(0,dDiff(today(),born||P.due))}日`:`妊娠${n.w}週${n.r}日`;
+  let h=`<section class="card pg-hero" style="--pc:${ph[3]}"><div class="pg-ring" style="--p:${pct}"><div><b>${n.w<0?"-":Math.min(n.w,42)}</b><small>週</small></div></div>
+    <div class="pg-hd"><span class="pg-ph">${born?"産後":ph[0]}</span><b>${wkLbl}</b><span>${born?`${jpDate(born)}に誕生`:n.left>0?`予定日 ${jpDate(P.due)} まで <em>${n.left}</em>日`:n.left===0?"今日が予定日":`予定日から${-n.left}日`}</span>
+      <span class="who">${(()=>{ const nx=L.filter(o=>!o.done&&o.k!=="目安"&&o.b>=n.w).slice(0,1)[0]; return nx?`次：${esc(nx.t)}`:""; })()}</span></div>
+    <button class="link pg-cfg" data-pg="cfg">設定</button></section>`;
+  if(state.pgCfg) h+=`<section class="card"><div class="edit-row"><span class="who">出産予定日</span><input type="date" id="pgDueIn" value="${esc(P.due)}"><button class="btn" data-pg="due">変更</button></div>
+    <div class="edit-row"><span class="who">生まれた日</span><input type="date" id="pgBornIn" value="${esc(P.born||"")}"><button class="btn" data-pg="born">記録</button></div>
+    ${(P.off||[]).length?`<div class="edit-row"><button class="link" data-pg="unhide">使わないにした項目（${P.off.length}）を戻す</button></div>`:""}
+    <div class="edit-row"><button class="link danger" data-pg="reset">最初からやり直す</button></div></section>`;
+  /* 週のタイムライン */
+  const cols=[...Array(49)].map((_,w)=>{ const its=L.filter(o=>o.a<=w&&o.b>=w&&!o.ck), ck=PG_CK.includes(w)||w===44, p=pgPh(w), dn=its.length&&its.every(o=>o.done);
+    return `<button class="pg-col ${w===W?"sel":""} ${w===n.w?"now":""}" data-pgw="${w}" style="--c:${p[3]}"><span class="pg-wn">${w%4===0||w===W?w:""}</span><span class="pg-bar">${its.slice(0,4).map(o=>`<i class="${o.done?"d":""} ${o.k==="目安"?"m":""}"></i>`).join("")}</span>${ck?`<span class="pg-ck">🩺</span>`:""}${w===40?`<span class="pg-star">★</span>`:""}${dn?`<span class="pg-ok">✓</span>`:""}</button>`; }).join("");
+  h+=`<section class="card pg-tl"><div class="pg-tlh"><b>週ごとの流れ</b><span class="who">週をタップ</span></div><div class="pg-phs">${PG_PH.map(p=>`<span style="--c:${p[3]};flex:${p[2]-p[1]+1}">${p[0]}</span>`).join("")}</div><div class="pg-cols" id="pgCols">${cols}</div></section>`;
+  const wk=L.filter(o=>o.a<=W&&o.b>=W), wDate=pgDate(W);
+  h+=`<section class="card pg-wk"><div class="pg-wkh"><button class="icon-btn" data-pgstep="-1" aria-label="前の週">‹</button><div><b>${W}週</b><small>${short(wDate)}〜${short(addDays(wDate,6))}${W===n.w?"・今週":""}</small></div><button class="icon-btn" data-pgstep="1" aria-label="次の週">›</button></div>
+    ${wk.length?`<ul class="pg-l">${wk.map(o=>pgItemHTML(o,state.pgOpen===o.id)).join("")}</ul>`:`<p class="who">この週の予定はありません</p>`}
+    <div class="edit-row pg-add"><input type="text" id="pgAddIn" maxlength="60" placeholder="${W}週にやることを追加" enterkeyhint="done" style="flex:1"><button class="btn" data-pg="add">追加</button></div></section>`;
+  /* 時期ごとの一覧 */
+  for(const p of PG_PH){ const its=L.filter(o=>o.a>=p[1]&&o.a<=p[2]&&!o.ck), d=its.filter(o=>o.done).length; if(!its.length) continue; const open=state.pgPh?state.pgPh===p[0]:pgPh(Math.max(0,n.w))[0]===p[0];
+    h+=`<details class="card pg-sec" ${open?"open":""} style="--c:${p[3]}"><summary><span class="pg-dot"></span><b>${p[0]}</b><small>${p[1]}〜${p[2]}週</small><span class="pg-pr"><i style="width:${its.length?d/its.length*100:0}%"></i></span><em>${d}/${its.length}</em></summary><ul class="pg-l">${its.map(o=>pgItemHTML(o,state.pgOpen===o.id&&!(o.a<=W&&o.b>=W))).join("")}</ul></details>`; }
+  const ck=L.filter(o=>o.ck), cd=ck.filter(o=>o.done).length;
+  h+=`<details class="card pg-sec" style="--c:#7fb3e0"><summary><span class="pg-dot"></span><b>🩺 妊婦健診</b><small>標準 ${ck.length}回</small><span class="pg-pr"><i style="width:${cd/ck.length*100}%"></i></span><em>${cd}/${ck.length}</em></summary><p class="who" style="margin:4px 2px">目安：23週までは4週ごと、24〜35週は2週ごと、36週からは毎週。病院の指示に合わせて日付を入れてください。</p><ul class="pg-l">${ck.map(o=>pgItemHTML(o,state.pgOpen===o.id&&!(o.a<=W&&o.b>=W))).join("")}</ul></details>`;
+  setTimeout(()=>{ const c=$("pgCols"), x=c&&c.querySelector(".pg-col.sel"); if(c&&x) c.scrollLeft=x.offsetLeft-c.clientWidth/2+x.offsetWidth/2; },0);
+  return h+hint("時期は一般的な目安です。病院・母子手帳・市役所の案内を優先してください。ここで入れた内容はふたりで共有されます"); }
+function pgCurItem(id){ return pgItems().find(o=>o.id===id); }
+document.addEventListener("click",async e=>{ if(state.view!=="baby") return; const t=e.target;
+  const bs=t.closest("#main [data-pgbase]"); if(bs){ state.pgBase=bs.dataset.pgbase; render(); return; }
+  const wc=t.closest("#main [data-pgw]"); if(wc){ state.pgW=Number(wc.dataset.pgw); state.pgOpen=null; haptic("tick"); render(); return; }
+  const st=t.closest("#main [data-pgstep]"); if(st){ const n=pgNow(); state.pgW=Math.max(0,Math.min(48,(state.pgW!=null?state.pgW:n.w)+Number(st.dataset.pgstep))); state.pgOpen=null; render(); return; }
+  const wh=t.closest("#main [data-pgwho]"); if(wh){ const id=state.pgOpen; if(id){ pgSet(id,{who:wh.dataset.pgwho}); } return; }
+  const b=t.closest("#main [data-pg]"); if(!b) return; e.stopPropagation(); const a=b.dataset.pg, li=b.closest("[data-pgid]"), id=li?li.dataset.pgid:state.pgOpen, P={...(pgD()||{})};
+  if(a==="start"){ const v=($("pgDateIn")||{}).value; if(!v){ toast("日付を入れてください"); return; } const due=(state.pgBase||"due")==="lmp"?addDays(v,280):v; pgSave({due,items:{},custom:[],off:[],at:Date.now(),by:myRole()},"出産予定日を登録しました"); state.pgW=null; return; }
+  if(a==="cfg"){ state.pgCfg=!state.pgCfg; render(); return; }
+  if(a==="due"){ const v=($("pgDueIn")||{}).value; if(v){ P.due=v; pgSave(P,"予定日を変えました（時期を計算し直しました）"); } return; }
+  if(a==="born"){ const v=($("pgBornIn")||{}).value; P.born=v||null; pgSave(P,v?"おめでとうございます。生まれた日を記録しました":"生まれた日を消しました"); if(v) celebrate(); return; }
+  if(a==="unhide"){ P.off=[]; pgSave(P,"戻しました"); return; }
+  if(a==="reset"){ if(confirm("妊娠・出産の記録を最初からやり直しますか？")){ const prev=pgD(); state.kakei={...(state.kakei||{}),preg:null}; kakeiPut({preg:null}); toast("消しました",()=>{ pgSave(prev); }); render(); } return; }
+  if(a==="add"){ const v=(($("pgAddIn")||{}).value||"").trim(); if(!v) return; const n=pgNow(), w=state.pgW!=null?state.pgW:Math.max(0,n.w), cid="c"+newId().slice(-8); P.custom=[...(P.custom||[]),{id:cid,t:v.slice(0,60),w,who:"both"}]; pgSave(P,`${w}週に「${v.slice(0,20)}」を追加しました`); return; }
+  if(a==="done"){ const o=pgCurItem(id); if(!o) return; const on=!o.done; if(on) celebrate(); haptic(on?"done":"tick"); pgSet(id,{done:on,doneAt:on?Date.now():null,doneBy:on?myRole():null}); return; }
+  if(a==="open"){ state.pgOpen=state.pgOpen===id?null:id; render(); return; }
+  if(a==="save"){ const d=($("pgEdDate")||{}).value||null, m=(($("pgEdMemo")||{}).value||"").trim().slice(0,300); state.pgOpen=null; pgSet(id,{date:d,memo:m}); toast("保存しました"); return; }
+  if(a==="hide"){ P.off=[...new Set([...(P.off||[]),id])]; state.pgOpen=null; pgSave(P,"この項目を使わないにしました"); return; }
+  if(a==="del"){ P.custom=(P.custom||[]).filter(c=>c.id!==id); state.pgOpen=null; pgSave(P,"削除しました"); return; }
+  if(a==="cal"){ const o=pgCurItem(id); if(!o) return; const d=($("pgEdDate")||{}).value||o.date||(o.due<today()?today():o.due), eid=newId(), now=Date.now();
+    if(o.k==="受診") dset("events",eid,{text:o.t,date:d,who:"both",createdAt:now,updatedAt:now,by:state.me||null}); else dset("items",eid,{...baseItem("task",o.t,d,"",o.who),preg:o.id});
+    pgSet(o.id,{date:d,ev:eid}); toast(`${short(d)}の${o.k==="受診"?"予定":"やること"}に入れました`); return; }
+},true);
+
 function viewDuo(){ const d=state.duoDate||(state.duoDate=today()), t=today();
   return `<div class="dstrip" data-strip="duo"><button class="icon-btn" data-act="duoday" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="duoday" data-n="1" aria-label="次の日">›</button></div>
     ${d!==t?`<div class="tools"><button class="pill" data-act="duoday" data-n="0">今日</button></div>`:""}${offState(d)==="both"?'<div class="who" style="margin:0 4px 6px;color:var(--s-off);font-weight:700">ふたり休み</div>':""}${dayInfoHTML(d)}${duoTrayHTML(d)}${duoTTHTML(d)}`; }
@@ -4216,7 +4348,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
-    $("main").innerHTML= v==="usage"?viewUsage(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
+    $("main").innerHTML= v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -6059,6 +6191,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   sec("繰り返しのタスク・習慣",[...habitItems(),...recMine()].map(h=>`[${ref(recColl(h),h.id)}] ${cut(h.text,30)} ${tgtLabel(h)} ${isHabit(h)?"種類:習慣":"種類:やること"}${recColl(h)==="habits"?" 🔒":""}${habitLog(h)[t]?" 今日✓済":recOn(h,t)?" 今日の日":""}`),20);
   sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${c.target==="ar"?"条件で:"+cut(arDesc(c.ar||{}),60):chFqLabel(c)} 担当:${c.who==="alt"?"交代・次は"+nm(I.who):I.who==="both"?"ふたり":nm(I.who)} 大変さ${c.pts||1} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
   if(typeof arRules==="function") sec("条件で自動（自動で入る予定・タスク・家事・議題）",arRules().map(r=>`[${ref("autoRules",r.id)}] ${cut(r.name,30)} ${({block:"🔒自分の予定",task:"🔒自分のタスク",event:"ふたりの予定",item:"ふたりのやること",shop:"買い物",chore:"家事",topic:"議題"})[r.kind||"block"]}${r.s?` ${r.s}-${r.e||""}`:""} ${r.on?"オン":"オフ"} 条件:${cut(arDesc(r),90)}`),15);
+  { const P=typeof pgD==="function"&&pgD(); if(P&&P.due){ const n=pgNow(), L=pgItems().filter(o=>!o.done&&o.k!=="目安"&&o.b>=n.w-1).slice(0,8); sec(`妊娠・出産（予定日${P.due}・いま${P.born?"産後":`妊娠${n.w}週${n.r}日`}）`,L.map(o=>`${o.a===o.b?o.a:o.a+"〜"+o.b}週 ${cut(o.t,40)} 担当:${o.who==="both"?"ふたり":nm(o.who)}${o.date?" 日付"+o.date:""}`),8); } }
   sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
   sec("気になること・困りごと",state.troubles.filter(x=>x.status!=="done").map(x=>`[${ref("troubles",x.id)}] ${cut(x.text,40)} ${x.status==="doing"?"対応中":"未対応"}`),15);
   sec("注意",state.cautions.filter(x=>!x.done).map(x=>`[${ref("cautions",x.id)}] ${cut(x.text,40)}${x.date?" "+short(x.date):""}`),10);
@@ -6511,7 +6644,7 @@ function qaPopClose(later){ const d=today(), el=$("qpop"); state.qaPopOpen=false
   if(later&&!qaAns(d,myRole())){ prefs.qaPopDay=d; savePrefs(true); } if(qaAns(d,myRole())&&qaAns(d,otherRole())){ prefs.qaSeen=d; savePrefs(true); } render(); }
 /* v173: ホームはウィジェットの組み合わせ。並び順・表示／非表示を変えられる */
 const CHK_LOOK={talk:["talk","--talk"],task:["task","--task"],shop:["shop","--shop"],chore:["chore","--future"],habit:["habit","--habit"],trouble:["trouble","--trouble"],shift:["cal","--cal"],evening:["diary","--diary"],comment:["diary","--diary"],qa:["talk","--talk"],money:["money","--habit"],bousai:["future","--caution"],bug:["settings","--muted"]};
-const HOME_W=[["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["mood","今日の気分（🔒自分だけ）"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["memory","思い出（○年前の今日）"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
+const HOME_W=[["baby","妊娠・出産（予定日を入れたとき）"],["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["mood","今日の気分（🔒自分だけ）"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["memory","思い出（○年前の今日）"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
 function homeOrder(){ const base=HOME_W.map(w=>w[0]), o=String(prefs.homeOrder||"").split(",").filter(k=>base.includes(k)); return [...o,...base.filter(k=>!o.includes(k))]; }
 const homeHidden=()=>new Set(String(prefs.homeHide||"").split(",").filter(Boolean));
 function homeWeekHTML(){ const t=today(), me=myRole(), ot=otherRole(), mine=x=>["both",me].includes(getWho(x));
@@ -6527,6 +6660,8 @@ function homeSchedHTML(){ const t=today(), me=myRole(), S=6*60, E=24*60, ents=da
   const rows=[...up.map(o=>`<li><button data-hgo="cal"><span class="ht">${hhmm(o.s%1440)}</span><span class="hdot" style="--bc:var(--${o.col})"></span><span>${esc(o.t)}</span></button></li>`),...evAll.map(x=>`<li><button data-hgo="cal"><span class="ht">終日</span><span class="hdot" style="--bc:var(--cal)"></span><span>${esc(x.text)}</span></button></li>`),...untimed.slice(0,3).map(o=>`<li><button data-hgo="cal"><span class="ht">未定</span><span class="hdot" style="--bc:var(--task)"></span><span>${esc(o.x.text)}</span></button></li>`)];
   return homeCard(`今日のタイムライン <span class="who" style="font-weight:500">${ents.length}件${untimed.length?`・時間未定 ${untimed.length}`:""}</span>`,`<div class="htl"><div class="htl-b">${bars}${nowM>=S?`<b class="htl-now" style="left:${pos(nowM)}%"></b>`:""}</div><div class="htl-x"><span>6</span><span>12</span><span>18</span><span>24</span></div></div>${rows.length?`<ul class="hlist">${rows.join("")}</ul>`:`<div class="hempty">これからの予定はありません</div>`}`,"cal"); }
 function homeWidget(k){ const t=today(), n=counts();
+  if(k==="baby"){ const P=pgD(); if(!P||!P.due) return ""; const nw=pgNow(), ph=pgPh(Math.max(0,Math.min(nw.w,48))), L=pgItems().filter(o=>!o.done&&o.k!=="目安"&&o.a<=nw.w+1&&o.b>=nw.w-2).slice(0,3);
+    return `<section class="card pg-home" style="--pc:${ph[3]}" data-hgo="baby"><div class="pg-ring sm" style="--p:${Math.max(0,Math.min(100,nw.d/280*100))}"><div><b>${P.born?"👶":Math.max(0,Math.min(nw.w,42))}</b>${P.born?"":"<small>週</small>"}</div></div><div class="pg-hd"><b>${P.born?`生まれて${dDiff(t,P.born)}日`:`妊娠${nw.w}週${nw.r}日`}</b><span>${P.born?"":nw.left>0?`予定日まで <em>${nw.left}</em>日`:"予定日を過ぎました"}</span>${L.length?`<small class="who">今やること：${L.map(o=>esc(o.t)).join("・")}</small>`:""}</div></section>`; }
   if(k==="today") return briefHTML(true);
   if(k==="week") return homeWeekHTML();
   if(k==="sched") return homeSchedHTML();
@@ -7784,7 +7919,7 @@ const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"],["habit","習慣"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"]]},
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["talk","話す"],["duo","ふたりの予定"],["dec","決めたこと"],["trouble","気になること"]]},
-  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["money","お金"]]},
+  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","計画"],["baby","妊娠・出産"],["money","お金"]]},
   {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
