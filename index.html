@@ -557,6 +557,29 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .dec-w{font-size:13px;font-weight:700;color:var(--accent)}.dec-c.empty{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .dec-c small{font-size:11px;color:var(--muted);text-align:right}
 .tdec-add{font-size:12px;font-weight:700}
+/* v241: 全体の磨き込み（押したときの手ごたえ・読みやすさ・フォーカス・画面切替） */
+body{font-feature-settings:"palt" 1;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+.btn,.chip,.pill,.icon-btn,.opt,.hjump button,.dec-c,.check,.seg button,.tabbar button,.hubbar button,.pg-col,.qa-re{transition:transform .12s ease,background-color .2s ease,box-shadow .2s ease,opacity .2s ease}
+.btn:active,.chip:active,.pill:active,.icon-btn:active,.opt:active,.hjump button:active,.dec-c:active,.seg button:active,.tabbar button:active,.hubbar button:active{transform:scale(.96)}
+.check:active{transform:scale(.88)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+.btn,.pill,.chip{min-height:34px}.icon-btn{min-width:40px;min-height:40px}
+small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:tabular-nums}
+.section-label{letter-spacing:.02em}
+.empty{border-radius:18px;padding:20px 16px;line-height:1.7}
+#main.vfade{animation:vfade .22s ease-out}
+@keyframes vfade{from{opacity:.35}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+/* v241: 決めたことの色は以前の落ち着いた配色に（1枚のカードにまとめ、決めたことは青緑の文字） */
+.dec-ul{gap:0!important;background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+.dec-ul>li+li .dec-c{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.dec-c,.dec-c.src-future,.dec-c.src-note{background:transparent!important;box-shadow:none!important;border-radius:0!important;padding:14px 16px!important;gap:4px!important}
+.dec-t{font-size:15px!important;font-weight:700;color:var(--ink)!important;line-height:1.45}
+.dec-t .tag{font-weight:700}
+.dec-d{font-size:14px!important;font-weight:600!important;color:var(--future)!important}.dec-d::before{content:"→ "!important}
+.dec-w{color:var(--muted)!important;font-weight:600!important}
+.dec-c small{text-align:left!important}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1930,7 +1953,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="240";
+const APP_VERSION="241";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -8030,10 +8053,12 @@ function tabIcon(k){ const b=document.querySelector(`#rail .rtab[data-v="${k}"] 
 function tabBadge(k){ const b=$("b-"+k); return b&&!b.hidden&&b.textContent?b.textContent:""; }
 /* v236: 「ふたり」を押したら、話す・ふたりの予定を今日の日付に戻す */
 function usToday(){ const t=today(); state.talkDate=t; state.duoDate=t; state.duoSel=null; state.duoPick=null; }
+/* v241: 画面の切り替えをふわっと（動きを減らす設定の端末では出さない） */
+{ const o=window.go; if(typeof o==="function") window.go=function(){ const p=state.view, r=o.apply(this,arguments); try{ if(state.view!==p&&!matchMedia("(prefers-reduced-motion: reduce)").matches){ const m=$("main"); if(m){ m.classList.remove("vfade"); void m.offsetWidth; m.classList.add("vfade"); } } }catch(_){} return r; }; }
 function tbarRender(){ if(prefs.hubs!=="off"&&prefs.nav==="tab"){ state.hubLast=state.hubLast||{}; const h=hubOf(state.view); state.hubLast[h.k]=state.view; }
   let bar=$("tbar"); if(prefs.nav!=="tab"){ if(bar) bar.hidden=true; const m=$("tmore"); if(m) m.hidden=true; return; }
   if(!bar){ bar=document.createElement("nav"); bar.id="tbar"; bar.className="tabbar"; bar.setAttribute("aria-label","メニュー"); document.body.appendChild(bar);
-    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k.startsWith("hub:")){ const H=HUBS.find(h=>"hub:"+h.k===k); tmoreToggle(false); if(H.k==="us") usToday(); const last=(state.hubLast||{})[H.k]; const dest=hubOf(state.view)===H?H.v[0][0]:(last||H.v[0][0]); go(dest); return; } if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
+    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k.startsWith("hub:")){ const H=HUBS.find(h=>"hub:"+h.k===k); tmoreToggle(false); if(H.k==="us") usToday(); const last=(state.hubLast||{})[H.k]; const dest=hubOf(state.view)===H?H.v[0][0]:(last||H.v[0][0]); if(dest===state.view&&scrollY>40){ window.scrollTo({top:0,behavior:"smooth"}); if(H.k==="us") render(); return; } /* v241: 今いるタブをもう一度押すと一番上へ */ go(dest); return; } if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
   bar.hidden=false;
   if(prefs.hubs!=="off"){ const cur=hubOf(state.view).k;
     bar.innerHTML=HUBS.map(h=>{ const b=hubBadge(h); return `<button data-tb="hub:${h.k}" class="${cur===h.k?"on":""}" aria-current="${cur===h.k?"page":"false"}"><span class="tb-i">${h.ic}${b?`<i class="tb-b">${b}</i>`:""}</span><span class="tb-l">${h.l}</span></button>`; }).join(""); return; }
@@ -8412,17 +8437,29 @@ let UG=null, usgLastAct=Date.now();
 function usgDoc(){ const t=today(), role=myRole(); if(UG&&UG.date===t&&UG.role===role) return UG;
   if(UG&&UG.dirty) usageFlush(true);
   let o=null; try{ const c=JSON.parse(store.get("futari.usage")||"null"); if(c&&c.date===t&&c.role===role) o=c; }catch(e){}
-  UG=o||{id:`${role}_${t}_${USG_DEV}`,role,date:t,dev:USG_DEV,opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[]}; for(const f of ["flow","bounce","shOpen","shSave","shCancel"]) UG[f]=(UG[f]&&typeof UG[f]==="object")?UG[f]:{}; UG.sess=UG.sess||0; UG.sessSec=UG.sessSec||0; return UG; }
-function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},views:{},hours:{},errMsg:[],errs:0,opens:0,sec:0,flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},sess:0,sessSec:0}; /* 夫・妻が決まるまでは数えない */ const u=usgDoc(); u.ver=APP_VERSION; u.ua=navigator.userAgent.replace(/.*?\(([^)]*)\).*/,"$1").slice(0,60); u.nav=prefs.nav; u.at=Date.now(); u.dirty=true; return u; }
-function usageFeat(k,n){ try{ const u=usgTouch(); u.feats[k]=(u.feats[k]||0)+(n==null?1:n); }catch(e){} }
+  UG=o||{id:`${role}_${t}_${USG_DEV}`,role,date:t,dev:USG_DEV,opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[]}; for(const f of ["flow","bounce","shOpen","shSave","shCancel","dead","rage","depth"]) UG[f]=(UG[f]&&typeof UG[f]==="object")?UG[f]:{}; UG.ttfa=UG.ttfa||0; UG.ttfaN=UG.ttfaN||0; UG.sess=UG.sess||0; UG.sessSec=UG.sessSec||0; return UG; }
+function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},views:{},hours:{},errMsg:[],errs:0,opens:0,sec:0,dead:{},rage:{},depth:{},ttfa:0,ttfaN:0,flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},sess:0,sessSec:0}; /* 夫・妻が決まるまでは数えない */ const u=usgDoc(); u.ver=APP_VERSION; u.ua=navigator.userAgent.replace(/.*?\(([^)]*)\).*/,"$1").slice(0,60); u.nav=prefs.nav; u.at=Date.now(); u.dirty=true; return u; }
+function usageFeat(k,n){ try{ const u=usgTouch(); usgFirst(u); u.feats[k]=(u.feats[k]||0)+(n==null?1:n); }catch(e){} }
 let usgSheet=null;
-function usageAct(c,op){ try{ if(USG_SKIP.has(c)) return; const u=usgTouch(); u.acts[op]=(u.acts[op]||0)+1; if(op==="add"&&usgSheet) usgSheet.adds++; const k=PRIVATE.has(c)||c==="priv"?"🔒じぶん":c; u.cols[k]=(u.cols[k]||0)+1; }catch(e){} }
+/* v241: 開いてから最初の操作までの秒数（迷わず使えているか） */
+let usgSessT0=Date.now(), usgFirstDone=false;
+function usgFirst(u){ if(usgFirstDone) return; usgFirstDone=true; const sec=Math.round((Date.now()-usgSessT0)/1000); if(sec>0&&sec<600){ u.ttfa=(u.ttfa||0)+sec; u.ttfaN=(u.ttfaN||0)+1; } }
+/* v241: 反応しない場所のタップ（押せそうに見えて押せない所）・連打（反応が遅い／分かりにくい所）・画面をどこまで下まで見たか。書いた内容は記録しない */
+{ const INTER="button,a,input,textarea,select,label,summary,[role=button],[data-act],[data-hgo],[data-go2],[data-tb],[data-hub],[data-c],[data-id],.item,.chip,.pill,.tt,.duo-col,.duo-b,#grid,.day,.tt-b,[contenteditable]";
+  const where=t=>{ let el=t; for(let i=0;i<4&&el&&el.id!=="main";i++){ const c=[...(el.classList||[])].filter(x=>!/^(on|sel|open|done|active|vfade|hold|empty)$/.test(x))[0]; if(c) return `${state.view}:${c}`.slice(0,40); el=el.parentElement; } return `${state.view}:${t.tagName.toLowerCase()}`; };
+  let taps=[];
+  document.addEventListener("pointerup",e=>{ try{ if(e.pointerType==="mouse"&&e.button!==0) return; const t=e.target; if(!t||!t.closest) return; const u=usgTouch();
+    if(t.closest("#main")&&!t.closest(INTER)){ const k=where(t); if(Object.keys(u.dead).length<60||u.dead[k]) u.dead[k]=(u.dead[k]||0)+1; }
+    const now=Date.now(); taps=taps.filter(p=>now-p.t<900&&Math.hypot(p.x-e.clientX,p.y-e.clientY)<36); taps.push({t:now,x:e.clientX,y:e.clientY});
+    if(taps.length===3){ const k=where(t); if(Object.keys(u.rage).length<60||u.rage[k]) u.rage[k]=(u.rage[k]||0)+1; } }catch(_){} },{capture:true,passive:true});
+  let dT=null; addEventListener("scroll",()=>{ clearTimeout(dT); dT=setTimeout(()=>{ try{ const h=document.documentElement, max=h.scrollHeight-innerHeight; if(max<200) return; const pct=Math.round(Math.min(1,scrollY/max)*100), u=usgTouch(), v=PRIV_VIEWS.has(state.view)?"🔒"+state.view:state.view; if(pct>(u.depth[v]||0)) u.depth[v]=pct; }catch(_){} },400); },{passive:true}); }
+function usageAct(c,op){ try{ if(USG_SKIP.has(c)) return; const u=usgTouch(); usgFirst(u); u.acts[op]=(u.acts[op]||0)+1; if(op==="add"&&usgSheet) usgSheet.adds++; const k=PRIVATE.has(c)||c==="priv"?"🔒じぶん":c; u.cols[k]=(u.cols[k]||0)+1; }catch(e){} }
 function usageErr(m){ if(/^Script error\.?\s*@?\s*$/.test(String(m||"").trim())) return; const u=usgTouch(); u.errs++; m=`${String(m).slice(0,110)} [${state.view||"?"}・v${APP_VERSION}]`; if(u.errMsg.length<8&&!u.errMsg.includes(m)) u.errMsg.push(m); }
 function usageFlush(force){ const u=UG; if(!u||!u.dirty) return; u.dirty=false; const {dirty,...doc}=u; try{ store.set("futari.usage",JSON.stringify(u)); }catch(e){}
   const r=colRef("usage"); if(r&&!state.guest&&!state.needCode){ r.doc(u.id).set(doc).catch(()=>{}); } else { state.usage=state.usage.filter(x=>x.id!==u.id); state.usage.push({...doc}); } }
 { const act=()=>{ usgLastAct=Date.now(); }; ["pointerdown","keydown","scroll","touchstart"].forEach(ev=>addEventListener(ev,act,{passive:true,capture:true}));
   let hidAt=0, sessAt=0; /* v233: 1分以上離れてから戻ったら新しい利用（セッション）として数える */
-  const open=()=>{ const u=usgTouch(); u.opens++; if(!hidAt||Date.now()-hidAt>=60e3){ u.sess=(u.sess||0)+1; sessAt=Date.now(); } };
+  const open=()=>{ const u=usgTouch(); u.opens++; if(!hidAt||Date.now()-hidAt>=60e3){ u.sess=(u.sess||0)+1; sessAt=Date.now(); usgSessT0=Date.now(); usgFirstDone=false; } };
   setTimeout(open,5000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ usgLastAct=Date.now(); open(); } else { hidAt=Date.now(); usageFlush(true); } });
   setInterval(()=>{ if(document.visibilityState!=="visible"||Date.now()-usgLastAct>60e3) return; const u=usgTouch(), v=PRIV_VIEWS.has(state.view)?"🔒"+state.view:state.view, h=String(new Date().getHours()); u.sec+=15; u.sessSec=(u.sessSec||0)+15; u.views[v]=(u.views[v]||0)+15; u.hours[h]=(u.hours[h]||0)+15; },15e3);
   setInterval(()=>usageFlush(),60e3); addEventListener("pagehide",()=>usageFlush(true)); }
@@ -8441,8 +8478,8 @@ const USG_NAME=v=>v==="🔒じぶん"?"🔒じぶんの画面（〜v232）":v===
 const USG_SHEET={task:"やること",shop:"買い物",event:"ふたりの予定",block:"自分の予定",ptask:"自分のタスク",pshop:"自分の買い物",topic:"話すこと",trouble:"気になること",caution:"注意",plan:"将来",pwish:"自分のやりたい",habit:"習慣",recur:"毎月の支払い",goal:"目標",spend:"出費",chore:"家事"};
 function usgAgg(days){ const t=today(), from=addDays(t,-(days-1)), cur=UG&&!state.usage.some(x=>x.id===UG.id)?[{...UG}]:[];
   const L=[...state.usage.filter(x=>!(UG&&x.id===UG.id)),...(UG?[{...UG}]:[]),...cur.filter(()=>false)].filter(x=>x.date>=from&&x.date<=t);
-  const A={}; for(const r of ["h","w"]) A[r]={days:new Set(),opens:0,sec:0,sess:0,sessSec:0,views:{},hours:{},acts:{},cols:{},feats:{},flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},errs:0,errMsg:[],byDay:{},ua:"",ver:"",nav:""};
-  for(const x of L){ const a=A[x.role]; if(!a) continue; if(x.sec||x.opens) a.days.add(x.date); a.opens+=x.opens||0; a.sec+=x.sec||0; a.sess+=x.sess||0; a.sessSec+=x.sessSec||0; a.errs+=x.errs||0; a.byDay[x.date]=(a.byDay[x.date]||0)+(x.sec||0);
+  const A={}; for(const r of ["h","w"]) A[r]={days:new Set(),opens:0,sec:0,sess:0,sessSec:0,ttfa:0,ttfaN:0,dead:{},rage:{},depthS:{},depthN:{},views:{},hours:{},acts:{},cols:{},feats:{},flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},errs:0,errMsg:[],byDay:{},ua:"",ver:"",nav:""};
+  for(const x of L){ const a=A[x.role]; if(!a) continue; if(x.sec||x.opens) a.days.add(x.date); a.opens+=x.opens||0; a.sec+=x.sec||0; a.sess+=x.sess||0; a.sessSec+=x.sessSec||0; a.ttfa+=x.ttfa||0; a.ttfaN+=x.ttfaN||0; for(const f of ["dead","rage"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; for(const [k,v] of Object.entries(x.depth||{})){ a.depthS[k]=(a.depthS[k]||0)+v; a.depthN[k]=(a.depthN[k]||0)+1; } a.errs+=x.errs||0; a.byDay[x.date]=(a.byDay[x.date]||0)+(x.sec||0);
     for(const f of ["views","hours","acts","cols","feats","bounce","shOpen","shSave","shCancel"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; if(x.flow&&typeof x.flow==="object") for(const [k,v] of Object.entries(x.flow)) a.flow[k]=(a.flow[k]||0)+v; for(const m of x.errMsg||[]) if(a.errMsg.length<12&&!a.errMsg.includes(m)) a.errMsg.push(m); if((x.at||0)>(a.lastAt||0)){ a.lastAt=x.at; a.ua=x.ua||""; a.ver=x.ver||""; a.nav=x.nav||""; } }
   return {A,from,t,days}; }
 const mins=sec=>{ const m=Math.round(sec/60); return m>=60?`${Math.floor(m/60)}時間${m%60?m%60+"分":""}`:`${m}分`; };
@@ -8452,6 +8489,7 @@ function usageCardHTML(){ const {A}=usgAgg(7), tot=A.h.sec+A.w.sec;
     <div class="bal-bar" style="margin-top:6px">${tot?`<i class="h" style="flex:${A.h.sec||0.0001}"><span>${Math.round(A.h.sec/tot*100)}%</span></i><i class="w" style="flex:${A.w.sec||0.0001}"><span>${Math.round(A.w.sec/tot*100)}%</span></i>`:`<i class="none">まだ記録がありません</i>`}</div>
     <div class="opts"><button class="opt" data-go2="usage">くわしく見る ›</button></div></section>`; }
 /* v233: 数字から「気づき」を自動で出す（改修の手がかり） */
+const usgWhere=k=>{ const [v,c]=String(k).split(":"); return `${USG_NAME(v)}の${c||"?"}`; };
 function usgInsights(A,days){ const R=["h","w"], out=[], tot=A.h.sec+A.w.sec, pct=(a,b)=>b?Math.round(a/b*100):0, top=(o,n)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
   if(!tot) return ["まだ記録がありません"];
   for(const r of R){ const o=R.find(x=>x!==r); if(A[o].sec>0&&A[r].sec<A[o].sec*0.2) out.push(`${nameOf(r)}の利用は全体の${pct(A[r].sec,tot)}%（${mins(A[r].sec)}）。${nameOf(r)}がよく開く画面：${top(A[r].views,3).map(([k])=>USG_NAME(k)).join("・")||"-"}`); }
@@ -8464,6 +8502,11 @@ function usgInsights(A,days){ const R=["h","w"], out=[], tot=A.h.sec+A.w.sec, pc
   const ap=(A.h.feats.aiProp||0)+(A.w.feats.aiProp||0), ae=(A.h.feats.aiAct||0)+(A.w.feats.aiAct||0), af=(A.h.feats.aiFail||0)+(A.w.feats.aiFail||0), aq=(A.h.feats.ai||0)+(A.w.feats.ai||0);
   if(ap>=5) out.push(`AIの操作の提案${ap}件のうち実行${ae}件（${pct(ae,ap)}%）${pct(ae,ap)<50?"。提案が意図とずれている可能性":""}`);
   if(aq&&af/aq>=0.15) out.push(`AIへの質問${aq}回のうち${af}回が失敗（接続・時間切れ）`);
+  { const dd={}, rg={}; for(const r of R){ for(const [k,v] of Object.entries(A[r].dead)) dd[k]=(dd[k]||0)+v; for(const [k,v] of Object.entries(A[r].rage)) rg[k]=(rg[k]||0)+v; }
+    const dl=top(dd,3).filter(([,v])=>v>=8); if(dl.length) out.push(`押しても反応しない場所をよく押しています：${dl.map(([k,v])=>`${usgWhere(k)}（${v}回）`).join("・")}（押せるようにする・見た目を変える候補）`);
+    const rl=top(rg,3).filter(([,v])=>v>=3); if(rl.length) out.push(`同じ場所を続けて何度も押しています：${rl.map(([k,v])=>`${usgWhere(k)}（${v}回）`).join("・")}（反応が遅い・分かりにくい可能性）`);
+    for(const r of R){ const a=A[r]; if(a.ttfaN>=3){ const s2=Math.round(a.ttfa/a.ttfaN); if(s2>=20) out.push(`${nameOf(r)}は開いてから最初の操作まで平均${s2}秒（探している時間が長い）`); } }
+    const low=[]; for(const r of R) for(const [k,n] of Object.entries(A[r].depthN)){ const avg=A[r].depthS[k]/n, t2=A[r].views[k]||0; if(avg<35&&t2>=180) low.push(`${USG_NAME(k)}（${Math.round(avg)}%）`); } if(low.length) out.push(`下のほうまで見られていない画面：${[...new Set(low)].slice(0,4).join("・")}（大事なものを上に）`); }
   const er=A.h.errs+A.w.errs; if(er) out.push(`エラー${er}回：${[...A.h.errMsg,...A.w.errMsg].slice(0,3).join(" ／ ")}`);
   for(const r of R){ const a=A[r]; if(a.sess) out.push(`${nameOf(r)}：1回あたり平均${Math.max(1,Math.round(a.sessSec/a.sess/60))}分・${days}日で${a.sess}回利用`); }
   return out; }
@@ -8518,6 +8561,11 @@ function usageReport(days){ const {A,from,t}=usgAgg(days), R=["h","w"], top=(o,n
   { const fl={}; for(const r of R) for(const [k,v] of Object.entries(A[r].flow)) fl[k]=(fl[k]||0)+v; s+=`\n## よくある画面の移動\n${top(fl,12).map(([k,v])=>{ const [a,b]=k.split(">"); return `- ${USG_NAME(a)} → ${USG_NAME(b)}：${v}`; }).join("\n")||"なし"}\n`;
     const bo={}; for(const r of R) for(const [k,v] of Object.entries(A[r].bounce)) bo[k]=(bo[k]||0)+v; s+=`\n## 開いて3秒以内に離れた画面\n${top(bo,8).map(([k,v])=>`- ${USG_NAME(k)}：${v}`).join("\n")||"なし"}\n`;
     const K=[...new Set(R.flatMap(r=>Object.keys(A[r].shOpen)))]; s+=`\n## 追加画面（開いた／保存／保存せず閉じた）\n${K.map(k=>`- ${USG_SHEET[k]||k}：${R.map(r=>`${nameOf(r)} ${A[r].shOpen[k]||0}/${A[r].shSave[k]||0}/${A[r].shCancel[k]||0}`).join("・")}`).join("\n")||"なし"}\n`; }
+  { const dd={}, rg={}; for(const r of R){ for(const [k,v] of Object.entries(A[r].dead)) dd[k]=(dd[k]||0)+v; for(const [k,v] of Object.entries(A[r].rage)) rg[k]=(rg[k]||0)+v; }
+    s+=`\n## 反応しない場所のタップ（画面:部品）\n${top(dd,10).map(([k,v])=>`- ${k}：${v}`).join("\n")||"なし"}\n`;
+    s+=`\n## 連打された場所（0.9秒以内に3回）\n${top(rg,8).map(([k,v])=>`- ${k}：${v}`).join("\n")||"なし"}\n`;
+    s+=`\n## 開いてから最初の操作まで\n${R.map(r=>`- ${nameOf(r)}：${A[r].ttfaN?`平均${Math.round(A[r].ttfa/A[r].ttfaN)}秒（${A[r].ttfaN}回）`:"記録なし"}`).join("\n")}\n`;
+    s+=`\n## どこまで下まで見たか（平均％）\n${R.map(r=>`- ${nameOf(r)}：${Object.keys(A[r].depthN).map(k=>`${USG_NAME(k)} ${Math.round(A[r].depthS[k]/A[r].depthN[k])}%`).join("・")||"記録なし"}`).join("\n")}\n`; }
   s+=`\n## 操作したデータの種類\n`; for(const r of R) s+=`- ${nameOf(r)}：${top(A[r].cols,10).map(([k,v])=>`${k} ${v}`).join("・")||"-"}\n`;
   const E=R.flatMap(r=>A[r].errMsg.map(m=>`${nameOf(r)}：${m}`)); s+=`\n## エラー\n${E.length?E.map(x=>"- "+x).join("\n"):"なし"}\n`;
   s+=`\n## 設定（${nameOf(myRole())}の画面）\n- メニュー：${prefs.nav}・並び ${tabOrder().map(k=>TITLES[k]).join(">")}・フリックのキー ${prefs.flickKeys}\n- 開いたときの画面：${prefs.startView}・ホームの並び ${homeOrder().filter(k=>!homeHidden().has(k)).join(",")}・非表示 ${[...homeHidden()].join(",")||"なし"}\n- AI：${prefs.ai}・今日の質問ポップアップ：${prefs.qaPop}\n`;
