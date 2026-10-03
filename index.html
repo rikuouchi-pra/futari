@@ -677,6 +677,10 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
   .trow-r .wx-t small{display:none}.trow-r .wx{padding:5px 8px 5px 6px;gap:3px}
   .trow-r .share-shortcut:not(.unread){display:none}
 }
+/* v250: 「決めたこと」の文字色はどの画面でも「話す」の青（--talk）にそろえる */
+.dec-d,.tdec-v,.th-r span,.tser,.tser b,.ck-m,.ck-mb,.tdec-add,.dec-add-h,[data-decadd]{color:var(--talk)!important}
+.dec-w{color:var(--talk)!important;font-weight:700!important}
+.tdec-v{font-weight:600}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2050,7 +2054,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="249";
+const APP_VERSION="250";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2816,7 +2820,7 @@ function topicRow(t){
   const K=topicKind(t);
   return wrapRow("topics",t,`${done?"done":""} ${hold&&t.holdUntil>td?"hold":""} tpk tpk-${K.k}`,
     `<button class="check ${done?"on":""}" style="--c:var(--${K.k})" data-act="right" aria-label="${rightLabel("topics",t)}">${CHECK}</button>`,
-    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${topicSerLine(t)}${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:done||t.status==="hold"?`<div class="meta"><button class="link tdec-add" data-tdec="${esc(t.id)}">＋ 決めたことを書く</button></div>`:""}`);
+    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${topicSerLine(t)}${t.note?`<div class="meta tdec-v">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:done||t.status==="hold"?`<div class="meta"><button class="link tdec-add" data-tdec="${esc(t.id)}">＋ 決めたことを書く</button></div>`:""}`);
 }
 function week7(){
   const days=[...Array(7)].map((_,i)=>addDays(today(),i));
