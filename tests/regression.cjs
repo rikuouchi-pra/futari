@@ -119,16 +119,22 @@ test('music context changes when favorites change, and prompts include season/we
   const c=env(['musicKey','musicArtists','songContext','songPrompt'],{musicTaste:()=> 'スピッツ',wxToday:()=>({code:61}),wxKind:()=> 'rain',WXN:{rain:'雨'},offState:()=> 'both'});const key=run(c,"songContext('2026-09-28')");c.musicTaste=()=> '宇多田ヒカル';assert.notEqual(run(c,"songContext('2026-09-28')"),key);const prompt=run(c,"songPrompt('2026-09-28',3,[])");assert.match(prompt,/季節秋/);assert.match(prompt,/天気雨/);assert.match(prompt,/現在\d+時/);
 });
 test('another song skips repeated and already seen candidates',()=>{
-  const c=env(['musicKey','songId','songFresh','songNext'],{songOf:d=>c.state.music[0],songAllowed:()=>true,songStop(){},songLookup(){},songPreload(){},songToggle(){},songRender(){},songRefill(){}});
+  const c=env(['musicKey','songId','songTKey','songSeed','songPlayed','songFresh','songNext'],{songOf:d=>c.state.music[0],songAllowed:()=>true,songStop(){},songLookup(){},songPreload(){},songToggle(){},songRender(){},songRefill(){}});
   c.state.music=[{id:'2026-09-28',title:'夜の東側',artist:'サカナクション',context:'today',alts:[{title:'夜の東側',artist:'サカナクション'},{title:'既聴',artist:'サカナクション',seen:true},{title:'新曲',artist:'サカナクション'},{title:'新曲',artist:'サカナクション'}]}];
   run(c,'songNext()');assert.equal(c.state.music[0].title,'新曲');assert.equal(c.writes.at(-1).data.title,'新曲');assert.equal(c.state.music[0].context,'today');
 });
+test('v231 songs played on earlier days are never picked again, even as another version',()=>{
+  const c=env(['musicKey','songId','songTKey','songPlayed','songPast','songFresh']);
+  c.state.music=[{id:'2026-10-01',title:'栞',artist:'クリープハイプ',alts:[{title:'イト',artist:'クリープハイプ',seen:true},{title:'未再生',artist:'クリープハイプ'}]}];
+  c.L=[{title:'栞 (Live)',artist:'クリープハイプ'},{title:'イト',artist:'Creephyp'},{title:'未再生',artist:'クリープハイプ'},{title:'愛す',artist:'クリープハイプ'}];
+  assert.deepEqual(plain(run(c,'songFresh(L,songPlayed()).map(o=>o.title)')),['未再生','愛す']);assert.match(run(c,'songPast().join()'),/栞／クリープハイプ,イト／クリープハイプ/);
+});
 test('catalog fallback accepts only registered artist and a different track',async()=>{
-  const c=env(['musicKey','songId','songFresh','songCatalogAlternative'],{musicTaste:r=>r==='h'?'サカナクション':'',itunesJsonp:async()=>({results:[{trackName:'夜の東側',artistName:'サカナクション'},{trackName:'別曲',artistName:'サカナクション tribute'},{trackName:'次の曲',artistName:'サカナクション',trackViewUrl:'https://example.com/song'}]})});
+  const c=env(['musicKey','songId','songTKey','songSeed','songPlayed','songFresh','songCatalogAlternative'],{musicTaste:r=>r==='h'?'サカナクション':'',itunesJsonp:async()=>({results:[{trackName:'夜の東側',artistName:'サカナクション'},{trackName:'別曲',artistName:'サカナクション tribute'},{trackName:'次の曲',artistName:'サカナクション',trackViewUrl:'https://example.com/song'}]})});
   c.used=[{title:'夜の東側',artist:'サカナクション'}];const result=await run(c,'songCatalogAlternative(used)');assert.equal(result.title,'次の曲');assert.equal(result.artist,'サカナクション');
 });
 test('another song reports failure and retains the current track when no alternative exists',async()=>{
-  const c=env(['musicKey','songId','songFresh','songEnsure'],{songOf:()=>c.state.music[0],songAllowed:()=>true,songContext:()=> 'today',aiText:()=>({json:async()=>{throw Error('offline')}}),songPrompt:()=>'',songPast:()=>[],songCatalogAlternative:async()=>null,songRender(){},songPreload(){},musicTaste:()=> 'サカナクション'});
+  const c=env(['musicKey','songId','songTKey','songSeed','songPlayed','songFresh','songEnsure'],{songOf:()=>c.state.music[0],songAllowed:()=>true,songContext:()=> 'today',aiText:()=>({json:async()=>{throw Error('offline')}}),songPrompt:()=>'',songPast:()=>[],songCatalogAlternative:async()=>null,songRender(){},songPreload(){},musicTaste:()=> 'サカナクション'});
   c.state.music=[{id:'2026-09-28',title:'夜の東側',artist:'サカナクション',context:'today'}];await run(c,"songEnsure('2026-09-28',true)");assert.equal(c.state.music[0].title,'夜の東側');assert.equal(c.state.songErr,'offline');assert.equal(c.state.songBusy,false);assert.equal(c.writes.length,0);
 });
 test('v184 release matches reviewed IDs and text, respects reopen/reject, and retains pending notes',()=>{
