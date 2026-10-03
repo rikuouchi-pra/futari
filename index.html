@@ -580,6 +580,20 @@ small,.who,.tt-h span,.duo-t span,.htl-x,.dec-dh em,.pg-wn{font-variant-numeric:
 .dec-d{font-size:14px!important;font-weight:600!important;color:var(--future)!important}.dec-d::before{content:"→ "!important}
 .dec-w{color:var(--muted)!important;font-weight:600!important}
 .dec-c small{text-align:left!important}
+/* v242: 議題のクイック操作 */
+.tqm{position:fixed;inset:0;z-index:70;background:rgb(0 0 0/.0);display:flex;align-items:flex-end;justify-content:center;transition:background .18s}
+.tqm.open{background:rgb(0 0 0/.35)}
+.tqm-card{width:100%;max-width:520px;max-height:86vh;overflow:auto;box-sizing:border-box;background:var(--surface);border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;transform:translateY(100%);transition:transform .2s ease;box-shadow:var(--shadow)}
+.tqm.open .tqm-card{transform:none}
+.tqm-h{display:flex;align-items:flex-start;gap:8px}.tqm-h b{flex:1;font-size:16px;line-height:1.4}.tqm-x{all:unset;cursor:pointer;font-size:22px;line-height:1;color:var(--muted);padding:2px 6px}
+.tqm-sec{display:flex;flex-direction:column;gap:6px}.tqm-l{font-size:12px;font-weight:700;color:var(--muted)}
+.tqm-chips{display:flex;gap:6px;flex-wrap:wrap}.tqm-chips button,.tqm-date{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;min-height:48px;padding:6px 10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:700;font-size:14px;transition:transform .12s}
+.tqm-chips button small{font-size:10px;font-weight:600;color:var(--muted)}.tqm-chips button:active,.tqm-date:active{transform:scale(.95)}
+.tqm-date{flex-direction:row;gap:4px}.tqm-date input{all:unset;width:0;min-width:0;font-size:13px;opacity:.01;position:absolute}.tqm-date{position:relative;overflow:hidden}.tqm-date input{inset:0;width:100%;height:100%}
+.tqm-sec textarea{width:100%;box-sizing:border-box}.tqm-row{display:flex;gap:8px;justify-content:flex-end}
+.tqm-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tqm-acts button{all:unset;cursor:pointer;text-align:center;padding:12px 8px;border-radius:14px;background:color-mix(in srgb,var(--ink) 6%,transparent);font-weight:700;font-size:14px}.tqm-acts button.danger{color:var(--danger)}
+.tqm-hint{font-size:11px;color:var(--muted);text-align:center}
+.thold-box{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1953,7 +1967,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="241";
+const APP_VERSION="242";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2650,8 +2664,8 @@ function topicRow(t){
       ${editWho(t)}
       <div class="edit-row"><span class="who">話す日</span><input type="date" id="editOn" value="${esc(t.on||"")}" aria-label="話す日"><button type="button" class="chip" data-ton="${talkNext0()}">次の話し合い</button><button type="button" class="chip" data-ton="">指定なし</button></div>
       <textarea id="editNote" rows="3" maxlength="800" placeholder="決まったこと・メモ">${esc(t.note||"")}</textarea>
-      <div class="edit-row thold-row"><span class="who">対応期日</span><input type="date" id="editHold" value="${esc(t.holdUntil||addDays(today(),7))}" aria-label="対応期日">${t.status==="hold"?'<button type="button" class="btn" data-act="tholdoff">期日を外して戻す</button>':""}<button type="button" class="btn primary" data-act="thold">${t.status==="hold"?"期日を変える":"🕒 話した・期日まで残す"}</button></div>
-      <div class="who" style="margin:-2px 2px 6px">話し合いは済んだけど、決めた対応が終わるまで備忘として残します。期日が来たら「話すこと」に戻ります</div>
+      <div class="thold-box"><div class="who">🕒 話した・期日まで残す（対応期日をえらぶ）</div><div class="tqm-chips">${TQ_DAYS.map(([l,n])=>`<button type="button" data-tholdq="${addDays(today(),n)}">${l}<small>${short(addDays(today(),n))}</small></button>`).join("")}<label class="tqm-date">📅<input type="date" id="editHold" value="${esc(t.holdUntil||"")}" aria-label="対応期日"></label></div>${t.status==="hold"?'<button type="button" class="link" data-act="tholdoff">期日を外して戻す</button>':""}</div>
+      
       <div class="edit-row">${t.ref?'<button type="button" class="btn" data-act="openref">元の項目を開く</button>':""}<button type="button" class="btn" data-act="totask">やることにする</button></div>
       ${editActions("topics",t)}</div></li>`;
   const td=today(), hold=t.status==="hold"&&t.holdUntil, carried=!done&&!hold&&(t.on?t.on<td:(t.createdAt&&ymd(new Date(t.createdAt))<td)), fut=!done&&!hold&&t.on&&t.on>td;
@@ -2777,7 +2791,7 @@ function viewTalk(){
   }
   h+=qaPastHTML();
   h+=autoCardHTML("topic"); /* v214: 定期的に話すこと（v237：どの日でも表示） */
-  return h+`<p class="hint">議題：→で話した・←で削除・タップでメモ／やることにする<br>確認の項目はその場で編集できます・日付の帯←→で過去の話し合い<br>上から↓で議題を追加・←→でタブ切替</p>`;
+  return h+`<p class="hint">議題：→で話した・←で削除・長押しでメニュー（期日まで残す・話す日・決めたこと）・ダブルタップで決めたこと・タップでくわしく編集<br>確認の項目はその場で編集できます・日付の帯←→で過去の話し合い<br>上から↓で議題を追加・←→でタブ切替</p>`;
 }
 function makeTopicFrom(c,x){
   if(state.topics.some(t=>t.ref&&t.ref.id===x.id&&t.status!=="done")){ toast("すでに議題にあります"); return; }
@@ -4743,7 +4757,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="rtoday"){ state.refDate=today(); render(); }
   else if(a==="totopic"){ const ed=state.editing; const x=ed&&state[ed.c].find(i=>i.id===ed.id); saveEdit(); if(x) makeTopicFrom(ed.c,x); }
   else if(a==="openref"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t&&t.ref) openRef(t.ref); }
-  else if(a==="thold"||a==="tholdoff"){ const ed=state.editing, t=ed&&state.topics.find(i=>i.id===ed.id); if(!t) return; const hu=($("editHold")||{}).value, nv=($("editNote")||{}).value;
+  else if(a==="thold"||a==="tholdoff"){ /* v242: 期日ボタン（data-tholdq）からも */ const ed=state.editing, t=ed&&state.topics.find(i=>i.id===ed.id); if(!t) return; const hu=($("editHold")||{}).value, nv=($("editNote")||{}).value;
     if(a==="thold"&&!hu){ toast("対応期日を入れてください"); return; } saveEdit(); const u=snapUndo("topics",t.id);
     const ch=a==="thold"?{status:"hold",holdUntil:hu,talkedOn:t.talkedOn||state.talkDate||today()}:{status:"open",holdUntil:null}; if(nv!=null&&nv!==t.note) ch.note=nv; Object.assign(t,ch); dupd("topics",t.id,ch); haptic("done");
     toast(a==="thold"?`話した・${short(hu)}まで残します`:"期日を外して、ふつうの議題に戻しました",u,"done"); state.editing=null; render(); }
@@ -7815,12 +7829,48 @@ function recurNext(withPriv){
 const REC_LB={pay:["支払い","yen"],chore:["家事","chore"],habit:["定期の習慣","loop"]};
 function recRow(x){ const [lb,icn]=REC_LB[x.kind]||["定期","loop"]; return `<li class="item rec-row"><button class="rec-b" data-go2="${x.go}">${ic(icn)}<span class="rec-t"><b>${esc(x.text)}</b><small>${lb}・${x.over?`${short(x.due)}から期限切れ`:`${short(x.due)}まで`}${x.who&&x.who!=="both"?`・${esc(nameOf(x.who))}`:""}</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg></button></li>`; }
 
+/* v242: 議題は「長押し＝メニュー」「ダブルタップ＝決めたことを書く」「右スワイプ＝話した」「左スワイプ＝削除」で操作できるように */
+const TQ_DAYS=[["明日",1],["3日後",3],["1週間後",7],["2週間後",14],["1か月後",30]];
+function topicMenu(id,mode,li){ const t=(state.topics||[]).find(x=>x.id===id); if(!t) return; const old=$("tqm"); if(old) old.remove(); haptic("arm");
+  const td=today(), sat=(()=>{ let d=td; for(let i=0;i<7;i++){ if(parse(d).getDay()===6) return d; d=addDays(d,1); } return d; })();
+  const m=document.createElement("div"); m.id="tqm"; m.className="tqm"; m.setAttribute("role","dialog");
+  const done=t.status==="done";
+  m.innerHTML=`<div class="tqm-card"><div class="tqm-h"><b>${esc(String(t.text).slice(0,60))}</b><button class="tqm-x" data-tq="close" aria-label="閉じる">×</button></div>
+    ${mode==="note"?"":`<div class="tqm-sec"><div class="tqm-l">🕒 話した・期日まで残す</div><div class="tqm-chips">${TQ_DAYS.map(([l,n])=>`<button data-tq="hold" data-d="${addDays(td,n)}">${l}<small>${short(addDays(td,n))}</small></button>`).join("")}<label class="tqm-date">📅<input type="date" data-tq-date="hold" value="${esc(t.holdUntil||"")}"></label></div></div>`}
+    <div class="tqm-sec"><div class="tqm-l">✅ 決めたこと</div><textarea id="tqNote" rows="3" maxlength="600" placeholder="ふたりで決めたこと">${esc(t.note||"")}</textarea>
+      <div class="tqm-row"><button class="btn" data-tq="note">保存</button>${done?"":`<button class="btn primary" data-tq="notedone">保存して話した</button>`}</div></div>
+    ${mode==="note"?"":`<div class="tqm-sec"><div class="tqm-l">📅 話す日</div><div class="tqm-chips">${[["今日",td],["次の話し合い",talkNext0()],["明日",addDays(td,1)],["土曜",sat]].filter((x,i,a)=>a.findIndex(y=>y[1]===x[1])===i).map(([l,d])=>`<button data-tq="on" data-d="${d}">${l}<small>${short(d)}</small></button>`).join("")}<button data-tq="on" data-d="">指定なし</button></div></div>
+    <div class="tqm-acts">${done?`<button data-tq="undone">↩ 話していないに戻す</button>`:`<button data-tq="done">✓ 話した</button>`}<button data-tq="task">→ やることにする</button><button data-tq="edit">✎ くわしく編集</button><button data-tq="del" class="danger">削除</button></div>`}
+    <div class="tqm-hint">項目を ← 削除／→ 話した・長押しでこのメニュー・ダブルタップで決めたこと</div></div>`;
+  document.body.appendChild(m); requestAnimationFrame(()=>m.classList.add("open"));
+  if(mode==="note") setTimeout(()=>{ const n=$("tqNote"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },120);
+  const close=()=>{ m.classList.remove("open"); setTimeout(()=>m.remove(),180); };
+  const upd=(ch,msg)=>{ const u=snapUndo("topics",t.id); Object.assign(t,ch); dupd("topics",t.id,ch); haptic("done"); close(); render(); if(msg) toast(msg,u,"done"); };
+  m.addEventListener("change",ev=>{ const i=ev.target.closest("[data-tq-date]"); if(i&&i.value) upd({status:"hold",holdUntil:i.value,talkedOn:t.talkedOn||td,...noteCh()},`話した・${short(i.value)}まで残します`); });
+  const noteCh=()=>{ const v=(($("tqNote")||{}).value||"").trim().slice(0,600); return v!==(t.note||"")?{note:v}:{}; };
+  m.addEventListener("click",ev=>{ if(ev.target===m){ close(); return; } const b=ev.target.closest("[data-tq]"); if(!b) return; ev.stopPropagation(); const a=b.dataset.tq;
+    if(a==="close") close();
+    else if(a==="hold") upd({status:"hold",holdUntil:b.dataset.d,talkedOn:t.talkedOn||td,...noteCh()},`話した・${short(b.dataset.d)}まで残します`);
+    else if(a==="note") upd(noteCh(),"決めたことを保存しました");
+    else if(a==="notedone"){ celebrate(); upd({...noteCh(),status:"done",doneAt:Date.now(),doneDate:state.talkDate||td,holdUntil:null},"保存して「話した」にしました"); }
+    else if(a==="on") upd({on:b.dataset.d||null,...(t.status==="hold"?{status:"open",holdUntil:null}:{})},b.dataset.d?`${short(b.dataset.d)}に話します`:"話す日を外しました");
+    else if(a==="done"){ celebrate(); upd({...noteCh(),status:"done",doneAt:Date.now(),doneDate:state.talkDate||td,holdUntil:null},"話した"); }
+    else if(a==="undone") upd({status:"open",doneAt:null,doneDate:null},"話していないに戻しました");
+    else if(a==="task"){ close(); dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); }
+    else if(a==="edit"){ close(); startEdit("topics",t.id); }
+    else if(a==="del"){ close(); removeWithUndo("topics",[t.id],"削除しました"); render(); } }); }
+/* ダブルタップ：決めたことをすぐ書く（1回タップはこれまでどおり編集） */
+{ let lastT=0, lastId=null, tmr=null;
+  document.addEventListener("click",e=>{ if(state.view!=="talk"&&state.view!=="dec") return; const li=e.target.closest("#main li.item[data-c='topics'][data-id]"); if(li&&suppressClick&&!state.editing){ suppressClick=false; e.stopPropagation(); e.preventDefault(); return; } if(!li||state.editing||e.target.closest(".check,button.link,a,input,textarea,select,[data-tdec]")) return;
+    const id=li.dataset.id, now=Date.now();
+    if(lastId===id&&now-lastT<320){ clearTimeout(tmr); tmr=null; lastT=0; lastId=null; e.stopPropagation(); e.preventDefault(); topicMenu(id,"note",li); return; }
+    lastT=now; lastId=id; e.stopPropagation(); e.preventDefault(); clearTimeout(tmr); tmr=setTimeout(()=>{ tmr=null; lastId=null; startEdit("topics",id); },300); },true); }
 /* ================= 長押しメニュー（どの項目も長押しで「議題にする」） ================= */
 { let lp=null;
   const close=()=>{ const m=$("lpm"); if(m) m.remove(); document.querySelectorAll("li.item.lp-on").forEach(x=>x.classList.remove("lp-on")); };
   const TOPIC_OK=new Set(["items","troubles","cautions","plans","events","chores"]);
   $("app").addEventListener("pointerdown",e=>{ if(e.button>0||state.editing) return; const li=e.target.closest("li.item[data-c][data-id]"); if(!li||e.target.closest("button:not(.row),input,textarea,a,.check")) return;
-    const c=li.dataset.c; if(c==="topics") return;
+    const c=li.dataset.c; if(c==="topics"){ lp={x:e.clientX,y:e.clientY,li,t:setTimeout(()=>{ if(!lp) return; const L=lp; lp=null; if(typeof sw!=="undefined"&&sw&&sw.on) return; suppressClick=true; setTimeout(()=>suppressClick=false,450); topicMenu(L.li.dataset.id,"menu",L.li); },450)}; return; }
     lp={x:e.clientX,y:e.clientY,li,t:setTimeout(()=>{ if(!lp) return; const L=lp; lp=null; if(typeof sw!=="undefined"&&sw&&sw.on) return; openLp(L.li); },480)}; },true);
   const cancel=e=>{ if(!lp) return; if(e&&e.type==="pointermove"&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)<8) return; clearTimeout(lp.t); lp=null; };
   addEventListener("pointermove",cancel,true); addEventListener("pointerup",cancel,true); addEventListener("pointercancel",cancel,true); addEventListener("scroll",()=>{ cancel(); close(); },{passive:true});
@@ -8030,7 +8080,10 @@ function viewDecisions(){ const all=decEntries(), F=state.decF||"all", q=String(
       if(E===x.key&&x.src!=="note"){ const [k]=x.key.split("|"); return `<li>${ed(x.key,k==="p"?(x.title.split(" › ").slice(1).join(" › ")):x.title,x.dec,k==="p"?"話したい内容（項目）":"話したい内容（議題）","決めたこと")}</li>`; }
       return `<li><button class="dec-c ${x.dec?"":"empty"} src-${x.src}" ${x.src==="note"?`data-dect="${x.d}"`:`data-dece="${esc(x.key)}"`}><span class="dec-t">${x.src==="future"?`<i class="tag" style="--tc:var(--future)">${esc(x.cat)}</i>`:x.src==="note"?`<i class="tag" style="--tc:var(--talk)">メモ</i>`:""}${esc(x.title)}${x.hold?`<i class="tag tc-talk">🕒 ${short(x.hold)}まで対応</i>`:""}</span>${x.dec?`<span class="dec-d">${esc(x.dec.length>220?x.dec.slice(0,220)+"…":x.dec)}</span>`:`<span class="dec-w">＋ 決めたことを書く</span>`}${x.who?`<small>${esc(nameOf(x.who))}</small>`:""}</button></li>`; }).join("")}</ul></section>`; }
   return h+hint("カードをタップで「話したい内容」と「決めたこと」を直せます。日付の「この日の話し合い」でその日の話す画面へ"); }
-document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-tdec]"); if(!b) return; e.stopPropagation(); e.preventDefault(); openEdit("topics",b.dataset.tdec); setTimeout(()=>{ const n=$("editNote"); if(n){ n.focus(); n.scrollIntoView({block:"center"}); } },80); },true);
+document.addEventListener("click",e=>{ const q=e.target.closest("#main [data-tholdq]"); if(!q) return; e.stopPropagation(); e.preventDefault(); const ed=state.editing, t=ed&&state.topics.find(i=>i.id===ed.id); if(!t) return; const nv=($("editNote")||{}).value, u=snapUndo("topics",t.id); saveEdit();
+  const ch={status:"hold",holdUntil:q.dataset.tholdq,talkedOn:t.talkedOn||state.talkDate||today()}; if(nv!=null&&nv!==t.note) ch.note=nv; Object.assign(t,ch); dupd("topics",t.id,ch); haptic("done"); state.editing=null; toast(`話した・${short(q.dataset.tholdq)}まで残します`,u,"done"); render(); },true);
+document.addEventListener("change",e=>{ if(e.target&&e.target.id==="editHold"&&e.target.value){ const ed=state.editing, t=ed&&state.topics.find(i=>i.id===ed.id); if(!t) return; const nv=($("editNote")||{}).value, u=snapUndo("topics",t.id); saveEdit(); const ch={status:"hold",holdUntil:e.target.value,talkedOn:t.talkedOn||state.talkDate||today()}; if(nv!=null&&nv!==t.note) ch.note=nv; Object.assign(t,ch); dupd("topics",t.id,ch); haptic("done"); state.editing=null; toast(`話した・${short(ch.holdUntil)}まで残します`,u,"done"); render(); } });
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-tdec]"); if(!b) return; e.stopPropagation(); e.preventDefault(); topicMenu(b.dataset.tdec,"note"); },true);
 document.addEventListener("click",e=>{ const f=e.target.closest("#main [data-decf]"); if(f){ state.decF=f.dataset.decf; state.decEdit=null; render(); return; }
   const a=e.target.closest("#main [data-decadd]"); if(a){ const t=(($("decAddT")||{}).value||"").trim(), d=(($("decAddD")||{}).value||"").trim(); if(!d){ toast("決めたことを書いてください"); return; } const now=Date.now(), id=newId(), td=today();
     dset("topics",id,{text:(t||"その場で決めたこと").slice(0,120),who:"both",status:"done",doneAt:now,doneDate:td,note:d.slice(0,600),ref:null,by:state.me||null,createdAt:now,updatedAt:now}); haptic("done"); toast("決めたことを残しました",()=>ddel("topics",id),"done"); render(); return; } });
