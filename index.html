@@ -543,6 +543,8 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .hjump{display:grid!important;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px!important}
 .hjump button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,transparent);font-size:12px;font-weight:600;position:relative;text-align:center}
 .hjump .hj-i svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}.hjump i{position:absolute;top:2px;right:6px;font-style:normal;font-size:10px;background:var(--danger);color:#fff;border-radius:99px;padding:0 5px}
+/* v239: 話した・期日まで残す */
+.item.hold .text{color:var(--muted)}.tag.hold-due{font-weight:700}.thold-row input[type=date]{flex:1;min-width:0}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -1916,7 +1918,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="238";
+const APP_VERSION="239";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2613,13 +2615,15 @@ function topicRow(t){
       ${editWho(t)}
       <div class="edit-row"><span class="who">話す日</span><input type="date" id="editOn" value="${esc(t.on||"")}" aria-label="話す日"><button type="button" class="chip" data-ton="${talkNext0()}">次の話し合い</button><button type="button" class="chip" data-ton="">指定なし</button></div>
       <textarea id="editNote" rows="3" maxlength="800" placeholder="決まったこと・メモ">${esc(t.note||"")}</textarea>
+      <div class="edit-row thold-row"><span class="who">対応期日</span><input type="date" id="editHold" value="${esc(t.holdUntil||addDays(today(),7))}" aria-label="対応期日">${t.status==="hold"?'<button type="button" class="btn" data-act="tholdoff">期日を外して戻す</button>':""}<button type="button" class="btn primary" data-act="thold">${t.status==="hold"?"期日を変える":"🕒 話した・期日まで残す"}</button></div>
+      <div class="who" style="margin:-2px 2px 6px">話し合いは済んだけど、決めた対応が終わるまで備忘として残します。期日が来たら「話すこと」に戻ります</div>
       <div class="edit-row">${t.ref?'<button type="button" class="btn" data-act="openref">元の項目を開く</button>':""}<button type="button" class="btn" data-act="totask">やることにする</button></div>
       ${editActions("topics",t)}</div></li>`;
-  const td=today(), carried=!done&&(t.on?t.on<td:(t.createdAt&&ymd(new Date(t.createdAt))<td)), fut=!done&&t.on&&t.on>td;
+  const td=today(), hold=t.status==="hold"&&t.holdUntil, carried=!done&&!hold&&(t.on?t.on<td:(t.createdAt&&ymd(new Date(t.createdAt))<td)), fut=!done&&!hold&&t.on&&t.on>td;
   const K=topicKind(t);
-  return wrapRow("topics",t,`${done?"done":""} tpk tpk-${K.k}`,
+  return wrapRow("topics",t,`${done?"done":""} ${hold&&t.holdUntil>td?"hold":""} tpk tpk-${K.k}`,
     `<button class="check ${done?"on":""}" style="--c:var(--${K.k})" data-act="right" aria-label="${rightLabel("topics",t)}">${CHECK}</button>`,
-    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:""}`);
+    `<div class="text">${esc(t.text)}</div><div class="meta">${t.ref?`<span class="tag tpk-tag">${K.l}</span>`:""}${whoTag(t)}${fut?`<span class="tag tc-talk">${t.on===addDays(td,1)?"明日":dW(t.on)}に話す</span>`:t.on===td&&!done?`<span class="tag tc-talk">今日話す</span>`:""}${carried?`<span>${short(t.on||ymd(new Date(t.createdAt)))}から持ち越し</span>`:""}${hold?`<span class="tag ${t.holdUntil<=td?"tc-danger hold-due":"tc-talk"}">🕒 ${t.holdUntil<td?`期日${short(t.holdUntil)}を過ぎました`:t.holdUntil===td?"今日が対応期日":`${short(t.holdUntil)}まで対応`}</span>${t.talkedOn?`<span>${short(t.talkedOn)}に話した</span>`:""}`:""}</div>${t.note?`<div class="meta">決定：${esc(t.note.slice(0,60))}${t.note.length>60?"…":""}</div>`:""}`);
 }
 function week7(){
   const days=[...Array(7)].map((_,i)=>addDays(today(),i));
@@ -2628,7 +2632,9 @@ function week7(){
 }
 /* v108: 議題の「話す日」。指定あり→その日から、指定なし→話し合いの日（お休みの日以外）に数える */
 const talkNow=t=>{ const d=today(); return t.status!=="done"&&(t.on?t.on<=d:true); };
-const talkTopicsN=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&(t.on?t.on<=d:!off)).length; };
+/* v239: 「話した・期日まで残す」＝話し合いは済んだが、対応期日まで備忘として議題に残す（期日が来たら上の一覧に戻る） */
+const tHold=(t,d)=>t.status==="hold"&&t.holdUntil&&t.holdUntil>(d||today());
+const talkTopicsN=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&!tHold(t,d)&&(t.on?t.on<=d:!off)).length; };
 const talkBadge=()=>talkTopicsN()+talkMissing().length; /* v117: 話すの数字＝今日の議題＋話し合いの記録待ち（ホームの「今日やること」と同じ数） */
 const talkNext0=()=>{ const d=today(); return talkOff(d)?(nextTalkDay(d)||addDays(d,1)):d; };
 /* 毎日の話し合い：妻の夜勤入り（入）の日以外は毎日実施 */
@@ -2705,13 +2711,15 @@ function talkCalendarHTML(){const {selected,month,m,days}=talkCalendarDates(),{b
 function talkCalendarMove(value,monthDelta){const input=$("talkNotes"),saved=talkOf(state.talkDate);if(input&&input.value!==(saved?.notes||""))saveTalkNotes();if(monthDelta){const {m}=talkCalendarDates(),next=ymd(new Date(m.getFullYear(),m.getMonth()+monthDelta,1));state.talkCalMonth=next.slice(0,7);state.talkCalDate=next;}else if(aiDate(value)){state.talkCalDate=value;state.talkCalMonth=value.slice(0,7);}render();}
 function viewTalk(){
   const d=state.talkDate, isT=d===today();
-  const futT=isT?state.topics.filter(t=>t.status!=="done"&&t.on&&t.on>d).sort((a,b)=>a.on<b.on?-1:1):[];
-  const tops=state.topics.filter(t=>isT?((t.status!=="done"&&!(t.on&&t.on>d))||t.doneDate===d):(t.doneDate===d)).sort((a,b)=>((a.status==="done")-(b.status==="done"))||(a.createdAt-b.createdAt));
+  const holdT=isT?state.topics.filter(t=>tHold(t,d)).sort((a,b)=>a.holdUntil<b.holdUntil?-1:1):[];
+  const futT=isT?state.topics.filter(t=>t.status!=="done"&&!tHold(t,d)&&t.on&&t.on>d).sort((a,b)=>a.on<b.on?-1:1):[];
+  const tops=state.topics.filter(t=>isT?((t.status!=="done"&&!tHold(t,d)&&!(t.on&&t.on>d))||t.doneDate===d):(t.doneDate===d)).sort((a,b)=>((a.status==="done")-(b.status==="done"))||(a.createdAt-b.createdAt));
   const doneN=tops.filter(t=>t.status==="done").length, note=(state.talks.find(x=>x.id===d)||{}).notes||"";
   let h=`<div class="dstrip" data-strip="talk"><button class="icon-btn" data-act="tprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="tnext" aria-label="次の日">›</button></div>
     <div class="tools"><span class="who">${tops.length?`話した ${doneN}/${tops.length}`:""}</span>${isT?"":'<button class="pill" data-act="ttoday">今日</button>'}</div>`+talkCard(d)+(isT?agendaHTML():(qaOf(d)?qaCardHTML(d):""));
   h+=`<div class="section-label">話すこと</div>`;
   h+=tops.length?`<ul class="list">${tops.map(topicRow).join("")}</ul>`:`<div class="empty">${isT?"議題はまだありません<br>上から↓で追加、または各項目を長押し→「議題にする」":"この日の記録はありません"}</div>`;
+  if(holdT.length) h+=`<div class="section-label"><span>🕒 話した・対応期日まで残す（${holdT.length}）</span></div><ul class="list">${holdT.map(topicRow).join("")}</ul>`;
   if(futT.length) h+=`<div class="section-label">これからの議題（話す日を指定）</div><ul class="list">${futT.map(topicRow).join("")}</ul>`;
   h+=talkCalendarHTML();
   h+=`<div class="section-label">決まったこと・メモ</div><div class="paper notes"><textarea id="talkNotes" placeholder="話して決まったこと、次に話すことなど">${esc(note)}</textarea><div class="paper-foot"><span id="talkSave">${note?"保存済み":"入力すると自動で保存されます"}</span></div></div>`+(isT&&!state.aiOpen?aiCardHTML("talk"):"");
@@ -4700,6 +4708,10 @@ $("main").addEventListener("click",e=>{
   else if(a==="rtoday"){ state.refDate=today(); render(); }
   else if(a==="totopic"){ const ed=state.editing; const x=ed&&state[ed.c].find(i=>i.id===ed.id); saveEdit(); if(x) makeTopicFrom(ed.c,x); }
   else if(a==="openref"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t&&t.ref) openRef(t.ref); }
+  else if(a==="thold"||a==="tholdoff"){ const ed=state.editing, t=ed&&state.topics.find(i=>i.id===ed.id); if(!t) return; const hu=($("editHold")||{}).value, nv=($("editNote")||{}).value;
+    if(a==="thold"&&!hu){ toast("対応期日を入れてください"); return; } saveEdit(); const u=snapUndo("topics",t.id);
+    const ch=a==="thold"?{status:"hold",holdUntil:hu,talkedOn:t.talkedOn||state.talkDate||today()}:{status:"open",holdUntil:null}; if(nv!=null&&nv!==t.note) ch.note=nv; Object.assign(t,ch); dupd("topics",t.id,ch); haptic("done");
+    toast(a==="thold"?`話した・${short(hu)}まで残します`:"期日を外して、ふつうの議題に戻しました",u,"done"); state.editing=null; render(); }
   else if(a==="totask"){ const ed=state.editing; const t=ed&&state.topics.find(i=>i.id===ed.id); saveEdit(); if(t){ dset("items",newId(),baseItem("task",t.text,"","",getWho(t))); toast("「やること」に追加しました"); } }
   else if(a==="ck"||a==="ckdel"||a==="ckadd"||a==="cknote"||a==="cknsave") checkOp(a,Number(b.dataset.i));
   else if(a==="plogadd"||a==="plogdel") planLogOp(a,Number(b.dataset.at));
@@ -6221,7 +6233,7 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${c.target==="ar"?"条件で:"+cut(arDesc(c.ar||{}),60):chFqLabel(c)} 担当:${c.who==="alt"?"交代・次は"+nm(I.who):I.who==="both"?"ふたり":nm(I.who)} 大変さ${c.pts||1} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
   if(typeof arRules==="function") sec("条件で自動（自動で入る予定・タスク・家事・議題）",arRules().map(r=>`[${ref("autoRules",r.id)}] ${cut(r.name,30)} ${({block:"🔒自分の予定",task:"🔒自分のタスク",event:"ふたりの予定",item:"ふたりのやること",shop:"買い物",chore:"家事",topic:"議題"})[r.kind||"block"]}${r.s?` ${r.s}-${r.e||""}`:""} ${r.on?"オン":"オフ"} 条件:${cut(arDesc(r),90)}`),15);
   { const P=typeof pgD==="function"&&pgD(); if(P&&P.due){ const n=pgNow(), L=pgItems().filter(o=>!o.done&&o.k!=="目安"&&o.b>=n.w-1).slice(0,8); sec(`妊娠・出産（予定日${P.due}・いま${P.born?"産後":`妊娠${n.w}週${n.r}日`}）`,L.map(o=>`${o.a===o.b?o.a:o.a+"〜"+o.b}週 ${cut(o.t,40)} 担当:${o.who==="both"?"ふたり":nm(o.who)}${o.date?" 日付"+o.date:""}`),8); } }
-  sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
+  sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.status==="hold"?` 話した・対応期日${short(x.holdUntil)}`:""}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
   sec("気になること・困りごと",state.troubles.filter(x=>x.status!=="done").map(x=>`[${ref("troubles",x.id)}] ${cut(x.text,40)} ${x.status==="doing"?"対応中":x.status==="habit"?"習慣化済み":"未対応"}`),15);
   sec("注意",state.cautions.filter(x=>!x.done).map(x=>`[${ref("cautions",x.id)}] ${cut(x.text,40)}${x.date?" "+short(x.date):""}${x.habit?" 習慣化済み":""}`),10);
   sec("予定（ふたり・これから30日）",state.events.filter(x=>x.date>=t&&x.date<=addDays(t,30)&&mine(x)).sort((a,b)=>a.date<b.date?-1:1).map(x=>`[${ref("events",x.id)}] ${short(x.date)}${x.start?` ${x.start}-${x.end||""}`:""} ${cut(x.text,40)} ${wh(x)}`),25);
