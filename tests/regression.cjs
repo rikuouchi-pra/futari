@@ -187,7 +187,7 @@ test('AI dates preserve explicit years and reject nonexistent dates', () => {
   for(const d of ['2026-02-29','2026-04-31','2026-13-10']) assert.equal(run(c,`aiDate(${JSON.stringify(d)})`),'');
   assert.equal(run(c,"aiDate('明日')"),'2026-09-29'); assert.equal(run(c,"aiTime('24:00')"),'');
 });
-const ai = [...core,'aiDate','aiTime','aiWho','TARGETS','tgtVal','aiRecurring','AI_PREFS','cut2','aiDoAct','applyLocal'];
+const ai = [...core,'aiDate','aiTime','aiWho','aiAlt','aiPts','aiChoreFreq','aiAutoConds','AI_AR_KIND','TARGETS','tgtVal','aiRecurring','AI_PREFS','cut2','aiDoAct','applyLocal'];
 test('AI private event uses private collection with exact date/time', () => {
   const c=env(ai); const w=act(c,{type:'add_event',text:'歯医者',date:'2027-02-01',start:'10:30',end:'11:15',who:'priv'});
   assert.equal(w.c,'blocks'); assert.equal(w.data.date,'2027-02-01'); assert.equal(w.data.start,'10:30'); assert.equal(w.data.end,'11:15'); assert.equal(w.data.who,undefined);
@@ -318,6 +318,13 @@ test('all recurrence scope resets shared overrides for both people and keeps log
   run(c,"Object.assign(x,timeChangeFor('items',x,'2026-09-28','12:00',60,'all'))");
   assert.equal(c.x.dayTimes_h,null);assert.equal(c.x.dayTimes_w,null);assert.equal(c.x.dayTimes,null);assert.equal(c.x.time,'12:00');assert.equal(c.x.log['2026-09-27'],true);
   assert.equal(run(c,"timeAt(x,'2026-09-29')"),'12:00');
+});
+test('v230 AI adds chores with frequency, rotation and points, and money items',()=>{
+  const c=env(ai,{money:v=>Number(String(v).replace(/[^0-9]/g,''))||null,RKIND:{fixed:{l:'固定費'},var:{l:'変動費'},save:{l:'貯金'}},ymOf:d=>d.slice(0,7)});
+  let w=act(c,{type:'add_chore',text:'ゴミ集め',target:'iv',every:7,who:'alt',pts:2});assert.equal(w.c,'chores');assert.equal(w.data.every,7);assert.equal(w.data.who,'alt');assert.equal(w.data.pts,2);assert.equal(w.data.target,undefined);
+  w=act(c,{type:'add_chore',text:'風呂掃除',target:'wd',wd:[6],who:'me',time:'10:00',end:'10:30'});assert.equal(w.data.target,'wd');assert.deepEqual(plain(w.data.wd),[6]);assert.equal(w.data.dur,30);assert.equal(w.data.who,'h');
+  c.writes.length=0;act(c,{type:'add_chore',text:'x',target:'iv',every:0});assert.equal(c.writes.length,0);
+  w=act(c,{type:'add_money',text:'保険',kind:'fixed',amount:5000,day:27,who:'both'});assert.equal(w.c,'recur');assert.equal(w.data.amount,5000);assert.equal(w.data.day,27);
 });
 test('AI recurring creation supports every frequency and explicit private/shared assignees',()=>{
   const c=env(ai);const targets=run(c,'TARGETS.map(x=>x[0])');

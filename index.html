@@ -1872,7 +1872,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="229";
+const APP_VERSION="230";
 const WHO_KEYS=["both","h","w"];
 const KINDS={topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6045,7 +6045,8 @@ function aiCtx(){ const t=today(), me=myRole(), ot=otherRole(), now=new Date(), 
   sec("やること（未完了）",[...state.items.filter(i=>i.list==="task"&&!isRecItem(i)&&!myDone(i)).sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="task"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
   sec("買い物リスト（未購入）",[...state.items.filter(i=>i.list==="shop"&&!myDone(i)).map(i=>itemRowT(i,"items")),...state.pitems.filter(i=>i.list==="shop"&&!i.done).map(i=>itemRowT(i,"pitems"))],30);
   sec("繰り返しのタスク・習慣",[...habitItems(),...recMine()].map(h=>`[${ref(recColl(h),h.id)}] ${cut(h.text,30)} ${tgtLabel(h)} ${isHabit(h)?"種類:習慣":"種類:やること"}${recColl(h)==="habits"?" 🔒":""}${habitLog(h)[t]?" 今日✓済":recOn(h,t)?" 今日の日":""}`),20);
-  sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${chFqLabel(c)} 担当:${I.who==="both"?"ふたり":nm(I.who)} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
+  sec("家事",(state.chores||[]).map(c=>{ const I=choreInfo(c); return `[${ref("chores",c.id)}] ${cut(c.text,20)} ${c.target==="ar"?"条件で:"+cut(arDesc(c.ar||{}),60):chFqLabel(c)} 担当:${c.who==="alt"?"交代・次は"+nm(I.who):I.who==="both"?"ふたり":nm(I.who)} 大変さ${c.pts||1} ${(c.log||{})[t]?"今日✓済":chSkip(c,t)?"今日はやらない":I.diff<0?`${-I.diff}日遅れ`:I.diff===0?"今日":`あと${I.diff}日`}`; }),25);
+  if(typeof arRules==="function") sec("条件で自動（自動で入る予定・タスク・家事・議題）",arRules().map(r=>`[${ref("autoRules",r.id)}] ${cut(r.name,30)} ${({block:"🔒自分の予定",task:"🔒自分のタスク",event:"ふたりの予定",item:"ふたりのやること",shop:"買い物",chore:"家事",topic:"議題"})[r.kind||"block"]}${r.s?` ${r.s}-${r.e||""}`:""} ${r.on?"オン":"オフ"} 条件:${cut(arDesc(r),90)}`),15);
   sec("話す（議題・未完了）",state.topics.filter(x=>x.status!=="done").map(x=>`[${ref("topics",x.id)}] ${cut(x.text,40)}${x.on?` 話す日${short(x.on)}`:""}${x.note?` メモ:${cut(x.note,40)}`:""}`),20);
   sec("気になること・困りごと",state.troubles.filter(x=>x.status!=="done").map(x=>`[${ref("troubles",x.id)}] ${cut(x.text,40)} ${x.status==="doing"?"対応中":"未対応"}`),15);
   sec("注意",state.cautions.filter(x=>!x.done).map(x=>`[${ref("cautions",x.id)}] ${cut(x.text,40)}${x.date?" "+short(x.date):""}`),10);
@@ -6085,9 +6086,25 @@ async function updNow(){ toast("更新しています…"); try{ const rs=naviga
 setTimeout(()=>updCheck(false),6000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&(!state.upd||Date.now()-state.upd.at>10*60e3)) updCheck(false); });
 /* v151: AIの提案する操作（押したときだけ実行） */
 const AI_PREFS={eveH:["夜の入力時刻",["17","18","19","20","21"]],shRem:["シフトのお知らせ",["on","off"]],qaPop:["今日の質問",["on","off"]],hintsAlways:["ヒント表示",["0","1"]],music:["音楽",["on","off"]],songAuto:["音楽の自動再生",["on","off"]],wx:["天気表示",["on","off"]],startView:["起動画面",["home","cal","last"]],ttStart:["時間割の開始時刻",["3","4","5","6","7","8"]],diaryPriv:["日記の公開範囲",["0","1"]],haptic:["振動",["on","off"]],fs:["文字サイズ",["m","l","xl"]],mode:["明るさ",["auto","light","dark"]],density:["表示密度",["normal","compact"]],hand:["利き手",["left","right"]],nav:["メニュー形式",["rail","railc","flick","railf"]],aiBrief:["朝のAI提案",["on","off"]]};
-const AI_ACT_L={edit_money:"毎月の支払いを変更",set_check:"決めたことを記録",add_recurring:"繰り返しを追加",open_view:"画面を開く",set_pref:"設定を変更",report_bug:"改善要望を送信",remember:"覚える",add_plan:"将来に追加",edit:"変更",delete:"削除",skip:"この日はやらない",add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
+const AI_ACT_L={add_chore:"家事に追加",add_auto:"条件で自動を追加",edit_auto:"条件で自動を変更",add_money:"毎月の支払いを追加",edit_money:"毎月の支払いを変更",set_check:"決めたことを記録",add_recurring:"繰り返しを追加",open_view:"画面を開く",set_pref:"設定を変更",report_bug:"改善要望を送信",remember:"覚える",add_plan:"将来に追加",edit:"変更",delete:"削除",skip:"この日はやらない",add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
 const aiTime=v=>{ const s=String(v||"").padStart(5,"0"); return /^([01]\d|2[0-3]):[0-5]\d$/.test(s)?s:""; };
 function aiWho(v){ if(v==null||v===""||v==="both") return "both"; if(v==="priv"||v==="自分だけ"||v==="じぶんだけ") return "priv"; if(v==="me") return myRole(); if(v==="partner") return otherRole(); if(v==="h"||v==="夫") return "h";if(v==="w"||v==="妻")return "w"; for(const r of ["h","w"]) if(v===nameOf(r)) return r; return null; }
+/* v230: AIから家事・条件で自動・毎月の支払いも設定できるように */
+const aiPts=v=>[1,2,3].includes(Number(v))?Number(v):null;
+const aiAlt=v=>v==="alt"||v==="交代"||v==="交互";
+function aiChoreFreq(x){ const tg=String(x.target||"iv"); if(tg==="iv"||tg==="7"){ const n=tg==="7"?1:x.every==null||x.every===""?7:Number(x.every); if(!Number.isInteger(n)||n<1||n>365) throw Error("家事の日数は1〜365で指定してください"); return {target:null,every:n}; }
+  if(!["wd","mn","mo"].includes(tg)) throw Error("家事の頻度は「○日ごと・曜日・毎月第○曜・○か月ごと」のどれかです"); return {...aiRecurring({...x,target:tg}),every:1}; }
+function aiAutoConds(L){ if(!Array.isArray(L)||!L.length) throw Error("条件を指定してください"); return L.slice(0,8).map(c=>{ c=c||{}; const t=String(c.t||""), o={t,not:!!c.not}, V=Array.isArray(c.v)?c.v:c.v!=null?[c.v]:[];
+  if(t==="shift"){ const r=c.who==="partner"?otherRole():c.who==="me"?myRole():["h","w"].includes(c.r)?c.r:aiWho(c.who); if(!["h","w"].includes(r)) throw Error("シフトの人を指定してください"); const v=V.map(String).filter(z=>SHIFTS.some(q=>q[0]===z)); if(!v.length) throw Error("シフトの記号（入・明・休・早・日）を指定してください"); return {...o,r,v}; }
+  if(t==="off") return o;
+  if(t==="wd"){ const v=[...new Set(V.map(Number))].filter(n=>Number.isInteger(n)&&n>=0&&n<=6); if(!v.length) throw Error("曜日を指定してください"); return {...o,v}; }
+  if(t==="dom"){ const v=V.map(z=>String(z)==="末"?"末":String(Number(z))).filter(z=>z==="末"||(Number(z)>=1&&Number(z)<=31&&Number.isInteger(Number(z)))); if(!v.length) throw Error("日にちを指定してください"); return {...o,v}; }
+  if(t==="gomi"){ const K=gomiKinds(), v=V.map(String).filter(z=>z==="*"||z==="なし"||K.includes(z)); if(!v.length) throw Error(`ごみの種類は ${["*","なし",...K].join("・")} から選んでください`); return {...o,v}; }
+  if(t==="wx"){ const v=V.map(String).filter(z=>AR_WXC.some(w=>w[0]===z)); if(!v.length) throw Error("天気は 晴・曇・雨・雪 から選んでください"); return {...o,v}; }
+  if(t==="dry"){ const v=V.map(String).filter(z=>DRY_LV.some(w=>w[1]===z)); if(!v.length) throw Error("洗濯の乾きやすさの段階を指定してください"); return {...o,v}; }
+  if(["pop","tmax","tmin"].includes(t)){ const n=Number(c.n); if(c.n==null||c.n===""||!isFinite(n)) throw Error("数値を指定してください"); return {...o,n:String(n)}; }
+  throw Error("使えない条件です："+t); }); }
+const AI_AR_KIND=["block","task","event","item","shop","chore","topic"];
 function aiRecurring(x){
   const target=String(x.target??""), valid=TARGETS.some(t=>t[0]===target); if(!valid) throw Error("頻度を指定してください");
   const out={target:tgtVal(target)};
@@ -6116,14 +6133,19 @@ function aiActText(x){ if(x.type==="edit_money"){ const L=aiMoneyTargets(x); ret
     return `変更：${cut2(it.text)}${ch.length?"（"+ch.join("・")+"）":""}`; }
   if(x.type==="set_shift") return `シフト：${x.who==="partner"?nameOf(otherRole()):nameOf(myRole())} ${short(aiDate(x.date)||today())} を「${x.value}」に`;
   if(x.type==="remember") return `覚える（${x.scope==="me"?"🔒自分":"ふたり"}）：${cut2(x.text)}`;
+  if(x.type==="add_chore"){ let f=""; try{ const o=aiChoreFreq(x); f=o.target?tgtLabel({...o,createdAt:Date.now()}):o.every===1?"毎日":`${o.every}日ごと`; }catch(e){ f="（頻度を確認）"; } const ww=aiAlt(x.who)?"alt":aiWho(x.who); return `家事：${cut2(x.text)}・${f}・${ww==="alt"?"交代":ww==="both"||!ww?"ふたり":ww==="priv"?"自分だけ":nameOf(ww)}${aiPts(x.pts)?`・${aiPts(x.pts)}pt`:""}${aiTime(x.time)?" "+aiTime(x.time):""}`; }
+  if(x.type==="add_auto"){ let c=""; try{ c=arDesc({mode:"or",off:Number(x.off)||0,groups:[{mode:x.mode==="or"?"or":"and",conds:aiAutoConds(x.conds)}]}); }catch(e){ c="（条件を確認："+e.message+"）"; } const KL={block:"🔒自分の予定",task:"🔒自分のタスク",event:"ふたりの予定",item:"ふたりのやること",shop:"買い物",chore:"家事",topic:"議題"}; return `条件で自動（${KL[x.kind]||"?"}）：${cut2(x.text||x.name)}${aiTime(x.time||x.start)?" "+aiTime(x.time||x.start):""} ← ${c}`; }
+  if(x.type==="edit_auto"){ const r=x._r&&arRules().find(q=>q.id===x._r.id); return `条件で自動：${r?cut2(r.name):"（見つかりません）"} → ${x.delete===true?"削除":[x.on!=null?(x.on?"オン":"オフ"):"",x.text?`名前「${cut2(x.text)}」`:"",x.conds?"条件を変更":"",("time" in x)?`時刻${x.time||"なし"}`:""].filter(Boolean).join("・")||"変更"}`; }
+  if(x.type==="add_money") return `毎月の支払い：${cut2(x.text)} ${(RKIND[x.kind]||RKIND.fixed).l} ${money(x.amount)?money(x.amount).toLocaleString()+"円":"金額未定"} 毎月${Math.min(31,Math.max(1,Math.round(Number(x.day)||1)))}日`;
   if(x.type==="add_plan") return `将来（${(PCATS[x.cat]||PCATS.wish).label}）に追加：${cut2(x.text)}${dt}${x.budget?` 予算${x.budget}円`:""}`;
   return `${AI_ACT_L[x.type]||x.type}：${cut2(x.text)}${dt}${tm}${w}`; }
 const cut2=v=>String(v||"").slice(0,40);
 function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.acts[ai]; if(!x||x.ok) return; const t=today(), now=Date.now(), me=myRole();
   const who=aiWho(x.who), d=aiDate(x.date), tm=aiTime(x.time||x.start);
   let undo=null, id=newId();
-  if(who===null){toast("担当者を確認してください。指定した人を判別できませんでした");return;}
-  if(/^add_(task|shop|event|block|recurring|topic|plan)$/.test(x.type)&&!String(x.text||"").trim()){toast("名前を入力してください");return;}
+  if(who===null&&!aiAlt(x.who)){toast("担当者を確認してください。指定した人を判別できませんでした");return;}
+  if((x.type==="add_auto"||x.type==="edit_auto")&&!x.text&&x.name) x.text=x.name;
+  if(/^add_(task|shop|event|block|recurring|topic|plan|chore|auto|money)$/.test(x.type)&&!String(x.text||"").trim()){toast("名前を入力してください");return;}
   if(x.date&&!d){ toast("日付が正しくありません。AIに訂正を依頼してください"); return; }
   if([x.time,x.start,x.end].some(v=>v&&!aiTime(v))){ toast("時刻が正しくありません。0:00〜23:59で指定してください"); return; }
   if(tm&&x.end&&x.end!=="00:00"&&tmin(x.end)<=tmin(tm)){toast("終了は開始より後の時刻にしてください（翌0:00まで）");return;}
@@ -6148,6 +6170,19 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
         if(x.status==="skip"||x.status==="clear"||x.status==="paid"){ const val=x.status==="skip"?{skip:true,amount:0,at:now,by:state.me||null,role:me}:x.status==="clear"?null:(()=>{ const v={h:{amount:Math.round(rShare(r,"h")),at:now},w:{amount:Math.round(rShare(r,"w")),at:now}}; v.amount=v.h.amount+v.w.amount; v.at=now; v.role=me; return v; })(); r.paid={...(r.paid||{}),[ym]:val}; ch.paid={...r.paid}; }
         if(Object.keys(ch).length){ Object.assign(r,ch); dupd("recur",r.id,{...ch}); } }
       undo=()=>{ for(const o of olds){ const r=state.recur.find(q=>q.id===o.id); const ch={day:o.day,amount:o.amount,split:o.split,bank:o.bank,paid:o.paid}; if(r) Object.assign(r,ch); dupd("recur",o.id,ch); } }; }
+    else if(x.type==="add_chore"){ const cw=aiAlt(x.who)?"alt":who; if(cw==="priv") throw Error("家事はふたりで見える項目です（自分だけにはできません）");
+      const o={text:String(x.text).trim().slice(0,40),...aiChoreFreq(x),who:cw,pts:aiPts(x.pts)||1,log:{},schFrom:d||t,by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}; if(o.target==null) delete o.target;
+      if(tm){ o.time=tm; o.dur=x.end?(x.end==="00:00"?1440:tmin(x.end))-tmin(tm):30; } dset("chores",id,o); undo=()=>ddel("chores",id); }
+    else if(x.type==="add_auto"){ const kind=AI_AR_KIND.includes(x.kind)?x.kind:null; if(!kind) throw Error("入れる先（予定・やること・買い物・家事・議題）を指定してください"); const conds=aiAutoConds(x.conds), e=aiTime(x.end)||"";
+      if((kind==="block"||kind==="task")&&!tm) throw Error("自分の予定・自分のタスクは開始時刻が必要です");
+      const r={id:newId().slice(-6),name:String(x.text).trim().slice(0,40),s:tm||"",e:tm?(e||hhmm(Math.min(tmin(tm)+60,1439))):"",on:true,mode:"or",kind,who:["h","w"].includes(who)?who:"both",off:Math.max(-7,Math.min(7,Math.round(Number(x.off)||0))),groups:[{mode:x.mode==="or"?"or":"and",conds}]};
+      AR=[...arRules(),r]; arSave(); undo=()=>{ AR=arRules().filter(q=>q.id!==r.id); arSave(); render(); }; }
+    else if(x.type==="edit_auto"){ const R=x._r, i=R&&R.c==="autoRules"?arRules().findIndex(q=>q.id===R.id):-1; if(i<0){ toast("対象の条件が見つかりませんでした"); return; } const old=JSON.parse(JSON.stringify(arRules()));
+      if(x.delete===true){ AR=arRules().filter((q,k)=>k!==i); }
+      else { const r={...arRules()[i]}; if(x.on!=null) r.on=!!x.on; if(x.text&&String(x.text).trim()) r.name=String(x.text).trim().slice(0,40); if("time" in x||"start" in x) r.s=tm||""; if("end" in x) r.e=aiTime(x.end)||""; if(x.conds) r.groups=[{mode:x.mode==="or"?"or":"and",conds:aiAutoConds(x.conds)}]; else if(x.mode&&r.groups&&r.groups[0]) r.groups=[{...r.groups[0],mode:x.mode==="or"?"or":"and"},...r.groups.slice(1)]; if(x.off!=null) r.off=Math.max(-7,Math.min(7,Math.round(Number(x.off)||0))); if(x.kind&&AI_AR_KIND.includes(x.kind)) r.kind=x.kind; if(x.who&&["h","w","both"].includes(who)) r.who=who; AR=arRules().map((q,k)=>k===i?r:q); }
+      arSave(); undo=()=>{ AR=old; arSave(); render(); }; }
+    else if(x.type==="add_money"){ if(who==="priv") throw Error("毎月の支払いはふたりで見える項目です"); const am=money(x.amount); if(!am) throw Error("金額を指定してください"); const kind=RKIND[x.kind]?x.kind:"fixed", dy=Math.min(31,Math.max(1,Math.round(Number(x.day)||1)));
+      dset("recur",id,{text:String(x.text).trim().slice(0,40),kind,amount:am,day:dy,who:who||"both",from:ymOf(t),active:true,paid:{},by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); undo=()=>ddel("recur",id); }
     else if(x.type==="set_check"){ const R=x._r, p=R&&R.c==="plans"&&state.plans.find(i=>i.id===R.id); if(!p){ toast("対象の項目が見つかりませんでした"); return; }
       const key=String(x.item||"").trim(), checks=(p.checks||[]).map(c=>({...c})); let i=checks.findIndex(c=>c.t===key); if(i<0) i=checks.findIndex(c=>key&&(c.t.includes(key)||key.includes(c.t)));
       if(i<0){ if(!key){ toast("チェック項目が分かりませんでした"); return; } checks.push({t:key.slice(0,80),done:false}); i=checks.length-1; }
@@ -6168,7 +6203,12 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
           if(ok(x.end)) ch.end=hm(x.end); if(x.who&&c==="events"){if(who==="priv"){toast("公開範囲は予定の編集画面で変更してください");return;}ch.who=who;} }
         else if(c==="topics"){ if("date" in x) ch.on=x.date?(d||null):null; if(x.note!=null) ch.note=String(x.note).slice(0,800); }
         else if(c==="plans"){ if("date" in x) ch.date=x.date?(d||it.date):null; if(x.budget!=null) ch.budget=money(x.budget)||null; }
-        else if(c==="chores"||c==="habits"||(c==="items"&&isRecItem(it))){ if(hasT){ const tt=ok(tv)?hm(tv):null; Object.assign(ch,timeChangeFor(c,it,d||t,tt,durOf(tt),x.scope==="all"?"all":"day")); }if(x.target!==undefined)Object.assign(ch,aiRecurring(x)); }
+        else if(c==="chores"||c==="habits"||(c==="items"&&isRecItem(it))){ if(hasT){ const tt=ok(tv)?hm(tv):null; Object.assign(ch,timeChangeFor(c,it,d||t,tt,durOf(tt),x.scope==="all"?"all":"day")); }if(x.target!==undefined){ if(c==="chores"){ const f=aiChoreFreq(x); Object.assign(ch,f); ch.schFrom=t; } else Object.assign(ch,aiRecurring(x)); }
+          else if(c==="chores"&&x.every!=null&&!chSch(it)){ const n=Number(x.every); if(!Number.isInteger(n)||n<1||n>365){ toast("日数は1〜365で指定してください"); return; } ch.every=n; }
+          if(c==="chores"&&x.who){ const cw=aiAlt(x.who)?"alt":who; if(cw==="priv"){ toast("家事は自分だけにはできません"); return; } ch.who=cw; if(it.auto) ch.touched=true; }
+          if(c==="chores"&&x.pts!=null){ const pp=aiPts(x.pts); if(!pp){ toast("大変さは1〜3で指定してください"); return; } ch.pts=pp; if(it.auto) ch.touched=true; }
+          if(c==="items"&&x.who){ if(who==="priv"){ toast("公開範囲は項目の編集画面で変更してください"); return; } ch.who=who; }
+          if(c==="habits"&&x.showInTimetable!=null) ch.showInTimetable=!!x.showInTimetable; }
         if(!Object.keys(ch).length){ toast("変える内容がありませんでした"); return; }
         ch.updatedAt=now; applyLocal(c,it.id,ch); dupd(c,it.id,ch); undo=u; }
     }
@@ -6300,7 +6340,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 - acts の日付は YYYY-MM-DD、時刻は HH:MM（00:00〜23:59）。いまは ${today()}（${"日月火水木金土"[new Date().getDay()]}）${String(new Date().getHours()).padStart(2,"0")}:${String(new Date().getMinutes()).padStart(2,"0")}。日付は次の表で決める（計算しない）：${aiDateTable()}。本人が年を明示したらその年を守る。日付・開始・終了・担当を指定されたら対応する全フィールドを省略せず入れる
 - acts の who：家のこと・ふたりに関係することは "both"、自分の用事は "me"。"priv"（相手に見せない）は本人が「内緒」「自分だけ」と言ったときだけ
 - 【登録の正確さ】本人が言った項目だけを、言った数だけ acts にする。言っていない項目・おまけの提案は acts に入れず reply で「〜も追加しますか？」と聞く
-- 【種類の決め方】決まった時刻に人と会う・出かける約束→add_event／自分がやる作業→add_task／買う物→add_shop（「〇〇を買う」は add_shop。text は品名だけ）／毎週・毎日など繰り返す→add_recurring／いつかやりたい・防災・子育て→add_plan／話し合いたいこと→add_topic
+- 【種類の決め方】決まった時刻に人と会う・出かける約束→add_event／自分がやる作業→add_task／買う物→add_shop（「〇〇を買う」は add_shop。text は品名だけ）／毎週・毎日など繰り返すやること・習慣→add_recurring／「家事」と言われたら（洗濯・掃除・ゴミ集めなど家事タブで管理するもの）→add_chore／「〜の日」「休みの日は」「ごみの日の前日に」「雨なら」など条件つき→add_auto（家事なら kind:"chore"）／毎月の支払い・貯金→add_money／いつかやりたい・防災・子育て→add_plan／話し合いたいこと→add_topic
 - 【文言】text は本人の言葉をそのまま短く使う（言い換えない・敬語にしない）。日付や時刻、人の名前は text に入れず各フィールドへ
 - 【時刻】「朝」「夕方」など幅のある言い方は time を入れず reply で確認する。「19時」「夜7時」は 19:00。終わりの時刻を言われなければ end は省略
 - 【確認】日付・担当・種類のどれかに迷ったら、acts は作ったうえで reply の最初に「〇〇として登録します。違えば直してね」と一言書く
@@ -6337,7 +6377,11 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
   {"type":"done","ref":"r12"}（[r番号]の項目を完了にする。完了済みなら未完了に戻す）
   {"type":"edit_money","refs":["r3","r4"],"all":false,"kind":"fixed|var|save(allのときの絞り込み・任意)","day":20,"amount":円(任意),"split_w":妻の負担額(任意),"split_h":夫の負担額(任意),"bank":"振込先(任意)","status":"paid|skip|clear(任意)","ym":"YYYY-MM(statusの対象月・任意)"}（「毎月の支払い」の[r番号]の項目をまとめて直す。全部なら "all":true。変える欄だけ書く。例：振込の指定日を全部20日に→{"type":"edit_money","all":true,"day":20}）
   {"type":"set_check","ref":"r12","item":"チェック項目の文字","note":"ふたりで決めたこと・結果","done":true}（将来（防災・子育てなど）の項目の中のチェック項目に、決めたことを書く。話し合いの後片付けで、議題が将来の項目に関係するときはこれを使う。done は決まって済んだときだけ）
-  {"type":"edit","ref":"r12","text":"新しい名前(任意)","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner(任意)","note":"メモ(任意・議題)","budget":金額(任意)}（既存の項目を直す。変える欄だけ書く。日付や時刻を消すときは "" を入れる）
+  {"type":"add_chore","text":"","target":"iv|wd|mn|mo","every":7,"wd":[0],"nth":[1],"mEvery":1,"mStart":"YYYY-MM-DD","who":"both|me|partner|alt","pts":1,"time":"HH:MM(任意)","end":"HH:MM(任意)"}（家事タブの家事。iv=前回からevery日ごと（毎日はevery:1）、wd=曜日、mn=毎月第○曜、mo=○か月ごと。alt=交代。pts=大変さ1〜3。頻度を言われなければ家事として自然な頻度で作り、replyで「違えば直してね」。ごみの日など条件で出したい家事は add_auto の kind:"chore"）
+  {"type":"add_auto","text":"","kind":"event|item|shop|chore|topic|block|task","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner","mode":"and|or","off":0,"conds":[{"t":"shift","who":"me|partner","v":["休"]},{"t":"gomi","v":["燃やせるごみ"]}]}（条件の日に自動で入れる。kind：event=ふたりの予定、item=ふたりのやること、shop=買い物、chore=家事、topic=議題、block=🔒自分の予定（時刻必須）、task=🔒自分のタスク（時刻必須）。conds の t：shift（who と v=入・明・休・早・日）／off（ふたり休み）／wd（v=曜日0〜6）／dom（v=日にち1〜31、"末"）／gomi（v=${(()=>{ try{ return ["*","なし",...gomiKinds()].join("・"); }catch(e){ return "*・なし"; } })()}。*=何か出せる日）／wx（v=晴・曇・雨・雪）／pop（n=降水確率%以上）／tmax（n=最高気温以上）／tmin（n=最低気温以下）／dry（v=${typeof DRY_LV!=="undefined"?DRY_LV.map(l=>l[1]).join("・"):"よく乾く など"}）。"not":trueで「〜でない」。mode：and=全部満たす、or=どれか。off:-1=条件の日の前日に入れる）
+  {"type":"edit_auto","ref":"r5","on":true,"text":"","time":"HH:MM","end":"HH:MM","conds":[…],"mode":"and|or","off":0,"delete":true}（「条件で自動」の[r番号]を直す。変える欄だけ書く。削除は "delete":true）
+  {"type":"add_money","text":"","kind":"fixed|var|save","amount":円,"day":1,"who":"both|me|partner"}（毎月の支払い・貯金を追加。fixed=固定費、var=変動費、save=貯金。day=振込・引落の日）
+  {"type":"edit","ref":"r12","text":"新しい名前(任意)","date":"YYYY-MM-DD(任意)","time":"HH:MM(任意)","end":"HH:MM(任意)","who":"both|me|partner(任意)","note":"メモ(任意・議題)","budget":金額(任意)}（既存の項目を直す。変える欄だけ書く。日付や時刻を消すときは "" を入れる。家事は "who":"both|me|partner|alt"・"pts":1〜3・頻度（target・every・wd・nth・mEvery・mStart）も直せる。繰り返しタスクの頻度・担当、習慣の "showInTimetable" も直せる）
   {"type":"delete","ref":"r12"}（項目を削除。本人がはっきり頼んだときだけ）
   {"type":"skip","ref":"r12","date":"YYYY-MM-DD"}（家事・繰り返しタスクをその日だけ「やらない」にする）
   {"type":"set_shift","date":"YYYY-MM-DD","value":"入|明|休|早|日","who":"me|partner"}
