@@ -2079,7 +2079,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="260";
+const APP_VERSION="261";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5567,7 +5567,7 @@ function checkList(){
   const t=today(), n=counts(), me=myRole(), out=[], eve=isEve();
   const add=(key,title,num,desc)=>out.push({key,title,num,desc});
   add("sharedNotice","相手からの共有",shareUnread().length,"予定・帰る時間などの未読通知");
-  { const miss=talkMissing(), tn=talkTopicsN(); add("talk","話す",tn+miss.length,[tn?`議題 ${tn}件`:"",miss.length?`記録待ち ${miss.length}日`:""].filter(Boolean).join("・")); }
+  { const miss=talkMissing(), tn=talkTopicsN(); add("talk","話す",tn+miss.length,[tn?`議題 ${tn}件`:"",miss.length?`話し合いの記録待ち：${miss.slice().reverse().map(d=>short(d)).join("・")}`:""].filter(Boolean).join("・")); }
   { const T=state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)), P=state.pitems.filter(i=>i.list==="task"&&!i.done&&dueNow(i)), R=[...state.items.filter(i=>isRecItem(i)&&forMe(i)&&hFollow(i)),...privateRecTasks().filter(hFollow)];
     const ov=[...T,...P].filter(i=>i.due&&i.due<t).length, by=r=>T.filter(i=>getWho(i)===r).length;
     add("task","今日までのやること",tabN("task",n),[...[["both","ふたり"],[me,nameOf(me)]].filter(([r])=>by(r)).map(([r,l])=>`${l} ${by(r)}`),P.length?`🔒じぶん ${P.length}`:"",R.length?`くり返し ${R.length}`:"",ov?`うち期限切れ ${ov}`:""].filter(Boolean).join("・")); }
@@ -5591,7 +5591,9 @@ function checkList(){
 }
 /* v221: 「今日は確認した・対応は見送り」にした項目は、その日のフォローに出さない（自分だけ・翌日には戻る） */
 function chkSkips(){ const [d,ks]=String(prefs.chkSkip||"").split(":"); return d===today()?new Set((ks||"").split(",").filter(Boolean)):new Set(); }
-function chkSkipToggle(k){ const S=chkSkips(); S.has(k)?S.delete(k):S.add(k); prefs.chkSkip=`${today()}:${[...S].join(",")}`; savePrefs(true); haptic("tick"); const t=(checkList().find(x=>x.key===k)||{}).title||""; toast(S.has(k)?`「${t}」は今日は見送り（明日また出ます）`:`「${t}」をフォローに戻しました`); render(); }
+function chkSkipToggle(k){ /* v261: 話すの「見送り」は、記録待ちの日（と今日）を本当に「見送り」として記録する（翌日にまた出てこないように） */
+  if(k==="talk"&&!chkSkips().has(k)){ const m=talkMissing(); if(m.length){ for(const d of m) setTalkHeld(d,"skip"); toast(`${m.slice().reverse().map(d=>short(d)).join("・")} の話し合いを「見送り」にしました`); render(); return; } }
+  const S=chkSkips(); S.has(k)?S.delete(k):S.add(k); prefs.chkSkip=`${today()}:${[...S].join(",")}`; savePrefs(true); haptic("tick"); const t=(checkList().find(x=>x.key===k)||{}).title||""; toast(S.has(k)?`「${t}」は今日は見送り（明日また出ます）`:`「${t}」をフォローに戻しました`); render(); }
 const pendingChecks=()=>{ const S=chkSkips(); return checkList().filter(x=>x.num>0&&!S.has(x.key)); };
 function viewCheck(){
   const SK=chkSkips(), L=checkList(), todo=L.filter(x=>x.num>0&&!SK.has(x.key)), ok=L.filter(x=>!x.num||SK.has(x.key));
