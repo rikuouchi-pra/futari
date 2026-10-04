@@ -2082,7 +2082,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="262";
+const APP_VERSION="263";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6867,10 +6867,10 @@ function aiVoiceHints(){ const w=new Set([nameOf("h"),nameOf("w"),"夜勤入り"
   for(const x of [...state.items.slice(-60),...(state.chores||[]),...state.plans.slice(-30)]) if(x&&x.text) w.add(String(x.text).slice(0,20));
   return [...w].filter(Boolean).slice(0,90).join("、"); }
 async function aiVoiceRec(){
-  if(aiRecM){ try{ aiRecM.stop(); }catch(e){} return; }
+  if(aiRecM){ const R0=aiRecM; try{ R0.stop(); }catch(e){} setTimeout(()=>{ if(aiRecM===R0){ try{ (R0.stream0||R0.stream)&&(R0.stream0||R0.stream).getTracks().forEach(t=>t.stop()); }catch(e){} aiRecM=null; state.aiListening=false; state.aiVoiceStatus="録音を終了しました。もう一度話せます。"; aiMicUI(); } },2500); return; }
   const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000); state.ai.q=base; state.aiVoiceBase=base;
   let stream; try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }catch(e){ state.aiVoiceStatus="マイクを使えません。ブラウザーのマイク設定を確認してください。"; aiMicUI(); return; }
-  const chunks=[], R=new MediaRecorder(stream); aiRecM=R; const t0=Date.now();
+  const chunks=[], R=new MediaRecorder(stream); R.stream0=stream; aiRecM=R; const t0=Date.now();
   R.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const tick=R._tick=setInterval(()=>{ const sec=Math.floor((Date.now()-t0)/1000); state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。話し終わったら「聞き取りを終了」`; const el=$("aiVoiceStatus"); if(el) el.textContent=state.aiVoiceStatus; if(sec>=28) try{ R.stop(); }catch(e){} },500);
   R.onstop=async()=>{ clearInterval(tick); stream.getTracks().forEach(t=>t.stop()); aiRecM=null; state.aiListening=false; state.aiVoiceStatus="AIで文字起こし中…"; aiMicUI();
@@ -6890,8 +6890,14 @@ JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick",t
   try{ R.start(1000); state.aiListening=true; state.aiVoiceStatus="録音中…"; haptic("arm"); aiMicUI(); }catch(e){ aiRecM=null; stream.getTracks().forEach(t=>t.stop()); state.aiVoiceStatus="録音を開始できませんでした。"; aiMicUI(); }
 }
 let aiSRS=null;
-function aiMic(){if(state.ai.busy)return; if(aiRecM||(!aiRec&&!aiSRS&&aiVoiceAIOk())){ aiVoiceRec(); return; } const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(state.aiListening&&aiSRS){ const S=aiSRS; S.user=true; state.aiVoiceStatus="聞き取りを終了しています…"; if(aiRec){ try{aiRec.stop();}catch(e){ aiRec=null; aiSRFinish(S,false); } } else aiSRFinish(S,false); aiMicUI(); return; }
+function aiMic(){if(state.ai.busy)return;
+  /* v263: 前回の聞き取りが終わり切らずに残っていると2回目が始まらなかった（iPhoneで止めても終了の知らせが来ないことがある）。残りを片付けてから始める */
+  if(!state.aiListening&&(aiSRS||aiRec)){ try{ aiRec&&aiRec.abort(); }catch(e){} aiRec=null; aiSRS=null; }
+  if(!state.aiListening&&aiRecM){ try{ (aiRecM.stream0||aiRecM.stream)&&(aiRecM.stream0||aiRecM.stream).getTracks().forEach(t=>t.stop()); }catch(e){} aiRecM=null; }
+  if(aiRecM||(!aiRec&&!aiSRS&&aiVoiceAIOk())){ aiVoiceRec(); return; } const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(state.aiListening&&aiSRS){ const S=aiSRS; S.user=true; state.aiVoiceStatus="聞き取りを終了しています…"; if(aiRec){ try{aiRec.stop();}catch(e){ aiRec=null; aiSRFinish(S,false); } } else aiSRFinish(S,false); aiMicUI();
+    setTimeout(()=>{ if(aiSRS===S){ try{ aiRec&&aiRec.abort(); }catch(e){} aiRec=null; aiSRFinish(S,false); } },1200); /* v263: 終了の知らせが来なくても1.2秒で終える */ return; }
+  if(state.aiListening&&!aiSRS&&!aiRecM){ state.aiListening=false; } /* v263: 状態だけ「聞き取り中」のまま残っていたら戻す */
   if(!SR){state.aiVoiceStatus="このブラウザーでは直接の音声認識が使えません。入力欄をタップし、キーボードのマイクで入力してください。";aiMicUI();$("aiIn")?.focus();return;}
   const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000);state.ai.q=base;state.aiVoiceBase=base;state.aiVoiceRaw="";
   const S=aiSRS={SR,base,committed:base,lastFinal:"",t0:Date.now(),restarts:0,got:false,user:false};
