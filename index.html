@@ -695,6 +695,10 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .sm-empty{padding:10px 12px!important;font-size:13px}
 /* 終日の予定は点線ではなく、予定と同じ色の帯に */
 .gchip.duo-all{border:0;border-left:3px solid var(--cal);background:color-mix(in srgb,var(--cal) 18%,var(--surface));font-weight:700;border-radius:8px}
+/* v254: 祝日・今日は何の日 */
+.dinfo{display:block;font-size:11.5px;font-weight:600;color:var(--muted);line-height:1.4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dinfo .dhol{color:var(--sun,#d24b4b);font-weight:700}
+.hdate{min-width:0}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2068,7 +2072,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="253";
+const APP_VERSION="254";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3454,7 +3458,7 @@ function execHTML(d){ if(d!==today()) return ""; const nowM=new Date().getHours(
     ${late.length||un?`<div class="ex-w">${late.length?`<button class="chip mini warn" data-act="aiReplan">⏰ 遅れ ${late.length}件 → 残りを組み直す</button>`:""}${un?`<span class="who mx">時間未定 ${un}件は下から⋮⋮でタイムテーブルへ</span>`:""}</div>`:""}</div>`; }
 function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let h="";
   const d=state.sel, sm=shiftOf(me,d), so=shiftOf(ot,d), off=offState(d);
-  h+=`<div class="day-nav"><button class="icon-btn" data-act="ttday" data-n="-1" aria-label="前の日">‹</button><div class="day-title">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="ttday" data-n="1" aria-label="次の日">›</button>${d!==t?`<button class="pill" data-act="ttday" data-n="0">今日</button>`:""}</div>
+  h+=`<div class="day-nav"><button class="icon-btn" data-act="ttday" data-n="-1" aria-label="前の日">‹</button><div class="day-title">${jpDate(d)}${d===t?"・今日":""}${dayInfoHTML(d,true)}</div><button class="icon-btn" data-act="ttday" data-n="1" aria-label="次の日">›</button>${d!==t?`<button class="pill" data-act="ttday" data-n="0">今日</button>`:""}</div>
     <div class="edit-row" style="gap:14px;margin:0 4px 8px"><span class="who">${esc(nameOf(me))} ${shiftBadge(sm,me)} ${esc(SHIFT_NAME[sm]||"未入力")}</span><span class="who">${esc(nameOf(ot))} ${shiftBadge(so,ot)} ${esc(SHIFT_NAME[so]||"未入力")}</span>${off==="both"?'<b style="color:var(--s-off);font-size:12px">ふたり休み</b>':""}</div>${dayInfoHTML(d)}`;
   if(false&&state.gErr) h+=`<div class="notice" style="margin:0 0 8px">${esc(state.gErr)}</div>`;
   h+=execHTML(d);
@@ -3730,7 +3734,7 @@ document.addEventListener("click",async e=>{ if(state.view!=="baby") return; con
 },true);
 
 function viewDuo(){ const d=state.duoDate||(state.duoDate=today()), t=today();
-  return `<div class="dstrip" data-strip="duo"><button class="icon-btn" data-act="duoday" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===t?"・今日":""}</div><button class="icon-btn" data-act="duoday" data-n="1" aria-label="次の日">›</button></div>
+  return `<div class="dstrip" data-strip="duo"><button class="icon-btn" data-act="duoday" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===t?"・今日":""}${dayInfoHTML(d,false)}</div><button class="icon-btn" data-act="duoday" data-n="1" aria-label="次の日">›</button></div>
     ${d!==t?`<div class="tools"><button class="pill" data-act="duoday" data-n="0">今日</button></div>`:""}${offState(d)==="both"?'<div class="who" style="margin:0 4px 6px;color:var(--s-off);font-weight:700">ふたり休み</div>':""}${dayInfoHTML(d)}${duoTrayHTML(d)}${duoTTHTML(d)}`; }
 /* v219: その日のふたりのタスク・買い物（時間なし）をタップ→時間をタップでタイムテーブルへ。🔒じぶん専用は出さない */
 function duoTray(d){ const t=today(), sh=i=>!isRecItem(i)&&!i.done&&!duoTimed(i)&&(i.list==="task"||i.list==="shop");
@@ -4239,7 +4243,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const evl=evs.length?`<span class="evl" title="${esc(evs.map(o=>o.x.text).join("、"))}">${esc(evs[0].x.text)}</span>${evs.length>1?`<span class="evl more">+${evs.length-1}</span>`:""}`:"";
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
-    cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0?"sun":d.getDay()===6?"sat":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" aria-label="${jpDate(s)} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
+    cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0||jpHolName(s)?"sun":d.getDay()===6?"sat":""} ${jpHolName(s)?"hol":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" title="${esc(jpHolName(s))}" aria-label="${jpDate(s)} ${esc(jpHolName(s))} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
       ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
@@ -7103,7 +7107,7 @@ function homeEditHTML(){ const L=homeOrder(), H=homeHidden();
     <div class="opts"><button class="opt" data-act="homeReset">最初の並びに戻す</button></div></section>`; }
 function viewHome(){
   const t=today();
-  let h=`<div class="hhero hh2"><div class="hdate">${jpDate(t)}</div><button class="link" data-act="homeEdit" aria-label="ホームの並び・表示を変える">✎ 並び替え</button></div>`+shareInboxHTML()+(homeHidden().has("today")?shiftSoonHTML():""); /* v191: 「今日やること」にシフト入力が出るので、表示中は重ねて出さない */
+  let h=`<div class="hhero hh2"><div class="hdate">${jpDate(t)}${dayInfoHTML(t,true)}</div><button class="link" data-act="homeEdit" aria-label="ホームの並び・表示を変える">✎ 並び替え</button></div>`+shareInboxHTML()+(homeHidden().has("today")?shiftSoonHTML():""); /* v191: 「今日やること」にシフト入力が出るので、表示中は重ねて出さない */
   if(state.homeEdit) return h+homeEditHTML();
   const H=homeHidden(); for(const k of homeOrder()) if(!H.has(k)) h+=homeWidget(k);
   h+=`<div style="text-align:center;margin:14px 0 4px"><button class="link" data-act="homeEdit">✎ ホームの並び・表示を変える</button></div>`;
@@ -8691,6 +8695,25 @@ function jpHolidays(y){ const S=new Set(), f=(m,d)=>`${y}-${String(m).padStart(2
   for(const d of [...S]){ const x=addDays(d,2); if(S.has(x)&&!S.has(addDays(d,1))&&parse(addDays(d,1)).getDay()!==0) S.add(addDays(d,1)); }
   return S; }
 const _jh={}; const isJpHol=d=>{ const y=Number(d.slice(0,4)); return (_jh[y]=_jh[y]||jpHolidays(y)).has(d); };
+/* v254: 祝日の名前（振替休日・国民の休日を含む） */
+const _jhn={}; function jpHolName(d){ const y=Number(d.slice(0,4)); if(!_jhn[y]){ const M={}, f=(m,dd)=>`${y}-${String(m).padStart(2,"0")}-${String(dd).padStart(2,"0")}`, nth=(m,n)=>{ const w=new Date(y,m-1,1).getDay(); return 1+((8-w)%7)+(n-1)*7; }, k=y-1980;
+    [[1,1,"元日"],[2,11,"建国記念の日"],[2,23,"天皇誕生日"],[4,29,"昭和の日"],[5,3,"憲法記念日"],[5,4,"みどりの日"],[5,5,"こどもの日"],[8,11,"山の日"],[11,3,"文化の日"],[11,23,"勤労感謝の日"]].forEach(([m,dd,n])=>M[f(m,dd)]=n);
+    M[f(1,nth(1,2))]="成人の日"; M[f(7,nth(7,3))]="海の日"; M[f(9,nth(9,3))]="敬老の日"; M[f(10,nth(10,2))]="スポーツの日";
+    M[f(3,Math.floor(20.8431+0.242194*k-Math.floor(k/4)))]="春分の日"; M[f(9,Math.floor(23.2488+0.242194*k-Math.floor(k/4)))]="秋分の日";
+    const S=(_jh[y]=_jh[y]||jpHolidays(y)), base=new Set(Object.keys(M));
+    for(const x of [...S].sort()) if(!M[x]){ let p=addDays(x,-1), sunHol=false; while(S.has(p)){ if(base.has(p)&&parse(p).getDay()===0) sunHol=true; p=addDays(p,-1); } M[x]=sunHol?"振替休日":"国民の休日"; }
+    _jhn[y]=M; } return _jhn[y][d]||""; }
+/* v254: 今日は何の日（Wikipediaの日付ページ「記念日・年中行事」から日本のものを中心に3件まで。端末に保存して毎回は取りにいかない） */
+const NNH={}; function nanohi(d){ const k=d.slice(5); if(NNH[k]) return NNH[k].v||[];
+  try{ const c=JSON.parse(localStorage.getItem("futari.nnh."+k)||"null"); if(c&&Date.now()-c.at<90*864e5){ NNH[k]=c; return c.v; } }catch(e){}
+  NNH[k]={v:[],at:Date.now()}; const [m,dd]=k.split("-").map(Number);
+  fetch(`https://ja.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(m+"月"+dd+"日")}&prop=wikitext&format=json&origin=*&formatversion=2`).then(r=>r.ok?r.json():null).then(j=>{ const w=j&&j.parse&&j.parse.wikitext; if(!w) return;
+    const i=w.search(/==\s*記念日[^=\n]*==/); if(i<0) return; const rest=w.slice(i).split("\n").slice(1); const L=[];
+    for(const ln of rest){ if(/^==[^=]/.test(ln)) break; if(!/^\*[^*:]/.test(ln)) continue; const t=ln.replace(/^\*\s*/,""), jp=/JPN|日本/.test(t);
+      const lk=t.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/); let n=lk?(lk[2]||lk[1]):t.replace(/\{\{[^}]*\}\}/g,"").split(/[（(]/)[0]; n=n.replace(/<[^>]+>|'{2,}/g,"").trim(); if(n&&n.length<=20&&!/^\d/.test(n)) L.push({n,jp}); }
+    const v=[...L.filter(x=>x.jp),...L.filter(x=>!x.jp)].map(x=>x.n).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3); NNH[k]={v,at:Date.now()}; try{ localStorage.setItem("futari.nnh."+k,JSON.stringify(NNH[k])); }catch(e){} if(v.length) requestRender(); }).catch(()=>{}); return []; }
+function dayInfoHTML(d,withNnh){ const h=jpHolName(d), n=withNnh?nanohi(d):[]; if(!h&&!n.length) return ""; return `<span class="dinfo">${h?`<b class="dhol">🎌 ${esc(h)}</b>`:""}${n.length?`<span class="dnnh">${h?"・":""}${d===today()?"今日は ":""}${esc(n.join("・"))}</span>`:""}</span>`; }
+
 function wcCfg(r){ const W=((state.kakei||{}).workCal||{})[r]||{}; return {on:!!W.on,wk:W.wk!=null?String(W.wk):"06",hol:W.hol||"work",off:W.off||[],work:W.work||[],auto:W.auto||{},src:W.src||"",pre:W.pre||"",dcal:W.dcal||{},dchk:W.dchk||0,derr:W.derr||""}; }
 /* デンソー年度カレンダー（4月〜翌3月）：取得済みならその休日を使う */
 const fyOf=d=>{ const y=Number(d.slice(0,4)), m=Number(d.slice(5,7)); return m>=4?y:y-1; };
