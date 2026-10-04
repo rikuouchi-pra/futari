@@ -2079,7 +2079,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="258";
+const APP_VERSION="259";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2856,7 +2856,7 @@ function week7(){
 const talkNow=t=>{ const d=today(); return t.status!=="done"&&(t.on?t.on<=d:true); };
 /* v239: 「話した・期日まで残す」＝話し合いは済んだが、対応期日まで備忘として議題に残す（期日が来たら上の一覧に戻る） */
 const tHold=(t,d)=>t.status==="hold"&&t.holdUntil&&t.holdUntil>(d||today());
-const talkTopicsN=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); return state.topics.filter(t=>t.status!=="done"&&!tHold(t,d)&&(t.on?t.on<=d:!off)).length; };
+const talkTopicsN=()=>{ const d=today(), off=talkOff(d)||["done","skip"].includes(talkState(d)); if(off) return 0; /* v259: 今日の話し合いを見送った・済んだ・お休みの日は、議題を「今日やること」に出さない（話す日が今日の定期議題も） */ return state.topics.filter(t=>t.status!=="done"&&!tHold(t,d)&&(!t.on||t.on<=d)).length; };
 const talkBadge=()=>talkTopicsN()+talkMissing().length; /* v117: 話すの数字＝今日の議題＋話し合いの記録待ち（ホームの「今日やること」と同じ数） */
 const talkNext0=()=>{ const d=today(); return talkOff(d)?(nextTalkDay(d)||addDays(d,1)):d; };
 /* 毎日の話し合い：妻の夜勤入り（入）の日以外は毎日実施 */
