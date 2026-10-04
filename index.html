@@ -709,6 +709,10 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .tt-b.tiny .tt-ck{width:11px;height:11px;border-radius:3px;left:4px;top:50%!important;transform:translateY(-50%)!important}.tt-b.tiny .tt-ck svg{width:9px;height:9px}.tt-b.tiny:has(.tt-ck){padding-left:20px!important}
 .tt-b.tiny{padding:0 6px!important;font-size:10px;line-height:1.1;overflow:hidden}.tt-b.tiny b{font-size:10.5px}.tt-b.tiny>span,.tt-b.tiny .tt-meta,.tt-b.tiny .tt-badges{display:none}
 .tt-len{align-items:center;flex-wrap:wrap}.tt-len button{flex:0 0 auto!important;padding:6px 10px!important}.tt-len button[aria-pressed="true"]{outline:2px solid var(--accent)}
+/* v264: 払った人 */
+.paycard{display:flex;flex-direction:column;gap:6px}.pay-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pay-r{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:4.5em 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;font-size:13px}
+.pay-r.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}.pay-b{height:10px;border-radius:5px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.pay-b i{display:block;height:100%}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2082,7 +2086,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="263";
+const APP_VERSION="264";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4827,7 +4831,7 @@ function saveEdit(){
       if(c==="recur"){ const am=money($("editAmt").value), dy=Math.min(31,Math.max(1,Number($("editDay").value)||1)); { const sw=$("editSplitW"), sh=$("editSplitH"); if(sw&&sh){ const W=sw.value.trim(), H=sh.value.trim(); const sp=W===""&&H===""?null:{w:money(W)||0,h:money(H)||0}; if(JSON.stringify(sp)!==JSON.stringify(x.split||null)) ch.split=sp; } for(const [id,k] of [["editBank","bank"],["editHolder","holder"],["editBasis","basis"]]){ const el=$(id); if(el&&el.value.trim()!==(x[k]||"")) ch[k]=el.value.trim(); } } if(am&&am!==x.amount) ch.amount=am; if(dy!==Number(x.day)) ch.day=dy; if(editSeg.rkind&&editSeg.rkind!==x.kind) ch.kind=editSeg.rkind;
         if($("editGoal")){ const g=$("editGoal").value||null; if(g!==(x.goal||null)) ch.goal=g; } const f=$("editFrom").value||null, u=$("editUntil").value||null; if(f!==(x.from||null)) ch.from=f; if(u!==(x.until||null)) ch.until=u; }
       if(c==="goals"){ const tg=money($("editTarget").value), bs=money($("editBase").value), du=$("editDue").value||null; if(tg&&tg!==x.target) ch.target=tg; if(bs!==(x.base||null)) ch.base=bs||0; if(du!==(x.due||null)) ch.due=du; }
-      if(c==="spend"){ const am=money($("editActual")&&$("editActual").value), bu=money($("editBudget")&&$("editBudget").value); if(am&&am!==x.amount) ch.amount=am; if(bu!==(x.budget||null)) ch.budget=bu; const d=$("editDue").value; if(d&&d!==x.date) ch.date=d;  }
+      if(c==="spend"){ const am=money($("editActual")&&$("editActual").value), bu=money($("editBudget")&&$("editBudget").value); if(am&&am!==x.amount) ch.amount=am; if(bu!==(x.budget||null)) ch.budget=bu; const d=$("editDue").value; if(d&&d!==x.date) ch.date=d; { const pv=editSeg.epay||x.payBy; if(pv){ const P=payRead("epay",pv,am||x.amount||0); if(P.payBy!==x.payBy||P.payH!==(x.payH??null)||P.payW!==(x.payW??null)) Object.assign(ch,P); } } }
       if(c==="troubles"){ const d=$("editDetail").value.trim(); if(d!==(x.detail||"")) ch.detail=d;
         if(editSeg.tlevel&&editSeg.tlevel!==x.level) ch.level=editSeg.tlevel;
         if(editSeg.tstatus&&editSeg.tstatus!==x.status){ ch.status=editSeg.tstatus; if(ch.status==="doing") ch.assignee=state.me||null; if(ch.status==="open") ch.assignee=null; if(ch.status==="done") ch.doneAt=Date.now(); if(ch.status==="habit") ch.habitAt=Date.now(); } }
@@ -4905,7 +4909,7 @@ $("main").addEventListener("click",e=>{
     else if(name==="phwho"||name==="phpt"){ if(name==="phwho") state.phWho=v; else state.phPt=v; }
     else if(name==="dtab"){ flushDiary(); state.diaryTab=v; render(); }
     else if(name==="dpriv"){ diaryPrivNow=v==="1"; diaryPending=true; flushDiary(); }
-    else { editSeg[name]=v; if(name==="htarget"&&$("hEveryRow")){ $("hEveryRow").hidden=v!=="iv"; if($("hWdRow")) $("hWdRow").hidden=!(v==="wd"||v==="mn"); if($("hNthRow")) $("hNthRow").hidden=v!=="mn"; if($("hMoRow")){ $("hMoRow").hidden=v!=="mo"; $("hMoTip").hidden=v!=="mo"; } }
+    else { editSeg[name]=v; if(name==="epay"){ const r=$("epayRow"); if(r) r.hidden=v!=="split"; } if(name==="htarget"&&$("hEveryRow")){ $("hEveryRow").hidden=v!=="iv"; if($("hWdRow")) $("hWdRow").hidden=!(v==="wd"||v==="mn"); if($("hNthRow")) $("hNthRow").hidden=v!=="mn"; if($("hMoRow")){ $("hMoRow").hidden=v!=="mo"; $("hMoTip").hidden=v!=="mo"; } }
       if(name==="chfq"){ const V=(id,on)=>{ if($(id)) $(id).hidden=!on; }; V("chEveryRow",v==="iv"); V("chWdRow",v==="wd"||v==="mn"); V("chNthRow",v==="mn"); V("chMoRow",v==="mo"); V("chMoTip",v==="mo"); } }
     return; }
   const aq=e.target.closest("[data-aiq]"); if(aq){ aiAsk(aq.dataset.aiq); return; }
@@ -5479,7 +5483,7 @@ function spendRow(x){
       ${moneyFields(x,true)}
       ${catSelect(x,"spend")}
       <div class="edit-row"><span class="who">日付</span><input type="date" id="editDue" value="${esc(x.date||"")}" aria-label="日付"></div>
-      ${editWho(x)}${x.src?`<div class="who">${x.src==="items"?"買い物リストの金額":"将来の「使った金額」"}から自動で記録されたものです</div>`:""}
+      ${editWho(x)}${payRowHTML(editSeg.epay||x.payBy||"","epay",x.payH,x.payW)}${x.src?`<div class="who">${x.src==="items"?"買い物リストの金額":"将来の「使った金額」"}から自動で記録されたものです</div>`:""}
       ${editActions("spend",x)}</div></li>`;
   return wrapRow("spend",x,"",`<span class="av" style="background:${C.c}">${C.l.slice(0,1)}</span>`,
     `<div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(x.text||C.l)}</span><b style="font-variant-numeric:tabular-nums">${yen(x.amount||0)}</b></div>
@@ -5521,11 +5525,27 @@ function viewMoney(){
   const head=whoBar()+`<div class="tools">${seg("mtab",t,[["sum","集計"],["month","毎月・振込"],["goal","目標"]])}</div>`;
   return head+(t==="sum"&&Number((state.kakei||{}).limit||0)?`<div class="chart">${paceHTML()}</div>`:"") /* v244: 上限がないときは下の「支出の実績」と同じ数字になるので出さない */+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():viewMoneySum());
 }
+/* v264: だれが払ったか（りく／のり／ふたりで分担）。出費・買い物などは「払った人」、毎月の支払いは人別の振込確認から */
+function payShare(e){ const a=Number(e.actual||0), x=e.x||{}; if(!a) return {h:0,w:0,u:0};
+  if(e.c==="recur"){ const ym=String(e.id).split("@")[1]; const h=rPaidBy(x,ym,"h"), w=rPaidBy(x,ym,"w"); return h||w?{h,w,u:Math.max(0,a-h-w)}:{h:0,w:0,u:a}; }
+  if(x.payBy==="h"||x.payBy==="w") return {h:x.payBy==="h"?a:0,w:x.payBy==="w"?a:0,u:0};
+  if(x.payBy==="split"){ const h=Number(x.payH||0), w=Number(x.payW||0); return {h,w,u:Math.max(0,a-h-w)}; }
+  if(e.priv) return {h:myRole()==="h"?a:0,w:myRole()==="w"?a:0,u:0};
+  const wh=e.who; return wh==="h"?{h:a,w:0,u:0}:wh==="w"?{h:0,w:a,u:0}:{h:0,w:0,u:a}; }
+function payCardHTML(acts){ const T={h:0,w:0,u:0}; for(const e of acts){ const p=payShare(e); T.h+=p.h; T.w+=p.w; T.u+=p.u; } const tot=T.h+T.w+T.u||1, F=state.payF||"all";
+  const row=(k,l,c)=>T[k]?`<button type="button" class="pay-r ${F===k?"on":""}" data-payf="${k}"><span class="pay-n">${l}</span><span class="pay-b"><i style="width:${T[k]/tot*100}%;background:${c}"></i></span><b>${yen(Math.round(T[k]))}</b></button>`:"";
+  return `<div class="chart paycard"><div class="pay-h"><b>👛 払った人</b><div class="seg">${[["all","全体"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([k,l])=>`<button type="button" data-payf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div></div>
+    ${row("h",esc(nameOf("h")),"var(--who-h)")}${row("w",esc(nameOf("w")),"var(--who-w)")}${row("u","未設定","color-mix(in srgb,var(--ink) 30%,transparent)")}
+    <div class="who" style="font-size:11px">名前を選ぶと、その人が払った分だけで集計します。出費を開いて「払った人」で直せます（ふたりで分担も可）</div></div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-payf]"); if(!b) return; e.stopPropagation(); const k=b.dataset.payf; state.payF=state.payF===k&&k!=="all"?"all":k; haptic("tick"); render(); },true);
+function payRowHTML(v,name,h,w){ return `<div class="edit-row"><span class="${name==="spay"?"lbl":"who"}">払った人</span>${seg(name,v,[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))],["split","ふたりで分担"]])}</div>${`<div id="${name}Row" ${v==="split"?"":"hidden"}><div class="edit-row"><span class="${name==="spay"?"lbl":"who"}"></span><span class="who">${esc(nameOf("h"))}</span><input type="text" inputmode="numeric" id="${name}H" value="${esc(h||"")}" placeholder="円" style="width:90px"><span class="who">${esc(nameOf("w"))}</span><input type="text" inputmode="numeric" id="${name}W" value="${esc(w||"")}" placeholder="円" style="width:90px"></div><div class="who" style="font-size:11px;margin:-4px 0 4px">片方だけ入れると、残りはもう一人の分にします</div></div>`}`; }
+function payRead(name,v,total){ if(v!=="split") return {payBy:v,payH:null,payW:null}; let h=money(($(name+"H")||{}).value), w=money(($(name+"W")||{}).value); if(h&&!w) w=Math.max(0,total-h); else if(w&&!h) h=Math.max(0,total-w); else if(!h&&!w){ h=Math.round(total/2); w=total-h; } return {payBy:"split",payH:h,payW:w}; }
 function viewMoneySum(){
   const P=moneyPeriod(state.moneyP,state.moneyRef), all=byWho(moneyEntries()), inP=(d,Q=P)=>d&&d>=Q.s&&d<Q.e;
   const acts0=all.filter(e=>e.actual&&inP(e.aDate)), buds0=all.filter(e=>e.budget&&inP(e.bDate));
   const SV=acts0.filter(e=>e.save).reduce((s,e)=>s+e.actual,0), SVB=buds0.filter(e=>e.save).reduce((s,e)=>s+e.budget,0);
-  const acts=acts0.filter(e=>!e.save), buds=buds0.filter(e=>!e.save);
+  const PF=state.payF||"all", acts=acts0.filter(e=>!e.save).map(e=>PF==="all"?e:{...e,actual:Math.round(payShare(e)[PF])}).filter(e=>e.actual), buds=buds0.filter(e=>!e.save);
+  const actsAll=acts0.filter(e=>!e.save);
   const A=acts.reduce((s,e)=>s+e.actual,0), B=buds.reduce((s,e)=>s+e.budget,0);
   const prevRef=state.moneyP==="week"?addDays(P.s,-7):state.moneyP==="year"?ymd(new Date(parse(P.s).getFullYear()-1,0,1)):ymd(new Date(parse(P.s).getFullYear(),parse(P.s).getMonth()-1,1));
   const PP=moneyPeriod(state.moneyP,prevRef), prevA=all.filter(e=>e.actual&&!e.save&&inP(e.aDate,PP)).reduce((s,e)=>s+e.actual,0);
@@ -5533,7 +5553,7 @@ function viewMoneySum(){
   let h=`${true?`<button class="rcbtn" data-act="rcpt"><svg viewBox="0 0 24 24" class="lic sm2"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span><b>レシートで実績登録</b><small>${state.sample?"写真を選ぶと1枚ずつ自動で読み取って確認できます（複数可）":state.sampleTxt?"写真を選ぶ→文字を貼り付けると自動入力できます":`写真を選んで、見ながら金額を入力できます（自動読み取り不可：${esc(state.sampleWhy||"確認中")}）`}</small></span></button>`:""}${!state.sample&&state.sampleTxt?`<button class="link rcpaste" data-act="rcpaste">写真なしで、レシートの文字を貼り付けて登録 ›</button>`:""}${rcptHTML()}
     <div class="tools">${seg("mper",state.moneyP,[["week","週"],["month","月"],["year","年"]])}</div>
     <div class="dstrip" data-strip="money"><button class="icon-btn" data-act="mprev" aria-label="前へ">‹</button><div class="ttl">${P.label}</div><button class="icon-btn" data-act="mnext" aria-label="次へ">›</button></div>
-    <div class="chart"><div class="mkpi"><div class="k"><span class="kl">支出の実績</span><span class="kv">${yen(A)}</span></div><div class="k"><span class="kl">予算</span><span class="kv sub">${yen(B)}</span></div>${SV||SVB?`<div class="k"><span class="kl">貯金</span><span class="kv sub" style="color:var(--habit)">${yen(SV)}</span></div>`:""}</div>
+    ${payCardHTML(actsAll)}<div class="chart"><div class="mkpi"><div class="k"><span class="kl">支出の実績</span><span class="kv">${yen(A)}</span></div><div class="k"><span class="kl">予算</span><span class="kv sub">${yen(B)}</span></div>${SV||SVB?`<div class="k"><span class="kl">貯金</span><span class="kv sub" style="color:var(--habit)">${yen(SV)}</span></div>`:""}</div>
       <div class="mbar" aria-label="予算に対する実績 ${B?Math.round(A/B*100):0}%"><i style="width:${B?Math.min(100,Math.round(A/B*100)):A?100:0}%" class="${B&&A>B?"over":""}"></i></div>
       <div class="who">${B?(A>B?`予算を ${yen(A-B)} 超えています`:`予算の残り ${yen(B-A)}（${Math.round(A/B*100)}%使用）`):"この期間の予算はまだありません"}・前の${unit}の実績より ${A-prevA>=0?"+":"−"}${yen(Math.abs(A-prevA))}</div>
       ${state.moneyP==="month"&&Number((state.kakei||{}).limit)?(()=>{ const L=Number(state.kakei.limit); return `<div class="who" style="margin-top:4px">毎月の上限 ${yen(L)}：${A>L?`<b style="color:var(--danger)">${yen(A-L)} 超過</b>`:`あと ${yen(L-A)}`}</div>`; })():""}
@@ -7421,7 +7441,7 @@ function renderSheet(){
       <div class="edit-row"><span class="lbl">引き落とし日</span><span class="lbl">毎月</span><input type="number" id="sDay" min="1" max="31" value="${esc(S.rday)}" style="width:70px"><span class="lbl">日</span></div>`;
   else if(S.kind==="goal") o=`<div class="edit-row"><span class="lbl">目標金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="円" style="width:130px"></div>
       <div class="edit-row"><span class="lbl">いつまでに</span><input type="date" id="sDate" value="${esc(S.date||"")}" aria-label="期限（任意）"></div>`;
-  else if(S.kind==="spend") o=`<div class="edit-row"><span class="lbl">金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="${S.kind==="spend"?"円":"任意（円）"}" style="width:130px"><span class="lbl">円</span></div>`+`<div class="edit-row"><span class="lbl">種類</span>${seg("smc",S.mcat,Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>[k,o.l]))}</div>`+`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||today())}" aria-label="日付"></div>`;
+  else if(S.kind==="spend") o=`<div class="edit-row"><span class="lbl">金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="${S.kind==="spend"?"円":"任意（円）"}" style="width:130px"><span class="lbl">円</span></div>`+payRowHTML(S.payBy||myRole(),"spay",S.payH,S.payW)+`<div class="edit-row"><span class="lbl">種類</span>${seg("smc",S.mcat,Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>[k,o.l]))}</div>`+`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||today())}" aria-label="日付"></div>`;
   else if(S.kind==="trouble") o=`<div class="edit-row"><span class="lbl">困り度</span>${seg("stl",S.tlevel,[["low","ちょっと"],["mid","困る"],["high","すごく困る"]])}</div>`;
   else if(S.kind==="caution") o=`<div class="edit-row"><span class="lbl">重要度</span>${seg("scl",S.clevel,[["info","お知らせ"],["warn","注意"],["important","重要"]])}</div>`+dateRow("日付");
   else { const C=PCATS[S.pcat];
@@ -7443,7 +7463,7 @@ $("sheet").addEventListener("click",e=>{
   const kb=e.target.closest("[data-kind]"); if(kb){ S.kind=kb.dataset.kind; renderSheet(); $("input").focus({preventScroll:true}); return; }
   const qd=e.target.closest("[data-qd]"); if(qd){ S.date=S.date===qd.dataset.qd?"":qd.dataset.qd; if(!S.date) S.time=""; renderSheet(); return; }
   const spc=e.target.closest("[data-spc]"); if(spc){ S.pcat=spc.dataset.spc; S.phz=["bousai","prep","care","travel"].includes(S.pcat)?"soon":"someday"; renderSheet(); $("input").focus({preventScroll:true}); return; }
-  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="skind"){ S.kind=v; state.kLast={...(state.kLast||{}),[kgOf(v)]:v}; } if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sar") S.arrep=v; if(n==="schf") S.chf=v; if(n==="schw") S.chw=v; if(n==="schp") S.chp=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
+  const sv=e.target.closest("[data-seg] [data-sv]"); if(sv){ const n=sv.closest("[data-seg]").dataset.seg, v=sv.dataset.sv; if(n==="stl") S.tlevel=v; if(n==="scl") S.clevel=v; if(n==="swho") S.who=v; if(n==="skind"){ S.kind=v; state.kLast={...(state.kLast||{}),[kgOf(v)]:v}; } if(n==="sht") S.htarget=v; if(n==="srep"){ S.trep=v; if(v==="daily"){ S.htarget="wd"; S.hwd=[0,1,2,3,4,5,6]; } else if(v!=="none"){ S.htarget=v; if(v==="wd"&&S.hwd&&S.hwd.length===7) S.hwd=[parse(today()).getDay()]; } } if(n==="sbr") S.brep=v; if(n==="sar") S.arrep=v; if(n==="spay"){ S.payBy=v; const a=$("sAmount"); if(a) S.amount=a.value; } if(n==="schf") S.chf=v; if(n==="schw") S.chw=v; if(n==="schp") S.chp=v; if(n==="sbc") S.bcol=v; if(n==="spk") S.pkind=v; if(n==="sph") S.phz=v; if(n==="smc") S.mcat=v; if(n==="srk") S.rkind=v; if(n==="sbs") S.bshare=v==="1"; if(n==="sevs") S.evPriv=v==="0"; renderSheet(); return; }
   if(e.target.closest("[data-sx=clear]")){ S.date=""; S.time=""; renderSheet(); }
 });
 $("sheet").addEventListener("input",e=>{ if(e.target.id==="sBudget") state.sheet.budget=e.target.value; if(e.target.id==="sAmount") state.sheet.amount=e.target.value; if(e.target.id==="sDay") state.sheet.rday=e.target.value; if(e.target.id==="sEvery") state.sheet.hevery=e.target.value; });
@@ -7494,7 +7514,7 @@ $("form").addEventListener("submit",e=>{
     else dset("goals",newId(),{text:t,target:am,due:S.date||null,base:0,deposits:[],who:S.who||"both",by:state.me||null,role:myRole(),createdAt:now,updatedAt:now});
     S.amount=""; renderSheet(); }
   else if(S.kind==="spend"){ const am=money(S.amount); if(!am){ toast("金額を入れてください"); $("sAmount")&&$("sAmount").focus(); return; }
-    dset("spend",newId(),{cat:S.mcat||"other",amount:am,text:t,date:S.date||today(),who:S.who||"both",by:state.me||null,role:myRole(),createdAt:now}); S.amount=""; renderSheet(); }
+    dset("spend",newId(),{cat:S.mcat||"other",amount:am,text:t,date:S.date||today(),who:S.who||"both",...payRead("spay",S.payBy||myRole(),am),by:state.me||null,role:myRole(),createdAt:now}); S.amount=""; renderSheet(); }
   else if(S.kind==="task"&&S.trep&&S.trep!=="none"){ /* v164: くり返しのやること（時間つきならタイムテーブルに毎回のる） */
     const tg=S.trep==="daily"?"wd":S.htarget, hv={text:t,entryKind:"task",target:tgtVal(tg),log:{},createdAt:now,updatedAt:now};
     if(tg==="wd"||tg==="mn"){ hv.wd=(S.trep==="daily"?[0,1,2,3,4,5,6]:(S.hwd||[])).slice(); if(!hv.wd.length) hv.wd=[parse(today()).getDay()]; if(tg==="mn"){ hv.nth=(S.hnth||[]).slice(); if(!hv.nth.length) hv.nth=[1]; } }
