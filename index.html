@@ -706,6 +706,9 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .mvdate{min-width:48px;min-height:40px}
 .hbtns{display:flex;gap:6px;flex:none}.hmissb.hnext{color:var(--accent);font-weight:700}
 .tt-b.skp{opacity:.45}.tt-b.skp b{text-decoration:line-through}
+.tt-b.tiny .tt-ck{width:11px;height:11px;border-radius:3px;left:4px;top:50%!important;transform:translateY(-50%)!important}.tt-b.tiny .tt-ck svg{width:9px;height:9px}.tt-b.tiny:has(.tt-ck){padding-left:20px!important}
+.tt-b.tiny{padding:0 6px!important;font-size:10px;line-height:1.1;overflow:hidden}.tt-b.tiny b{font-size:10.5px}.tt-b.tiny>span,.tt-b.tiny .tt-meta,.tt-b.tiny .tt-badges{display:none}
+.tt-len{align-items:center;flex-wrap:wrap}.tt-len button{flex:0 0 auto!important;padding:6px 10px!important}.tt-len button[aria-pressed="true"]{outline:2px solid var(--accent)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2079,7 +2082,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="261";
+const APP_VERSION="262";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3339,6 +3342,7 @@ function ttBarHTML(date){
     <div class="tb-h"><div class="tb-title"><b>${esc(o.t)}</b><small class="tb-time">${hhmm(o.s%1440)}–${hhmm(o.e%1440)}　${len}分</small></div><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>${ttBadges(o)}
     <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":o.x.auto?"この日はやらない（自動）":"削除")}</button>`}</div>
     ${o.kind==="g"?"":mvRowHTML(date,"data-ttmv",isRecurEnt(o.c,o.x))}
+    <div class="tb-g tt-len"><span class="who">長さ</span>${[15,30,45,60,90].map(n=>`<button data-ttlen="${n}" aria-pressed="${o.e-o.s===n}">${n<60?n+"分":n===60?"1時間":"1.5時間"}</button>`).join("")}</div>
     <div class="tb-g"><button data-act="tttime">時刻・変更範囲</button><button data-act="ttshare">相手に共有・通知</button></div>
     ${ttTimeHTML(o,date)}${shareConfirmHTML(o,date)}
     <div class="tb-tip">予定をつかんで移動・上下のつまみで開始／終了を変更${hasDayTime(o.c,o.x)?"（ドラッグはこの日だけ。全体の変更は「時刻・変更範囲」から）":""}</div></div>`;
@@ -3384,11 +3388,11 @@ function timetable(date){
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
   for(let k=S;k<E;k++) h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`;
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
-  for(const o of ents){ const y=Math.max(0,top(o.s)), ht=Math.max(22,top(Math.min(o.e,E*60))-y-2);
+  for(const o of ents){ const y=Math.max(0,top(o.s)), ht=Math.max(10,top(Math.min(o.e,E*60))-y-1); /* v262: 15分の予定も実際の長さで描く（前は最低22px＝約30分に見えていた） */
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
     const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
   }
   return h+ttNewHTML(date)+`</div>`;
 }
@@ -3532,7 +3536,7 @@ function duoTTHTML(d){ const E=duoEntries(d), timed=E.filter(o=>!o.all), R=["h",
   const st=Math.min(6,...timed.map(o=>Math.floor(o.s/60))), en=Math.max(24,...timed.map(o=>Math.ceil(o.e/60))), H=en-st;
   const col=role=>{ const L=timed.filter(o=>o.r===role).sort((a,b)=>a.s-b.s||b.e-a.e), lanes=[]; for(const o of L){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.l=k; } for(const o of L) o.n=1+Math.max(...L.filter(p=>p.s<o.e&&p.e>o.s).map(p=>p.l));
     const nowM=d===t0?(()=>{ const n=new Date(); return n.getHours()*60+n.getMinutes(); })():-1;
-    return `<div class="duo-col" data-duo-role="${role}" style="height:${H*DUO_PPH}px">${nowM>=st*60?`<div class="duo-now" style="top:${(nowM-st*60)*DUO_PPH/60}px"></div>`:""}${L.map(o=>{ const top=(o.s-st*60)*DUO_PPH/60, ht=Math.max(20,(o.e-o.s)*DUO_PPH/60-2), k=o.l, w=100/o.n;
+    return `<div class="duo-col" data-duo-role="${role}" style="height:${H*DUO_PPH}px">${nowM>=st*60?`<div class="duo-now" style="top:${(nowM-st*60)*DUO_PPH/60}px"></div>`:""}${L.map(o=>{ const top=(o.s-st*60)*DUO_PPH/60, ht=Math.max(10,(o.e-o.s)*DUO_PPH/60-2), k=o.l, w=100/o.n;
       const key=`${o.c}|${o.x.id}|${role}`, sel=state.duoSel===key, ck=(o.c==="items"||o.c==="chores")&&(!o.day||d===t0)&&(!(bothTask(o.x)&&!o.day)||role===me);
       return `<div class="duo-b ${o.w==="both"?"both":""} k-${o.k} ${o.done?"done":""} ${ht<34?"short":""} ${sel?"sel":""}" role="button" tabindex="0" data-duo-ev="${esc(key)}" data-s="${o.s}" data-e="${o.e}" style="top:${top}px;height:${ht}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(o.t)}</b><small>${hhmm(o.s%1440)}–${hhmm(o.e%1440)}${o.w==="both"?"・ふたり":""}${o.c==="chores"?"・家事":""}</small>${ck?`<i class="duo-ck ${o.done?"on":""}" data-duo-ck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了">${CHECK}</i>`:""}${sel?`<i class="duo-rs top" data-duo-rs="top" aria-label="始まりを変える"></i><i class="duo-rs" data-duo-rs="1" aria-label="長さを変える"></i>`:""}</div>`; }).join("")}</div>`; };
   const allD=R.map(role=>E.filter(o=>o.all&&(o.w===role||o.w==="both")).map(o=>`<button class="gchip duo-all" data-duo-ev="events|${esc(o.x.id)}">終日｜${esc(o.t)}</button>`).join("")||"");
@@ -3560,18 +3564,19 @@ document.addEventListener("change",e=>{ const i=e.target; if(!i.matches||!i.matc
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-hnext],[data-chnext]"); if(!b) return; e.stopPropagation(); e.preventDefault(); const t=today(), n=addDays(t,1);
   if(b.dataset.chnext){ const c=state.chores.find(q=>q.id===b.dataset.chnext); if(c&&moveOcc("chores",c,t,n)) render(); return; }
   const x=recFind(b.dataset.hnext); if(x&&moveOcc(recColl(x),x,t,n)) render(); },true);
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-ttlen]"); if(!b) return; e.stopPropagation(); e.preventDefault(); const o=ttSelEntry(state.sel); if(!o) return; const n=Number(b.dataset.ttlen); ttApply(o,o.s,o.s+n,`長さ ${n}分（${hhmm(o.s)}–${hhmm((o.s+n)%1440)}）`); },true);
 function ttMoveTo(where,to){ if(where==="tt"){ const o=ttSelEntry(state.sel); if(!o) return; const x=(state[o.c]||[]).find(i=>i.id===o.x.id); if(moveOcc(o.c,x,state.sel,to)){ state.ttSel=null; render(); } }
   else { const g=duoGet(state.duoSel); if(!g) return; if(moveOcc(g.c,g.x,state.duoDate||today(),to)){ state.duoSel=null; render(); } } }
 function duoBarHTML(){ const g=duoGet(state.duoSel); if(!g) return ""; const [s0,e0]=duoSE(g), o=duoEnt(g), day=!!(o&&o.day);
   return `<div class="duo-bar"><div class="duo-bar-t"><b>${esc(g.x.text)}</b><span>${hhmm(s0)}–${hhmm(e0%1440)}</span><button class="x" data-duo-a="close" aria-label="閉じる">×</button></div>
-    <div class="duo-bar-r"><span class="who">時間</span><button class="pill" data-duo-a="mv-15">‹ 15分</button><button class="pill" data-duo-a="mv15">15分 ›</button><span class="who">長さ</span><button class="pill" data-duo-a="ln-15">−15</button><button class="pill" data-duo-a="ln15">＋15</button></div>
+    <div class="duo-bar-r"><span class="who">時間</span><button class="pill" data-duo-a="mv-15">‹ 15分</button><button class="pill" data-duo-a="mv15">15分 ›</button><span class="who">長さ</span><button class="pill" data-duo-a="ln-15">−15</button><button class="pill" data-duo-a="ln15">＋15</button><button class="pill" data-duo-a="ln=15">15分</button></div>
     ${mvRowHTML(state.duoDate||today(),"data-duomv",isRecurEnt(g.c,g.x))}
     <div class="duo-bar-r">${g.c==="events"?`<button class="pill" data-duo-a="allday">終日にする</button>`:day?(state.duoDate===today()||!state.duoDate?`<button class="pill" data-duo-a="done">✓ 完了</button>`:""):`<button class="pill" data-duo-a="done">✓ 完了</button><button class="pill" data-duo-a="untime">時間を外す</button>`}${getWho(g.x)!=="both"&&!day?`<button class="pill" data-duo-a="both">ふたりにする</button>`:""}<button class="pill" data-duo-a="edit">編集</button><button class="pill danger" data-duo-a="del">削除</button></div></div>`; }
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-chkskip]"); if(!b) return; e.stopPropagation(); chkSkipToggle(b.dataset.chkskip); },true);
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-duo-a]"); if(!b) return; const a=b.dataset.duoA, key=state.duoSel, g=duoGet(key); if(a==="close"||!g){ state.duoSel=null; render(); return; }
   const [s0,e0]=duoSE(g);
   if(a==="mv-15") duoSet(key,s0-15,e0-15,null,true); else if(a==="mv15") duoSet(key,s0+15,e0+15,null,true);
-  else if(a==="ln-15") duoSet(key,s0,e0-15,null,true); else if(a==="ln15") duoSet(key,s0,e0+15,null,true);
+  else if(a==="ln-15") duoSet(key,s0,e0-15,null,true); else if(a==="ln=15") duoSet(key,s0,s0+15,null,true); else if(a==="ln15") duoSet(key,s0,e0+15,null,true);
   else if(a==="done"){ state.duoSel=null; rightAction(g.c,g.id); render(); }
   else if(a==="untime"){ const u=snapUndo(g.c,g.id); const ch=duoTimeCh(g.x,null,null,null); Object.assign(g.x,ch); dupd(g.c,g.id,ch); state.duoSel=null; toast("時間を外しました（上の一覧に戻りました）",u,"done"); render(); }
   else if(a==="allday"){ const u=snapUndo(g.c,g.id); const ch={start:null,end:null}; Object.assign(g.x,ch); dupd(g.c,g.id,ch); state.duoSel=null; toast("終日の予定にしました",u,"done"); render(); }
