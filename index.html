@@ -713,6 +713,11 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .paycard{display:flex;flex-direction:column;gap:6px}.pay-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .pay-r{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:4.5em 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;font-size:13px}
 .pay-r.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}.pay-b{height:10px;border-radius:5px;background:color-mix(in srgb,var(--ink) 6%,transparent);overflow:hidden}.pay-b i{display:block;height:100%}
+/* v265: だれの出費 */
+.mc-prev{font-size:12.5px;color:var(--muted);margin:-2px 0 2px}.mc-prev b{color:var(--ink)}
+.forf{margin:2px 0 8px}.forf .seg{flex-wrap:wrap}
+.cr-for{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:var(--muted);margin-top:3px}
+.cr-for .cf-h{color:var(--who-h)}.cr-for .cf-w{color:var(--who-w)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2086,7 +2091,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="264";
+const APP_VERSION="265";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2515,6 +2520,9 @@ function sendComment(entryId){
   dset("comments",newId(),{entry:entryId,date:e.date,owner:e.by||null,ownerRole:authorRole(e),by:state.me||null,role:myRole(),text:t,at:Date.now()});
   inp.value=""; inp.blur(); toast("コメントしました");
 }
+/* v265: 出費の分類は「だれの」＋「種類」（りくの交通・車／のりの…／ふたりの…） */
+const FOR_OPTS=()=>[["h",esc(state.fam.h)+"の"],["w",esc(state.fam.w)+"の"],["both","ふたりの"]];
+const forLbl=w=>w==="h"?nameOf("h")+"の":w==="w"?nameOf("w")+"の":"ふたりの";
 const editWho=x=>`<div class="edit-row"><span class="who">だれが</span>${seg("ewho",getWho(x),WHO_OPTS())}</div>`;
 const editActions=(c,x,left)=>`<div class="actions">${left||"<span></span>"}<span style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${c!=="topics"&&!PRIVATE.has(c)?'<button type="button" class="btn" data-act="totopic">議題にする</button>':""}<button type="button" class="btn danger" data-act="edel">削除</button><button type="button" class="btn primary" data-act="esave">保存</button></span></div>`;
 function itemRow(i,showKind,c="items"){
@@ -5483,11 +5491,11 @@ function spendRow(x){
       ${moneyFields(x,true)}
       ${catSelect(x,"spend")}
       <div class="edit-row"><span class="who">日付</span><input type="date" id="editDue" value="${esc(x.date||"")}" aria-label="日付"></div>
-      ${editWho(x)}${payRowHTML(editSeg.epay||x.payBy||"","epay",x.payH,x.payW)}${x.src?`<div class="who">${x.src==="items"?"買い物リストの金額":"将来の「使った金額」"}から自動で記録されたものです</div>`:""}
+      <div class="edit-row"><span class="who">だれの</span>${seg("ewho",getWho(x),FOR_OPTS())}</div>${payRowHTML(editSeg.epay||x.payBy||"","epay",x.payH,x.payW)}${x.src?`<div class="who">${x.src==="items"?"買い物リストの金額":"将来の「使った金額」"}から自動で記録されたものです</div>`:""}
       ${editActions("spend",x)}</div></li>`;
   return wrapRow("spend",x,"",`<span class="av" style="background:${C.c}">${C.l.slice(0,1)}</span>`,
     `<div class="text" style="display:flex;justify-content:space-between;gap:8px"><span>${esc(x.text||C.l)}</span><b style="font-variant-numeric:tabular-nums">${yen(x.amount||0)}</b></div>
-     <div class="meta">${whoTag(x)}<span class="tag" style="--tc:${C.c}">${C.l}</span><span>${short(x.date)}</span>${x.budget?moneyTag({budget:x.budget,actual:x.amount}):""}${x.photo?`<button class="phbtn" data-photo="${esc(x.photo)}" aria-label="レシートの写真を見る"><img src="${photoUrl(x.photo)}" alt="" loading="lazy">写真</button>`:""}</div>`);
+     <div class="meta"><span class="tag" style="--tc:${C.c}">${esc(forLbl(getWho(x)))}${C.l}</span><span>${short(x.date)}</span>${x.budget?moneyTag({budget:x.budget,actual:x.amount}):""}${x.photo?`<button class="phbtn" data-photo="${esc(x.photo)}" aria-label="レシートの写真を見る"><img src="${photoUrl(x.photo)}" alt="" loading="lazy">写真</button>`:""}</div>`);
 }
 /* 予算と実績：お金がかかるものはすべて（ふたりのリスト・じぶんのリスト・将来・手入力の出費）から集計する */
 const actOf=x=>x.actual??x.price??x.spent??null;
@@ -5537,6 +5545,7 @@ function payCardHTML(acts){ const T={h:0,w:0,u:0}; for(const e of acts){ const p
   return `<div class="chart paycard"><div class="pay-h"><b>👛 払った人</b><div class="seg">${[["all","全体"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]].map(([k,l])=>`<button type="button" data-payf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div></div>
     ${row("h",esc(nameOf("h")),"var(--who-h)")}${row("w",esc(nameOf("w")),"var(--who-w)")}${row("u","未設定","color-mix(in srgb,var(--ink) 30%,transparent)")}
     <div class="who" style="font-size:11px">名前を選ぶと、その人が払った分だけで集計します。出費を開いて「払った人」で直せます（ふたりで分担も可）</div></div>`; }
+document.addEventListener("click",e=>{ const sv=e.target.closest('#main [data-seg="forf"] [data-sv]'); if(!sv) return; e.stopPropagation(); state.forF=sv.dataset.sv; haptic("tick"); render(); },true);
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-payf]"); if(!b) return; e.stopPropagation(); const k=b.dataset.payf; state.payF=state.payF===k&&k!=="all"?"all":k; haptic("tick"); render(); },true);
 function payRowHTML(v,name,h,w){ return `<div class="edit-row"><span class="${name==="spay"?"lbl":"who"}">払った人</span>${seg(name,v,[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))],["split","ふたりで分担"]])}</div>${`<div id="${name}Row" ${v==="split"?"":"hidden"}><div class="edit-row"><span class="${name==="spay"?"lbl":"who"}"></span><span class="who">${esc(nameOf("h"))}</span><input type="text" inputmode="numeric" id="${name}H" value="${esc(h||"")}" placeholder="円" style="width:90px"><span class="who">${esc(nameOf("w"))}</span><input type="text" inputmode="numeric" id="${name}W" value="${esc(w||"")}" placeholder="円" style="width:90px"></div><div class="who" style="font-size:11px;margin:-4px 0 4px">片方だけ入れると、残りはもう一人の分にします</div></div>`}`; }
 function payRead(name,v,total){ if(v!=="split") return {payBy:v,payH:null,payW:null}; let h=money(($(name+"H")||{}).value), w=money(($(name+"W")||{}).value); if(h&&!w) w=Math.max(0,total-h); else if(w&&!h) h=Math.max(0,total-w); else if(!h&&!w){ h=Math.round(total/2); w=total-h; } return {payBy:"split",payH:h,payW:w}; }
@@ -5561,7 +5570,8 @@ function viewMoneySum(){
   { const GT=Object.keys(MCATS).filter(k=>k!=="save").reduce((q,k)=>q+goalFor(k,state.moneyP),0);
     h+=`<div class="chart"><div class="hc-head"><h3>分類ごと　実績・予算・目標</h3><button class="link" data-act="gocg">目標を編集 ›</button></div>
       ${GT?`<div class="who" style="margin-bottom:6px">目標の合計 ${yen(GT)}・実績 ${yen(A)}（${Math.round(A/GT*100)}%）</div>`:""}
-      <div class="crows">${catRowsHTML(acts0,buds0,state.moneyP)}</div>
+      <div class="forf">${seg("forf",state.forF||"all",[["all","全部"],...FOR_OPTS()])}</div>
+      <div class="crows">${(()=>{ const FF=state.forF||"all", f=l=>FF==="all"?l:l.filter(e=>(e.who||"both")===FF); return catRowsHTML(f(acts0),f(buds0),state.moneyP,FF!=="all"); })()}</div>
       <div class="cr-leg"><span><i class="lg-a"></i>実績（目標、なければ予算に対して）</span><span><u></u>予算の位置</span></div></div>`; }
   const vals=P.sub.map(q=>acts.filter(e=>inP(e.aDate,q)).reduce((s,e)=>s+e.actual,0)), mx=Math.max(...vals,0), k=mx>=10000?1000:1;
   if(A) h+=barChart(`${P.unit}の実績（${k>1?"千円":"円"}）`,vals.map(v=>Math.round(v/k)),P.sub.map(q=>q.l),niceTop(mx/k),0,k>1?"千円":"円",`${P.label}の実績 合計${yen(A)}`);
@@ -6261,17 +6271,17 @@ function goalRow(g){
 const catGoals=()=>((state.kakei||{}).catGoals)||{};
 function goalFor(k,p){ const g=Number(catGoals()[k]||0); if(!g) return 0; return p==="week"?Math.round(g*7/30.44):p==="year"?g*12:g; }
 function setCatGoal(k,v){ const G={...catGoals()}; G[k]=v||0; /* v198: 合わせて保存するので、消すときは 0 */ state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); }
-function catRowsHTML(acts0,buds0,p){
-  const G=catGoals(), unit=p==="week"?"週":p==="year"?"年":"月";
-  const rows=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>{ const a=acts0.filter(e=>e.cat===k).reduce((s,e)=>s+e.actual,0), b=buds0.filter(e=>e.cat===k).reduce((s,e)=>s+e.budget,0), g=goalFor(k,p); return {k,o,a,b,g}; })
+function catRowsHTML(acts0,buds0,p,noG){
+  const G=noG?{}:catGoals(), unit=p==="week"?"週":p==="year"?"年":"月";
+  const rows=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>{ const A0=acts0.filter(e=>e.cat===k&&!e.save), a=A0.reduce((s,e)=>s+e.actual,0), b=buds0.filter(e=>e.cat===k).reduce((s,e)=>s+e.budget,0), g=noG?0:goalFor(k,p); const bw={h:0,w:0,both:0}; for(const e of A0) bw[e.who==="h"||e.who==="w"?e.who:"both"]+=e.actual; return {k,o,a,b,g,bw}; })
     .filter(r=>r.a||r.b||r.g).sort((x,y)=>(y.a-x.a)||(y.g-x.g));
   if(!rows.length) return `<div class="who">まだ記録はありません。「目標」タブで分類ごとの目標額を決められます</div>`;
-  return rows.map(({k,o,a,b,g})=>{ const ref=g||b, pct=ref?Math.round(a/ref*100):0, over=ref&&a>ref, bm=g&&b?Math.min(100,Math.round(b/Math.max(g,b)*100)):0;
+  return rows.map(({k,o,a,b,g,bw})=>{ const ref=g||b, pct=ref?Math.round(a/ref*100):0, over=ref&&a>ref, bm=g&&b?Math.min(100,Math.round(b/Math.max(g,b)*100)):0;
     const st=g?(a>g?`<span class="cr-st over">目標を${yen(a-g)}超過</span>`:`<span class="cr-st ok">目標まであと${yen(g-a)}</span>`):`<button class="link cr-set" data-cge="${k}">目標を決める</button>`;
     const ed=state.cgEdit===k?`<div class="cr-edit"><span class="who">毎月の目標</span><input type="text" inputmode="numeric" data-cgin="${k}" value="${Number(G[k]||0)||""}" placeholder="例 40000" class="minp"><span class="who">円</span><button class="btn primary" data-cgsave="${k}">保存</button>${G[k]?`<button class="link" data-cgclr="${k}">外す</button>`:""}</div>`:"";
     return `<div class="crow ${over?"over":""}" data-cge="${k}"><div class="cr-top"><span class="nm"><i style="background:${o.c}"></i>${o.l}</span><b>${yen(a)}</b></div>
       <div class="cr-bar" aria-label="${o.l} 実績${yen(a)}${g?` 目標${yen(g)}`:""}${b?` 予算${yen(b)}`:""}"><i style="width:${Math.min(100,pct)}%;background:${over?"var(--danger)":o.c}"></i>${bm&&bm<100?`<u style="left:${bm}%" title="予算"></u>`:""}</div>
-      <div class="cr-nums"><span>予算 <b>${b?yen(b):"—"}</b></span><span>目標 <b>${g?yen(g):"—"}</b>${g&&p!=="month"?`<small>（月${yen(Number(G[k]))}×${p==="week"?"日割り":"12"}）</small>`:""}</span>${st}</div>${ed}</div>`; }).join("");
+      <div class="cr-nums"><span>予算 <b>${b?yen(b):"—"}</b></span><span>目標 <b>${g?yen(g):"—"}</b>${g&&p!=="month"?`<small>（月${yen(Number(G[k]))}×${p==="week"?"日割り":"12"}）</small>`:""}</span>${st}</div>${!noG&&(bw.h||bw.w)?`<div class="cr-for">${[["h"],["w"],["both"]].filter(([w])=>bw[w]).map(([w])=>`<span class="cf-${w}">${esc(forLbl(w))} ${yen(bw[w])}</span>`).join("")}</div>`:""}${ed}</div>`; }).join("");
 }
 function viewMoneyGoals(){
   const gs=byWho(state.goals).slice().sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1), K=state.kakei||{};
@@ -7441,7 +7451,7 @@ function renderSheet(){
       <div class="edit-row"><span class="lbl">引き落とし日</span><span class="lbl">毎月</span><input type="number" id="sDay" min="1" max="31" value="${esc(S.rday)}" style="width:70px"><span class="lbl">日</span></div>`;
   else if(S.kind==="goal") o=`<div class="edit-row"><span class="lbl">目標金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="円" style="width:130px"></div>
       <div class="edit-row"><span class="lbl">いつまでに</span><input type="date" id="sDate" value="${esc(S.date||"")}" aria-label="期限（任意）"></div>`;
-  else if(S.kind==="spend") o=`<div class="edit-row"><span class="lbl">金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="${S.kind==="spend"?"円":"任意（円）"}" style="width:130px"><span class="lbl">円</span></div>`+payRowHTML(S.payBy||myRole(),"spay",S.payH,S.payW)+`<div class="edit-row"><span class="lbl">種類</span>${seg("smc",S.mcat,Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>[k,o.l]))}</div>`+`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||today())}" aria-label="日付"></div>`;
+  else if(S.kind==="spend") o=`<div class="edit-row"><span class="lbl">金額</span><input type="text" inputmode="numeric" id="sAmount" value="${esc(S.amount||"")}" placeholder="${S.kind==="spend"?"円":"任意（円）"}" style="width:130px"><span class="lbl">円</span></div>`+`<div class="edit-row"><span class="lbl">だれの</span>${seg("swho",S.who==="priv"||!S.who?"both":S.who,FOR_OPTS())}</div>`+`<div class="edit-row"><span class="lbl">種類</span>${seg("smc",S.mcat,Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>[k,o.l]))}</div>`+`<div class="mc-prev">分類：<b>${esc(forLbl(S.who))}${esc((MCATS[S.mcat]||MCATS.other).l)}</b></div>`+payRowHTML(S.payBy||myRole(),"spay",S.payH,S.payW)+`<div class="edit-row"><span class="lbl">日付</span><input type="date" id="sDate" value="${esc(S.date||today())}" aria-label="日付"></div>`;
   else if(S.kind==="trouble") o=`<div class="edit-row"><span class="lbl">困り度</span>${seg("stl",S.tlevel,[["low","ちょっと"],["mid","困る"],["high","すごく困る"]])}</div>`;
   else if(S.kind==="caution") o=`<div class="edit-row"><span class="lbl">重要度</span>${seg("scl",S.clevel,[["info","お知らせ"],["warn","注意"],["important","重要"]])}</div>`+dateRow("日付");
   else { const C=PCATS[S.pcat];
@@ -7452,7 +7462,7 @@ function renderSheet(){
      +(S.pcat!=="anniv"?`<div class="edit-row"><span class="lbl">予算</span><input type="text" inputmode="numeric" id="sBudget" value="${esc(S.budget)}" placeholder="任意（円）" style="width:130px"></div>`:""); }
   const pv=(!!k.me&&S.kind!=="event")||(S.kind==="event"&&S.evPriv);
   const tsk=S.kind==="task"||S.kind==="shop"||S.kind==="rtask"; if(!tsk&&S.who==="priv") S.who="both";
-  const whoRow=pv||S.kind==="chore"?"":`<div class="edit-row"><span class="lbl">だれが</span>${seg("swho",S.who,tsk?[...WHO_OPTS(),["priv",LKI+"じぶん"]]:WHO_OPTS())}</div>${tsk&&S.who==="priv"?'<div class="who sharenote">じぶんだけの項目になり、相手には見えません</div>':""}`;
+  const whoRow=pv||S.kind==="chore"||S.kind==="spend"?"":`<div class="edit-row"><span class="lbl">だれが</span>${seg("swho",S.who,tsk?[...WHO_OPTS(),["priv",LKI+"じぶん"]]:WHO_OPTS())}</div>${tsk&&S.who==="priv"?'<div class="who sharenote">じぶんだけの項目になり、相手には見えません</div>':""}`;
   const kgS=kgOf(S.kind), subRow=kgS&&KGROUPS.find(g=>g[0]===kgS)[2].length>1?`<div class="edit-row ksub">${seg("skind",S.kind,KGROUPS.find(g=>g[0]===kgS)[2].map(x=>[x,KSUB[x]]))}</div>`:"";
   $("opts").innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${subRow}${whoRow}${o}${pv?'<div class="lock" style="margin:0"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div>':""}</div>`;
 }
