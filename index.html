@@ -705,6 +705,7 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .mv-ch button small{font-size:10px;color:var(--muted);font-weight:600}.mv-ch button:active{transform:scale(.95)}
 .mvdate{min-width:48px;min-height:40px}
 .hbtns{display:flex;gap:6px;flex:none}.hmissb.hnext{color:var(--accent);font-weight:700}
+.tt-b.skp{opacity:.45}.tt-b.skp b{text-decoration:line-through}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2078,7 +2079,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="255";
+const APP_VERSION="256";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2997,7 +2998,7 @@ function toggleHabit(id,date,cycle){
   if(!state.editing) render(); else { const el=document.querySelector(`[data-hday="${date}"][data-hid="${CSS.escape(id)}"]`); if(el){ el.classList.toggle("on",on); el.classList.toggle("miss",nx==="x"); } }
 }
 const HFOL=["today","soon","over"];
-function hFollow(h){ const t=today();if(t<hSince(h))return false;if(tgtCode(h)==="7") return !habitLog(h)[t]&&!hMiss(h,t); const D=habitDue(h); return !!D&&HFOL.includes(D.status); }
+function hFollow(h){ const t=today();if(t<hSince(h))return false; if(hMiss(h,t)) return false; if(typeof movedAway==="function"&&movedAway(h,t)&&!habitLog(h)[t]) return false; if(typeof movedIn==="function"&&movedIn(h,t)) return !habitLog(h)[t]; /* v256: 今日はできなかった・明日へ回したものは「今日やること」に出さない */if(tgtCode(h)==="7") return !habitLog(h)[t]&&!hMiss(h,t); const D=habitDue(h); return !!D&&HFOL.includes(D.status); }
 /* v183: 種類で習慣とタスクを分離。旧データは習慣として保持し、編集で分類できる。 */
 const hDaily=h=>tgtCode(h)==="7";
 const isRecItem=x=>!!x&&x.list==="rtask";
@@ -3258,9 +3259,10 @@ function schedRow(o){ return o.c==="rec"?recRow(o.x):o.c==="events"?eventRow(o.x
 /* ================= じぶんの予定: calendar + timetable (blocks) + list ================= */
 const BCOLORS=[["task","緑"],["cal","青"],["shop","橙"],["diary","紫"],["future","青緑"],["danger","赤"]];
 const REPS=[["none","この日だけ"],["daily","毎日"],["weekday","平日"],["off","自分の休みの日"]];
-function blocksFor(date){
+function blocksFor(date,incSkip){
   const dw=parse(date).getDay(), off=shiftOf(myRole(),date)==="休";
   return state.blocks.filter(b=>{ if(b.from&&date<b.from) return false; const r=b.rep||"none";
+    if(r!=="none"&&!incSkip&&(b.skipD||{})[date]) return false; /* v256: くり返しの予定を「この日はできない」 */
     if(r!=="none"&&typeof movedIn==="function"){ if(movedIn(b,date)) return true; if(movedAway(b,date)) return false; }
     return r==="none"?b.date===date: r==="daily"?true: r==="weekday"?(dw>=1&&dw<=5): r==="off"?off:false; });
 }
@@ -3289,13 +3291,13 @@ function ttBadges(o,inline=false){ const m=ttInfo(o), wc=["h","w","both"].includ
 }
 function dayEntries(date){
   const out=[];
-  for(const b of blocksFor(date).map(b=>blockAt(b,date)).filter(b=>!b.allDay&&b.start)) out.push({kind:"b",c:"blocks",x:b,s:tmin(b.start),e:(b.end&&tmin(b.end)<=tmin(b.start))?1440:Math.max(tmin(b.end)||tmin(b.start)+60,tmin(b.start)+15),t:b.text,col:b.color||"cal"});
+  for(const b of blocksFor(date,true).map(b=>blockAt(b,date)).filter(b=>!b.allDay&&b.start)) out.push({kind:"b",c:"blocks",x:b,skip:!!(b.rep&&b.rep!=="none"&&(b.skipD||{})[date]),s:tmin(b.start),e:(b.end&&tmin(b.end)<=tmin(b.start))?1440:Math.max(tmin(b.end)||tmin(b.start)+60,tmin(b.start)+15),t:b.text,col:b.color||"cal"});
   const mine=x=>["both",myRole()].includes(getWho(x));
   for(const i of state.items) if(!isRecItem(i)&&i.due===date&&myT(i)&&mine(i)) out.push({kind:"i",c:"items",x:i,done:!!myDone(i),s:tmin(myT(i)),e:tmin(myT(i))+(myD(i)||30),t:i.text,col:i.list==="shop"?"shop":"task"});
   for(const x of state.events) if(x.date===date&&x.start&&mine(x)){ const s0=tmin(x.start), e0=x.end?tmin(x.end):s0+60; out.push({kind:"e",c:"events",x,s:s0,e:e0<=s0?1440:e0,t:x.text,col:"cal"}); }
   for(const i of state.pitems) if(i.due===date&&i.time) out.push({kind:"i",c:"pitems",x:i,done:!!i.done,s:tmin(i.time),e:tmin(i.time)+(i.dur||30),t:i.text,col:i.list==="shop"?"shop":"task"});
-  for(const c of state.chores||[]) if(timeAt(c,date)&&choreMine(c)&&choreOn(c,date)) out.push({kind:"i",c:"chores",x:c,done:!!(c.log||{})[date],s:tmin(timeAt(c,date)),e:tmin(timeAt(c,date))+(durAt(c,date)||30),t:c.text,col:"future"});
-  for(const h of ttRecurrences()) if(date>=hSince(h)&&timeAt(h,date)&&(typeof recOnX==="function"?recOnX(h,date):(hDaily(h)||recOn(h,date)))) out.push({kind:"i",c:recColl(h),x:h,done:!!habitLog(h)[date],s:tmin(timeAt(h,date)),e:tmin(timeAt(h,date))+(durAt(h,date)||30),t:h.text,col:"task"});
+  for(const c of state.chores||[]) if(timeAt(c,date)&&choreMine(c)&&choreOn(c,date,true)) out.push({kind:"i",c:"chores",skip:chSkip(c,date),x:c,done:!!(c.log||{})[date],s:tmin(timeAt(c,date)),e:tmin(timeAt(c,date))+(durAt(c,date)||30),t:c.text,col:"future"});
+  for(const h of ttRecurrences()) if(date>=hSince(h)&&timeAt(h,date)&&(typeof recOnX==="function"?recOnX(h,date):(hDaily(h)||recOn(h,date)))) out.push({kind:"i",c:recColl(h),x:h,skip:hMiss(h,date),done:!!habitLog(h)[date],s:tmin(timeAt(h,date)),e:tmin(timeAt(h,date))+(durAt(h,date)||30),t:h.text,col:"task"});
   if(false) for(const g of (state.gEvents[date]||[])) if(!g.allDay) out.push({kind:"g",x:g,s:g.s,e:g.e,t:g.t,col:"muted"});
   out.sort((a,b)=>a.s-b.s||b.e-a.e);
   const lanes=[]; for(const o of out){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.lane=k; }
@@ -3319,8 +3321,8 @@ function ttDeselect(){ state.ttSel=null; state.ttDelArm=false; if(state.dirty){ 
 function ttSelEntry(date){ const k=state.ttSel; if(!k) return null; const [c,id]=k.split("|");
   return dayEntries(date).find(o=>c==="g"?(o.kind==="g"&&o.x.id===id):(o.c===c&&o.x.id===id))||null; }
 /* v144: 家事・習慣・繰り返しタスクはタイムテーブルから丸ごと消さない（その日だけ「やらない」にする。削除は各タブで） */
-const ttRecur=o=>o.c==="chores"||o.c==="habits"||(o.c==="items"&&isRecItem(o.x));
-const ttSkipped=o=>o.c==="chores"?chSkip(o.x,state.sel):hMiss(o.x,state.sel);
+const ttRecur=o=>o.c==="chores"||o.c==="habits"||(o.c==="items"&&isRecItem(o.x))||(o.c==="blocks"&&o.x.rep&&o.x.rep!=="none");
+const ttSkipped=o=>o.c==="chores"?chSkip(o.x,state.sel):o.c==="blocks"?!!(o.x.skipD||{})[state.sel]:hMiss(o.x,state.sel);
 const isRecurEnt=(c,x)=>c==="chores"||c==="habits"||(c==="items"&&isRecItem(x))||(c==="blocks"&&x.rep&&x.rep!=="none");
 function moveOcc(c,x,from,to){ if(!x||!to||from===to) return false; const u=snapUndo(c,x.id); let ch; const rec=isRecurEnt(c,x);
   if(rec){ const M=MV_ON(x), orig=Object.keys(M).find(f=>M[f]===from&&f!==from)||from, dt=dayTime(x,from); ch={moved:{[orig]:orig===to?null:to}}; if(dt) ch.dayTimes={[to]:dt}; }
@@ -3335,7 +3337,7 @@ function ttBarHTML(date){
   const len=o.e-o.s;
   return `<div class="tt-bar" role="toolbar" aria-label="選んだ予定の調整">
     <div class="tb-h"><div class="tb-title"><b>${esc(o.t)}</b><small class="tb-time">${hhmm(o.s%1440)}–${hhmm(o.e%1440)}　${len}分</small></div><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>${ttBadges(o)}
-    <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":"削除")}</button>`}</div>
+    <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":o.x.auto?"この日はやらない（自動）":"削除")}</button>`}</div>
     ${o.kind==="g"?"":mvRowHTML(date,"data-ttmv",isRecurEnt(o.c,o.x))}
     <div class="tb-g"><button data-act="tttime">時刻・変更範囲</button><button data-act="ttshare">相手に共有・通知</button></div>
     ${ttTimeHTML(o,date)}${shareConfirmHTML(o,date)}
@@ -3386,7 +3388,7 @@ function timetable(date){
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
     const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.done?"done":""} ${ht<40?"short":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
   }
   return h+ttNewHTML(date)+`</div>`;
 }
@@ -5217,7 +5219,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="aiMemAdd"){ const i=$("aiMemIn"); if(aiMemAdd(i&&i.value,state.aiMemSc==="me"?"me":"both")){ state.aiMemOpen=true; haptic("done"); render(); } }
   else if(a==="shUndo"||a==="shRedo"){ shiftUndo(a==="shRedo"); }
   else if(a==="ttskip"){ const o=ttSelEntry(state.sel); if(!o||!ttRecur(o)) return; const d=state.sel, x=o.x;
-    if(o.c==="chores"){ const v=chSkip(x,d)?null:myRole(); applyLocal("chores",x.id,{skip:{[d]:v}}); dupd("chores",x.id,{skip:{[d]:v}}); toast(v?`「${x.text}」はこの日はやらない`:`「${x.text}」をやる日に戻しました`); }
+    if(o.c==="blocks"){ const B=state.blocks.find(q=>q.id===x.id); if(!B) return; const v=(B.skipD||{})[d]?null:true, u=snapUndo("blocks",B.id); applyLocal("blocks",B.id,{skipD:{[d]:v}}); dupd("blocks",B.id,{skipD:{[d]:v}}); toast(v?`「${B.text}」は${short(d)}はやらない`:`「${B.text}」を${short(d)}に戻しました`,u,"done"); }
+    else if(o.c==="chores"){ const v=chSkip(x,d)?null:myRole(); applyLocal("chores",x.id,{skip:{[d]:v}}); dupd("chores",x.id,{skip:{[d]:v}}); toast(v?`「${x.text}」はこの日はやらない`:`「${x.text}」をやる日に戻しました`); }
     else { const nx=hMiss(x,d)?null:"x"; x.log={...hRaw(x),[d]:nx}; dupd(recColl(x),x.id,{log:{[d]:nx}}); toast(nx?`「${x.text}」この日はできない、で記録しました`:`「${x.text}」を戻しました`); }
     state.ttSel=null; haptic("tick"); render(); }
   else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else openEdit(o.c,o.x.id); }
@@ -5569,7 +5572,7 @@ function checkList(){
     const ov=[...T,...P].filter(i=>i.due&&i.due<t).length, by=r=>T.filter(i=>getWho(i)===r).length;
     add("task","今日までのやること",tabN("task",n),[...[["both","ふたり"],[me,nameOf(me)]].filter(([r])=>by(r)).map(([r,l])=>`${l} ${by(r)}`),P.length?`🔒じぶん ${P.length}`:"",R.length?`くり返し ${R.length}`:"",ov?`うち期限切れ ${ov}`:""].filter(Boolean).join("・")); }
   add("shop","今日までの買い物",tabN("shop",n),state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)&&forMe(i)).slice(0,3).map(i=>i.text).join("、"));
-  { const ch=(state.chores||[]).filter(c=>choreMine(c)&&choreInfo(c).diff<=0&&!(c.log||{})[t]&&!chSkip(c,t)); add("chore","今日の家事",n.chore,ch.slice(0,3).map(c=>c.text).join("、")+(ch.length>3?` ほか${ch.length-3}`:"")); }
+  { const ch=(state.chores||[]).filter(c=>choreMine(c)&&(choreInfo(c).diff<=0||(typeof movedIn==="function"&&movedIn(c,t)))&&!(typeof movedAway==="function"&&movedAway(c,t))&&!(c.log||{})[t]&&!chSkip(c,t)); add("chore","今日の家事",n.chore,ch.slice(0,3).map(c=>c.text).join("、")+(ch.length>3?` ほか${ch.length-3}`:"")); }
   { const hf=habitItems().filter(h=>hFollow(h)); add("habit","今日の習慣",n.habit,hf.slice(0,3).map(x=>x.text).join("、")); }
   add("trouble","気になること・注意",tabN("trouble",n),[n.trouble?`困りごと ${n.trouble}`:"",n.caution?`相手からの注意 ${n.caution}（未確認）`:""].filter(Boolean).join("・"));
   { const m=shiftMissing(me); add("shift","シフトの入力",m.length?1:0,m.length?`${m.length}日分（${rangeTxt(m)}）`:""); }
@@ -5818,10 +5821,10 @@ function choreInfo(c){ const L=choreLast(c), ev=Math.max(1,Number(c.every||7)), 
   return {L,due,diff,who,st:diff<0?"over":diff===0?"today":diff<=2?"soon":"ok"}; }
 /* v137: 家事もタイムテーブルへ（その日にやる家事＝次の予定日。今日は予定日が過ぎたものも） */
 const chSkip=(c,d)=>!!(c.skip||{})[d];
-function choreOn(c,d){ if((c.log||{})[d]) return true; if(typeof movedIn==="function"){ if(movedIn(c,d)) return true; if(movedAway(c,d)) return false; } if(chSkip(c,d)) return false; const I=choreInfo(c), t=today(); if(d<t) return false; if(d===t) return I.diff<=0; return chSch(c)?(d>=I.due&&hOn(c,d)):I.due===d; }
+function choreOn(c,d,ign){ if((c.log||{})[d]) return true; if(typeof movedIn==="function"){ if(movedIn(c,d)) return true; if(movedAway(c,d)) return false; } if(chSkip(c,d)&&!ign) return false; const I=choreInfo(c), t=today(); if(d<t) return false; if(d===t) return I.diff<=0; return chSch(c)?(d>=I.due&&hOn(c,d)):I.due===d; }
 const choreMine=c=>{ const w=choreInfo(c).who; return w==="both"||w===myRole(); };
 const noDueC=(c,x)=>c==="habits"||c==="chores"||isRecItem(x);
-function choreDueCount(){ const me=myRole(), t=today(); return (state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!chSkip(c,t)&&!(c.log||{})[t]&&(I.who==="both"||I.who===me); }).length; }
+function choreDueCount(){ const me=myRole(), t=today(); return (state.chores||[]).filter(c=>{ const I=choreInfo(c); return (I.diff<=0||(typeof movedIn==="function"&&movedIn(c,t)))&&!(typeof movedAway==="function"&&movedAway(c,t))&&!chSkip(c,t)&&!(c.log||{})[t]&&(I.who==="both"||I.who===me); }).length; }
 function choreToggle(id){ const c=state.chores.find(x=>x.id===id); if(!c) return; const t=today(), on=!(c.log||{})[t]; const u=snapUndo("chores",id);
   applyLocal("chores",id,{log:{[t]:on?myRole():null}}); dupd("chores",id,{log:{[t]:on?myRole():null}}); if(on) celebrate(); haptic(on?"done":"tick");
   toast(on?`「${c.text}」やった！（+${c.pts||1}pt）`:`「${c.text}」の今日の記録を取り消しました`,u,"done"); render(); }
@@ -8605,7 +8608,7 @@ function briefHTML(withChecks){
   const due=state.items.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t), mineP=[...state.pitems.filter(i=>i.list==="task"&&!i.done&&i.due&&i.due<=t),...recMine().filter(hFollow).map(h=>({due:t,text:h.text}))];
   if(due.length||mineP.length){ const by=r=>due.filter(i=>getWho(i)===r).length, ov=[...due,...mineP].filter(i=>i.due<t).length;
     L.push(["task",`今日までのやること ${due.length+mineP.length}件${ov?`（期限切れ ${ov}）`:""}`,[["h",by("h")],["w",by("w")],["both",by("both")]].filter(([,n])=>n).map(([r,n])=>`${r==="both"?"ふたり":nameOf(r)} ${n}件`).concat(mineP.length?[`じぶん ${mineP.length}件`]:[]).join("・"),"task"]); }
-  const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(c.log||{})[t]&&!chSkip(c,t); });
+  const ch=(state.chores||[]).filter(c=>{ const I=choreInfo(c); return I.diff<=0&&!(typeof movedAway==="function"&&movedAway(c,t))&&!(c.log||{})[t]&&!chSkip(c,t); });
   if(ch.length) L.push(["chore",`今日の家事 ${ch.length}件`,`${ch.slice(0,3).map(c=>{ const I=choreInfo(c); return `${c.text}${I.who&&I.who!=="both"?`（${nameOf(I.who)}）`:""}`; }).join("、")}${ch.length>3?` ほか${ch.length-3}`:""}`,"chore"]);
   if(!withChecks){ const T=wxToday(); if(T&&prefs.wx!=="off"&&(T.pop>=50||T.rainAt!=null)) L.push(["rain",`雨の予報（最大${T.pop}%）`,T.rainAt!=null?`${T.rainAt}時ごろから降りそう・洗濯物や傘に注意`:"今日は傘があると安心","home"]); }
   { const g0=gomiOn(t), g1=gomiOn(addDays(t,1)), hr=new Date().getHours();
