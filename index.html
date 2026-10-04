@@ -718,6 +718,13 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .forf{margin:2px 0 8px}.forf .seg{flex-wrap:wrap}
 .cr-for{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:var(--muted);margin-top:3px}
 .cr-for .cf-h{color:var(--who-h)}.cr-for .cf-w{color:var(--who-w)}
+/* v266: 分類ごとをコンパクトに */
+.crow{padding:8px 2px}
+.cr-top .cr-amt{font-variant-numeric:tabular-nums;white-space:nowrap}.cr-top .cr-amt small{font-size:11.5px;color:var(--muted);font-weight:600}
+.cr-bar{display:flex;height:7px;margin:5px 0 4px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.cr-bar i{border-radius:0}.cr-bar i:first-child{border-top-left-radius:4px;border-bottom-left-radius:4px}.cr-bar i:last-of-type{border-top-right-radius:4px;border-bottom-right-radius:4px}
+.cr-nums{font-size:11.5px;gap:2px 10px}.cr-nums .cf{display:inline-flex;align-items:center;gap:4px}.cr-nums .cf i{width:8px;height:8px;border-radius:2px}
+.cr-st{font-size:11.5px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2091,7 +2098,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="265";
+const APP_VERSION="266";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5572,7 +5579,7 @@ function viewMoneySum(){
       ${GT?`<div class="who" style="margin-bottom:6px">目標の合計 ${yen(GT)}・実績 ${yen(A)}（${Math.round(A/GT*100)}%）</div>`:""}
       <div class="forf">${seg("forf",state.forF||"all",[["all","全部"],...FOR_OPTS()])}</div>
       <div class="crows">${(()=>{ const FF=state.forF||"all", f=l=>FF==="all"?l:l.filter(e=>(e.who||"both")===FF); return catRowsHTML(f(acts0),f(buds0),state.moneyP,FF!=="all"); })()}</div>
-      <div class="cr-leg"><span><i class="lg-a"></i>実績（目標、なければ予算に対して）</span><span><u></u>予算の位置</span></div></div>`; }
+      <div class="cr-leg"><span><i class="lg-a" style="background:var(--who-h)"></i>${esc(nameOf("h"))}の</span><span><i class="lg-a" style="background:var(--who-w)"></i>${esc(nameOf("w"))}の</span><span><i class="lg-a" style="background:var(--muted)"></i>ふたりの（分類の色）</span><span><u></u>目標（なければ予算）</span><span>行をタップで目標を設定</span></div></div>`; }
   const vals=P.sub.map(q=>acts.filter(e=>inP(e.aDate,q)).reduce((s,e)=>s+e.actual,0)), mx=Math.max(...vals,0), k=mx>=10000?1000:1;
   if(A) h+=barChart(`${P.unit}の実績（${k>1?"千円":"円"}）`,vals.map(v=>Math.round(v/k)),P.sub.map(q=>q.l),niceTop(mx/k),0,k>1?"千円":"円",`${P.label}の実績 合計${yen(A)}`);
   h+=moneyChartsHTML();
@@ -6272,16 +6279,21 @@ const catGoals=()=>((state.kakei||{}).catGoals)||{};
 function goalFor(k,p){ const g=Number(catGoals()[k]||0); if(!g) return 0; return p==="week"?Math.round(g*7/30.44):p==="year"?g*12:g; }
 function setCatGoal(k,v){ const G={...catGoals()}; G[k]=v||0; /* v198: 合わせて保存するので、消すときは 0 */ state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); }
 function catRowsHTML(acts0,buds0,p,noG){
-  const G=noG?{}:catGoals(), unit=p==="week"?"週":p==="year"?"年":"月";
+  /* v266: 1分類1ブロックを小さく。棒は「りくの／のりの／ふたりの」で色分け、縦線＝目標（なければ予算） */
+  const G=noG?{}:catGoals();
   const rows=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>{ const A0=acts0.filter(e=>e.cat===k&&!e.save), a=A0.reduce((s,e)=>s+e.actual,0), b=buds0.filter(e=>e.cat===k).reduce((s,e)=>s+e.budget,0), g=noG?0:goalFor(k,p); const bw={h:0,w:0,both:0}; for(const e of A0) bw[e.who==="h"||e.who==="w"?e.who:"both"]+=e.actual; return {k,o,a,b,g,bw}; })
     .filter(r=>r.a||r.b||r.g).sort((x,y)=>(y.a-x.a)||(y.g-x.g));
   if(!rows.length) return `<div class="who">まだ記録はありません。「目標」タブで分類ごとの目標額を決められます</div>`;
-  return rows.map(({k,o,a,b,g,bw})=>{ const ref=g||b, pct=ref?Math.round(a/ref*100):0, over=ref&&a>ref, bm=g&&b?Math.min(100,Math.round(b/Math.max(g,b)*100)):0;
-    const st=g?(a>g?`<span class="cr-st over">目標を${yen(a-g)}超過</span>`:`<span class="cr-st ok">目標まであと${yen(g-a)}</span>`):`<button class="link cr-set" data-cge="${k}">目標を決める</button>`;
+  const WC={h:"var(--who-h)",w:"var(--who-w)"};
+  return rows.map(({k,o,a,b,g,bw})=>{ const ref=g||b, over=ref&&a>ref, sc=Math.max(a,ref)||1, split=bw.h||bw.w;
+    const segs=["h","w","both"].filter(w=>bw[w]).map(w=>`<i style="width:${bw[w]/sc*100}%;background:${WC[w]||o.c}" title="${esc(forLbl(w))} ${yen(bw[w])}"></i>`).join("");
+    const st=ref?(over?`<span class="cr-st over">${yen(a-ref)} 超過</span>`:(a===ref?`<span class="cr-st ok">ぴったり</span>`:`<span class="cr-st ok">あと ${yen(ref-a)}</span>`)):"";
     const ed=state.cgEdit===k?`<div class="cr-edit"><span class="who">毎月の目標</span><input type="text" inputmode="numeric" data-cgin="${k}" value="${Number(G[k]||0)||""}" placeholder="例 40000" class="minp"><span class="who">円</span><button class="btn primary" data-cgsave="${k}">保存</button>${G[k]?`<button class="link" data-cgclr="${k}">外す</button>`:""}</div>`:"";
-    return `<div class="crow ${over?"over":""}" data-cge="${k}"><div class="cr-top"><span class="nm"><i style="background:${o.c}"></i>${o.l}</span><b>${yen(a)}</b></div>
-      <div class="cr-bar" aria-label="${o.l} 実績${yen(a)}${g?` 目標${yen(g)}`:""}${b?` 予算${yen(b)}`:""}"><i style="width:${Math.min(100,pct)}%;background:${over?"var(--danger)":o.c}"></i>${bm&&bm<100?`<u style="left:${bm}%" title="予算"></u>`:""}</div>
-      <div class="cr-nums"><span>予算 <b>${b?yen(b):"—"}</b></span><span>目標 <b>${g?yen(g):"—"}</b>${g&&p!=="month"?`<small>（月${yen(Number(G[k]))}×${p==="week"?"日割り":"12"}）</small>`:""}</span>${st}</div>${!noG&&(bw.h||bw.w)?`<div class="cr-for">${[["h"],["w"],["both"]].filter(([w])=>bw[w]).map(([w])=>`<span class="cf-${w}">${esc(forLbl(w))} ${yen(bw[w])}</span>`).join("")}</div>`:""}${ed}</div>`; }).join("");
+    const who=split?["h","w","both"].filter(w=>bw[w]).map(w=>`<span class="cf"><i style="background:${WC[w]||o.c}"></i>${esc(w==="both"?"ふたり":nameOf(w))} <b>${yen(bw[w])}</b></span>`).join(""):"";
+    const ab=[g&&b&&b!==g?`予算 ${yen(b)}`:"",g&&p!=="month"?`<small>（月${yen(Number(G[k]))}×${p==="week"?"日割り":"12"}）</small>`:""].filter(Boolean).join("・");
+    return `<div class="crow ${over?"over":""}" data-cge="${k}"><div class="cr-top"><span class="nm"><i style="background:${o.c}"></i>${o.l}</span><span class="cr-amt"><b>${yen(a)}</b>${ref?`<small> / ${g?"目標":"予算"} ${yen(ref)}</small>`:""}</span></div>
+      <div class="cr-bar" aria-label="${o.l} 実績${yen(a)}${g?` 目標${yen(g)}`:""}${b?` 予算${yen(b)}`:""}">${segs}${ref&&a?`<u style="left:${ref/sc*100}%"></u>`:""}</div>
+      ${who||ab||st?`<div class="cr-nums">${who}${ab&&!who?`<span>${ab}</span>`:""}${st}</div>${who&&ab?`<div class="cr-nums"><span>${ab}</span></div>`:""}`:""}${ed}</div>`; }).join("");
 }
 function viewMoneyGoals(){
   const gs=byWho(state.goals).slice().sort((a,b)=>(a.due||"9")<(b.due||"9")?-1:1), K=state.kakei||{};
