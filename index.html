@@ -2079,7 +2079,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="259";
+const APP_VERSION="260";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5576,8 +5576,9 @@ function checkList(){
   { const hf=habitItems().filter(h=>hFollow(h)); add("habit","今日の習慣",n.habit,hf.slice(0,3).map(x=>x.text).join("、")); }
   add("trouble","気になること・注意",tabN("trouble",n),[n.trouble?`困りごと ${n.trouble}`:"",n.caution?`相手からの注意 ${n.caution}（未確認）`:""].filter(Boolean).join("・"));
   { const m=shiftMissing(me); add("shift","シフトの入力",m.length?1:0,m.length?`${m.length}日分（${rangeTxt(m)}）`:""); }
-  { const miss=[]; if(eve&&!myDiaryDone(t)) miss.push("日記"); const th=thanksOf(t,me); if(eve&&!(th&&th.text)) miss.push("ありがとう"); const dn=dinnerOf(t); if(eve&&!(dn&&dn.text)) miss.push("夕飯メモ"); if(eve&&!myReflectDone(t)) miss.push("内省");
+  { const miss=[]; if(eve&&!myDiaryDone(t)) miss.push("日記"); const th=thanksOf(t,me); if(eve&&!(th&&th.text)) miss.push("ありがとう"); const dn=dinnerOf(t); if(eve&&!(dn&&dn.text)) miss.push("夕飯メモ");
     add("evening","今日の記録",miss.length,miss.join("・")); }
+  if(!myReflectDone(t)&&new Date().getHours()>=12) add("reflect","今日の内省",1,"気分・良かったこと・学びをひとこと（🔒自分だけ）"); /* v260: 内省は単独で「今日やること」に（お昼以降、まだなら） */
   add("comment","日記への新しいコメント",n.diaryC||0,"");
   add("qa","今日の質問",qaAns(t,me)?0:1,qaQ(t));
   { const ym=ymOf(t), rp=state.recur.filter(r=>rActive(r,ym)&&!rPaid(r,ym)&&dayIn(ym,r.day)<=t).length, L=Number((state.kakei||{}).limit||0);
@@ -5623,6 +5624,7 @@ function goCheck(k){
   else if(k==="bug") go("settings");
   else if(k==="task") go("task"); else if(k==="shop") go("shop"); else if(k==="chore") go("chore");
   else if(k==="evening"){ state.diaryTab="me"; state.diaryDate=t; go("diary"); }
+  else if(k==="reflect"){ state.refDate=t; go("reflect"); }
   else if(k==="money"){ state.moneyTab="month"; state.moneyRef=t; go("money"); }
 }
 
@@ -7092,7 +7094,7 @@ function qaPopOpen(){ state.qaPopShown=true; state.qaPopOpen=true;
 function qaPopClose(later){ const d=today(), el=$("qpop"); state.qaPopOpen=false; if(el){ el.classList.remove("open"); setTimeout(()=>{ el.hidden=true; },200); }
   if(later&&!qaAns(d,myRole())){ prefs.qaPopDay=d; savePrefs(true); } if(qaAns(d,myRole())&&qaAns(d,otherRole())){ prefs.qaSeen=d; savePrefs(true); } render(); }
 /* v173: ホームはウィジェットの組み合わせ。並び順・表示／非表示を変えられる */
-const CHK_LOOK={talk:["talk","--talk"],task:["task","--task"],shop:["shop","--shop"],chore:["chore","--future"],habit:["habit","--habit"],trouble:["trouble","--trouble"],shift:["cal","--cal"],evening:["diary","--diary"],comment:["diary","--diary"],qa:["talk","--talk"],money:["money","--habit"],bousai:["future","--caution"],bug:["settings","--muted"]};
+const CHK_LOOK={talk:["talk","--talk"],task:["task","--task"],shop:["shop","--shop"],chore:["chore","--future"],habit:["habit","--habit"],trouble:["trouble","--trouble"],shift:["cal","--cal"],evening:["diary","--diary"],reflect:["reflect","--reflect"],comment:["diary","--diary"],qa:["talk","--talk"],money:["money","--habit"],bousai:["future","--caution"],bug:["settings","--muted"]};
 const HOME_W=[["jump","よく使う画面（使い方に合わせて自動）"],["baby","妊娠・出産（予定日を入れたとき）"],["today","今日やること"],["week","この先7日（シフト・予定）"],["sched","今日のタイムライン"],["ai","AIに相談"],["habit","今日の習慣"],["mood","今日の気分（🔒自分だけ）"],["talk","今日の話し合い"],["money","今月のお金"],["rings","今週の達成"],["chore","家事のバランス"],["qa","今日の質問"],["memory","思い出（○年前の今日）"],["act","相手の更新"],["search","さがす"],["quick","すぐ追加"]];
 function homeOrder(){ const base=HOME_W.map(w=>w[0]), o=String(prefs.homeOrder||"").split(",").filter(k=>base.includes(k)); return [...(o.includes("jump")?[]:["jump"]),...o,...base.filter(k=>!o.includes(k)&&k!=="jump")]; }
 const homeHidden=()=>new Set(String(prefs.homeHide||"").split(",").filter(Boolean));
