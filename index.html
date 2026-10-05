@@ -757,6 +757,12 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tg-l .tg-n{all:unset;flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline;cursor:pointer}
 .tg-l .tg-n b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tg-l .tg-n small{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
 .tg-l li.done .tg-n b{text-decoration:line-through;color:var(--muted)}.tg-l li.skp{opacity:.55}
+/* v274: タイムテーブルの15分目盛り */
+.tt-q{position:absolute;left:46px;right:0;height:0;border-top:1px dashed color-mix(in srgb,var(--line) 70%,transparent);pointer-events:none}
+.tt-q.h{border-top-style:solid;border-top-color:color-mix(in srgb,var(--line) 85%,transparent)}
+.tt-q span{position:absolute;left:-40px;top:-6px;font-size:8.5px;color:color-mix(in srgb,var(--muted) 70%,transparent);font-variant-numeric:tabular-nums;width:34px;text-align:right}
+.tt-q:not(.h) span{font-size:8px;opacity:.75}
+.tt-b.short>span{display:block;flex:0 0 auto;font-size:10px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2130,7 +2136,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="273";
+const APP_VERSION="274";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3449,9 +3455,9 @@ function ttGrpSheetHTML(date){ const G=state.ttGrp; if(!G||G.date!==date) return
   return `<div class="ted-ov" data-act="ttgrpx"></div><div class="ted-sheet tg-sheet" role="dialog" aria-label="まとめた項目"><div class="ted-h"><b>${hhmm(L[0].s)}〜 ${L.length}件</b><span class="who">名前をタップで選択（時間・長さ・日付を変更）</span><button class="tb-x" data-act="ttgrpx" aria-label="閉じる">✕</button></div>
     <ul class="tg-l">${L.map(o=>`<li class="${o.done?"done":""} ${o.skip?"skp":""}"><button class="tg-ck" data-ttck="${o.c}|${esc(o.x.id)}" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button><button class="tg-n" data-tgsel="${o.c}|${esc(o.x.id)}"><b>${esc(o.t)}</b><small>${hhmm(o.s)}–${hhmm(o.e%1440)}</small></button></li>`).join("")}</ul></div>`; }
 function timetable(date){
-  const S=Number(prefs.ttStart||4), E=24, H=46, ents=dayEntries(date), top=m=>(m/60-S)*H;
+  const S=Number(prefs.ttStart||4), E=24, H=TT_H, ents=dayEntries(date), top=m=>(m/60-S)*H;
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
-  for(let k=S;k<E;k++) h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`;
+  for(let k=S;k<E;k++){ h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`; for(const q of [15,30,45]) h+=`<div class="tt-q ${q===30?"h":""}" style="top:${(k-S)*H+q/60*H}px">${q===30?`<span>${k}:30</span>`:`<span>${q}</span>`}</div>`; }
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
   for(const o of ttLayout(ents)){ const y=Math.max(0,top(o.s)), ht=Math.max(o.grp?24:10,top(Math.min(o.e,E*60))-y-1);
     if(o.grp){ const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`, dn=o.items.filter(i=>i.done).length;
@@ -6094,7 +6100,7 @@ function restoreBackup(file){
 
 
 /* ================= タイムテーブルにタスクを載せる（ドラッグ／タップで配置・移動・長さ変更） ================= */
-const TT_H=46, ttS=()=>Number(prefs.ttStart||4);
+const TT_H=88 /* v274: 15分＝22px（前は1時間46px で15分の予定が読めなかった） */, ttS=()=>Number(prefs.ttStart||4);
 const ttMine=x=>["both",myRole()].includes(getWho(x));
 function ttUntimed(d){ return [...state.items.filter(i=>!isRecItem(i)&&i.due===d&&!myT(i)&&!myDone(i)&&i.list!=="wish"&&ttMine(i)).map(x=>({c:"items",x})),
   ...state.pitems.filter(i=>i.due===d&&!i.time&&!i.done&&i.list!=="wish").map(x=>({c:"pitems",x})),
