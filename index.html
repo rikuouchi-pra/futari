@@ -2098,7 +2098,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="266";
+const APP_VERSION="267";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5579,13 +5579,13 @@ function viewMoneySum(){
       ${GT?`<div class="who" style="margin-bottom:6px">目標の合計 ${yen(GT)}・実績 ${yen(A)}（${Math.round(A/GT*100)}%）</div>`:""}
       <div class="forf">${seg("forf",state.forF||"all",[["all","全部"],...FOR_OPTS()])}</div>
       <div class="crows">${(()=>{ const FF=state.forF||"all", f=l=>FF==="all"?l:l.filter(e=>(e.who||"both")===FF); return catRowsHTML(f(acts0),f(buds0),state.moneyP,FF!=="all"); })()}</div>
-      <div class="cr-leg"><span><i class="lg-a" style="background:var(--who-h)"></i>${esc(nameOf("h"))}の</span><span><i class="lg-a" style="background:var(--who-w)"></i>${esc(nameOf("w"))}の</span><span><i class="lg-a" style="background:var(--muted)"></i>ふたりの（分類の色）</span><span><u></u>目標（なければ予算）</span><span>行をタップで目標を設定</span></div></div>`; }
+      <div class="cr-leg"><span><i class="lg-a" style="background:var(--who-h)"></i>${esc(nameOf("h"))}の</span><span><i class="lg-a" style="background:var(--who-w)"></i>${esc(nameOf("w"))}の</span><span><i class="lg-a" style="background:var(--muted)"></i>ふたりの（分類の色）</span><span><u></u>目標（なければ予算）</span><span>行をタップで目標を設定</span></div><div class="who" style="font-size:11px;margin-top:4px">食費・日用品など毎月の<b>変動費</b>は、振込額を予算、出費の記録を実績として数えます（固定費・貯金は振込確認＝実績）</div></div>`; }
   const vals=P.sub.map(q=>acts.filter(e=>inP(e.aDate,q)).reduce((s,e)=>s+e.actual,0)), mx=Math.max(...vals,0), k=mx>=10000?1000:1;
   if(A) h+=barChart(`${P.unit}の実績（${k>1?"千円":"円"}）`,vals.map(v=>Math.round(v/k)),P.sub.map(q=>q.l),niceTop(mx/k),0,k>1?"千円":"円",`${P.label}の実績 合計${yen(A)}`);
   h+=moneyChartsHTML();
   if(state.moneyP!=="year"){ const y=parse(P.s).getFullYear(), Y={s:`${y}-01-01`,e:`${y+1}-01-01`}; const ya=all.filter(e=>e.actual&&inP(e.aDate,Y)).reduce((s,e)=>s+e.actual,0), yb=all.filter(e=>e.budget&&inP(e.bDate,Y)).reduce((s,e)=>s+e.budget,0);
     h+=`<div class="who" style="margin:6px 2px">${y}年の合計　実績 ${yen(ya)}・予算 ${yen(yb)}（「年」で月ごとに見られます）</div>`; }
-  const recN=acts0.concat(buds0).filter(e=>e.c==="recur"); if(recN.length){ const rb=buds0.filter(e=>e.c==="recur").reduce((s,e)=>s+e.budget,0), ra=acts0.filter(e=>e.c==="recur").reduce((s,e)=>s+e.actual,0);
+  const recN=acts0.concat(buds0).filter(e=>e.c==="recur"); if(recN.length){ const rb=buds0.filter(e=>e.c==="recur").reduce((s,e)=>s+e.budget,0), ra=buds0.filter(e=>e.c==="recur").reduce((s,e)=>s+(e.paid||0),0);
     const ymC=ymOf(today()), st={}; byWho(state.recur).filter(r=>rActive(r,ymC)).forEach(r=>{ const k=rStatus(r,ymC); if(k!=="off") st[k]=(st[k]||0)+1; });
     h+=`<button class="banner" data-act="gomonthly" style="border:0;width:100%;text-align:left;cursor:pointer;background:color-mix(in srgb,var(--habit) 12%,var(--surface))"><b>毎月の固定費・変動費・貯金（今月）</b>　予定 ${yen(rb)}／振込確認済み ${yen(ra)}<span class="rst-sum" style="margin:6px 0 0">${["paid","part","due","skip","wait"].filter(k=>st[k]).map(k=>`<span class="rst ${RST[k][1]}">${RST[k][0]} ${st[k]}</span>`).join("")}</span><small class="who">項目ごとの状態は「毎月・振込」で見る ›</small></button>`; }
   const need=all.filter(e=>e.c!=="recur"&&e.budget&&!e.actual&&((e.x.done||e.c==="plans"&&planDone(e.x))||(e.bDate&&e.bDate<today())));
@@ -6145,7 +6145,7 @@ const rPaidAmt=(r,ym)=>{ const p=rPaid(r,ym); if(!p) return 0; return p.h||p.w?(
 function recurEntries(){
   const out=[], t=today(), start=ymAdd(ymOf(t),-24), end=ymAdd(ymOf(t),12);
   for(const r of state.recur){ for(let ym=r.from&&r.from>start?r.from:start; ym<=end; ym=ymAdd(ym,1)){ if(!rActive(r,ym)) continue; const p=rPaid(r,ym), d=dayIn(ym,r.day);
-    out.push({c:"recur",x:r,id:r.id+"@"+ym,cat:r.kind==="save"?"save":r.kind==="var"?"var":"fixed",text:r.text,who:getWho(r),budget:Number(r.amount||0),actual:p?Number(p.amount||0):0,bDate:d,aDate:d,save:r.kind==="save"}); } }
+    out.push({c:"recur",x:r,id:r.id+"@"+ym,cat:r.kind==="save"?"save":r.kind==="var"?"var":"fixed",text:r.text,who:getWho(r),budget:Number(r.amount||0),actual:p&&r.kind!=="var"?Number(p.amount||0):0,paid:p?Number(p.amount||0):0,bDate:d,aDate:d,save:r.kind==="save"}); } } /* v267: 変動費（食費・日用品など）の振込は「予算の入金」。実績は出費の記録で数える（二重計上していた） */
   return out;
 }
 function goalSaved(g){ let s=Number(g.base||0); for(const r of state.recur) if(r.goal===g.id) for(const p of Object.values(r.paid||{})) if(p) s+=Number(p.amount||0); for(const d of (g.deposits||[])) s+=Number(d.a||0); return s; }
