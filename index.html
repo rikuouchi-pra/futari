@@ -731,6 +731,18 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .cr-list ul{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:3px}
 .cr-list li{display:grid;grid-template-columns:3.6em 1fr auto;gap:6px;font-size:12.5px;align-items:baseline}
 .cr-list .cl-d{color:var(--muted);font-size:11px}.cr-list .cl-t small{margin-left:6px;font-size:10.5px;color:var(--muted)}.cr-list b{font-variant-numeric:tabular-nums}
+/* v269: レシート連続 */
+.rcpt .rc-q{margin-left:8px;font-size:11.5px;font-weight:600;color:var(--muted)}.rcpt .rc-hb{display:flex;gap:14px;align-items:center}
+.rcpt{scroll-margin-top:170px}
+.rc-done{display:flex;flex-direction:column;gap:8px}.rc-dh{font-weight:800;font-size:15px;color:var(--habit)}.rc-da{display:flex;gap:8px;flex-wrap:wrap}
+/* v270: 1週間より先の天気は薄く */
+.cwx.far{opacity:.45}
+/* v271: タイムテーブルからの編集シート */
+.ted-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.35)}
+.ted-sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:560px;margin:0 auto;max-height:82vh;overflow:auto;background:var(--raised);border-radius:20px 20px 0 0;padding:12px 12px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+.ted-h{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px}.ted-h b{font-size:16px}.ted-h .who{font-size:11.5px}
+.ted-sheet ul.list{margin:0}
+body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai-fab,body:has(.ted-sheet) .fbar{display:none!important}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2104,7 +2116,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="268";
+const APP_VERSION="272";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3535,7 +3547,13 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   h+=`<div id="ttBlocks">${blocksListHTML(d)}</div>`;
   if(dupN) h+=`</details>`;
   if(dayItems.length) h+=`<div class="section-label">時間なしの予定</div><ul class="list">${dayItems.map(schedRow).join("")}</ul>`;
-  return h; }
+  return ttEdSheetHTML()+h; }
+/* v271: タイムテーブルの「詳しく編集」はその場で下から出る編集シートで（一覧が折りたたみの中にあり、編集欄が見えていなかった） */
+function ttEdRow(c,x){ if(c==="events") return eventRow(x); if(c==="blocks") return blockRow(x); if(c==="chores") return choreRow(x); if(c==="habits") return habitRow(x);
+  if(c==="items"||c==="pitems") return isRecItem(x)?habitRow(x):itemRow(x,true,c); if(c==="plans") return planRow(x,true); if(c==="topics") return topicRow(x); return ""; }
+function ttEdSheetHTML(){ const E=state.ttEd, ed=state.editing; if(!E||!ed||ed.c!==E.c||ed.id!==E.id) return ""; const x=(state[E.c]||[]).find(i=>i.id===E.id); if(!x) return "";
+  const row=ttEdRow(E.c,x); if(!row) return "";
+  return `<div class="ted-ov" aria-hidden="true"></div><div class="ted-sheet" role="dialog" aria-label="予定を編集"><div class="ted-h"><b>編集</b><span class="who">外をタップで保存して閉じる</span></div><ul class="list">${row}</ul></div>`; }
 document.addEventListener("toggle",e=>{ if(e.target&&e.target.dataset&&e.target.dataset.ttdup) state.ttDup=e.target.open; if(e.target&&e.target.dataset&&e.target.dataset.hall) state.hAllOpen=e.target.open; },true);
 /* v244: 記録がまだないグラフは、空の軸の代わりに一言の案内を出す */
 const chartEmpty=msg=>`<div class="chart-empty"><span aria-hidden="true">📊</span>${esc(msg)}</div>`;
@@ -4307,7 +4325,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
     cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0||jpHolName(s)?"sun":d.getDay()===6?"sat":""} ${jpHolName(s)?"hol":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" title="${esc(jpHolName(s))}" aria-label="${jpDate(s)} ${esc(jpHolName(s))} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
-      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
+      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx ${W.far?"far":""}" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°${W.far?"（先の予報なので変わりやすい）":""}">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
 }
@@ -4806,6 +4824,14 @@ function appHScroll(el){ for(let n=el;n&&n!==document.body;n=n.parentElement){ i
 { const isTxt=el=>el&&(el.tagName==="TEXTAREA"||el.isContentEditable||(el.tagName==="INPUT"&&!/^(checkbox|radio|button|submit|range|color|file)$/.test(el.type))||el.tagName==="SELECT");
   document.addEventListener("focusin",e=>{ if(isTxt(e.target)) document.body.classList.add("kbd"); });
   document.addEventListener("focusout",()=>setTimeout(()=>{ if(!isTxt(document.activeElement)) document.body.classList.remove("kbd"); },80)); }
+/* v272: iPhone：キーボードを閉じた後などに、固定表示（タブバー・背景・ヘッダー）が画面の途中に残る不具合を、表示領域を戻して描き直す */
+{ const vv=window.visualViewport; let lastH=vv?vv.height:0, tmr=0;
+  const fixVV=()=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ const ae=document.activeElement; if(ae&&(ae.tagName==="TEXTAREA"||ae.isContentEditable||(ae.tagName==="INPUT"&&!/^(checkbox|radio|button|submit|range|color|file)$/.test(ae.type)))) return;
+    const off=vv?Math.abs(vv.offsetTop)>1||Math.abs(innerHeight-vv.height)>2:false; const y=scrollY; window.scrollTo(scrollX,y+1); window.scrollTo(scrollX,y);
+    if(off){ const r=document.documentElement; r.style.minHeight="calc(100% + 1px)"; void r.offsetHeight; requestAnimationFrame(()=>{ r.style.minHeight=""; window.scrollTo(scrollX,y); }); } },120); };
+  if(vv){ vv.addEventListener("resize",()=>{ const h=vv.height; if(h>lastH+60) fixVV(); lastH=h; }); vv.addEventListener("scroll",()=>{ if(Math.abs(vv.offsetTop)>1&&!document.body.classList.contains("kbd")) fixVV(); }); }
+  document.addEventListener("focusout",()=>setTimeout(fixVV,200));
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) fixVV(); }); window.addEventListener("pageshow",fixVV); window.addEventListener("orientationchange",()=>setTimeout(fixVV,300)); }
 function hubSeq(){ const hs=hiddenTabs(); return HUBS.flatMap(h=>h.v.map(([k])=>k).filter(k=>!hs.has(k)||k===state.view||["home","settings","usage","dec","meal"].includes(k))); }
 function goRel(n){ if(prefs.nav==="tab"){ const Q=hubSeq(), v=state.view==="caution"?"trouble":state.view, i=Q.indexOf(v); if(i<0) return; const j=i+n; if(j<0||j>=Q.length) return; go(Q[j],n>0?40:-40); return; }
   const i=ORDER.indexOf(state.view==="caution"?"trouble":state.view); if(i<0) return; const j=i+n;
@@ -5151,6 +5177,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcpaste") rcptTextStart();
   else if(a==="rcskip") rcptSkip();
   else if(a==="rcclose") rcptClose();
+  else if(a==="rcadd"){ RQ.append=true; rcptStart(); }
   else if(a==="dphadd"){ const i=$("dphIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgePick"){ const i=$("fridgeIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgeSave") fridgeSave();
@@ -5253,7 +5280,7 @@ $("main").addEventListener("click",e=>{
     else if(o.c==="chores"){ const v=chSkip(x,d)?null:myRole(); applyLocal("chores",x.id,{skip:{[d]:v}}); dupd("chores",x.id,{skip:{[d]:v}}); toast(v?`「${x.text}」はこの日はやらない`:`「${x.text}」をやる日に戻しました`); }
     else { const nx=hMiss(x,d)?null:"x"; x.log={...hRaw(x),[d]:nx}; dupd(recColl(x),x.id,{log:{[d]:nx}}); toast(nx?`「${x.text}」この日はできない、で記録しました`:`「${x.text}」を戻しました`); }
     state.ttSel=null; haptic("tick"); render(); }
-  else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else openEdit(o.c,o.x.id); }
+  else if(a==="ttedit"){ const o=ttSelEntry(state.sel); state.ttSel=null; if(!o) return; if(o.kind==="g"){ state.gEdit={date:state.sel,id:o.x.id}; state.gDelArm=false; render(); setTimeout(()=>{ const el2=document.querySelector(".gedit"); if(el2) el2.scrollIntoView({block:"center",behavior:"smooth"}); },60); } else { state.ttEd={c:o.c,id:o.x.id}; startEdit(o.c,o.x.id); if(!document.querySelector(".ted-sheet #editText")){ state.ttEd=null; openEdit(o.c,o.x.id); } else setTimeout(()=>{ const t=document.querySelector(".ted-sheet #editText"); if(t) t.focus({preventScroll:true}); },80); } }
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
@@ -5296,7 +5323,7 @@ document.addEventListener("toggle",e=>{ if(e.target.classList&&e.target.classLis
 document.addEventListener("change",e=>{ if(e.target.id==="mvIn"&&e.target.files&&e.target.files[0]){ importMove(e.target.files[0]); e.target.value=""; return; } if(e.target.id==="rcKeep"){ prefs.keepPhoto=e.target.checked?"1":"0"; savePrefs(true); } });
 document.addEventListener("change",e=>{ if(e.target.id!=="talkHeldTime") return; const d=e.target.dataset.talkdate, x=talkOf(d); if(!x||x.held!==true||!/^\d{2}:\d{2}$/.test(e.target.value)) return; const [h,m]=e.target.value.split(":").map(Number), dt=parse(d); dt.setHours(h,m,0,0); x.heldAt=dt.getTime(); dupd("talks",d,{heldAt:x.heldAt,updatedAt:Date.now()}); toast("話した時刻を更新しました"); });
 $("dphIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) diaryAddPhotos(fs); });
-$("rcptIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) rcptOpen(fs); });
+$("rcptIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) rcptOpen(fs,RQ.append); RQ.append=false; });
 $("fridgeIn").addEventListener("change",e=>{ const fs=e.target.files; if(fs&&fs.length) fridgeRead(fs); e.target.value=""; });
 $("rhome").onclick=()=>{ if(railDrag.moved) return; go("home"); };
 $("shareNotice").addEventListener("click",()=>{state.shareInboxOpen=true;go("home");requestAnimationFrame(() => $("shareInbox")?.scrollIntoView({block:"start",behavior:"smooth"}));});
@@ -7287,9 +7314,8 @@ async function diaryDelPhoto(id){
 let diaryPhotoPatch=null;
 
 /* ================= レシート読み取り（1枚ずつ確認して実績登録） ================= */
-const RQ={files:[],i:0,cur:null,ctl:null};
+const RQ={files:[],i:0,cur:null,ctl:null,res:[],gen:0,saved:0};
 function rcptStart(){ const inp=$("rcptIn"); if(!inp) return; inp.value=""; inp.click(); }
-function rcptOpen(files){ RQ.files=[...files].slice(0,20); RQ.i=0; state.rcptOn=true; if(state.view!=="money"){ state.moneyTab="sum"; go("money"); } rcptRead(); }
 function rcptLinkables(){ return moneyEntries().filter(e=>e.budget&&!e.actual&&e.c!=="recur"&&e.c!=="spend"&&["items","pitems","plans"].includes(e.c)).slice(0,30); }
 function rcptPrompt(src){ const cats=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>`${k}=${o.l}`).join(", ");
   return `${src}読み取って、次の形のJSONだけを返してください。
@@ -7312,13 +7338,10 @@ async function rcptFromText(){
   render(); rcptScroll();
 }
 function rcptTextStart(){ RQ.files=[]; RQ.i=0; RQ.cur={status:"ready",url:"",err:"",d:rcptApply(null),paste:true}; state.rcptOn=true; if(state.view!=="money"){ state.moneyTab="sum"; go("money"); } else render(); rcptScroll(); setTimeout(()=>{ const t=$("rcTxt"); if(t) t.focus(); },120); }
-async function rcptRead(){
-  const f=RQ.files[RQ.i]; if(!f){ rcptClose(); return; }
-  if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url);
-  RQ.cur={status:"reading",url:URL.createObjectURL(f),d:null,err:""}; render(); rcptScroll();
+/* v269: レシートを連続で。選んだ写真は裏で順に先読みしておき、確認→保存ですぐ次へ。確認中に「＋ 追加」、終わったら「続けて読み取る」 */
+async function rcptAI(f){
   const cats=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>`${k}=${o.l}`).join(", ");
   RQ.ctl=new AbortController();
-  if(!state.sample){ RQ.cur={...RQ.cur,status:"ready",err:state.sampleTxt?"":(state.sampleNote||"この画面では自動読み取りが使えません。写真を見ながら入力してください"),d:{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:""}}; render(); rcptScroll(); return; }
   try{
     const d=await state.sample.json(`これは日本の買い物のレシート（または領収書）の写真です。読み取って、次の形のJSONだけを返してください。
 {"store":"店名（わからなければ空文字）","date":"YYYY-MM-DD（読めなければnull）","total":税込の合計金額(数値・円),"items":[{"name":"品名","price":数値}],"category":"分類キー"}
@@ -7326,16 +7349,36 @@ async function rcptRead(){
 - itemsは主な品目を最大12件まで。
 - categoryは次から1つ: ${cats}
 - 飲食店・カフェ・テイクアウトは eatout、スーパーの食料品中心は food、ドラッグストアの日用品中心は daily。`,{images:f,signal:RQ.ctl.signal});
-    RQ.cur={...RQ.cur,status:"ready",d:rcptApply(d)};
+    return {status:"ready",d:rcptApply(d),err:""};
   }catch(e){
-    if(e&&e.code==="cancelled") return;
+    if(e&&e.code==="cancelled") return {status:"cancelled"};
     const msg={not_granted:"読み取りが許可されませんでした。手入力で登録できます",images_unavailable:"この画面では写真を送れません。手入力で登録できます",image_rejected:"この写真は読めませんでした（形式・サイズ）",rate_limited:"混み合っています。少し待ってからもう一度",invalid_json:"うまく読み取れませんでした。手で入力してください",refused:"読み取れない内容でした"}[e&&e.code]||"読み取りに失敗しました。手で入力できます";
-    RQ.cur={...RQ.cur,status:"ready",err:msg,d:{store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:""}};
+    return {status:"ready",err:msg,d:{store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:""}};
   }
-  render(); rcptScroll();
 }
+async function rcptPump(){ if(RQ.pumping||!state.sample) return; RQ.pumping=true; const gen=RQ.gen;
+  try{ for(let i=0;i<RQ.files.length;i++){ if(gen!==RQ.gen) return; if(RQ.res[i]) continue; RQ.res[i]={status:"reading"}; const r=await rcptAI(RQ.files[i]); if(gen!==RQ.gen) return; RQ.res[i]=r;
+      if(i===RQ.i&&RQ.cur&&RQ.cur.status==="reading") rcptShow(); else if(state.rcptOn) rcptHead(); } }
+  finally{ if(gen===RQ.gen) RQ.pumping=false; } }
+function rcptReadyN(){ let n=0; for(let k=RQ.i+1;k<RQ.files.length;k++) if(RQ.res[k]&&RQ.res[k].status==="ready") n++; return n; }
+function rcptHead(){ const el=document.querySelector(".rcpt .rc-q"); if(el) el.innerHTML=rcptQHTML(); const h=el&&el.parentNode&&el.parentNode.firstChild; if(h&&h.nodeType===3&&RQ.files.length) h.textContent=`レシート ${RQ.i+1}/${RQ.files.length}`; }
+function rcptQHTML(){ const rest=RQ.files.length-RQ.i-1; return rest>0?`あと${rest}枚${state.sample?`（${rcptReadyN()}枚 読み取り済み）`:""}`:""; }
+function rcptOpen(files,append){
+  if(append&&state.rcptOn&&RQ.cur&&RQ.cur.status!=="done"&&RQ.files.length){ RQ.files=RQ.files.concat([...files]).slice(0,30); toast(`${files.length}枚 追加しました`); rcptHead(); rcptPump(); return; }
+  if(RQ.ctl) RQ.ctl.abort(); RQ.gen=(RQ.gen||0)+1; RQ.pumping=false; RQ.files=[...files].slice(0,30); RQ.res=[]; RQ.i=0; RQ.saved=RQ.cur&&RQ.cur.status==="done"?RQ.saved||0:0;
+  state.rcptOn=true; if(state.view!=="money"){ state.moneyTab="sum"; go("money"); } rcptShow(); rcptPump(); }
+function rcptShow(){
+  const f=RQ.files[RQ.i]; if(!f){ rcptDone(); return; }
+  if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url);
+  const url=URL.createObjectURL(f);
+  if(!state.sample) RQ.cur={status:"ready",url,err:state.sampleTxt?"":(state.sampleNote||"この画面では自動読み取りが使えません。写真を見ながら入力してください"),d:{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:""}};
+  else { const r=RQ.res[RQ.i]; RQ.cur=r&&r.status==="ready"?{status:"ready",url,err:r.err||"",d:{...r.d}}:{status:"reading",url,d:null,err:""}; if(!r||r.status==="cancelled"){ RQ.res[RQ.i]=null; rcptPump(); } }
+  render(); rcptScroll(); }
+const rcptRead=rcptShow;
+function rcptNext(){ RQ.i++; if(RQ.i<RQ.files.length) rcptShow(); else rcptDone(); }
+function rcptDone(){ if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.res=[]; RQ.i=0; RQ.cur={status:"done"}; render(); rcptScroll(); }
 function rcptScroll(){ setTimeout(()=>{ const el=document.querySelector(".rcpt"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },60); }
-function rcptClose(){ if(RQ.ctl) RQ.ctl.abort(); if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.cur=null; state.rcptOn=false; render(); }
+function rcptClose(){ if(RQ.ctl) RQ.ctl.abort(); if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.res=[]; RQ.gen=(RQ.gen||0)+1; RQ.pumping=false; RQ.saved=0; RQ.cur=null; state.rcptOn=false; render(); }
 async function rcptSave(){
   const C=RQ.cur; if(!C||C.status!=="ready"||C.saving) return; const d=C.d;
   d.store=$("rcS").value.trim(); d.date=$("rcD").value||today(); d.total=money($("rcT").value); d.cat=$("rcC").value; d.link=$("rcL")?$("rcL").value:"";
@@ -7344,13 +7387,14 @@ async function rcptSave(){
   let photo=null; if(file&&keep&&state.assets){ C.saving=true; const b=document.querySelector("[data-act=rcsave]"); if(b){ b.disabled=true; b.textContent="写真を保存中…"; } photo=await savePhoto(file); if(photo) indexPhoto(photo,"receipt"); C.saving=false; }
   if(d.link){ const [c,id]=d.link.split("|"), x=state[c]&&state[c].find(q=>q.id===id); if(!x){ toast("紐づけ先が見つかりません"); return; }
     const u=snapUndo(c,id); dupd(c,id,{actual:d.total,actualAt:d.date,...(x.mcat?{}:{mcat:d.cat}),receipt:{store:d.store,items:d.items.slice(0,8),...(photo?{photo}:{})}}); haptic("done"); toast(`「${x.text}」の実績に ${yen(d.total)} を登録`,u,"done"); }
-  else { const id=newId(); dset("spend",id,{cat:d.cat,amount:d.total,text:d.store||MCATS[d.cat].l,date:d.date,who:editSeg.rcw||d.who||"both",by:state.me||null,role:myRole(),createdAt:now,receipt:true,items:d.items.slice(0,12),...(photo?{photo}:{})}); haptic("done"); toast(`${yen(d.total)}（${MCATS[d.cat].l}）を登録しました`,()=>ddel("spend",id),"done"); }
-  delete editSeg.rcw; RQ.i++; if(RQ.i<RQ.files.length) rcptRead(); else rcptClose();
+  else { const id=newId(); dset("spend",id,{cat:d.cat,amount:d.total,text:d.store||MCATS[d.cat].l,date:d.date,who:editSeg.rcw||d.who||"both",payBy:myRole(),by:state.me||null,role:myRole(),createdAt:now,receipt:true,items:d.items.slice(0,12),...(photo?{photo}:{})}); haptic("done"); toast(`${yen(d.total)}（${MCATS[d.cat].l}）を登録しました`,()=>ddel("spend",id),"done"); }
+  delete editSeg.rcw; RQ.saved=(RQ.saved||0)+1; rcptNext();
 }
-function rcptSkip(){ RQ.i++; if(RQ.i<RQ.files.length) rcptRead(); else rcptClose(); }
+function rcptSkip(){ rcptNext(); }
 function rcptHTML(){
   if(!state.rcptOn||!RQ.cur) return "";
-  const C=RQ.cur, n=Math.max(1,RQ.files.length), head=`<div class="hc-head"><h3>${C.paste&&!RQ.files.length?"レシート（文字から）":`レシート ${RQ.i+1}/${n}`}</h3><button class="link" data-act="rcclose">やめる</button></div>`;
+  if(RQ.cur.status==="done") return `<section class="chart rcpt rc-done"><div class="rc-dh">✓ ${RQ.saved?`${RQ.saved}件 登録しました`:"確認が終わりました"}</div><div class="rc-da"><button class="btn primary" data-act="rcpt">📷 続けて読み取る</button><button class="btn" data-act="rcclose">終わる</button></div><div class="who" style="font-size:11px">何枚でもまとめて選べます。選んだ分は裏で先に読み取っておきます</div></section>`;
+  const C=RQ.cur, n=Math.max(1,RQ.files.length), head=`<div class="hc-head"><h3>${C.paste&&!RQ.files.length?"レシート（文字から）":`レシート ${RQ.i+1}/${n}`}<small class="rc-q">${rcptQHTML()}</small></h3><span class="rc-hb">${RQ.files.length?`<button class="link" data-act="rcadd">＋ 追加</button>`:""}<button class="link" data-act="rcclose">やめる</button></span></div>`;
   if(C.status==="reading") return `<section class="chart rcpt">${head}<div class="rc-body">${C.url?`<img src="${C.url}" alt="レシート" class="rc-img">`:""}<div class="rc-wait"><span class="spin"></span>読み取り中…<br><small>10〜30秒ほどかかります</small></div></div></section>`;
   const d=C.d, L=rcptLinkables();
   return `<section class="chart rcpt">${head}${C.err?`<div class="notice" style="margin:0 0 8px">${esc(C.err)}</div>`:""}
@@ -8434,8 +8478,15 @@ function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=toda
 /* v189: 日ごとの天気（16日先まで）とごみ出し */
 /* v213: Yahoo!天気（刈谷市）へのリンク。Yahoo!天気の予報データは外部に提供されていないため、アプリ内の数字は Open-Meteo のまま */
 const YAHOO_WX="https://weather.yahoo.co.jp/weather/jp/23/5110/23210.html";
+/* v270: 日ごとの天気マークは「その日の代表的な天気」に（daily の weather_code は1時間でも小雨があると「雨」になるため、日中6〜18時の毎時の天気から決める） */
+function wxRepK(i){ const W=state.wx, D=W&&W.daily; if(!D) return "cloud"; const d=D.time[i], H=W.hourly; const fb=wxKind(D.weather_code[i],1);
+  if(!H||!H.time||!H.weather_code) return fb; const C=[]; for(let k=0;k<H.time.length;k++){ const t=H.time[k]; if(t.slice(0,10)!==d) continue; const h=Number(t.slice(11,13)); if(h>=6&&h<=18&&H.weather_code[k]!=null) C.push(Number(H.weather_code[k])); }
+  if(C.length<6) return fb; const sum=Number((D.precipitation_sum||[])[i]||0), pop=Number((D.precipitation_probability_max||[])[i]||0);
+  const st=C.filter(c=>c>=95).length, sn=C.filter(c=>(c>=71&&c<=77)||c===85||c===86).length, rn=C.filter(c=>c>=51&&c<95&&!((c>=71&&c<=77)||c===85||c===86)).length;
+  if(st&&pop>=50) return "storm"; if(sn>=2) return "snow"; if(rn>=3||(sum>=2&&rn>=1&&pop>=50)) return "rain";
+  const cl=C.map(c=>c===0?0:c===1?0.33:c===2?0.66:1).reduce((a,b)=>a+b,0)/C.length; return cl<0.3?"sun":cl<0.7?"sunc":C.filter(c=>c===45||c===48).length>=C.length/2?"fog":"cloud"; }
 function wxDay(d){ const W=state.wx; if(!W||!W.daily||prefs.wx==="off") return null; const i=W.daily.time.indexOf(d); if(i<0) return null; const D=W.daily, g=(k)=>D[k]?D[k][i]:null;
-  const o={max:Math.round(D.temperature_2m_max[i]),min:Math.round(D.temperature_2m_min[i]),pop:D.precipitation_probability_max[i]||0,k:wxKind(D.weather_code[i],1)};
+  const o={max:Math.round(D.temperature_2m_max[i]),min:Math.round(D.temperature_2m_min[i]),pop:D.precipitation_probability_max[i]||0,k:wxRepK(i),far:i>7};
   o.dry=laundryIdx({tmax:g("temperature_2m_max"),pop:o.pop,rain:g("precipitation_sum"),sun:g("sunshine_duration"),wind:g("wind_speed_10m_max"),rh:g("relative_humidity_2m_mean")}); return o; }
 /* v218: 洗濯の乾きやすさ（0〜100）。日本気象協会の洗濯指数と同じ5段階の言い方で、気温・日照・風・湿度・雨から計算 */
 const DRY_LV=[[80,"大変よく乾く","🌞"],[60,"よく乾く","👕"],[40,"乾く","👕"],[20,"やや乾きにくい","🌥️"],[0,"乾きにくい・部屋干し","🏠"]];
@@ -8492,7 +8543,7 @@ function wxRender(){
   const L=wxLoc(), dn=["今日","明日","あさって"];
   pn.innerHTML=`<div class="wxp-h"><b>${esc(L.name)}の天気</b><span class="who">${esc(WXN[k])}・今 ${Math.round(W.current.temperature_2m)}°</span></div>
     <div class="wxp-hr">${hs.map(i=>{ const p=W.hourly.precipitation_probability[i]||0; return `<div class="wxh"><small>${Number(W.hourly.time[i].slice(11,13))}時</small>${wxSvg(wxKind(W.hourly.weather_code[i],W.hourly.is_day[i]))}<b>${Math.round(W.hourly.temperature_2m[i])}°</b><span class="wxh-p" style="--p:${p}%">${p?p+"%":""}</span></div>`; }).join("")}</div>
-    <div class="wxp-d">${W.daily.time.slice(0,3).map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxKind(W.daily.weather_code[i],1))}<span class="wxd-n">${WXN[wxKind(W.daily.weather_code[i],1)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>${(()=>{ const z=wxDay(d); return z&&z.dry?`<div class="wxd-dry"><span>洗濯</span><i style="--v:${z.dry.v}%"></i><b>${z.dry.ic} ${esc(z.dry.l)}</b><small>${z.dry.v}</small></div>`:""; })()}`).join("")}</div>
+    <div class="wxp-d">${W.daily.time.slice(0,3).map((d,i)=>`<div class="wxd"><span>${dn[i]||short(d)}</span>${wxSvg(wxRepK(i))}<span class="wxd-n">${WXN[wxRepK(i)]}</span><span class="wxd-p">${W.daily.precipitation_probability_max[i]||0}%</span><b>${Math.round(W.daily.temperature_2m_max[i])}°</b><small>${Math.round(W.daily.temperature_2m_min[i])}°</small></div>${(()=>{ const z=wxDay(d); return z&&z.dry?`<div class="wxd-dry"><span>洗濯</span><i style="--v:${z.dry.v}%"></i><b>${z.dry.ic} ${esc(z.dry.l)}</b><small>${z.dry.v}</small></div>`:""; })()}`).join("")}</div>
     <a class="btn wxp-y" href="${esc(YAHOO_WX)}" target="_blank" rel="noopener">Yahoo!天気で見る（刈谷市）↗</a>
     <div class="who wxp-f">予報と洗濯の乾きやすさはアプリで計算（データ：Open-Meteo）。Yahoo!天気の予報・指数はアプリに取り込めないため、ボタンから開いて確認してください・場所は 設定 › 天気</div>`;
   const r=el.getBoundingClientRect(); pn.style.top=Math.round(r.bottom+8)+"px"; const pw=Math.min(360,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px";
