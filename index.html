@@ -743,6 +743,20 @@ html.has-bgphoto #main .subttl .who,html.has-bgphoto #main .section-label{color:
 .ted-h{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px}.ted-h b{font-size:16px}.ted-h .who{font-size:11.5px}
 .ted-sheet ul.list{margin:0}
 body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai-fab,body:has(.ted-sheet) .fbar{display:none!important}
+/* v273: タイムテーブルのまとめ枠 */
+.tt-grp{position:absolute;box-sizing:border-box;border:0;border-left:4px solid var(--task);border-radius:10px;background:color-mix(in srgb,var(--task) 16%,var(--surface));color:var(--ink);text-align:left;padding:4px 8px;overflow:hidden;display:flex;flex-direction:column;gap:1px;z-index:2;cursor:pointer;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--task) 35%,transparent)}
+.tt-grp b{font-size:12.5px;display:flex;gap:6px;align-items:center;white-space:nowrap;flex:none}.tt-grp b small{font-size:10.5px;color:var(--habit);font-weight:700}
+.tt-grp span{font-size:11.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tt-grp.short{flex-direction:row;align-items:center;gap:8px}.tt-grp.short span{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+.tt-grp.done{opacity:.6}
+.tg-sheet .ted-h{align-items:center}.tg-sheet .ted-h b{white-space:nowrap}.tg-sheet .ted-h .tb-x{margin-left:auto;border:0;background:var(--ground);width:32px;height:32px;border-radius:50%;color:var(--ink)}
+.tg-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tg-l li{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 8px}
+.tg-l .tg-ck{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--task);background:transparent;color:transparent;display:grid;place-items:center;padding:0}
+.tg-l .tg-ck svg{width:18px;height:18px}.tg-l li.done .tg-ck{background:var(--task);color:#fff}
+.tg-l .tg-n{all:unset;flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline;cursor:pointer}
+.tg-l .tg-n b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tg-l .tg-n small{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.tg-l li.done .tg-n b{text-decoration:line-through;color:var(--muted)}.tg-l li.skp{opacity:.55}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2116,7 +2130,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="272";
+const APP_VERSION="273";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3420,18 +3434,35 @@ function shareInboxHTML(){ const all=shareReceived(),rows=all.filter(x=>!x.notic
 async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()||x.notice.seenAt||state.shareSeenBusy)return false;state.shareSeenBusy=id;requestRender();try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});const current=state.events.find(x=>x.id===id);if(current)current.notice=notice;return true;}catch(e){err(e);toast("確認済みにできませんでした。もう一度お試しください");return false;}finally{state.shareSeenBusy=null;requestRender();} }
 function shareArrived(){ const rows=shareUnread(),ids=new Set(rows.map(x=>x.id)),previous=state.shareKnown;if(previous&&state.shareKnownRole===myRole()){const added=rows.filter(x=>!previous.has(x.id));if(added.length)toast(`相手から新しい共有が${added.length}件届きました`);}state.shareKnown=ids;state.shareKnownRole=myRole();requestRender(); }
 function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
+/* v273: 短い項目が4列以上に重なる所は「19:00〜 7件」の1枠にまとめる（タップで一覧） */
+function ttLayout(ents){ const cl=[]; let cur=null, end=-1;
+  for(const o of ents){ if(cur&&o.s<=end){ cur.push(o); end=Math.max(end,o.e); } else { cur=[o]; cl.push(cur); end=o.e; } }
+  const out=[];
+  for(const C of cl){ const mx=Math.max(...C.map(o=>o.lanes||1)), sm=C.filter(o=>o.kind!=="g"&&o.e-o.s<=45&&o.x&&!(state.ttSel===o.c+"|"+o.x.id));
+    if(mx<=3||sm.length<3){ out.push(...C); continue; }
+    const G=[]; for(const o of sm.slice().sort((a,b)=>a.s-b.s)){ const g=G[G.length-1]; if(g&&o.s<=g.e&&o.s-g.s<60){ g.items.push(o); g.e=Math.max(g.e,o.e); } else G.push({grp:true,items:[o],s:o.s,e:o.e}); }
+    const R=[...C.filter(o=>!sm.includes(o)),...G.map(g=>g.items.length===1?g.items[0]:g)].map(o=>o.grp?o:{...o}); R.sort((a,b)=>a.s-b.s||b.e-a.e);
+    const L=[]; for(const o of R){ let k=0; while(L[k]!==undefined&&L[k]>o.s) k++; L[k]=o.e; o.lane=k; }
+    for(const o of R) o.lanes=1+Math.max(...R.filter(p=>p.s<o.e&&p.e>o.s).map(p=>p.lane)); out.push(...R); }
+  return out; }
+function ttGrpSheetHTML(date){ const G=state.ttGrp; if(!G||G.date!==date) return ""; const E=dayEntries(date), L=G.keys.map(k=>E.find(o=>o.kind!=="g"&&o.c+"|"+o.x.id===k)).filter(Boolean); if(!L.length) return "";
+  return `<div class="ted-ov" data-act="ttgrpx"></div><div class="ted-sheet tg-sheet" role="dialog" aria-label="まとめた項目"><div class="ted-h"><b>${hhmm(L[0].s)}〜 ${L.length}件</b><span class="who">名前をタップで選択（時間・長さ・日付を変更）</span><button class="tb-x" data-act="ttgrpx" aria-label="閉じる">✕</button></div>
+    <ul class="tg-l">${L.map(o=>`<li class="${o.done?"done":""} ${o.skip?"skp":""}"><button class="tg-ck" data-ttck="${o.c}|${esc(o.x.id)}" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button><button class="tg-n" data-tgsel="${o.c}|${esc(o.x.id)}"><b>${esc(o.t)}</b><small>${hhmm(o.s)}–${hhmm(o.e%1440)}</small></button></li>`).join("")}</ul></div>`; }
 function timetable(date){
   const S=Number(prefs.ttStart||4), E=24, H=46, ents=dayEntries(date), top=m=>(m/60-S)*H;
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
   for(let k=S;k<E;k++) h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`;
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
-  for(const o of ents){ const y=Math.max(0,top(o.s)), ht=Math.max(10,top(Math.min(o.e,E*60))-y-1); /* v262: 15分の予定も実際の長さで描く（前は最低22px＝約30分に見えていた） */
+  for(const o of ttLayout(ents)){ const y=Math.max(0,top(o.s)), ht=Math.max(o.grp?24:10,top(Math.min(o.e,E*60))-y-1);
+    if(o.grp){ const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`, dn=o.items.filter(i=>i.done).length;
+      h+=`<button class="tt-grp ${dn===o.items.length?"done":""} ${ht<40?"short":""}" data-ttgrp="${esc(o.items.map(i=>i.c+"|"+i.x.id).join(","))}" style="top:${y}px;height:${ht}px;left:${l};width:${w}" aria-label="${hhmm(o.s)}からの${o.items.length}件をまとめて表示"><b>${hhmm(o.s)}〜 ${o.items.length}件${dn?`<small>✓${dn}</small>`:""}</b><span>${o.items.map(i=>esc(i.t)).join("・")}</span></button>`; continue; }
+    /* v262: 15分の予定も実際の長さで描く（前は最低22px＝約30分に見えていた） */
     if(o.s>=E*60) continue;
     const w=`calc((100% - 52px) / ${o.lanes})`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
     const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
     h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
   }
-  return h+ttNewHTML(date)+`</div>`;
+  return h+ttNewHTML(date)+`</div>`+ttGrpSheetHTML(date);
 }
 /* v132: 空き時間を長押し（またはタップ）→ 範囲を選んで予定を追加（両端の丸で長さを調整） */
 const ttY2mF=(tt,y,st)=>{ const r=tt.getBoundingClientRect(); return Math.floor(((y-r.top)/TT_H*60+ttS()*60)/st)*st; };
@@ -3442,7 +3473,7 @@ function ttNewPaint(){ const el=$("ttNew"), N=state.ttNew; if(!el||!N) return; c
 { let lp=null, nd=null;
   document.addEventListener("pointerdown",e=>{ if(state.view!=="cal"||state.editing||state.paint.on) return; const tt=e.target.closest("#tt"); if(!tt) return;
     const nh=e.target.closest("[data-nh]"); if(nh&&state.ttNew){ nd={k:nh.dataset.nh,pid:e.pointerId}; e.preventDefault(); e.stopPropagation(); return; }
-    if(e.target.closest(".tt-b,#ttNew")||state.ttPick||state.ttSel) return;
+    if(e.target.closest(".tt-b,#ttNew,.tt-grp")||state.ttPick||state.ttSel) return;
     const y0=e.clientY; lp={x:e.clientX,y:y0,pid:e.pointerId,t:setTimeout(()=>{ if(!lp) return; const m=Math.min(Math.max(ttY2mF(tt,y0,15),ttS()*60),23*60+45);
       state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; state.ttNewJust=Date.now(); nd={k:"range",pid:lp.pid}; lp=null; haptic("tick"); renderTT(); },380)};
   },true);
@@ -4992,6 +5023,8 @@ $("main").addEventListener("click",e=>{
   const tb=e.target.closest("[data-tb]"); if(tb){ openEdit(tb.dataset.tb,tb.dataset.tid); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
+  { const tg=e.target.closest("[data-ttgrp]"); if(tg&&!state.ttPick){ state.ttGrp={date:($("tt")||{}).dataset?.ttdate||state.sel,keys:tg.dataset.ttgrp.split(",")}; state.ttSel=null; haptic("tick"); render(); return; }
+    const ts=e.target.closest("[data-tgsel]"); if(ts){ state.ttSel=ts.dataset.tgsel; state.ttGrp=null; state.ttDelArm=false; haptic("tick"); render(); return; } }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
   if(tt&&state.ttNewJust&&Date.now()-state.ttNewJust<400) return;
   if(tt&&state.ttSel&&!e.target.closest(".tt-b")){ state.ttSel=null; state.ttDelArm=false; } /* v164: 選択中でも1回のタップで新しい枠を出す */
@@ -5208,6 +5241,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="bkXlsx") exportXlsx();
   else if(a==="bkRestore"){ $("bkFile")&&$("bkFile").click(); }
   else if(a==="ttpickx"){ state.ttPick=null; render(); }
+  else if(a==="ttgrpx"){ state.ttGrp=null; render(); }
   else if(a==="aiDockClose"){ if(state.aiListening) aiVoiceCancel(); state.ai.q=""; state.aiVoiceStatus=""; state.aiVoiceRaw=""; aiDockToggle(false); }
   else if(a==="aiClear"){ state.ai.q=""; state.aiVoiceStatus=""; state.aiVoiceRaw=""; render(); const n=$("aiIn"); if(n) n.focus(); }
   else if(a==="aiVoiceRaw"){ if(state.aiVoiceRaw){ state.ai.q=aiVoiceDraft(state.aiVoiceBase||"",state.aiVoiceRaw); state.aiVoiceRaw=""; state.aiVoiceStatus="元の聞き取りに戻しました。"; render(); } }
