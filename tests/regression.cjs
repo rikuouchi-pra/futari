@@ -724,6 +724,16 @@ test('timetable keeps dense overlaps independent and connected overlap lanes dis
   for(const a of out)for(const b of out)if(a!==b&&a.s<b.e&&a.e>b.s){assert.equal(a.lanes,b.lanes);assert.notEqual(a.lane,b.lane);}
   assert.equal(out.at(-1).lane,0);assert.equal(out.at(-1).lanes,1);
 });
+test('crowded timetable keeps names in separate scrollable cards at the exact original time',()=>{
+  const entries=Array.from({length:7},(_,i)=>({kind:'i',c:'pitems',x:{id:'crowded-'+i},s:1140+(i===6?15:0),e:1170+(i===6?15:0),t:'予定名'+i,col:'task'}));
+  const c=env(['TT_H','timetable','hhmm','ttLayout'],{dayEntries:()=>entries,jpDate:String,ttNewHTML:()=>'',ttGrpSheetHTML:()=>'',ttMeta:()=>'',ttBadges:()=>'',CHECK:'✓'});c.prefs.ttStart='4';
+  const html=run(c,'timetable("2026-10-06")');assert.equal((html.match(/data-tid="crowded-/g)||[]).length,7);assert.match(html,/data-ttscroll="1140"/);assert.match(html,/--tt-lanes:7/);assert.match(html,/top:960px;height:48px/);assert.match(html,/data-tid="crowded-6"[^>]*><b>予定名6<\/b><span>19:15–19:45/);assert.doesNotMatch(html,/class="tt-grp/);
+  c.state.ttSel='pitems|crowded-6';const selected=run(c,'timetable("2026-10-06")');assert.match(selected,/top:934px;height:100px/);assert.match(selected,/data-ttbase="934" style="top:42px;height:30px/);assert.match(selected,/tt-rs top/);
+});
+test('crowded scrolling is restored after redraw without moving the time axis',()=>{
+  const toggles=[],el={dataset:{ttscroll:'1140'},scrollLeft:0,scrollWidth:1456,clientWidth:300,parentElement:{classList:{toggle:(...a)=>toggles.push(a)}}};const tt={dataset:{ttdate:'2026-10-06'},querySelectorAll:()=>[el]};
+  const c=env(['ttScrollRestore'],{$:()=>tt});c.state.ttScroll={date:'2026-10-06',positions:{1140:420}};run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,420);assert.equal(toggles.at(-1)[1],false);c.state.ttScroll.date='2026-10-07';run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,0);
+});
 
 function pushEnv(names,overrides={}){const memory=new Map([['futari.pushDev','device-1'],['futari.pushSec','secret'],['futari.pushEnabled','1'],['futari.pushOwner','test-user']]);const c=env(['pushDev','pushEnabled','pushSetEnabled','pushResultMessage',...names],{localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,String(v))},pushCardRefresh(){},...overrides});c.memory=memory;return c;}
 test('notification opt-out is per device and does not follow another account',()=>{const c=pushEnv([]);c.prefs.pushOn='1';assert.equal(run(c,'pushEnabled()'),true);run(c,'pushSetEnabled(false)');assert.equal(c.prefs.pushOn,'1');assert.equal(run(c,'pushEnabled()'),false);run(c,'pushSetEnabled(true)');c.state.me='other-user';assert.equal(run(c,'pushEnabled()'),false);});

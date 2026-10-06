@@ -779,6 +779,24 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tt-b.tiny b{font-size:12px;line-height:14px}
 @container (max-width:130px){.tt-b.short>span{display:none}}
 
+/* Overlapping cards keep a readable width; only their time range scrolls sideways. */
+.tt{touch-action:pan-x pan-y}
+.tt-overlap-shell{position:absolute;left:52px;right:0;pointer-events:none}
+.tt-overlap-shell.selected{z-index:5}
+.tt-overlap{height:100%;overflow-x:auto;overflow-y:hidden;touch-action:pan-x pan-y;overscroll-behavior-x:contain;scrollbar-width:none;pointer-events:auto}
+.tt-overlap::-webkit-scrollbar{display:none}
+.tt-overlap:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tt-overlap-canvas{position:relative;height:100%;min-width:calc(var(--tt-lanes) * 13rem)}
+.tt-overlap .tt-b{touch-action:pan-x pan-y}
+.tt-overlap .tt-b.short:not(.tiny){flex-direction:column;align-items:stretch;justify-content:center;gap:0}
+.tt-overlap .tt-b.short:not(.tiny) b{flex:none;font-size:14px;line-height:16px}
+.tt-overlap .tt-b.short:not(.tiny)>span{display:block;flex:none;font-size:11px;line-height:12px}
+.tt-overlap .tt-b:not(.short) b{white-space:normal;overflow-wrap:anywhere}
+.tt-overlap-shell::after{content:"›";position:absolute;right:0;top:var(--tt-peek-top,0);height:24px;width:18px;display:grid;place-items:center;background:var(--surface);color:var(--accent);font-size:24px;line-height:1;border-radius:8px 0 0 8px;pointer-events:none}
+.tt-overlap-shell.at-end::after{display:none}
+.tt-swipe-tip{font-size:12px;color:var(--muted);margin:0 4px 6px}
+.tt-bar .tb-title b{display:block;-webkit-line-clamp:unset;overflow-wrap:anywhere}
+
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2066,7 +2084,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 .tt-b .tt-meta .tt-person{flex-shrink:1;min-width:0}.tt-b.short .tt-meta{display:none}
 @container (max-width:180px){.tt-meta-inline{display:none!important}}
 .tt-bar .tb-h{align-items:flex-start}.tt-bar .tb-title{flex:1;min-width:0;display:grid;gap:3px}
-.tt-bar .tb-title b{font-size:14px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.tt-bar .tb-title b{font-size:14px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;display:block}
 .tt-bar .tb-time{font-size:12px;line-height:1.5;color:var(--muted);font-variant-numeric:tabular-nums}
 .tt-bar>.tt-meta{padding-bottom:2px;gap:5px}.tt-bar .tb-tip{line-height:1.6;text-align:left}
 .tt-b.ovr{border-left-style:double;border-left-width:6px}
@@ -2152,7 +2170,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="278";
+const APP_VERSION="280";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3386,7 +3404,7 @@ function dayEntries(date){
 function applyLocal(c,id,ch){ const x=(state[c]||[]).find(i=>i.id===id); if(!x) return; for(const k in ch){ const v=ch[k]; if(v&&typeof v==="object"&&!Array.isArray(v)) x[k]={...(x[k]||{}),...v}; else x[k]=v; } }
 /* タイムテーブルと調整バーだけを描き直す（全体の再描画より速い） */
 function renderTT(){ const tt=$("tt"); if(!tt||state.view!=="cal") return false; const d=tt.dataset.ttdate;
-  const w=document.createElement("div"); w.innerHTML=timetable(d); const nt=w.firstElementChild; tt.replaceWith(nt);
+  const w=document.createElement("div"); w.innerHTML=timetable(d); const nt=w.firstElementChild; tt.replaceWith(nt); ttScrollRestore();
   const blockList=$("ttBlocks"); if(blockList) blockList.innerHTML=blocksListHTML(d);
   const html=ttBarHTML(d), old=document.querySelector(".tt-bar");
   if(!html){ if(old) old.remove(); return true; }
@@ -3456,27 +3474,37 @@ function shareInboxHTML(){ const all=shareReceived(),rows=all.filter(x=>!x.notic
 async function shareSeen(id){ const x=state.events.find(x=>x.id===id); if(!x||!x.notice||x.notice.to!==myRole()||x.notice.seenAt||state.shareSeenBusy)return false;state.shareSeenBusy=id;requestRender();try{const notice={...x.notice,seenAt:Date.now()};await colRef("events").doc(id).update({notice});const current=state.events.find(x=>x.id===id);if(current)current.notice=notice;return true;}catch(e){err(e);toast("確認済みにできませんでした。もう一度お試しください");return false;}finally{state.shareSeenBusy=null;requestRender();} }
 function shareArrived(){ const rows=shareUnread(),ids=new Set(rows.map(x=>x.id)),previous=state.shareKnown;if(previous&&state.shareKnownRole===myRole()){const added=rows.filter(x=>!previous.has(x.id));if(added.length)toast(`相手から新しい共有が${added.length}件届きました`);}state.shareKnown=ids;state.shareKnownRole=myRole();requestRender(); }
 function ttShiftDay(n){ state.ttSel=null; state.gEdit=null; const d=n===0?today():addDays(state.sel,n); state.sel=d; const p=parse(d); state.calMonth=new Date(p.getFullYear(),p.getMonth(),1); haptic("nav"); render(n>0?40:n<0?-40:0); }
-/* v273: 短い項目が4列以上に重なる所は「19:00〜 7件」の1枠にまとめる（タップで一覧） */
+/* Overlap groups retain independent cards and stable lanes. */
 function ttLayout(ents){ const sorted=ents.map(o=>({...o})).sort((a,b)=>a.s-b.s||b.e-a.e), groups=[]; let group=null,end=-1;
   for(const o of sorted){ if(group&&o.s<end){ group.push(o); end=Math.max(end,o.e); } else { group=[o]; groups.push(group); end=o.e; } }
-  for(const G of groups){ const lanes=[]; for(const o of G){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.lane=k; } for(const o of G) o.lanes=lanes.length; }
+  for(const G of groups){ const lanes=[]; for(const o of G){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.lane=k; } for(const o of G){ o.lanes=lanes.length; o.groupStart=G[0].s; o.groupEnd=Math.max(...G.map(p=>p.e)); } }
   return sorted; }
 function ttGrpSheetHTML(date){ const G=state.ttGrp; if(!G||G.date!==date) return ""; const E=dayEntries(date), L=G.keys.map(k=>E.find(o=>o.kind!=="g"&&o.c+"|"+o.x.id===k)).filter(Boolean); if(!L.length) return "";
   return `<div class="ted-ov" data-act="ttgrpx"></div><div class="ted-sheet tg-sheet" role="dialog" aria-label="まとめた項目"><div class="ted-h"><b>${hhmm(L[0].s)}〜 ${L.length}件</b><span class="who">名前をタップで選択（時間・長さ・日付を変更）</span><button class="tb-x" data-act="ttgrpx" aria-label="閉じる">✕</button></div>
     <ul class="tg-l">${L.map(o=>`<li class="${o.done?"done":""} ${o.skip?"skp":""}"><button class="tg-ck" data-ttck="${o.c}|${esc(o.x.id)}" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button><button class="tg-n" data-tgsel="${o.c}|${esc(o.x.id)}"><b>${esc(o.t)}</b><small>${hhmm(o.s)}–${hhmm(o.e%1440)}</small></button></li>`).join("")}</ul></div>`; }
+function ttScrollRestore(){ const tt=$("tt"); if(!tt) return; const saved=state.ttScroll?.date===tt.dataset.ttdate?state.ttScroll.positions:{};
+  tt.querySelectorAll("[data-ttscroll]").forEach(el=>{ el.scrollLeft=saved[el.dataset.ttscroll]||0; el.parentElement.classList.toggle("at-end",el.scrollWidth-el.clientWidth-el.scrollLeft<2); }); }
+document.addEventListener("scroll",e=>{ const el=e.target; if(!el?.dataset?.ttscroll) return; const date=el.closest("#tt")?.dataset.ttdate; if(!date) return;
+  if(state.ttScroll?.date!==date) state.ttScroll={date,positions:{}}; state.ttScroll.positions[el.dataset.ttscroll]=el.scrollLeft;
+  el.parentElement.classList.toggle("at-end",el.scrollWidth-el.clientWidth-el.scrollLeft<2); },true);
+window.addEventListener("resize",()=>ttScrollRestore());
 function timetable(date){
   const S=Number(prefs.ttStart||4), E=24, H=TT_H, ents=dayEntries(date), top=m=>(m/60-S)*H;
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
   for(let k=S;k<E;k++){ h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`; for(const q of [15,30,45]) h+=`<div class="tt-q ${q===30?"h":""}" style="top:${(k-S)*H+q/60*H}px"><span>${k}:${q}</span></div>`; }
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
-  for(const o of ttLayout(ents)){ const y=Math.max(0,top(o.s)), ht=Math.max(o.grp?24:10,top(Math.min(o.e,E*60))-y-2);
-    if(o.grp){ const w=`calc((100% - 52px) / ${o.lanes} - 4px)`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`, dn=o.items.filter(i=>i.done).length;
-      h+=`<button class="tt-grp ${dn===o.items.length?"done":""} ${ht<40?"short":""}" data-ttgrp="${esc(o.items.map(i=>i.c+"|"+i.x.id).join(","))}" style="top:${y}px;height:${ht}px;left:${l};width:${w}" aria-label="${hhmm(o.s)}からの${o.items.length}件をまとめて表示"><b>${hhmm(o.s)}〜 ${o.items.length}件${dn?`<small>✓${dn}</small>`:""}</b><span>${o.items.map(i=>esc(i.t)).join("・")}</span></button>`; continue; }
-    /* v262: 15分の予定も実際の長さで描く（前は最低22px＝約30分に見えていた） */
-    if(o.s>=E*60) continue;
-    const w=`calc((100% - 52px) / ${o.lanes} - 4px)`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`;
-    const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-    h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" style="top:${y}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="完了にする">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+  const groups=new Map(); for(const o of ttLayout(ents.filter(o=>o.s<E*60&&o.e>S*60))){ if(!groups.has(o.groupStart)) groups.set(o.groupStart,[]); groups.get(o.groupStart).push(o); }
+  for(const G of groups.values()){
+    const first=G[0], scroll=first.lanes>1, selected=G.some(o=>state.ttSel===(o.kind==="g"?"g":o.c)+"|"+o.x.id), pad=scroll&&selected?26:0;
+    const base=scroll?Math.max(0,top(first.groupStart))-pad:0, end=top(Math.min(first.groupEnd,E*60));
+    if(scroll) h+=`<div class="tt-overlap-shell ${selected?"selected":""}" style="top:${base}px;height:${end-base+pad}px;--tt-peek-top:${pad}px"><div class="tt-overlap" data-ttscroll="${first.groupStart}" tabindex="0" role="region" aria-label="${hhmm(first.groupStart)}からの重なる予定${G.length}件。横にスワイプして表示"><div class="tt-overlap-canvas" style="--tt-lanes:${first.lanes}">`;
+    for(const o of G){
+      const y=Math.max(0,top(o.s)), ht=Math.max(10,top(Math.min(o.e,E*60))-y-2);
+      const w=scroll?`calc(100% / ${o.lanes} - 4px)`:`calc(100% - 56px)`, l=scroll?`calc(100% / ${o.lanes} * ${o.lane})`:"52px";
+      const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
+      h+=`<button class="tt-b ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" data-ttbase="${base}" style="top:${y-base}px;height:${ht}px;left:${l};width:${w};--bc:var(--${o.col})" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+    }
+    if(scroll) h+=`</div></div></div>`;
   }
   return h+ttNewHTML(date)+`</div>`+ttGrpSheetHTML(date);
 }
@@ -3584,6 +3612,7 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   h+=`<div class="subttl"><span>タイムテーブル</span><span style="display:flex;gap:12px;white-space:nowrap">${false&&state.mcp?'<button class="link" data-act="addgev">＋ Google</button>':""}<button class="link" data-act="addblock">＋ 予定</button></span></div>`;
   const bAll=blocksFor(d).map(b=>blockAt(b,d)).filter(b=>b.allDay||!b.start);
   if(gAll.length||bAll.length) h+=`<div class="gall">${bAll.map(b=>`<button class="gchip mine" data-tb="blocks" data-tid="${esc(b.id)}">終日｜${esc(b.text)}</button>`).join("")}${gAll.map(g=>`<button class="gchip" data-gid="${esc(g.id)}">終日｜${esc(g.t)}</button>`).join("")}</div>`;
+  if(dayEntries(d).some(o=>o.lanes>1)) h+=`<p class="tt-swipe-tip">重なる予定は横へスワイプ · タップで名前の全文・編集</p>`;
   h+=timetable(d)+ttBarHTML(d)+gEditHTML(d);
   /* v243: タイムテーブルと同じ内容の一覧は、折りたたんで重ねて見せない（開けばチェック・スワイプ・長押しで操作できる） */
   const dupN=evTimed.length+timed.length+blocksFor(d).length;
@@ -4819,7 +4848,7 @@ function render(anim){
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
-  aiDock(); hubMount();
+  aiDock(); hubMount(); ttScrollRestore();
   document.querySelectorAll("#main .heat").forEach(h=>{ h.scrollLeft=h.scrollWidth; });
   if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
   if(anim){ const m=$("main"); m.style.setProperty("--sx",anim+"px"); m.classList.remove("slide"); void m.offsetWidth; m.classList.add("slide"); }
@@ -6178,7 +6207,7 @@ function tdMove(e,fromLoop){
   if(!fromLoop) tdScroll=e.clientY<90?-10:e.clientY>innerHeight-90?10:0;
   const S=ttS(), p=tdrag.prev, g=tdrag.ghost;
   if(tdrag.mode==="resizeTop"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let st=tdrag.s+Math.round((e.clientY-tdrag.y0)/TT_H*60/15)*15; st=Math.min(tdrag.e-15,Math.max(st,S*60));
-    tdrag.newStart=st; if(tdrag.el){ tdrag.el.style.top=((st/60-S)*TT_H)+"px"; tdrag.el.style.height=((tdrag.e-st)/60*TT_H-2)+"px"; } g.querySelector("span").textContent=`${hhmm(st)}–${hhmm(tdrag.e%1440)}（${tdrag.e-st}分）`;
+    tdrag.newStart=st; if(tdrag.el){ tdrag.el.style.top=((st/60-S)*TT_H-Number(tdrag.el.dataset.ttbase||0))+"px"; tdrag.el.style.height=((tdrag.e-st)/60*TT_H-2)+"px"; } g.querySelector("span").textContent=`${hhmm(st)}–${hhmm(tdrag.e%1440)}（${tdrag.e-st}分）`;
     g.style.transform=`translate(${e.clientX+14}px,${e.clientY-20}px)`; if(st!==tdrag.lastTick){ tdrag.lastTick=st; haptic("nav"); } return; }
   if(tdrag.mode==="resize"){ const tt=$("tt"), r=tt.getBoundingClientRect(); let end=(tdrag.e||tdrag.s+tdrag.dur)+Math.round((e.clientY-tdrag.y0)/TT_H*60/15)*15; end=Math.max(tdrag.s+15,Math.min(end,24*60));
     tdrag.newEnd=end; if(tdrag.el) tdrag.el.style.height=((end-tdrag.s)/60*TT_H-2)+"px"; g.querySelector("span").textContent=`${hhmm(tdrag.s)}–${hhmm(end%1440)}（${end-tdrag.s}分）`;
@@ -6224,14 +6253,14 @@ function tdStart(e,src){
   const b=src.closest(".tt-b"); if(!b) return;
   if(b.dataset.gid){ const date=$("tt").dataset.ttdate, g=gFind(date,b.dataset.gid); if(!g) return; const r0=b.getBoundingClientRect();
     tdrag={from:"tt",mode:src.classList.contains("tt-rs")?(src.classList.contains("top")?"resizeTop":"resize"):"move",c:"g",id:g.id,text:g.t,s:g.s,dur:Math.max(15,g.e-g.s),e:g.e,grab:e.clientY-r0.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId,sel:b.classList.contains("sel")};
-    if(tdrag.mode!=="move"){ e.preventDefault(); tdBegin(); return; } tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },150); return; }
+    if(tdrag.mode!=="move"){ e.preventDefault(); tdBegin(); return; } tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },b.closest(".tt-overlap")?400:150); return; }
   if(!b.dataset.tb) return; const c=b.dataset.tb, id=b.dataset.tid, x=state[c].find(i=>i.id===id); if(!x) return;
   const isB=c==="blocks"||c==="events";
   const entry=dayEntries(state.sel).find(o=>o.c===c&&o.x.id===id); if(!entry) return; const s=entry.s,en=entry.e;
   const r=b.getBoundingClientRect();
   tdrag={from:"tt",mode:src.classList.contains("tt-rs")?(src.classList.contains("top")?"resizeTop":"resize"):"move",c,id,text:x.text,s,dur:en-s,e:en,grab:e.clientY-r.top,x0:e.clientX,y0:e.clientY,el:b,active:false,pid:e.pointerId,sel:b.classList.contains("sel")};
   if(tdrag.mode!=="move"){ e.preventDefault(); tdBegin(); return; }
-  tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },150);
+  tdrag.timer=setTimeout(()=>{ if(tdrag&&!tdrag.active){ tdBegin(); tdMove(tdrag.last||{clientX:tdrag.x0,clientY:tdrag.y0}); } },b.closest(".tt-overlap")?400:150);
 }
 document.addEventListener("pointerdown",e=>{ if(state.view!=="cal"||state.editing||state.paint.on) return; const src=e.target.closest(".dgrip,.tt-rs,.tt-b[data-tb],.tt-b[data-gid]"); if(!src||e.target.closest(".tt-ck")) return; tdStart(e,src); },true);
 document.addEventListener("pointermove",e=>{ if(!tdrag||e.pointerId!==tdrag.pid) return; tdrag.last={clientX:e.clientX,clientY:e.clientY};
@@ -7798,7 +7827,7 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.button>0||state.editing) return;
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
   /* v205: 横にスクロールできる場所（チップの列・表・ハブの切替など）では、タブ切替のスワイプを始めない */
-  if(e.target.closest("#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
+  if(e.target.closest(".tt-overlap,#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
   if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar,.duo-g,.duo-bar,.duo-grip")) return;
