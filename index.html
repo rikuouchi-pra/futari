@@ -766,15 +766,18 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 
 /* v275: 15分の目盛りと独立した予定カード */
 .tt-h span,.tt-q span{font-size:12px;line-height:16px;color:var(--muted);font-variant-numeric:tabular-nums}
-.tt-h span{left:4px;top:2px}
+.tt-h span{left:4px;top:0}
 .tt-q{left:52px}
 .tt-q span{left:-48px;top:0;width:42px;text-align:left;opacity:1}
 .tt-q:not(.h) span{font-size:12px;opacity:1}
 .tt-b{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bc) 28%,transparent);font-size:14px}
-.tt-b.short{flex-direction:column;align-items:stretch;gap:0;padding:1px 5px}
+.tt-b.short{flex-direction:row;align-items:center;gap:4px;padding:0 5px}
 .tt-b.short:has(.tt-ck){padding-left:28px}
-.tt-b.short b{flex:none;font-size:12px;line-height:14px;min-height:14px}
-.tt-b.short>span{display:block;flex:none;font-size:10px;line-height:12px}
+.tt-b.short b{flex:1 1 auto;min-width:0;font-size:12px;line-height:14px;min-height:0}
+.tt-b.short>span{display:block;flex:0 1 auto;min-width:0;font-size:10px;line-height:12px}
+.tt-b.tiny{gap:3px}
+.tt-b.tiny b{font-size:12px;line-height:14px}
+@container (max-width:130px){.tt-b.short>span{display:none}}
 
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
@@ -2149,7 +2152,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="276";
+const APP_VERSION="277";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3466,7 +3469,7 @@ function timetable(date){
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
   for(let k=S;k<E;k++){ h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`; for(const q of [15,30,45]) h+=`<div class="tt-q ${q===30?"h":""}" style="top:${(k-S)*H+q/60*H}px"><span>${k}:${q}</span></div>`; }
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
-  for(const o of ttLayout(ents)){ const y=Math.max(0,top(o.s)), ht=Math.max(o.grp?24:10,top(Math.min(o.e,E*60))-y-3);
+  for(const o of ttLayout(ents)){ const y=Math.max(0,top(o.s)), ht=Math.max(o.grp?24:10,top(Math.min(o.e,E*60))-y-2);
     if(o.grp){ const w=`calc((100% - 52px) / ${o.lanes} - 4px)`, l=`calc(52px + (100% - 52px) / ${o.lanes} * ${o.lane})`, dn=o.items.filter(i=>i.done).length;
       h+=`<button class="tt-grp ${dn===o.items.length?"done":""} ${ht<40?"short":""}" data-ttgrp="${esc(o.items.map(i=>i.c+"|"+i.x.id).join(","))}" style="top:${y}px;height:${ht}px;left:${l};width:${w}" aria-label="${hhmm(o.s)}からの${o.items.length}件をまとめて表示"><b>${hhmm(o.s)}〜 ${o.items.length}件${dn?`<small>✓${dn}</small>`:""}</b><span>${o.items.map(i=>esc(i.t)).join("・")}</span></button>`; continue; }
     /* v262: 15分の予定も実際の長さで描く（前は最低22px＝約30分に見えていた） */
@@ -3908,7 +3911,7 @@ function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in
     <h2>朝のまとめ</h2><div class="opts">${["6","7","8"].map(v=>`<button class="opt" data-act="pushAm" data-v="${v}" aria-pressed="${prefs.pushAmH===v}" ${busy}>${v}時</button>`).join("")}</div>
     <div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して再登録":"通知登録を確認・修復"}</button><button class="opt" data-act="pushTest" ${busy}>テスト通知を送る</button><button class="opt" data-act="pushRefresh" ${busy}>通知予定を更新</button><button class="opt" data-act="pushOffDev" ${busy}>この端末の通知を停止</button></div>
     <p class="who">${state.pushLast?`最終同期：${esc(new Date(state.pushLast).toLocaleString("ja-JP"))}。`:"送信サーバーとの同期は未確認です。"}今日と明日の通知予定を、アプリを開いたとき・予定変更時に更新します。送信間隔により数分遅れることがあります。</p>`;
-  else body=`<p class="who">予定・時間を決めたタスク・習慣・家事の開始前、朝のまとめ、夜の質問を通知します。</p><div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して有効にする":"この端末の通知を準備"}</button></div>`;
+  else body=`<p class="who">予定・時間を決めたタスク・習慣・家事の開始前、朝のまとめ、夜の質問を通知します。</p><div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して有効にする":state.pushBackendMissing?"送信側の更新後に再確認":"この端末の通知を準備"}</button></div>`;
   if(!on&&(pushEnabled()||state.pushStopRetry)) body+=`<button class="opt" data-act="pushOffDev" ${busy}>この端末の登録を解除</button>`;
   return `<h2>スマホへの通知</h2>${body}${msg}`; }
 async function pushPrepare(){ if(state.pushBusy)return;state.pushBusy=true;state.pushMsg="通知の接続先を確認しています…";pushCardRefresh();try{
@@ -3916,8 +3919,8 @@ async function pushPrepare(){ if(state.pushBusy)return;state.pushBusy=true;state
   const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
   const k=await P.call({op:"key"});if(!k||!k.key)throw Error("送信サーバーが通知に対応していません。通知用のサーバー設定が必要です");
   const key=b64uToU8(k.key);if(key.length!==65||key[0]!==4)throw Error("通知用の公開鍵が正しくありません");
-  const reg=await pushWait(navigator.serviceWorker.ready);state.pushPrepared={P,key,reg,owner:state.me};state.pushMsg="準備ができました。次のボタンで通知を許可してください。";
-}catch(e){state.pushPrepared=null;state.pushMsg="準備できませんでした："+String(e.detail||e.message||e).slice(0,140);}finally{state.pushBusy=false;pushCardRefresh();} }
+  const reg=await pushWait(navigator.serviceWorker.ready);state.pushBackendMissing=false;state.pushPrepared={P,key,reg,owner:state.me};state.pushMsg="準備ができました。次のボタンで通知を許可してください。";
+}catch(e){state.pushPrepared=null;const msg=String(e.detail||e.message||e);state.pushBackendMissing=/未対応の操作.*push|unknown.*push|unsupported.*push/i.test(msg);state.pushMsg=state.pushBackendMissing?"送信サーバーに通知機能がありません。端末の設定では解消できません。送信側の更新が必要です。":"準備できませんでした："+msg.slice(0,140);}finally{state.pushBusy=false;pushCardRefresh();} }
 async function pushOn(){ if(state.pushBusy)return; const ready=state.pushPrepared;if(!ready||ready.owner!==state.me){await pushPrepare();return;}state.pushBusy=true;try{
   const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("通知が許可されませんでした");
   const {P,key,reg}=ready;const previousOwner=localStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
@@ -6137,7 +6140,7 @@ function restoreBackup(file){
 
 
 /* ================= タイムテーブルにタスクを載せる（ドラッグ／タップで配置・移動・長さ変更） ================= */
-const TT_H=128 /* v275: 15分＝32px。時刻と予定を個別に表示 */, ttS=()=>Number(prefs.ttStart||4);
+const TT_H=64 /* v277: 全体の高さを半分に。15分＝16px */, ttS=()=>Number(prefs.ttStart||4);
 const ttMine=x=>["both",myRole()].includes(getWho(x));
 function ttUntimed(d){ return [...state.items.filter(i=>!isRecItem(i)&&i.due===d&&!myT(i)&&!myDone(i)&&i.list!=="wish"&&ttMine(i)).map(x=>({c:"items",x})),
   ...state.pitems.filter(i=>i.due===d&&!i.time&&!i.done&&i.list!=="wish").map(x=>({c:"pitems",x})),
