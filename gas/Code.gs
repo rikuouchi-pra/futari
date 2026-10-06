@@ -29,6 +29,7 @@ const GEMINI_MODELS = ["gemini-flash-latest", "gemini-3-flash", "gemini-2.5-flas
 const OPENAI_MODELS = ["gpt-6-luna", "gpt-5-mini", "gpt-4.1-mini", "gpt-4o-mini"];
 
 function doPost(e) {
+  if(e && e.parameter && e.parameter.futariRpc) return firestoreFormReply_(e.parameter);
   return json_(handle_((e && e.postData && e.postData.contents) || "{}"));
 }
 
@@ -42,13 +43,18 @@ function doGet(e) {
     const cb = String(p.cb).replace(/[^A-Za-z0-9_$.]/g, "");
     return ContentService.createTextOutput(cb + "(" + JSON.stringify(handle_(p.q || "{}")) + ");").setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-  return json_({ ok: true, app: "futari-list-gcal", v: 11 });
+  return json_({ ok: true, app: "futari-list-gcal", v: 12, firestoreMonitor: 1, directAI: 1 });
 }
 
 function handle_(raw) {
   try {
     const req = JSON.parse(raw);
     const email = verifyUser_(req.idToken);
+    if (["firestoreUsage", "aiDirect", "capabilities"].indexOf(String(req.tool || "")) >= 0) {
+      if (AI_USERS.map(function(x){return x.toLowerCase();}).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
+      if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:1}};
+      return {payload: req.tool === "aiDirect" ? aiDirect_(req.args || {}) : firestoreUsage_()};
+    }
     if (String(req.tool || "") === "push") return { payload: push_(req.idToken, email, req.args || {}) };
     if (String(req.tool || "") === "workcal") {
       if (AI_USERS.map(function (x) { return x.toLowerCase(); }).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
@@ -468,4 +474,70 @@ function rollbackGas() {
   while (it.hasNext()) { const f = it.next(); if (/^GAS控え_/.test(f.getName()) && (!last || f.getName() > last.getName())) last = f; }
   if (last) { const c = sapi_("get", "/content"); const js = c.files.filter(function (x) { return x.type === "SERVER_JS"; }); js.forEach(function (x) { if ((x.name === "Code" || js.length === 1) && x.type === "SERVER_JS") x.source = last.getBlob().getDataAsString("UTF-8"); }); sapi_("put", "/content", { files: c.files }); }
   Logger.log("公開をバージョン " + prev + " に戻しました" + (last ? "（コードも " + last.getName() + " に戻しました）" : ""));
+}
+
+/* v289: Cloud Monitoring reads do not consume Firestore document quota. */
+function firestoreDay_(now) {
+  const tz='America/Los_Angeles', date=Utilities.formatDate(new Date(now),tz,'yyyy-MM-dd'),base=Date.parse(date+'T00:00:00Z');
+  function midnight(day){let t=day;for(let i=0;i<4;i++){const z=Utilities.formatDate(new Date(t),tz,'Z');t=day-(Number(z.slice(0,3))*60+Number(z.slice(3))* (z[0]==='-'?-1:1))*60000;}return t;}
+  return {start:midnight(base),end:midnight(base+86400000)};
+}
+function firestoreMetric_(kind,day,now) {
+  const filter='project = "'+FIREBASE_PROJECT_ID+'" AND metric.type = "firestore.googleapis.com/document/'+kind+'_ops_count" AND resource.type = "firestore.googleapis.com/Database" AND resource.labels.database_id = "(default)"';
+  const base='https://monitoring.googleapis.com/v3/projects/'+encodeURIComponent(FIREBASE_PROJECT_ID)+'/timeSeries?filter='+encodeURIComponent(filter)+'&interval.startTime='+encodeURIComponent(new Date(day.start).toISOString())+'&interval.endTime='+encodeURIComponent(new Date(now).toISOString())+'&view=FULL&pageSize=100000';
+  let page='',sum=0,points=0,lastPointAt=0;
+  for(let n=0;n<8;n++){
+    const r=UrlFetchApp.fetch(base+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken()},muteHttpExceptions:true});
+    const code=r.getResponseCode();let j;try{j=JSON.parse(r.getContentText());}catch(_){throw err_('monitoring_unavailable','利用状況の応答を読めませんでした。');}
+    if(code!==200){
+      const detail=JSON.stringify(j.error||{});
+      if(code===401||code===403)throw err_('monitoring_setup',/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'利用状況を読む権限の追加が必要です。設定手順を開いてください。':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'Cloud Monitoring APIを有効にする必要があります。設定手順を開いてください。':'このGoogleアカウントに、Firebaseプロジェクトの監視閲覧権限が必要です。');
+      throw err_('monitoring_unavailable','利用状況を取得できませんでした（'+code+'）。前回の計測値を残しています。');
+    }
+    if(j.executionErrors&&j.executionErrors.length)throw err_('monitoring_unavailable','一部の計測値を取得できませんでした。');
+    for(const series of j.timeSeries||[])for(const p of series.points||[]){const at=Date.parse((p.interval||{}).endTime),v=Number((p.value||{}).int64Value);if(!Number.isSafeInteger(v)||v<0)throw err_('monitoring_unavailable','計測値の形式を確認できませんでした。');if(at>day.start&&at<=now){sum+=v;points++;lastPointAt=Math.max(lastPointAt,at);}}
+    page=j.nextPageToken||'';if(!page)return {count:points?sum:null,lastPointAt:lastPointAt||null};
+  }
+  throw err_('monitoring_unavailable','計測値が多いため、全件を確認できませんでした。');
+}
+function firestoreUsage_() {
+  const now=Date.now(),day=firestoreDay_(now),cache=CacheService.getScriptCache(),key='firestoreUsage:v1:'+day.start,hit=cache.get(key);
+  if(hit)return JSON.parse(hit);
+  const lock=LockService.getScriptLock();if(!lock.tryLock(1000))throw err_('monitoring_busy','利用状況を確認中です。少し待って再確認してください。');
+  try{
+    const again=cache.get(key);if(again)return JSON.parse(again);
+    const out={schema:1,project:FIREBASE_PROJECT_ID,database:'(default)',source:'Cloud Monitoring',checkedAt:now,day:day,metrics:{reads:firestoreMetric_('read',day,now),writes:firestoreMetric_('write',day,now),deletes:firestoreMetric_('delete',day,now)}};
+    cache.put(key,JSON.stringify(out),300);return out;
+  }catch(e){if(e.code==='monitoring_setup'){const out={status:'setup_required',message:e.message,setupUrl:'https://script.google.com/home/projects/'+ScriptApp.getScriptId()+'/edit'};cache.put(key,JSON.stringify(out),60);return out;}throw e;
+  }finally{lock.releaseLock();}
+}
+/* Run in the editor. The first run only updates HEAD's scope list; deployed code stays on its old version.
+ * Run again, grant monitoring.read, and only a successful read permits publishing the new manifest. */
+function setupFirestoreMonitoring(){
+  const content=sapi_('get','/content'),manifest=(content.files||[]).find(function(f){return f.name==='appsscript'&&f.type==='JSON';});
+  if(!manifest)throw Error('appsscript.jsonが見つかりません。');
+  const m=JSON.parse(manifest.source),scope='https://www.googleapis.com/auth/monitoring.read';
+  if(!Array.isArray(m.oauthScopes))throw Error('既存のoauthScopesを確認してから設定してください。');
+  if(m.oauthScopes.indexOf(scope)<0){m.oauthScopes.push(scope);manifest.source=JSON.stringify(m,null,2);sapi_('put','/content',{files:content.files});Logger.log('読み取り専用の監視権限を追加しました。エディタを開き直して setupFirestoreMonitoring をもう一度実行し、Googleの許可画面で承認してください。公開中の版は変更していません。');return {needsConsent:true};}
+  const day=firestoreDay_(Date.now());CacheService.getScriptCache().remove('firestoreUsage:v1:'+day.start);
+  const result=firestoreUsage_();if(result.status==='setup_required')throw Error(result.message+' Monitoring API: https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project='+FIREBASE_PROJECT_ID);
+  const id=deploymentId_(),cur=sapi_('get','/deployments/'+id),v=sapi_('post','/versions',{description:'Enable read-only Firestore monitoring'});
+  PropertiesService.getScriptProperties().setProperty('GAS_PREV_VERSION',String(cur.deploymentConfig.versionNumber||''));
+  sapi_('put','/deployments/'+id,{deploymentConfig:{scriptId:ScriptApp.getScriptId(),versionNumber:v.versionNumber,manifestFileName:'appsscript',description:'Firestore monitoring enabled'}});
+  Logger.log('監視を有効にして公開しました。アプリの設定 → Firestoreの利用状況 → 再確認を押してください。');return {ok:true};
+}
+/* AI payloads go directly to Apps Script. No temporary Firestore document is needed. */
+function aiDirect_(a){
+  if(typeof a.prompt!=='string'||!a.prompt.trim()||a.prompt.length>40000)throw err_('bad_request','問い合わせ内容の長さを確認してください。');
+  const parts=[{text:a.prompt}];
+  if(a.img){if(typeof a.img!=='string'||a.img.length>1228800||a.img.length%4||!/^[A-Za-z0-9+/]*={0,2}$/.test(a.img)||! /^(image\/(jpeg|png|webp|heic|heif)|audio\/(mp4|mpeg|webm|wav|x-wav|ogg|aac))(;.*)?$/.test(String(a.mime||'')))throw err_('bad_request','音声・写真の形式かサイズを確認してください。');parts.push({inline_data:{mime_type:String(a.mime).split(';')[0],data:a.img}});}
+  const r=aiText_(parts,String(a.tier||'').slice(0,10)),t=r.text.trim().replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'');
+  try{return JSON.parse(t);}catch(_){throw err_('tool_error','AIの返事を読み取れませんでした');}
+}
+/* Form POST avoids Safari CORS failures and URL length limits. The result is sent only to the app origin. */
+function firestoreFormReply_(p){
+  const nonce=String(p.futariRpc||'');if(!/^[a-f0-9]{32}$/.test(nonce))return HtmlService.createHtmlOutput('Invalid request');
+  const raw=String(p.rpcPayload||''),result=raw.length>1400000?{error:{code:'too_large',message:'送信内容が大きすぎます'}}:handle_(raw);
+  const message=JSON.stringify({type:'futari-rpc',nonce:nonce,result:result}).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>window.top.postMessage('+message+',"https://rikuouchi-pra.github.io");</script>').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

@@ -8,7 +8,8 @@
   window.__FUTARI_PWA = true;
 
   var M = {};            // firebase modules
-  var app, auth, fs, me = null;
+  var app, auth, fs, me = null, fbMonitor=null, fbOffline=null;
+  var fbWatches=new Set();
   var readyResolve, readyReject;
   var ready = new Promise(function(ok, ng){ readyResolve = ok; readyReject = ng; });
 
@@ -69,27 +70,61 @@
     me = await new Promise(function(ok){ var un = M.onAuthStateChanged(auth, function(u){ if(u && ALLOWED.length && ALLOWED.indexOf((u.email || "").toLowerCase()) < 0){ gate("denied", u.email); return; }
       if(u){ un(); ok(u); } else gate("login"); }); });
     gate("none");
+    try{await initFirestoreStatus_();}catch(e){fbNotify_();}
     var nm = me.displayName || (me.email || "").split("@")[0];
-    M.setDoc(M.doc(fs, "profiles", me.uid), { name: nm, email: me.email, at: Date.now() }, { merge: true }).catch(function(){});
+    /* Display names use meta/family; a profile write on each startup was unnecessary. */
     return me;
   }
   ready = boot(); ready.catch(function(){});
+
+  function fbNotify_(){window.dispatchEvent(new Event("futari-storage-status"));}
+  function fbEmit_(path){fbWatches.forEach(function(w){if(w.raw&&(!path||w.path===path||(w.collection&&path.slice(0,path.lastIndexOf("/"))===w.path)))w.cb(fbOffline.overlay(w.path,w.raw,w.collection));});}
+  function fbUnbind_(){fbWatches.forEach(function(w){if(w.un){w.un();w.un=null;}});}
+  function fbRebind_(){fbWatches.forEach(function(w){w.bind();});}
+  function fbError_(e,op){if(fbMonitor)fbMonitor.observeError(e,op||"read");if(fbOffline&&window.FutariFirestoreMonitor.limited(e))fbOffline.pause(e).catch(function(){fbNotify_();});}
+  function fbDeadline_(p){var timer;return Promise.race([p,new Promise(function(_,ng){timer=setTimeout(function(){ng(gasError_("store_timeout","保存先の応答を確認できませんでした"));},20000);})]).finally(function(){clearTimeout(timer);});}
+  async function initFirestoreStatus_(){
+    if(!window.FutariFirestoreMonitor||!window.FutariFirestoreOffline)return;
+    var F=window.FutariFirestoreMonitor,O=window.FutariFirestoreOffline,local;try{local=localStorage;}catch(e){local={getItem:function(){return null;},setItem:function(){}};}
+    fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,isVisible:function(){return !document.hidden&&navigator.onLine!==false;},onChange:fbNotify_,fetchUsage:async function(){
+      var G=(window.FUTARI_GAS_URLS||{})[OWNER]||gasUrl();if(!G)throw Error("利用状況を確認する接続先がありません");
+      var tok=await me.getIdToken(),r=await gasCall_(G,{idToken:tok,tool:"firestoreUsage",args:{}},25000);if(r.error)throw gasError_(r.error.code,r.error.message);return r.payload;
+    }});
+    fbOffline=O.create({project:CFG.projectId,store:O.storage(window.indexedDB,CFG.projectId+":"+me.uid),id:rid,dayWindow:F.dayWindow,limited:F.limited,onChange:fbNotify_,onError:function(e){fbMonitor.observeError(e,"read");},
+      pauseNetwork:function(){return M.disableNetwork(fs);},resumeNetwork:function(){return M.enableNetwork(fs);},probe:async function(){await fbDeadline_(M.getDocFromServer(M.doc(fs,"meta","family")));fbMonitor.clearIssue();},
+      send:function(path,kind,value){var ref=M.doc.apply(null,[fs].concat(segs(path)));return fbDeadline_(kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{}));},emit:fbEmit_,unbind:fbUnbind_,rebind:fbRebind_
+    });
+    window.__futariFirestore=fbMonitor;window.__futariOffline=fbOffline;await fbOffline.loaded;if(fbOffline.snapshot().paused)await M.disableNetwork(fs);
+    fbMonitor.start();
+    setInterval(function(){if(!document.hidden&&navigator.onLine!==false)fbOffline.resume(false).catch(function(){fbNotify_();});},60000);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden){fbMonitor.refresh(false);fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
+  }
+  function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});}
+  async function fbGet_(ref,collection){
+    var local=fbOffline&&fbOffline.snapshot().paused,read=function(cache){return collection?(cache?M.getDocsFromCache(ref.ref):M.getDocs(ref.ref)):(cache?M.getDocFromCache(ref.ref):M.getDoc(ref.ref));},s;
+    try{s=await read(local);}catch(e){fbError_(e,"read");if(local||!fbOffline||!window.FutariFirestoreMonitor.limited(e))throw e;await fbOffline.pause(e);s=await read(true);}
+    var base=collection?colSnap(s):docSnap(s);return fbOffline?fbOffline.overlay(ref.path,base,collection):base;
+  }
+  function fbListen_(ref,collection,cb,err){
+    var w={path:ref.path,collection:collection,cb:cb,raw:null,un:null,bind:function(){if(w.un)w.un();w.un=M.onSnapshot(ref.ref,function(s){w.raw=collection?colSnap(s):docSnap(s);cb(fbOffline?fbOffline.overlay(ref.path,w.raw,collection):w.raw);},function(e){fbError_(e,"read");if(err)err(e);});}};
+    fbWatches.add(w);w.bind();return function(){if(w.un)w.un();fbWatches.delete(w);};
+  }
 
   /* ---------- db（Claude の db 互換） ---------- */
   function segs(path){ return String(path).split("/").filter(Boolean); }
   function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), size: qs.size, empty: qs.empty, metadata: { fromCache: !!(qs.metadata && qs.metadata.fromCache) } }; }
   function docSnap(s){ return { id: s.id, exists: s.exists(), fromCache: !!(s.metadata && s.metadata.fromCache), data: function(){ return s.data(); } }; }
   function DocRef(path){ this.path = path; this.ref = M.doc.apply(null, [fs].concat(segs(path))); }
-  DocRef.prototype.set = function(d){ return M.setDoc(this.ref, clean(d)); };
-  DocRef.prototype.update = function(ch){ return M.setDoc(this.ref, clean(ch), { merge: true }); };   // 1段目のオブジェクトは中身をマージ（Claude 版と同じ）
-  DocRef.prototype.delete = function(){ return M.deleteDoc(this.ref); };
-  DocRef.prototype.get = function(){ return M.getDoc(this.ref).then(docSnap); };
-  DocRef.prototype.onSnapshot = function(cb, err){ return M.onSnapshot(this.ref, function(s){ cb(docSnap(s)); }, err || function(){}); };
+  DocRef.prototype.set = function(d){ return fbWrite_(this.path,"set",clean(d)); };
+  DocRef.prototype.update = function(ch){ return fbWrite_(this.path,"update",clean(ch)); };   // 1段目のオブジェクトは中身をマージ（Claude 版と同じ）
+  DocRef.prototype.delete = function(){ return fbWrite_(this.path,"delete"); };
+  DocRef.prototype.get = function(){ return fbGet_(this,false); };
+  DocRef.prototype.onSnapshot = function(cb, err){ return fbListen_(this,false,cb,err); };
   DocRef.prototype.collection = function(c){ return new ColRef(this.path + "/" + c); };
   function ColRef(path){ this.path = path; this.ref = M.collection.apply(null, [fs].concat(segs(path))); }
   ColRef.prototype.doc = function(id){ return new DocRef(this.path + "/" + id); };
-  ColRef.prototype.get = function(){ return M.getDocs(this.ref).then(colSnap); };
-  ColRef.prototype.onSnapshot = function(cb, err){ return M.onSnapshot(this.ref, function(qs){ cb(colSnap(qs)); }, err || function(){}); };
+  ColRef.prototype.get = function(){ return fbGet_(this,true); };
+  ColRef.prototype.onSnapshot = function(cb, err){ return fbListen_(this,true,cb,err); };
   function clean(o){ return JSON.parse(JSON.stringify(o, function(k, v){ return v === undefined ? null : v; })); }
   var DB = { collection: function(p){ return new ColRef(p); }, doc: function(p){ return new DocRef(p); } };
 
@@ -127,6 +162,7 @@
     return out;
   }
   async function putBlob(id, blob, type){
+    if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の追加は同期が復旧してからできます。文章の変更は端末に保存できます。");
     blob = await shrinkTo(blob); var buf = new Uint8Array(await blob.arrayBuffer());
     await M.setDoc(M.doc(fs, "blobs", id), { data: M.Bytes.fromUint8Array(buf), type: type || blob.type || "image/jpeg", size: buf.length, at: Date.now(), by: me.uid });
     await M.setDoc(M.doc(fs, "blobmeta", id), { size: buf.length, type: type || blob.type || "image/jpeg", at: Date.now(), by: me.uid });
@@ -136,16 +172,16 @@
   function fill(id, u){ document.querySelectorAll('img[src$="#fb=' + id + '"]').forEach(function(im){ im.src = u; }); }
   window.__blobUrl = function(id){
     if(urlCache.has(id)) return urlCache.get(id);
-    if(!loading.has(id)) loading.set(id, ready.then(function(){ return M.getDoc(M.doc(fs, "blobs", id)); }).then(function(s){
+    if(!loading.has(id)) loading.set(id, ready.then(function(){ return fbOffline&&fbOffline.snapshot().paused?M.getDocFromCache(M.doc(fs,"blobs",id)):M.getDoc(M.doc(fs, "blobs", id)); }).then(function(s){
       if(!s.exists()) return; var d = s.data(), u = URL.createObjectURL(new Blob([d.data.toUint8Array()], { type: d.type || "image/jpeg" })); urlCache.set(id, u); fill(id, u); }).catch(function(){}).finally(function(){ setTimeout(function(){ loading.delete(id); }, 30000); }));
     return PIX + "#fb=" + id;
   };
   var ASSETS = {
     upload: function(blob, o){ return putBlob(rid(), blob, (o && o.type) || blob.type); },
     putWithId: function(id, blob){ return putBlob(id, blob, blob.type || "image/jpeg"); },
-    list: async function(){ var qs = await M.getDocs(M.collection(fs, "blobmeta")); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
+    list: async function(){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真一覧の取得は同期が復旧してからできます。");var qs = await M.getDocs(M.collection(fs, "blobmeta")); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
       return { assets: as, usage: { files: as.length, bytes: as.reduce(function(a, x){ return a + x.size; }, 0), maxFiles: MAX_FILES, maxBytes: MAX_BYTES } }; },
-    delete: async function(id){ await M.deleteDoc(M.doc(fs, "blobs", id)); await M.deleteDoc(M.doc(fs, "blobmeta", id)); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
+    delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await M.deleteDoc(M.doc(fs, "blobs", id)); await M.deleteDoc(M.doc(fs, "blobmeta", id)); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
   };
 
   /* ---------- sample（レシート文字の読み取り：端末内のかんたん解析） ---------- */
@@ -200,7 +236,21 @@
   function aiStoreLimited_(e){return !!e&&(e.code==="ai_store_rate_limited"||/(^|\/)resource-exhausted$/.test(String(e.code||""))||/問い合わせ内容を読めませんでした[（(]429[）)]/.test(String(e.detail||e.message||"")));}
   function aiStoreError_(e){var x=gasError_("ai_store_rate_limited","質問の保存先が利用制限（429）に達しています。時間をおいて再送してください。");x.detail=String(e.detail||e.message||x.message);return x;}
   function aiDelay_(ms,signal){return new Promise(function(ok,ng){var timer,done=false;function finish(error){if(done)return;done=true;clearTimeout(timer);if(signal)signal.removeEventListener("abort",abort);error?ng(error):ok();}function abort(){finish(aiAbortError_());}if(signal&&signal.aborted){abort();return;}if(signal)signal.addEventListener("abort",abort,{once:true});timer=setTimeout(function(){finish();},ms);});}
-  async function aiAsk(prompt, o){
+  var aiBackendInfo=null,aiBackendJob=null;
+  async function aiSupportsDirect_(signal){
+    var G=gasUrl();if(aiBackendInfo&&aiBackendInfo.url===G&&Date.now()-aiBackendInfo.at<300000)return aiBackendInfo.direct;
+    if(!aiBackendJob)aiBackendJob=(async function(){var tok=await me.getIdToken(),r=await gasCall_(G,{idToken:tok,tool:"capabilities",args:{}},20000);
+      if(r.error&&!/未対応の操作.*capabilities/.test(r.error.message||""))throw gasError_(r.error.code,r.error.message);
+      var direct=!!(r.payload&&r.payload.directAI===1);aiBackendInfo={url:G,at:Date.now(),direct:direct};return direct;
+    })().finally(function(){aiBackendJob=null;});return waitAbort_(aiBackendJob,signal);
+  }
+  async function aiAsk(prompt,o){
+    o=o||{};if(!gasUrl())throw gasError_("no_gas","AIの接続先がありません");
+    if(await aiSupportsDirect_(o.signal))return aiAskDirect_(prompt,o);
+    if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("gas_update_required","Firestoreを使わないAIの接続サーバーは更新待ちです。入力は残しています。");
+    return aiAskLegacy_(prompt,o);
+  }
+  async function aiAskLegacy_(prompt, o){
     o=o||{}; var signal=o.signal, G=gasUrl();
     if(signal&&signal.aborted)throw aiAbortError_();
     if(!G){var e0=new Error("no_gas");e0.code="no_gas";throw e0;}
@@ -240,7 +290,7 @@
       aiConnectionIssue=null;return j.payload;
     }catch(e){
       if(expired){var t=new Error("AIの応答が時間内に届きませんでした");t.code="ai_timeout";throw t;}
-      if(aiStoreLimited_(e)){var limited=aiStoreError_(e);aiStoreIssue={url:G,until:Date.now()+60000,error:limited};throw limited;}
+      if(aiStoreLimited_(e)){fbError_(e,"read");var limited=aiStoreError_(e);aiStoreIssue={url:G,until:Date.now()+60000,error:limited};throw limited;}
       if(e.code==="gas_access"||e.code==="gas_response")aiConnectionIssue={url:G,until:Date.now()+60000,error:e};
       throw e;
     }finally{
@@ -248,6 +298,38 @@
       if(written)Promise.resolve(written).then(function(){return M.deleteDoc(ref);}).catch(function(){});
     }
   }
+  async function aiAskDirect_(prompt,o){
+    o=o||{};var signal=o.signal,G=gasUrl();if(signal&&signal.aborted)throw aiAbortError_();
+    if(!G)throw gasError_("no_gas","AIの接続先がありません");
+    var ctl=new AbortController(),expired=false,budget=Math.max(1000,Math.min(150000,Number(o.timeoutMs)||(o.images||o.audio?90000:30000)));
+    var timer=setTimeout(function(){expired=true;ctl.abort();},budget),deadline=Date.now()+budget,cancel=function(){ctl.abort();};if(signal)signal.addEventListener("abort",cancel,{once:true});
+    var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
+    try{
+      phase("送信を準備しています");var args={prompt:String(prompt).slice(0,40000),tier:String(o.modelTier||"").slice(0,10)},imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[];
+      var blob=o.audio|| (imgs[0]?await waitAbort_(aiShrink(imgs[0]),ctl.signal):null);
+      if(blob){if(blob.size>MAX_ONE)throw gasError_("too_large","音声・写真が大きすぎます");var bytes=new Uint8Array(await waitAbort_(blob.arrayBuffer(),ctl.signal)),binary="";for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));args.img=btoa(binary);args.mime=o.audio?(blob.type||"audio/wav"):"image/jpeg";}
+      var tok=await waitAbort_(me.getIdToken(),ctl.signal);phase("AIに直接問い合わせています");
+      var j=await gasForm_(G,{idToken:tok,tool:"aiDirect",args:args},Math.max(1,deadline-Date.now()),ctl.signal);
+      if(j.error){var e=gasError_(j.error.code||"tool_error",j.error.message||"AIに接続できませんでした");if(/未対応の操作.*aiDirect/.test(e.message))e=gasError_("gas_update_required","AIの接続サーバーの更新が必要です。入力は残しています。");throw e;}return j.payload;
+    }catch(e){if(expired)throw gasError_("ai_timeout","AIの応答が時間内に届きませんでした");throw e;
+    }finally{clearTimeout(timer);if(signal)signal.removeEventListener("abort",cancel);}
+  }
+  function gasForm_(url,req,ms,signal){
+    return new Promise(function(ok,ng){
+      var nonce=rid(),frame=document.createElement("iframe"),form=document.createElement("form"),done=false,timer;
+      frame.name="futari_rpc_"+nonce;frame.hidden=true;frame.title="AIへの送信";form.method="POST";form.action=url;form.target=frame.name;form.hidden=true;
+      function cleanup(){clearTimeout(timer);window.removeEventListener("message",message);if(signal)signal.removeEventListener("abort",abort);form.remove();frame.remove();}
+      function finish(error,result){if(done)return;done=true;cleanup();error?ng(error):ok(result);}
+      function abort(){finish(aiAbortError_());}
+      function message(e){if(!/^https:\/\/(?:[a-z0-9-]+-)?script\.googleusercontent\.com$/.test(e.origin)&&e.origin!=="https://script.google.com")return;
+        var d=e.data;if(!d||d.type!=="futari-rpc"||d.nonce!==nonce)return;if(!d.result||typeof d.result!=="object"||(!Object.prototype.hasOwnProperty.call(d.result,"payload")&&!d.result.error)){finish(gasError_("gas_response","AIの応答形式を確認できませんでした"));return;}finish(null,d.result);}
+      if(signal&&signal.aborted){abort();return;}window.addEventListener("message",message);if(signal)signal.addEventListener("abort",abort,{once:true});
+      for(var pair of [["futariRpc",nonce],["rpcPayload",JSON.stringify(req)]]){var input=document.createElement("input");input.type="hidden";input.name=pair[0];input.value=pair[1];form.appendChild(input);}
+      timer=setTimeout(function(){finish(gasError_("ai_timeout","AIから時間内に返事が届きませんでした。入力は残しています。"));},ms);
+      document.body.appendChild(frame);document.body.appendChild(form);try{form.submit();}catch(e){finish(gasError_("gas_connection","AIへ送信できませんでした"));}
+    });
+  }
+
   var SAMPLE = {
     resetConnection: function(){gasMode=null;aiConnectionIssue=null;},
     limits: function(){ return gasUrl() ? { images: { mediaTypes: ["image/*"] }, ai: "gemini" } : {}; },

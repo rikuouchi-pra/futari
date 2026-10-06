@@ -11,7 +11,9 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=287"></script>
+<script src="firestore-monitor.js?v=289"></script>
+<script src="firestore-offline.js?v=289"></script>
+<script src="shim.js?v=289"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2130,6 +2132,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
     </div>
     <div class="notice" id="offline" hidden>共有データに接続できないため、この画面では一時保存のみです（閉じると消えます）。</div>
   </header>
+  <div class="notice" id="firestoreNotice" role="status" hidden></div>
   <main id="main"></main>
 </div>
 
@@ -2192,7 +2195,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="288";
+const APP_VERSION="289";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4652,6 +4655,7 @@ function viewSettings(){
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
+  ${window.__FUTARI_PWA?`<section class="card" id="firestoreCard">${firestoreCardHTML()}</section>`:""}
   <section class="card" id="repCard"><h2>くり返し・自動</h2>${repAllHTML()}</section>
   <section class="card"><h2>ふたりの名前</h2>
     <div class="onb-names"><label><span class="who">夫</span><input type="text" id="famH" value="${esc(state.fam.h)}" maxlength="12"></label><label><span class="who">妻</span><input type="text" id="famW" value="${esc(state.fam.w)}" maxlength="12"></label></div>
@@ -4953,6 +4957,40 @@ function roleCardHTML(){
     <div class="edit-row">${(state.roles||{}).code?`<input type="text" id="bindCode" maxlength="30" placeholder="合言葉" style="flex:1">`:""}<button class="btn primary" data-act="bindW">${esc(nameOf("w"))}として登録</button></div>`;
 }
 /* 保存容量の目安：プラットフォームは合計容量の上限を公開していないため、件数と推定サイズを示す */
+/* v289: measured usage and durable local changes are shown independently. */
+function firestoreStatus(){return window.__futariFirestore?window.__futariFirestore.snapshot():null;}
+function firestoreOffline(){return window.__futariOffline?window.__futariOffline.snapshot():null;}
+function firestoreCardHTML(){
+  if(!window.__FUTARI_PWA)return "";
+  const S=firestoreStatus(),O=firestoreOffline(),R=S&&S.report,labels={reads:"読み取り",writes:"書き込み",deletes:"削除"},limits={reads:50000,writes:20000,deletes:20000};
+  const when=t=>new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  const metric=k=>{const n=R&&R.metrics[k].count,pct=n==null?null:Math.floor(n/limits[k]*1000)/10;return `<div style="margin:10px 0"><div><b>${labels[k]}</b>　${n==null?"未取得":`${n.toLocaleString("ja-JP")}件 / ${limits[k].toLocaleString("ja-JP")}件（${pct}%）`}</div>${n==null?"":`<div class="mbar"><i class="${pct>=80?"over":""}" style="width:${Math.max(1,Math.min(100,pct))}%"></i></div>`}</div>`;};
+  const stateText=!S?"準備中":S.loading?"利用状況を確認中…":S.error?S.error:!R?"利用状況はまだ取得できていません。":!S.current?"前の集計日の記録です。今日の使用量は未取得です。":S.stale?"前回の計測値です。最新の状況は確認できていません。":"Cloud Monitoringに接続済み";
+  return `<h2>Firestoreの利用状況</h2><p class="who" role="status">${esc(stateText)}</p>${["reads","writes","deletes"].map(metric).join("")}
+    ${R?`<p class="who">計測取得：${when(R.checkedAt)}（日本時間）${S.current?"":"・前の集計日"}</p>`:""}
+    ${S?`<p class="who">次の無料枠リセットの目安：${when(S.day.end)}（日本時間）</p>`:""}
+    ${S&&S.issue?`<p class="who" style="color:var(--danger,#db7777)">利用制限を検知：${when(S.issue.at)}。件数の反映が遅れている場合があります。</p>`:""}
+    <p class="who">ふたり・全端末の計測値です。無料枠に対して80%・95%・100%で警告します。数分の遅れがあり、請求上の件数とは差が出ます。残量や超過防止を保証する数値ではありません。アプリを開いている間、5分ごとに確認します。監視自体はFirestoreの読み取りを使いません。</p>
+    <div class="opts"><button class="opt" data-act="firestoreRefresh" ${S&&S.loading?"disabled":""}>${S&&S.loading?"確認中…":"利用状況を再確認"}</button><a class="opt" href="https://console.firebase.google.com/project/futari-list-17396/firestore/usage" target="_blank" rel="noopener">Firebaseで確認</a></div>
+    ${O&&(O.paused||O.pending)?`<hr><h3>${O.recovering?"同期を確認中":"端末内で使うモード"}</h3><p>未同期の変更：<b>${O.pending}件</b>。この端末に保存し、復旧後に同期します。相手の最新変更はまだ受信できません。</p><p class="who">次の同期確認：${when(O.until)}。未同期の間はアプリの保存データを消さないでください。同じ項目を双方で編集すると、後から同期した内容が優先されます。</p><div class="opts"><button class="opt" data-act="firestoreReconnect" ${O.recovering?"disabled":""}>復旧を確認して同期</button>${O.pending?'<button class="opt" data-act="firestoreExport">未同期の変更を書き出す</button>':""}</div>`:""}
+    ${O&&O.error?`<p role="alert">${esc(O.error)}</p>`:""}
+    <details class="gguide"><summary>監視の接続設定</summary><p>最初の1回は、Firebaseを管理しているGoogleアカウントで監視の読み取り権限を許可します。</p><ol class="steps"><li>${S&&S.setupUrl?`<a href="${esc(S.setupUrl)}" target="_blank" rel="noopener">接続サーバーの設定を開く</a>`:'既存のApps Scriptの編集画面を開く'}。</li><li>関数 <code>setupFirestoreMonitoring</code> を実行する。</li><li>エディタを開き直し、同じ関数をもう一度実行してGoogleの許可画面を承認する。成功すると公開も更新されます。</li><li>ここで「利用状況を再確認」を押す。</li></ol><p class="who">APIの有効化を求められたときは<a href="https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project=futari-list-17396" target="_blank" rel="noopener">Cloud Monitoring API</a>を確認してください。課金プランを変更する操作は含みません。</p></details>`;
+}
+function firestorePaint(){
+  const S=firestoreStatus(),O=firestoreOffline(),el=$("firestoreNotice"),card=$("firestoreCard");
+  if(O&&!O.paused&&state.connIssue&&state.connIssue.startsWith("保存先の読み取りが利用上限")){state.connIssue="";$("offline").hidden=true;}
+  netChip();if(card)card.innerHTML=firestoreCardHTML();if(!el)return;
+  let text="";
+  if(O&&O.paused)text=`${O.recovering?"同期を確認中":"端末内で使っています"}：変更${O.pending}件は未同期です。相手の最新変更はまだ受信できません。`;
+  else if(S&&S.issue)text="保存先の利用制限を検知しました。共有の最新情報を確認できない場合があります。";
+  else if(S&&["limit","critical","warning"].includes(S.level))text=`保存先の無料枠が${S.level==="limit"?"100%以上":S.level==="critical"?"95%以上":"80%以上"}になっています${S.stale?"（前回の計測）":""}。`;
+  else if(S&&S.error)text="保存先の使用量を確認できていません。設定から確認してください。";
+  el.hidden=!text;el.innerHTML=text?`${esc(text)} <button class="link" id="firestoreOpen">詳しく見る</button>`:"";
+  const b=$("firestoreOpen");if(b)b.onclick=()=>{go("settings");$("firestoreCard")?.scrollIntoView({block:"start"});};
+}
+addEventListener("futari-storage-status",firestorePaint);
+async function firestoreExport(){const api=window.__futariOffline;if(!api)return;const data=await api.export(),dl=await claude.use("downloads");if(dl)await dl.save({filename:"futari-unsynced-changes.json",data:JSON.stringify(data,null,2)});}
+
 function storageHTML(){
   const SH=["items","troubles","cautions","shifts","plans","topics","talks","diary","comments","thanks","dinner","spend","recur","goals","events","bugs"], PV=["pitems","habits","reflect","blocks","gsync","priv"];
   const sz=a=>a.reduce((q,x)=>q+JSON.stringify(x).length*1.1,0), big=a=>a.reduce((q,x)=>Math.max(q,JSON.stringify(x).length),0);
@@ -5336,6 +5374,9 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcsave") rcptSave();
   else if(a==="orphans") cleanOrphans();
   else if(a==="assetUsage") loadAssetUsage();
+  else if(a==="firestoreRefresh") window.__futariFirestore?.refresh(true);
+  else if(a==="firestoreReconnect") window.__futariOffline?.resume(true);
+  else if(a==="firestoreExport") firestoreExport();
   else if(a==="orphOpen"){ state.orphOpen=true; state.orphSel=new Set(); render(); }
   else if(a==="orphClose"){ state.orphOpen=false; state.orphArm=false; render(); }
   else if(a==="orphAll"){ const L=orphanIds(); state.orphSel=state.orphSel&&state.orphSel.size===L.length?new Set():new Set(L); state.orphArm=false; render(); }
@@ -7896,7 +7937,7 @@ let prefTimer=null;
 /* v171: オフライン（災害時など）。この端末に保存したデータで動き、変更は端末にためておき、つながったら自動で送る（送った内容で上書き） */
 state.netOff=navigator.onLine===false;
 function netMark(){ if(state.netOff||navigator.onLine===false){ state.netOff=true; state.pendW=(state.pendW||0)+1; netChip(); } }
-function netChip(){ const el=$("sync"), tx=$("syncText"); if(!el||!tx) return; el.classList.toggle("offl",!!state.netOff); if(state.netOff) tx.textContent=`オフライン${state.pendW?`・送信待ち${state.pendW}`:""}`; else if(el.classList.contains("live")) tx.textContent="共有中"; }
+function netChip(){ const el=$("sync"), tx=$("syncText"); if(!el||!tx) return; const Q=firestoreOffline(); if(Q&&Q.paused){el.classList.add("offl");tx.textContent=Q.recovering?"同期を確認中":"端末内に保存中";return;} el.classList.toggle("offl",!!state.netOff); if(state.netOff) tx.textContent=`オフライン${state.pendW?`・送信待ち${state.pendW}`:""}`; else if(el.classList.contains("live")) tx.textContent="共有中"; }
 addEventListener("offline",()=>{ state.netOff=true; netChip(); toast("オフラインです。この端末のデータで使えます（変更は保存し、つながったら自動で送ります）"); });
 addEventListener("online",async()=>{ const n=state.pendW||0; state.netOff=false; netChip(); if(n){ $("syncText")&&($("syncText").textContent="送信中…"); try{ if(window.__futariWaitWrites) await Promise.race([window.__futariWaitWrites(),new Promise(r=>setTimeout(r,20000))]); }catch(e){} }
   state.pendW=0; netChip(); toast(n?`オンラインに戻りました。オフライン中の変更 ${n}件を送りました`:"オンラインに戻りました"); requestRender(); });
