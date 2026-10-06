@@ -2152,7 +2152,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="277";
+const APP_VERSION="278";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3880,17 +3880,17 @@ const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".sli
 function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=[0,5,10,15,30,60].includes(Number(prefs.pushLead))?Number(prefs.pushLead):30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
   const shared=[], priv=[], rolesOf=x=>{ const w=getWho(x); return w==="both"?R:R.includes(w)?[w]:R; };
   for(const d of days){
-    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:lead?`${lead}分後：${x.text}`:`開始：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
-    for(const i of state.items) if(!i.done&&i.due===d&&myT(i)&&!isRecItem(i)){ const a=at(d,myT(i))-lead*60e3; if(a>now) shared.push({id:`it:${i.id}:${d}:${myT(i)}:${lead}`,at:a,roles:rolesOf(i).filter(r=>!doneOf(i,r)),kind:"ev",t:lead?`${lead}分後：${i.text}`:`開始：${i.text}`,b:`${myT(i)}・${i.list==="shop"?"買い物":"やること"}`}); }
-    for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${b.text}`:`開始：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
+    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now-10*60e3) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:lead?`${lead}分後：${x.text}`:`開始：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
+    for(const i of state.items) if(!i.done&&i.due===d&&myT(i)&&!isRecItem(i)){ const a=at(d,myT(i))-lead*60e3; if(a>now-10*60e3) shared.push({id:`it:${i.id}:${d}:${myT(i)}:${lead}`,at:a,roles:rolesOf(i).filter(r=>!doneOf(i,r)),kind:"ev",t:lead?`${lead}分後：${i.text}`:`開始：${i.text}`,b:`${myT(i)}・${i.list==="shop"?"買い物":"やること"}`}); }
+    for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now-10*60e3) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${b.text}`:`開始：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
     for(const o of dayEntries(d)){if(o.done||o.skip||o.kind==="g"||o.c==="blocks"||o.c==="events"||(o.c==="items"&&!isRecItem(o.x)))continue;
-      const a=at(d,hhmm(o.s))-lead*60e3;if(a<=now)continue;const privateEntry=["pitems","habits"].includes(o.c),target=privateEntry?priv:shared;
+      const a=at(d,hhmm(o.s))-lead*60e3;if(a<=now-10*60e3)continue;const privateEntry=["pitems","habits"].includes(o.c),target=privateEntry?priv:shared;
       target.push({id:`timed:${o.c}:${o.x.id}:${me}:${d}:${o.s}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${o.t}`:`開始：${o.t}`,b:`${privateEntry?"🔒 ":""}${hhmm(o.s)}・${ttInfo(o).type}`}); }
     const amH=String(prefs.pushAmH||"7").padStart(2,"0"), am=at(d,`${amH}:00`);
-    if(am>now) for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
+    if(am>now-10*60e3) for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
       const parts=[sh?`シフト：${sh}`:"",W?`${WXN[W.k]} ${W.max}°/${W.min}°${W.pop>=30?` ☂${W.pop}%`:""}${W.dry?`・洗濯：${W.dry.l}`:""}`:"",G.length?`ごみ：${G.join("・")}`:"",ev.length?`予定：${ev.slice(0,3).map(x=>`${x.start||"終日"} ${x.text}`).join("、")}${ev.length>3?` ほか${ev.length-3}件`:""}`:"",tk?`やること ${tk}件`:""].filter(Boolean);
       shared.push({id:`am:${d}:${r}:${amH}`,at:am,roles:[r],kind:"am",t:`${d.slice(5).replace("-","/")}（${"日月火水木金土"[parse(d).getDay()]}）のまとめ`,b:parts.join("\n")||"今日は予定はありません"}); }
-    const pm=at(d,"20:30"); if(pm>now) for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
+    const pm=at(d,"20:30"); if(pm>now-10*60e3) for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
   }
   return {shared:shared.filter(x=>x.roles.length).sort((a,b)=>a.at-b.at).slice(0,60),priv:priv.sort((a,b)=>a.at-b.at).slice(0,40)}; }
 let pushT=null, pushQ=[];
