@@ -20,7 +20,7 @@ function declaration(name) {
 function env(names, overrides = {}) {
   const state = { ai: { log: [], refs: {} }, view: 'home', me: 'test-user', items: [], pitems: [], habits: [], blocks: [], events: [], chores: [], plans: [], bugs: [], dinner: [], kakei: {} };
   const writes = [], notices = [];
-  const c = vm.createContext({ state, prefs: {}, writes, notices, Date, Set, Map, console, AbortController, setTimeout, clearTimeout, setInterval, clearInterval,
+  const c = vm.createContext({ state, prefs: {}, writes, notices, Date, Set, Map, console, AbortController, setTimeout, clearTimeout, setInterval, clearInterval, IS_IOS:false,
     today: () => '2026-09-28', myRole: () => 'h', otherRole: () => 'w', getWho: x => x.who || 'both',
     parse: d => new Date(d + 'T00:00:00'), ymd: d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
     addDays: (d,n) => { const x=new Date(d+'T00:00:00Z'); x.setUTCDate(x.getUTCDate()+n); return x.toISOString().slice(0,10); },
@@ -35,7 +35,8 @@ function env(names, overrides = {}) {
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
-  if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
+  if(names.includes('aiComposerHTML'))names=['aiRecM','aiVoiceAIOk',...names];
+  if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceStartTimer','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -107,7 +108,7 @@ test('an old saved postponed chore and a cancelled move render correctly',()=>{
   assert.equal(run(c,'choreInfo(chore).due'),'2026-10-07');c.chore.moved['2026-10-06']=null;assert.equal(run(c,'choreInfo(chore).due'),'2026-10-03');
 });
 
-const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiRequest','aiVoiceRec','aiMic','aiVoiceCancel','aiComposerHTML'];
+const voiceFns=['aiVoicePauseAudio','aiSRWatch','aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiRequest','aiVoiceRec','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','sharedBoth','bothRoleOrder','bothPick','myT','dayTime','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
@@ -120,7 +121,7 @@ test('talk calendar navigation saves a pending note without changing its talk da
   let saves=0;const c=talkCalEnv({$:()=>({value:'編集中のメモ'}),talkOf:()=>({notes:'前のメモ'}),saveTalkNotes:()=>saves++});c.state.talkDate='2026-09-27';run(c,"talkCalendarMove('2026-10-05')");assert.equal(c.state.talkDate,'2026-09-27');assert.equal(c.state.talkCalDate,'2026-10-05');assert.equal(saves,1);
 });
 function voiceEnv(options={}){let rec;const input={value:'元の入力',focus(){}};class Recognition{constructor(){rec=this;}start(){}stop(){this.onend();}abort(){this.onend();}}
-  const c=env(voiceFns,{$:()=>input,window:{SpeechRecognition:Recognition},aiMicUI(){},...options});c.input=input;return {c,get rec(){return rec;}};
+  const c=env(voiceFns,{$:()=>input,window:{SpeechRecognition:Recognition},IS_IOS:false,songStop(){},aiMicUI(){},...options});c.input=input;return {c,get rec(){return rec;}};
 }
 test('shared calendar includes both assignees, purchases and completed tasks while excluding every private collection',()=>{
   const c=talkCalEnv();c.prefs.whoF='h';c.state.items=[{id:'h',list:'task',due:'2026-09-28',who:'h'},{id:'w',list:'task',due:'2026-09-28',who:'w',done:true},{id:'s',list:'shop',due:'2026-09-28',who:'both'},{id:'p',list:'task',due:'2026-09-28',who:'priv'},{id:'p2',list:'shop',due:'2026-09-28',private:true}];
@@ -894,4 +895,44 @@ test('AI refresh cancels pending voice work and releases recorders without clear
 });
 test('transcription timeout unlocks the microphone and offers retry without discarding the draft',async()=>{
  const v=recorderEnv();v.c.state.sample={json:()=>new Promise(()=>{})};await run(v.c,'aiVoiceRec()');const rec=v.records[0];await run(v.c,'aiVoiceRec()');await microtasks();const html=run(v.c,'aiComposerHTML()');assert.match(html,/data-act="aiMic" disabled/);assert.match(html,/data-act="aiVoiceCancel"/);v.clock.fire(45000);await rec.finished;assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.ai.q,'元の入力');assert.match(v.c.state.aiVoiceStatus,/もう一度/);await run(v.c,'aiVoiceRec()');assert.equal(v.c.state.aiListening,true);run(v.c,'aiVoiceCancel()');
+});
+
+// v286: an iPhone recognizer can start normally, then emit no further events.
+test('second speech session with onstart but no results times out and stale callbacks cannot block the third',()=>{
+ const clock=voiceClock(),v=voiceEnv(clock);run(v.c,'aiMic()');v.rec.onstart();v.rec.onresult({results:[{0:{transcript:'一言目'},isFinal:true}]});run(v.c,'aiMic()');v.c.input.value=v.c.state.ai.q;
+ run(v.c,'aiMic()');const stuck=v.rec;stuck.onstart();stuck.abort=()=>{};assert.ok(![...clock.timers.values()].some(t=>t.ms===5000));clock.fire(12000);
+ assert.equal(v.c.state.aiListening,false);assert.equal(run(v.c,'aiRec'),null);assert.equal(v.c.state.ai.q,'元の入力\n一言目');assert.match(v.c.state.aiVoiceStatus,/12秒/);
+ run(v.c,'aiMic()');const next=v.rec;stuck.onresult({results:[{0:{transcript:'遅れた二言目'},isFinal:true}]});stuck.onend();assert.equal(run(v.c,'aiRec'),next);next.onstart();next.onresult({results:[{0:{transcript:'三言目'},isFinal:true}]});run(v.c,'aiMic()');assert.equal(v.c.state.ai.q,'元の入力\n一言目\n三言目');
+});
+test('no-result deadline survives automatic restarts and real results renew it without losing interim text',()=>{
+ const clock=voiceClock(),v=voiceEnv(clock);run(v.c,'aiMic()');v.rec.onstart();const deadline=run(v.c,'aiSRS.resultTimer');v.rec.onend();clock.fire(150);v.rec.onstart();assert.equal(run(v.c,'aiSRS.resultTimer'),deadline);
+ v.rec.onresult({results:[{0:{transcript:'途中まで'},isFinal:false}]});assert.notEqual(run(v.c,'aiSRS.resultTimer'),deadline);assert.ok(!clock.timers.has(deadline));clock.fire(12000);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力\n途中まで');assert.match(v.c.state.aiVoiceStatus,/完了/);
+});
+test('iPhone AI microphone records three turns without starting Web Speech and releases each stream before transcription',async()=>{
+ const v=recorderEnv({IS_IOS:true});let speechStarts=0,requests=0;v.c.window.SpeechRecognition=class {start(){speechStarts++;}};v.c.prefs.voiceAI='fix';
+ assert.match(run(v.c,'aiComposerHTML()'),/録音してAIへ送り/);
+ for(let i=0;i<3;i++){v.c.state.sample={json:async(_,o)=>{requests++;assert.ok(o.audio instanceof Blob);assert.equal(v.tracks[i].stopped,true);return {text:'発言'+i};}};
+  await run(v.c,'aiMic()');assert.equal(v.c.state.aiListening,true);assert.equal(v.records[i].state,'recording');assert.match(run(v.c,'aiComposerHTML()'),/■ を押すと文字になります/);await run(v.c,'aiMic()');await v.records[i].finished;assert.equal(v.c.state.aiVoiceTranscribing,false);v.c.input.value=v.c.state.ai.q;
+ }
+ assert.equal(speechStarts,0);assert.equal(requests,3);assert.equal(v.c.state.ai.q,'元の入力\n発言0\n発言1\n発言2');assert.ok(v.tracks.every(t=>t.stopped));assert.equal(v.clock.timers.size,0);
+});
+test('device-only iPhone input never records or sends audio and ends after one utterance',()=>{
+ const clock=voiceClock(),v=voiceEnv({...clock,IS_IOS:true});v.c.prefs.voiceAI='off';v.c.window.__FUTARI_PWA=true;v.c.window.MediaRecorder=class {constructor(){throw Error('must not record');}};v.c.navigator={mediaDevices:{getUserMedia(){throw Error('must not capture');}}};v.c.state.sample={json(){throw Error('must not send audio');}};
+ run(v.c,'aiMic()');assert.equal(v.rec.continuous,false);v.rec.onstart();v.rec.onresult({results:[{0:{transcript:'端末だけ'},isFinal:true}]});v.rec.onend();assert.equal(v.c.state.aiListening,false);assert.ok(![...clock.timers.values()].some(t=>t.ms===150));assert.equal(v.c.state.ai.q,'元の入力\n端末だけ');
+});
+test('AI recording routing preserves non-iPhone text correction and requires recording capabilities',()=>{
+ const v=recorderEnv();v.c.prefs.voiceAI='fix';assert.equal(run(v.c,'aiVoiceAIOk()'),false);v.c.IS_IOS=true;assert.equal(run(v.c,'aiVoiceAIOk()'),true);
+ v.c.state.sample=null;assert.equal(run(v.c,'aiVoiceAIOk()'),false);v.c.state.sample={};v.c.window.MediaRecorder=null;assert.equal(run(v.c,'aiVoiceAIOk()'),false);
+});
+test('microphone preparation timeout ignores a late granted stream while the next turn succeeds',async()=>{
+ const grants=[];const v=recorderEnv({navigator:{mediaDevices:{getUserMedia:()=>new Promise(r=>grants.push(r))}}});const old=run(v.c,'aiMic()');v.clock.fire(15000);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.aiVoiceStarting,false);
+ const next=run(v.c,'aiMic()');grants[0](v.stream());await old;assert.equal(v.tracks[0].stopped,true);assert.equal(v.c.state.aiVoiceStarting,true);grants[1](v.stream());await next;assert.equal(v.records.length,1);run(v.c,'aiVoiceCancel()');assert.ok(v.tracks.every(t=>t.stopped));assert.equal(v.clock.timers.size,0);
+});
+test('stalled audio decoding unlocks the UI and late decoding cannot overwrite the next draft',async()=>{
+ let decode,signal;const v=recorderEnv({aiToWav:(b,s)=>(signal=s,new Promise(r=>decode=()=>r(b)))});await run(v.c,'aiMic()');await run(v.c,'aiMic()');const old=v.records[0];assert.equal(v.c.state.aiVoiceTranscribing,true);v.clock.fire(60000);assert.equal(signal.aborted,true);assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.ai.q,'元の入力');
+ await run(v.c,'aiMic()');decode();await old.finished;assert.equal(v.c.state.aiListening,true);assert.equal(v.c.state.ai.q,'元の入力');run(v.c,'aiVoiceCancel()');
+});
+test('music pauses before capture and cannot play or preload during input or transcription',async()=>{
+ let paused=0;const v=recorderEnv({songStop(){paused++;}});v.c.state.songPlaying=true;v.c.state.songPlayNext=true;await run(v.c,'aiMic()');assert.equal(paused,1);assert.equal(v.c.state.songPlayNext,false);run(v.c,'aiVoiceCancel()');
+ const c=env(['songPreload','songToggle'],{songOf(){throw Error('must not start audio');}});for(const phase of ['aiListening','aiVoiceTranscribing']){c.state[phase]=true;run(c,'songPreload();songToggle()');c.state[phase]=false;}assert.equal(c.notices.length,2);
 });

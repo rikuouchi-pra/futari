@@ -2192,7 +2192,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="285";
+const APP_VERSION="286";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4743,7 +4743,7 @@ function viewSettings(){
     <div class="opts"><a class="opt" style="text-decoration:none;color:inherit" href="${GOMI_PDF}" target="_blank" rel="noopener">刈谷市のカレンダー（A地区PDF）</a>${gomiTxt()!==GOMI_EX?'<button class="opt" data-act="gomiEx">刈谷市の公式データに戻す</button>':""}</div>
     <p class="who">${(()=>{ const t=today(), n=[...Array(7)].map((_,i)=>addDays(t,i)).map(d=>[d,gomiOn(d)]).filter(([,g])=>g.length); return n.length?"これから1週間："+n.map(([d,g])=>`${short(d)} ${esc(g.join("・"))}`).join("／"):"まだ設定されていません"; })()}</p></section>
   <section class="card"><h2>AI機能</h2><div class="opts">${opt("ai","on","使う")}${opt("ai","off","使わない")}</div>
-    <p class="who" style="margin-top:10px">音声入力（AIの🎤）</p><div class="opts">${opt("voiceAI","fix","端末で聞き取り＋AIで直す（おすすめ）")}${opt("voiceAI","on","録音してAIで文字起こし")}${opt("voiceAI","off","端末の聞き取りだけ")}</div><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
+    <p class="who" style="margin-top:10px">音声入力（AIの🎤）</p><div class="opts">${opt("voiceAI","fix",IS_IOS&&window.__FUTARI_PWA?"AIで聞き取り（iPhone向け・おすすめ）":"端末で聞き取り＋AIで直す（おすすめ）")}${opt("voiceAI","on","録音してAIで文字起こし")}${opt("voiceAI","off","端末の聞き取りだけ")}</div><p class="who">iPhone・iPadのAI音声入力は、録音した声をAIへ送って文字にします。話し終わったら ■ を押してください。「端末の聞き取りだけ」ではAIへ音声を送りません。</p><p class="who" style="margin-top:10px">朝（5〜12時）にホームを開いたとき、AIが今日の組み方を1日1回自動で提案する</p><div class="opts">${opt("aiBrief","on","自動で提案する")}${opt("aiBrief","off","ボタンを押したときだけ")}</div>
     <p>AIを使うのは次の機能です：レシートの読み取り／勤務表の写真からシフト読み取り／会社カレンダーの画像・デンソー年度カレンダーの取り込み。</p>
     <p>${window.__FUTARI_PWA?"送り先：Google Gemini（Apps Script経由）。無料枠では、送った写真や文章がGoogleのサービス改善に使われることがあります。":"送り先：Claude（Anthropic）。"}「使わない」にすると、上の機能は手入力になり、写真や文章は外部に送られません。${esc(nameOf(myRole()))}の画面だけの設定です。</p>
     <p class="who">いまの状態：${!aiOn()?"オフ":state._sm?"使えます":window.__FUTARI_PWA?"準備が必要（Apps ScriptにGeminiのAPIキーを設定）":"この表示環境ではAIに問い合わせできません"}</p></section>
@@ -7111,11 +7111,13 @@ function aiDateTable(){ const t=today(); return [...Array(21)].map((_,i)=>{ cons
 let aiRec=null;
 let aiVoiceRun=0;
 let aiVoiceCtl=null;
+let aiVoiceStartTimer=null;
 function aiVoiceTracks(stream){try{stream?.getTracks().forEach(t=>t.stop());}catch(e){}}
 function aiVoiceReleaseRecorder(M){if(!M)return;clearInterval(M._tick);clearTimeout(M._stopTimer);M.onstop=M.ondataavailable=M.onerror=null;try{if(M.state!=="inactive")M.stop();}catch(e){}aiVoiceTracks(M.stream0||M.stream);}
 function aiVoiceInvalidate(){const id=++aiVoiceRun,R=aiRec,M=aiRecM,S=aiSRS,ctl=aiVoiceCtl;
   aiRec=null;aiRecM=null;aiSRS=null;aiVoiceCtl=null;state.aiListening=false;state.aiVoiceStarting=false;state.aiVoiceTranscribing=false;
-  if(S){clearTimeout(S.restartTimer);clearTimeout(S.stopTimer);clearTimeout(S.startTimer);clearTimeout(S.endTimer);}
+  clearTimeout(aiVoiceStartTimer);aiVoiceStartTimer=null;
+  if(S){clearTimeout(S.restartTimer);clearTimeout(S.stopTimer);clearTimeout(S.startTimer);clearTimeout(S.endTimer);clearTimeout(S.resultTimer);}
   try{R?.abort();}catch(e){}aiVoiceReleaseRecorder(M);try{ctl?.abort();}catch(e){}return id;
 }
 document.addEventListener("input",e=>{ if(e.target&&e.target.id==="aiIn"){ const t=e.target; t.style.height="auto"; t.style.height=Math.min(140,t.scrollHeight)+"px"; } });
@@ -7135,12 +7137,14 @@ function aiVoiceDraft(base,text){return [base.trim(),text.trim()].filter(Boolean
 function aiVoiceCancel(){aiVoiceInvalidate();state.ai.q="";state.aiVoiceBase="";state.aiVoiceRaw="";state.aiVoiceStatus="";aiMicUI();}
 /* v193: 高精度の音声入力。録音した声をAI（Gemini）で文字起こしする。名前・よく使う言葉を手がかりとして渡す */
 let aiRecM=null;
-function aiVoiceAIOk(){ return prefs.voiceAI==="on"&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
-async function aiToWav(blob){ const AC=window.AudioContext||window.webkitAudioContext, ctx=new AC(); try{ const buf=await ctx.decodeAudioData(await blob.arrayBuffer()); const sr=16000, len=Math.max(1,Math.ceil(buf.duration*sr)), off=new OfflineAudioContext(1,len,sr), src=off.createBufferSource(); src.buffer=buf; src.connect(off.destination); src.start(); const pcm=(await off.startRendering()).getChannelData(0);
+/* iOS may report onstart forever without results on the next Web Speech session. Use a fresh recording per turn for AI input; device-only mode remains device-only. */
+function aiVoiceAIOk(){ return (prefs.voiceAI==="on"||(IS_IOS&&prefs.voiceAI==="fix"))&&!!window.__FUTARI_PWA&&!!(window.MediaRecorder&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&!!state.sample; }
+function aiVoicePauseAudio(){if(state.songPlaying)songStop();state.songPlayNext=false;}
+async function aiToWav(blob,signal){ const AC=window.AudioContext||window.webkitAudioContext, ctx=new AC(), close=()=>{try{Promise.resolve(ctx.close()).catch(()=>{});}catch(e){}}; if(signal?.aborted){close();throw Error("cancelled");}signal?.addEventListener("abort",close,{once:true});try{ const buf=await ctx.decodeAudioData(await blob.arrayBuffer());if(signal?.aborted)throw Error("cancelled"); const sr=16000, len=Math.max(1,Math.ceil(buf.duration*sr)), off=new OfflineAudioContext(1,len,sr), src=off.createBufferSource(); src.buffer=buf; src.connect(off.destination); src.start(); const pcm=(await off.startRendering()).getChannelData(0);
   const out=new DataView(new ArrayBuffer(44+pcm.length*2)), w=(o,s)=>{ for(let i=0;i<s.length;i++) out.setUint8(o+i,s.charCodeAt(i)); };
   w(0,"RIFF"); out.setUint32(4,36+pcm.length*2,true); w(8,"WAVE"); w(12,"fmt "); out.setUint32(16,16,true); out.setUint16(20,1,true); out.setUint16(22,1,true); out.setUint32(24,sr,true); out.setUint32(28,sr*2,true); out.setUint16(32,2,true); out.setUint16(34,16,true); w(36,"data"); out.setUint32(40,pcm.length*2,true);
   let ss=0; for(let i=0;i<pcm.length;i++){ const v=Math.max(-1,Math.min(1,pcm[i])); ss+=v*v; out.setInt16(44+i*2,v<0?v*0x8000:v*0x7fff,true); }
-  const wb=new Blob([out.buffer],{type:"audio/wav"}); wb._rms=Math.sqrt(ss/Math.max(1,pcm.length)); return wb; } finally { try{ ctx.close(); }catch(e){} } }
+  const wb=new Blob([out.buffer],{type:"audio/wav"}); wb._rms=Math.sqrt(ss/Math.max(1,pcm.length)); return wb; } finally { signal?.removeEventListener("abort",close);close(); } }
 /* v196: 「？」だけ・記号だけの結果は失敗として扱う */
 function aiVoiceClean(t){ t=String(t||"").trim(); const core=t.replace(/[（）()？?。、.,\s・…ー-]/g,""); return core.length?t:""; }
 /* v196: 端末の聞き取り結果を、名前・よく使う言葉を手がかりにAIで直す（音声は送らない） */
@@ -7171,11 +7175,13 @@ async function aiVoiceRec(){
   }
   const base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000),id=aiVoiceInvalidate();
   state.ai.q=base;state.aiVoiceBase=base;state.aiVoiceRaw="";state.aiVoiceStarting=true;state.aiListening=true;state.aiVoiceStatus="マイクを準備しています…";aiMicUI();
+  aiVoicePauseAudio();
+  aiVoiceStartTimer=setTimeout(()=>{if(id!==aiVoiceRun)return;aiVoiceInvalidate();state.aiVoiceStatus="マイクの準備が時間内に終わりませんでした。もう一度マイクを押すか、キーボードで入力してください。";aiMicUI();},15000);
   let stream,R;
   try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
     if(id!==aiVoiceRun){aiVoiceTracks(stream);return;}
-    R=new MediaRecorder(stream);
-  }catch(e){aiVoiceTracks(stream);if(id!==aiVoiceRun)return;state.aiVoiceStarting=false;state.aiListening=false;state.aiVoiceStatus="マイクを使えません。ブラウザーのマイク設定を確認してください。";aiMicUI();return;}
+    R=new MediaRecorder(stream);clearTimeout(aiVoiceStartTimer);aiVoiceStartTimer=null;
+  }catch(e){aiVoiceTracks(stream);if(id!==aiVoiceRun)return;clearTimeout(aiVoiceStartTimer);aiVoiceStartTimer=null;state.aiVoiceStarting=false;state.aiListening=false;state.aiVoiceStatus="マイクを使えません。ブラウザーのマイク設定を確認してください。";aiMicUI();return;}
   state.aiVoiceStarting=false;R.stream0=stream;aiRecM=R;const chunks=[],t0=Date.now(),current=()=>id===aiVoiceRun&&state.ai.q===base&&!state.aiListening&&!state.ai.busy;
   R.ondataavailable=e=>{if(aiRecM===R&&e.data?.size)chunks.push(e.data);};
   R.onerror=()=>{if(aiRecM!==R)return;aiRecM=null;aiVoiceReleaseRecorder(R);state.aiListening=false;state.aiVoiceStatus="録音が中断しました。もう一度マイクを押して再開できます。";aiMicUI();};
@@ -7183,7 +7189,9 @@ async function aiVoiceRec(){
     if(aiRecM!==R)return;aiRecM=null;aiVoiceReleaseRecorder(R);state.aiListening=false;
     if(!current())return;
     const ctl=aiVoiceCtl=new AbortController();state.aiVoiceTranscribing=true;state.aiVoiceStatus="AIで文字起こし中… 完了後に続けて話せます。";aiMicUI();
-    try{const wav=await aiToWav(new Blob(chunks,{type:R.mimeType||"audio/mp4"}));if(!current())return;
+    const workTimer=setTimeout(()=>{if(id!==aiVoiceRun)return;aiVoiceInvalidate();state.aiVoiceStatus="文字起こしが時間内に終わりませんでした。入力は残しています。もう一度マイクを押して話せます。";aiMicUI();},60000),clearWork=()=>clearTimeout(workTimer);
+    ctl.signal.addEventListener("abort",clearWork,{once:true});
+    try{const wav=await aiToWav(new Blob(chunks,{type:R.mimeType||"audio/mp4"}),ctl.signal);if(!current())return;
       if(wav._rms!==undefined&&wav._rms<0.004){state.aiVoiceStatus="マイクの音が入っていませんでした。もう一度話すか、端末で聞き取る方式に変更してください。";aiMicUI();return;}
       const d=await aiRequest(state.sample,`日本語の音声です。話した内容を正確に文字に起こしてください。
 - 「えー」「あの」などの言いよどみと言い直し前の言葉は除き、言い直した後の内容を書く
@@ -7196,38 +7204,43 @@ JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick"},
       if(!text)state.aiVoiceStatus="声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。";
       else{state.ai.q=aiVoiceDraft(base,text);state.aiVoiceStatus="聞き取り完了（AI）。確認して送るか、マイクで続けて話せます。";haptic("done");}
     }catch(e){if(!current())return;state.aiVoiceStatus="AIで文字起こしできませんでした。もう一度マイクを押すか、キーボードで入力してください。";}
-    finally{if(aiVoiceCtl===ctl)aiVoiceCtl=null;if(id===aiVoiceRun){state.aiVoiceTranscribing=false;aiMicUI();}}
+    finally{clearWork();ctl.signal.removeEventListener("abort",clearWork);if(aiVoiceCtl===ctl)aiVoiceCtl=null;if(id===aiVoiceRun){state.aiVoiceTranscribing=false;aiMicUI();}}
   };
-  try{R.start(1000);if(aiRecM!==R)return;R._tick=setInterval(()=>{if(aiRecM!==R)return;const sec=Math.floor((Date.now()-t0)/1000);state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。話し終わったら「聞き取りを終了」`;const el=$("aiVoiceStatus");if(el)el.textContent=state.aiVoiceStatus;if(sec>=28)aiVoiceRec();},500);state.aiVoiceStatus="録音中…";haptic("arm");aiMicUI();}
+  try{R.start(1000);if(aiRecM!==R)return;R._tick=setInterval(()=>{if(aiRecM!==R)return;const sec=Math.floor((Date.now()-t0)/1000);state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。■ を押すと音声をAIへ送り、文字にします。`;const el=$("aiVoiceStatus");if(el)el.textContent=state.aiVoiceStatus;if(sec>=28)aiVoiceRec();},500);state.aiVoiceStatus="録音中… 話し終わったら ■ を押すと、音声をAIへ送って文字にします。";haptic("arm");aiMicUI();}
   catch(e){aiRecM=null;aiVoiceReleaseRecorder(R);state.aiListening=false;state.aiVoiceStatus="録音を開始できませんでした。もう一度マイクを押して再開できます。";aiMicUI();}
 }
 let aiSRS=null;
 function aiMic(){if(state.ai.busy||state.aiVoiceTranscribing)return;
   if(state.aiVoiceStarting){aiVoiceInvalidate();state.aiVoiceStatus="マイクの準備を中止しました。もう一度話せます。";aiMicUI();return;}
-  if(aiRecM){aiVoiceRec();return;}
-  if(state.aiListening&&aiSRS){const S=aiSRS;if(S.user)return;S.user=true;clearTimeout(S.restartTimer);state.aiVoiceStatus="聞き取りを終了しています…";
+  if(aiRecM)return aiVoiceRec();
+  if(state.aiListening&&aiSRS){const S=aiSRS;if(S.user)return;S.user=true;clearTimeout(S.restartTimer);clearTimeout(S.resultTimer);state.aiVoiceStatus="聞き取りを終了しています…";
     S.stopTimer=setTimeout(()=>{if(aiSRS===S)aiSRFinish(S,false);},1200);
     if(aiRec){try{aiRec.stop();}catch(e){aiSRFinish(S,false);}}else aiSRFinish(S,false);aiMicUI();return;
   }
-  if(aiVoiceAIOk()){aiVoiceRec();return;}
+  if(aiVoiceAIOk())return aiVoiceRec();
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition,base=String($("aiIn")?.value??state.ai.q??"").slice(0,2000),id=aiVoiceInvalidate();
   if(!SR){state.aiVoiceStatus="このブラウザーでは直接の音声認識が使えません。入力欄をタップし、キーボードのマイクで入力してください。";aiMicUI();$("aiIn")?.focus();return;}
   state.ai.q=base;state.aiVoiceBase=base;state.aiVoiceRaw="";
+  aiVoicePauseAudio();
   const S=aiSRS={SR,id,base,committed:base,lastFinal:"",t0:Date.now(),restarts:0,startFailures:0,got:false,user:false};
   if(aiSRStart(S))haptic("arm");
 }
 /* Every callback belongs to one voice session; endings and retries cannot affect a newer session. */
+function aiSRWatch(S){clearTimeout(S.resultTimer);S.resultTimer=setTimeout(()=>{if(aiSRS!==S||S.id!==aiVoiceRun||S.user)return;
+  if(!S.got)state.aiVoiceStatus="12秒間、聞き取り結果が届きませんでした。マイクを終了しました。もう一度話すか、キーボードのマイクで入力してください。";
+  aiSRFinish(S,!S.got);
+},12000);}
 function aiSRStart(S){if(aiSRS!==S||S.id!==aiVoiceRun||S.user)return false;let R;
   try{R=new S.SR();}catch(e){state.aiVoiceStatus="音声認識を開始できません。キーボードのマイクも使えます。";aiSRFinish(S,true);return false;}
-  aiRec=R;R.lang="ja-JP";R.interimResults=true;R.continuous=true;R.maxAlternatives=1;
+  aiRec=R;R.lang="ja-JP";R.interimResults=true;R.continuous=!IS_IOS;R.maxAlternatives=1;
   const current=()=>aiRec===R&&aiSRS===S&&S.id===aiVoiceRun;
   R.onstart=()=>{if(!current())return;clearTimeout(S.startTimer);S.startFailures=0;state.aiVoiceStatus="聞き取り中… 話し終わったら ■ を押してください";aiMicUI();};
   R.onresult=e=>{if(!current())return;clearTimeout(S.startTimer);S.startFailures=0;const t=aiVoiceText(e.results);
     if(S.lastFinal&&t.final.length<S.lastFinal.length&&!S.lastFinal.startsWith(t.final))S.committed=aiVoiceDraft(S.committed,S.lastFinal);
-    S.lastFinal=t.final;if((t.final+t.interim).trim())S.got=true;state.ai.q=aiVoiceDraft(S.committed,t.final+t.interim);const el=$("aiIn");if(el)el.value=state.ai.q;
+    S.lastFinal=t.final;if((t.final+t.interim).trim()){S.got=true;aiSRWatch(S);}state.ai.q=aiVoiceDraft(S.committed,t.final+t.interim);const el=$("aiIn");if(el)el.value=state.ai.q;
   };
   R.onend=()=>{if(!current())return;aiRec=null;clearTimeout(S.startTimer);clearTimeout(S.endTimer);S.committed=state.ai.q;S.lastFinal="";
-    if(!S.user&&Date.now()-S.t0<5*60e3&&S.restarts<40){S.restarts++;S.restartTimer=setTimeout(()=>{if(aiSRS===S&&!S.user&&state.aiListening)aiSRStart(S);},150);return;}
+    if(!IS_IOS&&!S.user&&Date.now()-S.t0<5*60e3&&S.restarts<40){S.restarts++;S.restartTimer=setTimeout(()=>{if(aiSRS===S&&!S.user&&state.aiListening)aiSRStart(S);},150);return;}
     aiSRFinish(S,false);
   };
   R.onaudioend=()=>{if(!current())return;clearTimeout(S.endTimer);S.endTimer=setTimeout(()=>{if(current()){R.onend();try{R.abort();}catch(e){}}},1200);};
@@ -7237,6 +7250,7 @@ function aiSRStart(S){if(aiSRS!==S||S.id!==aiVoiceRun||S.user)return false;let R
     aiSRFinish(S,true);
   };
   state.aiListening=true;state.aiVoiceStatus="聞き取り中… 話し終わったら ■ を押してください";
+  if(!S.resultTimer)aiSRWatch(S);
   S.startTimer=setTimeout(()=>{if(current()){state.aiVoiceStatus="音声認識を開始できませんでした。もう一度マイクを押して再開できます。";aiSRFinish(S,true);}},5000);
   try{R.start();aiMicUI();return true;}
   catch(e){if(!current())return false;aiRec=null;clearTimeout(S.startTimer);try{R.abort();}catch(_){}
@@ -7245,13 +7259,13 @@ function aiSRStart(S){if(aiSRS!==S||S.id!==aiVoiceRun||S.user)return false;let R
   }
 }
 function aiSRFinish(S,failed){if(aiSRS!==S||S.id!==aiVoiceRun)return;
-  const R=aiRec;aiRec=null;aiSRS=null;state.aiListening=false;clearTimeout(S.restartTimer);clearTimeout(S.stopTimer);clearTimeout(S.startTimer);clearTimeout(S.endTimer);try{R?.abort();}catch(e){}
+  const R=aiRec;aiRec=null;aiSRS=null;state.aiListening=false;clearTimeout(S.restartTimer);clearTimeout(S.stopTimer);clearTimeout(S.startTimer);clearTimeout(S.endTimer);clearTimeout(S.resultTimer);try{R?.abort();}catch(e){}
   const draft=String(state.ai.q||""),prefix=S.base.trim(),raw=(prefix&&draft.startsWith(prefix)?draft.slice(prefix.length):draft).trim();
   if(!failed&&raw)setTimeout(()=>aiVoiceFix(S.base,raw,S.id,draft),0);
   if(!failed)state.aiVoiceStatus=draft!==S.base?"聞き取り完了。確認して送るか、マイクで続けて話せます。":"聞き取りを終了しました。もう一度話せます。";
   haptic("done");aiMicUI();
 }
-function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,processing=!!state.aiVoiceTranscribing,st=state.aiVoiceStatus||"";return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy||processing?"disabled":""} ${listening||processing?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy||processing?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening||processing?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="やめて入力を消す">✕</button>':`${A.q&&!A.busy?'<button class="ai-ib" data-act="aiClear" aria-label="入力を消す">✕</button>':""}<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy||processing?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
+function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,processing=!!state.aiVoiceTranscribing,recording=!!aiRecM,st=state.aiVoiceStatus||(!A.busy&&aiVoiceAIOk()?"声を録音してAIへ送り、文字にします。話し終わったら ■ を押してください。":"");return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${state.aiVoiceStarting?"マイクを準備中…":recording?"録音中… ■ を押すと文字になります":processing?"文字起こし中…":listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy||processing?"disabled":""} ${listening||processing?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy||processing?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening||processing?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="やめて入力を消す">✕</button>':`${A.q&&!A.busy?'<button class="ai-ib" data-act="aiClear" aria-label="入力を消す">✕</button>':""}<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy||processing?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
 function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
@@ -8515,9 +8529,9 @@ async function songLookup(d){ const x=songOf(d); if(!x||!x.title||x.url||state.s
   try{ const m=await songFind(x.title,x.artist); const cur=songOf(d); if(!m||!cur||cur.title!==x.title) return; Object.assign(cur,m); dupd("music",d,m); songPreload(); if(state.songPlayNext&&m.preview){ state.songPlayNext=false; songToggle(); } else songRender(); }catch(e){} }
 let songAudio=null;
 function songEl(){ if(!songAudio){ songAudio=new Audio(); songAudio.preload="auto"; songAudio.onended=()=>{ state.songPlaying=false; songRender(); }; } return songAudio; }
-function songPreload(){ const x=songOf(today()); if(!songAllowed(x)||!x.preview) return; const a=songEl(); if(a.src!==x.preview){ a.src=x.preview; try{ a.load(); }catch(e){} } }
+function songPreload(){if(state.aiListening||state.aiVoiceTranscribing)return; const x=songOf(today()); if(!songAllowed(x)||!x.preview) return; const a=songEl(); if(a.src!==x.preview){ a.src=x.preview; try{ a.load(); }catch(e){} } }
 function songStop(){ if(songAudio){ try{ songAudio.pause(); }catch(e){} } state.songPlaying=false; }
-function songToggle(){ const x=songOf(today()); if(!songAllowed(x)||!x.preview){ songStop(); return; } const a=songEl(); if(state.songPlaying){ songStop(); songRender(); return; }
+function songToggle(){if(state.aiListening||state.aiVoiceTranscribing){toast("音声入力が終わってから再生できます");return;} const x=songOf(today()); if(!songAllowed(x)||!x.preview){ songStop(); return; } const a=songEl(); if(state.songPlaying){ songStop(); songRender(); return; }
   if(a.src!==x.preview) a.src=x.preview; a.volume=0.8; state.songPlaying=true; songRender();
   a.play().catch(()=>{ state.songPlaying=false; songRender(); }); }
 function songNext(){ const d=today(), x=songOf(d); if(!x||state.songBusy) return; songStop();
