@@ -2149,7 +2149,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="275";
+const APP_VERSION="276";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2431,7 +2431,7 @@ function err(e){
   $("offline").hidden=false;
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
-async function dset(c,id,data){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data)}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
+async function dset(c,id,data){ if(guestBlock(c)) return; const existed=(state[c]||[]).some(x=>x.id===id); netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data);try{pushNotifyAdded(c,id,data,existed)}catch(_){}}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
 async function dupd(c,id,ch){ if(guestBlock(c)) return; netMark(); ch.updatedAt=Date.now();
   { const ex0=(state[c]||[]).find(i=>i.id===id); if(ex0&&ex0.auto&&!arWriting&&!("touched" in ch)&&["text","date","start","end","due","time","who"].some(k=>k in ch)) ch.touched=true; } /* v207: 自動で入ったものを手で直したら、以後は自動で変えない */ if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
 async function ddel(c,id){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
@@ -3868,70 +3868,100 @@ function duoTray(d){ const t=today(), sh=i=>!isRecItem(i)&&!i.done&&!duoTimed(i)
 function duoRow(i){ const P=state.duoPick&&state.duoPick.id===i.id, w=getWho(i);
   return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱"}</span></button><span class="duo-grip" data-duo-grip="${esc(i.id)}" role="button" aria-label="つかんでタイムテーブルへ">⋮⋮</span></li>`; }
 /* ================= v225: スマホへの通知（Web Push）。予定の前・朝のまとめ・夜の質問・相手が追加したとき ================= */
-const PUSH_K=[["ev","予定の前"],["am","朝のまとめ（予定・ごみ・天気・やること）"],["pm","夜：今日の質問・日記がまだのとき"],["add","相手が予定・やることを追加したとき"]];
+const PUSH_K=[["ev","予定・タスク・習慣・家事の開始前"],["am","朝のまとめ（予定・ごみ・天気・やること）"],["pm","夜：今日の質問が未回答のとき"],["add","相手が予定・やることを追加したとき"]];
 const pushDev=()=>{ try{ return localStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
 const pushStandaloneIOS=()=>/iPhone|iPad/.test(navigator.userAgent)&&!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
-function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window, perm=ok?Notification.permission:"", on=prefs.pushOn==="1"&&!!pushDev()&&perm==="granted", off=new Set((prefs.pushOff||"").split(",").filter(Boolean));
-  return `<h2>スマホへの通知</h2>${!ok?(pushStandaloneIOS()?`<p class="who">iPhoneでは、Safariの共有ボタン →「ホーム画面に追加」で入れたアプリから開くと通知を使えます（iOS 16.4以降）。</p>`:`<p class="who">この端末・ブラウザは通知に対応していません。</p>`)
-    :perm==="denied"?`<p class="who">通知が「許可しない」になっています。iPhoneの「設定」→「通知」→「ふたりのリスト」で許可してから、もう一度押してください。</p><div class="opts"><button class="opt" data-act="pushOn">もう一度試す</button></div>`
-    :on?`<p class="who">この端末で通知を受け取ります（${esc(nameOf(myRole()))}あて）。</p><div class="opts">${PUSH_K.map(([k,l])=>`<button class="opt" data-act="pushKind" data-k="${k}" aria-pressed="${!off.has(k)}">${l}</button>`).join("")}</div>
-      <h2>予定の何分前</h2><div class="opts">${["10","30","60"].map(v=>`<button class="opt" data-act="pushLead" data-v="${v}" aria-pressed="${prefs.pushLead===v}">${v}分前</button>`).join("")}</div>
-      <h2>朝のまとめ</h2><div class="opts">${["6","7","8"].map(v=>`<button class="opt" data-act="pushAm" data-v="${v}" aria-pressed="${prefs.pushAmH===v}">${v}時</button>`).join("")}</div>
-      <div class="opts"><button class="opt" data-act="pushTest">テスト通知を送る</button><button class="opt" data-act="pushOffDev">この端末の通知をやめる</button></div><p class="who">${state.pushMsg?esc(state.pushMsg):"通知はApps Scriptから5分ごとに送ります。初回だけ、Apps Scriptで installPushTrigger を1回実行してください。"}</p>`
-    :`<p class="who">予定の前・朝のまとめ・今日の質問・相手が追加したときに、スマホに通知します。🔒じぶん専用の予定は自分にだけ届きます。</p><div class="opts"><button class="opt" data-act="pushOn">この端末で通知を受け取る</button></div>${state.pushMsg?`<p class="who">${esc(state.pushMsg)}</p>`:""}`}`; }
 function pushCardRefresh(){ const c=$("pushCard"); if(c) c.innerHTML=pushCardHTML(); }
 const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); };
-async function pushOn(){ try{
-  if(!("serviceWorker" in navigator)||!("PushManager" in window)){ toast(pushStandaloneIOS()?"ホーム画面に追加したアプリから開いてください":"この端末は通知に対応していません"); return; }
-  const perm=await Notification.requestPermission(); if(perm!=="granted"){ state.pushMsg="通知が許可されませんでした"; pushCardRefresh(); return; }
-  state.pushMsg="設定しています…"; pushCardRefresh();
-  const P=await claude.use("push"); if(!P){ state.pushMsg="Apps Scriptの接続先がありません（config.js）"; pushCardRefresh(); return; }
-  const k=(await P.call({op:"key"}))||{}; if(!k.key) throw Error("鍵を受け取れませんでした。Apps Scriptを最新（v11）にしてください");
-  const reg=await navigator.serviceWorker.ready; let sub=await reg.pushManager.getSubscription(); if(sub){ try{ const cur=new Uint8Array(sub.options.applicationServerKey||[]), want=b64uToU8(k.key); if(cur.length!==want.length||cur.some((v,i)=>v!==want[i])){ await sub.unsubscribe(); sub=null; } }catch(e){} }
-  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToU8(k.key)});
-  let dev=pushDev(), sec=""; try{ sec=localStorage.getItem("futari.pushSec")||""; }catch(e){}
-  if(!dev){ dev="d"+newId()+newId().slice(0,6); sec=newId()+newId(); try{ localStorage.setItem("futari.pushDev",dev); localStorage.setItem("futari.pushSec",sec); }catch(e){} }
-  (reg.active||navigator.serviceWorker.controller)&&(reg.active||navigator.serviceWorker.controller).postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
-  state.pushSub=sub.toJSON(); prefs.pushOn="1"; savePrefs(true); await pushSync("test"); state.pushMsg="テスト通知を送りました。届かないときは、Apps Scriptを最新にして installPushTrigger を実行してください"; pushCardRefresh();
- }catch(e){ state.pushMsg="通知の設定に失敗しました："+String((e&&(e.detail||e.message))||e).slice(0,120); pushCardRefresh(); } }
 /* この先48時間の通知予定をつくる（ふたり分の共有＋自分の🔒） */
-function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=Number(prefs.pushLead)||30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
+function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=[0,5,10,15,30,60].includes(Number(prefs.pushLead))?Number(prefs.pushLead):30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
   const shared=[], priv=[], rolesOf=x=>{ const w=getWho(x); return w==="both"?R:R.includes(w)?[w]:R; };
   for(const d of days){
-    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:`${lead}分後：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
-    for(const i of state.items) if(!i.done&&i.due===d&&i.time&&!isRecItem(i)){ const a=at(d,i.time)-lead*60e3; if(a>now) shared.push({id:`it:${i.id}:${d}:${i.time}:${lead}`,at:a,roles:rolesOf(i),kind:"ev",t:`${lead}分後：${i.text}`,b:`${i.time}・${i.list==="shop"?"買い物":"やること"}`}); }
-    for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:`${lead}分後：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
+    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:lead?`${lead}分後：${x.text}`:`開始：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
+    for(const i of state.items) if(!i.done&&i.due===d&&myT(i)&&!isRecItem(i)){ const a=at(d,myT(i))-lead*60e3; if(a>now) shared.push({id:`it:${i.id}:${d}:${myT(i)}:${lead}`,at:a,roles:rolesOf(i).filter(r=>!doneOf(i,r)),kind:"ev",t:lead?`${lead}分後：${i.text}`:`開始：${i.text}`,b:`${myT(i)}・${i.list==="shop"?"買い物":"やること"}`}); }
+    for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${b.text}`:`開始：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
+    for(const o of dayEntries(d)){if(o.done||o.skip||o.kind==="g"||o.c==="blocks"||o.c==="events"||(o.c==="items"&&!isRecItem(o.x)))continue;
+      const a=at(d,hhmm(o.s))-lead*60e3;if(a<=now)continue;const privateEntry=["pitems","habits"].includes(o.c),target=privateEntry?priv:shared;
+      target.push({id:`timed:${o.c}:${o.x.id}:${me}:${d}:${o.s}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${o.t}`:`開始：${o.t}`,b:`${privateEntry?"🔒 ":""}${hhmm(o.s)}・${ttInfo(o).type}`}); }
     const amH=String(prefs.pushAmH||"7").padStart(2,"0"), am=at(d,`${amH}:00`);
     if(am>now) for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
       const parts=[sh?`シフト：${sh}`:"",W?`${WXN[W.k]} ${W.max}°/${W.min}°${W.pop>=30?` ☂${W.pop}%`:""}${W.dry?`・洗濯：${W.dry.l}`:""}`:"",G.length?`ごみ：${G.join("・")}`:"",ev.length?`予定：${ev.slice(0,3).map(x=>`${x.start||"終日"} ${x.text}`).join("、")}${ev.length>3?` ほか${ev.length-3}件`:""}`:"",tk?`やること ${tk}件`:""].filter(Boolean);
-      shared.push({id:`am:${d}:${r}:${amH}`,at:am,roles:[r],kind:"am",t:`${d===t?"今日":"明日"}（${"日月火水木金土"[parse(d).getDay()]}）のまとめ`,b:parts.join("\n")||"今日は予定はありません"}); }
+      shared.push({id:`am:${d}:${r}:${amH}`,at:am,roles:[r],kind:"am",t:`${d.slice(5).replace("-","/")}（${"日月火水木金土"[parse(d).getDay()]}）のまとめ`,b:parts.join("\n")||"今日は予定はありません"}); }
     const pm=at(d,"20:30"); if(pm>now) for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
   }
-  return {shared:shared.sort((a,b)=>a.at-b.at).slice(0,60),priv:priv.sort((a,b)=>a.at-b.at).slice(0,40)}; }
+  return {shared:shared.filter(x=>x.roles.length).sort((a,b)=>a.at-b.at).slice(0,60),priv:priv.sort((a,b)=>a.at-b.at).slice(0,40)}; }
 let pushT=null, pushQ=[];
-function pushQueue(m){ if(prefs.pushOn!=="1"||!pushDev()) return; pushQ.push(m); clearTimeout(pushT); pushT=setTimeout(()=>pushSync(),4000); }
-async function pushSync(op){ const dev=pushDev(); if(prefs.pushOn!=="1"||!dev||(db&&!privBase)) return; try{
-  const reg=await navigator.serviceWorker.ready, sub=state.pushSub||((await reg.pushManager.getSubscription())||{toJSON:()=>null}).toJSON(); if(!sub||!sub.endpoint) return;
-  let sec=""; try{ sec=localStorage.getItem("futari.pushSec")||""; }catch(e){}
-  const P=await claude.use("push"); if(!P) return; (reg.active||navigator.serviceWorker.controller)&&(reg.active||navigator.serviceWorker.controller).postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
-  const plan=pushPlan(), now=pushQ.splice(0), off=(prefs.pushOff||"").split(",").filter(Boolean);
-  await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,at:Date.now(),shared:plan.shared,now})});
+function pushQueue(m){ if(!pushEnabled()) return; pushQ.push(m); clearTimeout(pushT); pushT=setTimeout(()=>pushSync(),4000); }
+/* v276: 端末ごとの通知登録と、成功・未確認・失敗の区別 */
+function pushEnabled(){ try{ const v=localStorage.getItem("futari.pushEnabled"), owner=localStorage.getItem("futari.pushOwner"); return !!pushDev()&&(!owner||owner===state.me)&&(v===null?prefs.pushOn==="1":v==="1"); }catch(e){return false;} }
+function pushSetEnabled(on){ localStorage.setItem("futari.pushEnabled",on?"1":"0"); if(on) localStorage.setItem("futari.pushOwner",state.me); }
+function pushWait(p,ms=12000){ return new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error("通知の準備が時間切れになりました。再読み込みして試してください")),ms);Promise.resolve(p).then(v=>{clearTimeout(t);resolve(v);},e=>{clearTimeout(t);reject(e);});}); }
+function pushResultMessage(r){ return r&&Number(r.sent)>0?"送信サーバーがテスト通知を送信しました。端末に届いたか確認してください。":"通知の登録は保存しました。テスト通知の送信は確認できていません。"; }
+function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window, perm=ok?Notification.permission:"", on=pushEnabled()&&perm==="granted", off=new Set((prefs.pushOff||"").split(",").filter(Boolean));
+  const msg=state.pushMsg?`<p class="who" role="status" aria-live="polite">${esc(state.pushMsg)}</p>`:"", busy=state.pushBusy?"disabled":"";
+  let body="";
+  if(pushStandaloneIOS()) body='<p class="who">Safariの共有ボタン →「ホーム画面に追加」。追加したアイコンから開き、ここで通知を許可してください（iOS 16.4以降）。</p>';
+  else if(!ok) body='<p class="who">このブラウザはプッシュ通知に対応していません。</p>';
+  else if(perm==="denied") body='<p class="who">通知が拒否されています。端末またはブラウザの通知設定で、このアプリの通知を許可してください。</p>';
+  else if(on) body=`<p class="who">この端末の通知：${state.pushLast?"登録済み":"登録の確認が必要"}（${esc(nameOf(myRole()))}あて）</p><p class="who">自分だけの内容は自分あての通知にだけ含まれます。</p><div class="opts">${PUSH_K.map(([k,l])=>`<button class="opt" data-act="pushKind" data-k="${k}" aria-pressed="${!off.has(k)}" ${busy}>${l}</button>`).join("")}</div>
+    <h2>開始の何分前</h2><div class="opts">${["0","5","10","15","30","60"].map(v=>`<button class="opt" data-act="pushLead" data-v="${v}" aria-pressed="${prefs.pushLead===v}" ${busy}>${v==="0"?"開始時":v+"分前"}</button>`).join("")}</div>
+    <h2>朝のまとめ</h2><div class="opts">${["6","7","8"].map(v=>`<button class="opt" data-act="pushAm" data-v="${v}" aria-pressed="${prefs.pushAmH===v}" ${busy}>${v}時</button>`).join("")}</div>
+    <div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して再登録":"通知登録を確認・修復"}</button><button class="opt" data-act="pushTest" ${busy}>テスト通知を送る</button><button class="opt" data-act="pushRefresh" ${busy}>通知予定を更新</button><button class="opt" data-act="pushOffDev" ${busy}>この端末の通知を停止</button></div>
+    <p class="who">${state.pushLast?`最終同期：${esc(new Date(state.pushLast).toLocaleString("ja-JP"))}。`:"送信サーバーとの同期は未確認です。"}今日と明日の通知予定を、アプリを開いたとき・予定変更時に更新します。送信間隔により数分遅れることがあります。</p>`;
+  else body=`<p class="who">予定・時間を決めたタスク・習慣・家事の開始前、朝のまとめ、夜の質問を通知します。</p><div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して有効にする":"この端末の通知を準備"}</button></div>`;
+  if(!on&&(pushEnabled()||state.pushStopRetry)) body+=`<button class="opt" data-act="pushOffDev" ${busy}>この端末の登録を解除</button>`;
+  return `<h2>スマホへの通知</h2>${body}${msg}`; }
+async function pushPrepare(){ if(state.pushBusy)return;state.pushBusy=true;state.pushMsg="通知の接続先を確認しています…";pushCardRefresh();try{
+  if(!state.me||!db||!privBase)throw Error("ログインとデータの読み込みが完了してから試してください");
+  const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
+  const k=await P.call({op:"key"});if(!k||!k.key)throw Error("送信サーバーが通知に対応していません。通知用のサーバー設定が必要です");
+  const key=b64uToU8(k.key);if(key.length!==65||key[0]!==4)throw Error("通知用の公開鍵が正しくありません");
+  const reg=await pushWait(navigator.serviceWorker.ready);state.pushPrepared={P,key,reg,owner:state.me};state.pushMsg="準備ができました。次のボタンで通知を許可してください。";
+}catch(e){state.pushPrepared=null;state.pushMsg="準備できませんでした："+String(e.detail||e.message||e).slice(0,140);}finally{state.pushBusy=false;pushCardRefresh();} }
+async function pushOn(){ if(state.pushBusy)return; const ready=state.pushPrepared;if(!ready||ready.owner!==state.me){await pushPrepare();return;}state.pushBusy=true;try{
+  const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("通知が許可されませんでした");
+  const {P,key,reg}=ready;const previousOwner=localStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
+  if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+  let dev=ownerChanged?"":pushDev(),sec=ownerChanged?"":localStorage.getItem("futari.pushSec")||"";if(!dev)dev="d"+crypto.randomUUID();if(!sec)sec=crypto.randomUUID()+crypto.randomUUID();
+  localStorage.setItem("futari.pushDev",dev);localStorage.setItem("futari.pushSec",sec);pushSetEnabled(true);state.pushSub=sub.toJSON();
+  const r=await pushSync("test");if(!r)throw Error(state.pushMsg||"送信サーバーへの登録を確認できませんでした");
+  prefs.pushOn="1";savePrefs(true);state.pushPrepared=null;state.pushStopRetry=false;state.pushMsg=pushResultMessage(r);
+}catch(e){state.pushMsg="通知の設定を完了できませんでした："+String(e.detail||e.message||e).slice(0,160);}finally{state.pushBusy=false;pushCardRefresh();} }
+async function pushOffDevice(){ if(state.pushBusy)return;state.pushBusy=true;const dev=pushDev();const issues=[];try{
+  pushSetEnabled(false);clearTimeout(pushT);pushQ=[];
+  if(pushFlight)await pushFlight.catch(()=>{});
+  try{const reg=await pushWait(navigator.serviceWorker.ready);const sub=await reg.pushManager.getSubscription();if(sub&&!await sub.unsubscribe())throw Error("通知購読を解除できませんでした");state.pushSub=null;(reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushclear"});}catch(e){issues.push("端末の解除に失敗");}
+  try{const P=await claude.use("push");if(!P)throw Error("no server");await P.call({op:"off",dev});}catch(e){issues.push("送信サーバーの解除は未確認");}
+  state.pushPrepared=null;state.pushMsg=issues.length?"通知同期を停止しました。"+issues.join("・")+"。解除を再試行してください。":"この端末の通知を停止しました。";state.pushStopRetry=issues.length>0;
+}catch(e){state.pushMsg="停止できませんでした："+String(e.message||e);}finally{state.pushBusy=false;pushCardRefresh();} }
+let pushFlight=null;
+function pushSync(op){ if(pushFlight){if(op)return pushFlight.then(()=>pushSync(op));state.pushResync=true;return pushFlight;}pushFlight=pushSyncRun(op).finally(()=>{pushFlight=null;if(state.pushResync){state.pushResync=false;setTimeout(()=>pushSync(),0);}});return pushFlight; }
+async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)return null;try{
+  if(!db||!privBase||!state.me)throw Error("ログインとデータの読み込みが完了していません");
+  const reg=await pushWait(navigator.serviceWorker.ready),subscription=await reg.pushManager.getSubscription(),sub=subscription&&subscription.toJSON();if(!sub||!sub.endpoint)throw Error("この端末の通知登録がありません。通知を準備し直してください");
+  const sec=localStorage.getItem("futari.pushSec");if(!sec)throw Error("通知登録の情報がありません。通知を準備し直してください");
+  const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
+  (reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
+  const plan=pushPlan(),queued=pushQ.slice(),off=(prefs.pushOff||"").split(",").filter(Boolean);
+  await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,at:Date.now(),shared:plan.shared,now:queued})});
   await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
-  const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`}); state.pushLast=Date.now(); return r;
- }catch(e){ state.pushMsg="通知の同期に失敗："+String((e&&(e.detail||e.message))||e).slice(0,100); } }
+  const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`});if(!r||r.error||r.ok===false)throw Error("送信サーバーが通知の保存を確認できませんでした");
+  pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
+}catch(e){state.pushMsg="通知の同期に失敗："+String(e.detail||e.message||e).slice(0,140);pushCardRefresh();return null;} }
+function pushNotifyAdded(c,id,data,existed){if(existed||!data||data.auto||!["events","items","topics"].includes(c))return;const me=myRole(),ot=otherRole(),w=data.who||"both";if(w!==ot&&w!=="both")return;pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:String(data.text||"")}); }
+
 /* アプリを開いたとき・データが変わったとき（まとめて）に予定を送り直す */
-setInterval(()=>{ if(prefs.pushOn==="1"&&document.visibilityState==="visible"&&Date.now()-(state.pushLast||0)>10*60e3) pushSync(); },60e3);
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&prefs.pushOn==="1") setTimeout(()=>pushSync(),5000); });
+setInterval(()=>{ if(pushEnabled()&&document.visibilityState==="visible"&&Date.now()-(state.pushLast||0)>10*60e3) pushSync(); },60e3);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&pushEnabled()) setTimeout(()=>pushSync(),5000); });
 if("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message",e=>{ if(e.data&&e.data.type==="pushopen") go("home"); });
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=push]"); if(!b) return; e.stopPropagation(); const a=b.dataset.act;
-  if(a==="pushOn") pushOn();
-  else if(a==="pushTest"){ state.pushMsg="送っています…"; pushCardRefresh(); pushSync("test").then(r=>{ state.pushMsg=r&&r.sent?"テスト通知を送りました":(state.pushMsg&&/失敗/.test(state.pushMsg)?state.pushMsg:"送れませんでした。Apps Scriptが最新（v11）か確認してください"); pushCardRefresh(); }); }
-  else if(a==="pushOffDev"){ const dev=pushDev(); claude.use("push").then(P=>P&&P.call({op:"off",dev})).catch(()=>{}); navigator.serviceWorker.ready.then(r=>r.pushManager.getSubscription()).then(s=>s&&s.unsubscribe()).catch(()=>{}); prefs.pushOn="0"; savePrefs(true); state.pushMsg="この端末の通知をやめました"; pushCardRefresh(); }
+  if(a==="pushPrepare") pushPrepare();
+  else if(a==="pushOn") pushOn();
+  else if(a==="pushTest"||a==="pushRefresh"){ if(state.pushBusy)return;state.pushBusy=true;state.pushMsg="送信サーバーと通信しています…";pushCardRefresh();pushSync(a==="pushTest"?"test":"sync").finally(()=>{state.pushBusy=false;pushCardRefresh();}); }
+  else if(a==="pushOffDev") pushOffDevice();
   else if(a==="pushKind"){ const S=new Set((prefs.pushOff||"").split(",").filter(Boolean)); S.has(b.dataset.k)?S.delete(b.dataset.k):S.add(b.dataset.k); prefs.pushOff=[...S].join(","); savePrefs(true); pushCardRefresh(); pushSync(); }
   else if(a==="pushLead"){ prefs.pushLead=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); }
   else if(a==="pushAm"){ prefs.pushAmH=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); } },true);
-/* 相手あての予定・やること・議題を自分が追加したら、相手にすぐ知らせる */
-{ const W0=window.dset; if(typeof W0==="function") window.dset=function(c,id,data){ try{ if(["events","items","topics"].includes(c)&&data&&!data.auto&&!(state[c]||[]).some(x=>x.id===id)){ const me=myRole(), ot=otherRole(), w=data.who||"both"; if(w===ot||w==="both") pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:`${data.text||""}${data.date||data.due?`（${short(data.date||data.due)}${data.start||data.time?" "+(data.start||data.time):""}）`:""}`}); } }catch(e){} return W0.apply(this,arguments); }; }
 /* v224: ⋮⋮をつかんで、ふたりのタイムテーブルの入れたい人・時刻へドロップ */
 { let G=null, scr=0;
   const pos=(x,y)=>{ const el=document.elementFromPoint(x,y), col=el&&el.closest&&el.closest("#main .duo-col"); if(!col) return null; const g=col.closest(".duo-g"), st=Number(g.dataset.duoSt), r=col.getBoundingClientRect(), m=Math.max(0,Math.min(1425,st*60+Math.round((y-r.top)*60/DUO_PPH/15)*15)); return {col,role:col.dataset.duoRole,m,date:g.dataset.duoDate}; };
@@ -6519,7 +6549,7 @@ let autoTimer=null; var arWriting=false;
 const AR_COL={block:"blocks",task:"pitems",event:"events",item:"items",shop:"items",chore:"chores",topic:"topics"};
 const AR_SHARED=new Set(["events","items","chores","topics"]);
 function arMade(){ return new Set((prefs.autoMade||"").split(",").filter(Boolean)); }
-function autoCook(){ if(prefs.pushOn==="1"){ clearTimeout(window.__pushDeb); window.__pushDeb=setTimeout(()=>pushSync(),20000); } clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
+function autoCook(){ if(pushEnabled()){ clearTimeout(window.__pushDeb); window.__pushDeb=setTimeout(()=>pushSync(),20000); } clearTimeout(autoTimer); autoTimer=setTimeout(()=>{
   if((db&&!privBase)||!state.blocksLoaded||!state.pitemsLoaded||!state.shiftsLoaded) return;
   const ld=c=>c==="blocks"||c==="pitems"||!db||state[c+"Loaded"];
   const t=today(), skip=arSkip(), now=Date.now(), rules=arRules(), ids=new Set(rules.map(r=>r.id)), made=arMade(), made0=prefs.autoMade||"";
@@ -9272,11 +9302,11 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   }
   rolesDoc.onSnapshot(s=>{ state.roles=s.exists?s.data():{}; state.rolesLoaded=true; resolveRole(); requestRender(); if(!$("onb").hidden) renderOnb(); },()=>{ state.rolesLoaded=true; });
   famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
-  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(c!=="gsync") gAutoKick(4000); if(c==="blocks"||c==="pitems") autoCook(); requestRender(); },()=>{});
+  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(pushEnabled()){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} if(c!=="gsync") gAutoKick(4000); if(c==="blocks"||c==="pitems") autoCook(); requestRender(); },()=>{});
   const live=()=>{ $("sync").classList.add("live"); netChip(); };
   const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
+  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
