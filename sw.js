@@ -1,5 +1,5 @@
 /* ふたりのリスト：オフラインでも開けるようにするサービスワーカー */
-const V="futari-275-b12c3d4e";
+const V="futari-276-notifications";
 const SHELL=["./","index.html","shim.js","config.js","manifest.webmanifest","icon-192.png","icon-512.png","apple-touch-icon.png"];
 const FB="https://www.gstatic.com/firebasejs/10.12.2/";
 const LIBS=["firebase-app.js","firebase-auth.js","firebase-firestore.js"].map(f=>FB+f);
@@ -22,7 +22,7 @@ self.addEventListener("fetch",e=>{
 
 /* v225: 通知（Web Push）。届いたら、Apps Script の受信箱から中身を取って表示 */
 const PUSHC="futari-push";
-self.addEventListener("message",e=>{ if(e.data&&e.data.type==="pushcfg") e.waitUntil(caches.open(PUSHC).then(c=>c.put("cfg",new Response(JSON.stringify(e.data.cfg||{}),{headers:{"Content-Type":"application/json"}})))); });
+self.addEventListener("message",e=>{ if(e.data&&e.data.type==="pushclear"){e.waitUntil(caches.delete(PUSHC));return;} if(e.data&&e.data.type==="pushcfg") e.waitUntil(caches.open(PUSHC).then(c=>c.put("cfg",new Response(JSON.stringify(e.data.cfg||{}),{headers:{"Content-Type":"application/json"}})))); });
 self.addEventListener("push",e=>{ e.waitUntil((async()=>{ let list=[];
   try{ const c=await (await caches.open(PUSHC)).match("cfg"), cfg=c?await c.json():null; if(cfg&&cfg.url&&cfg.dev){ const r=await fetch(`${cfg.url}?inbox=${encodeURIComponent(cfg.dev)}&sec=${encodeURIComponent(cfg.sec||"")}&t=${Date.now()}`,{cache:"no-store"}); const j=await r.json(); list=Array.isArray(j.list)?j.list:[]; } }catch(x){}
   if(!list.length) list=[{id:"n"+Date.now(),t:"ふたりのリスト",b:"新しいお知らせがあります。開いて確認してください"}];
