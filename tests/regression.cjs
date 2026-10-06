@@ -33,6 +33,7 @@ function env(names, overrides = {}) {
     bugAIPanel:()=>'',pushEnabled:()=>false,...overrides });
   if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
+  if(names.includes('choreInfo'))names=['choreMovedDue',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
@@ -41,6 +42,48 @@ function env(names, overrides = {}) {
 const core = ['tmin','hhmm','isRecItem','sharedBoth','bothRoleOrder','bothPick','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
+
+function choreMoveEnv() {
+  const names=['choreLast','chSch','chSkip','choreInfo','choreOn','choreDueCount','chFqLabel','choreRow','viewChore','CHORE_PRESET','MV_ON','movedIn','movedAway','isRecurEnt','applyLocal','moveOcc','dayTime','dayTimeKey','sharedBoth','hSince','hSch','tgtCode','hWd','hNth','hOn','hNextOn','moOn','moS','moN'];
+  const c=env([...core,'aiDate',...names],{short:String,WD:['日','月','火','水','木','金','土'],isEditing:()=>false,ttTag:()=>'',CHECK:'✓',wrapRow:(coll,x,cls,left,body)=>`<li data-id="${x.id}" class="${cls}">${left}${body}</li>`,balanceHTML:()=>'',hint:()=>'',tgtLabel:()=> '曜日で'});
+  c.day='2026-10-06';c.today=()=>c.day;
+  c.state.chores=[{id:'kitchen',text:'キッチンの掃除',every:2,who:'both',pts:1,createdAt:Date.parse('2026-09-01T00:00:00Z'),log:{'2026-10-01':'w'},time:'19:00'}];
+  c.chore=c.state.chores[0];
+  // Exercise the shipped delegated button handler, not a copy of its implementation.
+  c.document.addEventListener=(type,fn)=>{c.clickNext=fn;};
+  const start=source.indexOf('document.addEventListener("click",e=>{ const b=e.target.closest("[data-hnext],[data-chnext]")');
+  assert.ok(start>=0);run(c,source.slice(start,source.indexOf('},true);',start)+9));
+  c.click=()=>c.clickNext({target:{closest:()=>({dataset:{chnext:'kitchen'}})},stopPropagation(){},preventDefault(){}});
+  return c;
+}
+test('chore tomorrow button moves an overdue row to upcoming and removes overdue actions',()=>{
+  const c=choreMoveEnv();assert.equal(run(c,'choreInfo(chore).diff'),-3);c.click();
+  assert.equal(run(c,'choreInfo(chore).due'),'2026-10-07');assert.equal(run(c,'choreDueCount()'),0);
+  const html=run(c,'viewChore()');assert.match(html,/これから/);assert.match(html,/明日/);assert.doesNotMatch(html,/今日やること|3日すぎ|data-chnext=/);
+  assert.equal(run(c,"choreOn(chore,'2026-10-06')"),false);assert.equal(run(c,"choreOn(chore,'2026-10-07')"),true);
+  assert.deepEqual(plain(c.chore.log),{'2026-10-01':'w'});assert.equal(c.chore.every,2);assert.equal(c.chore.who,'both');assert.equal(c.writes.length,1);
+});
+test('saved chore move survives reload, becomes due tomorrow, and can move again',()=>{
+  const c=choreMoveEnv();c.click();const restored=choreMoveEnv();Object.assign(restored.chore,plain(c.writes[0].data));
+  assert.equal(run(restored,'choreInfo(chore).due'),'2026-10-07');restored.day='2026-10-07';assert.equal(run(restored,'choreDueCount()'),1);
+  restored.click();assert.equal(run(restored,'choreInfo(chore).due'),'2026-10-08');assert.equal(run(restored,'choreDueCount()'),0);
+  assert.deepEqual(plain(restored.chore.moved),{'2026-10-06':'2026-10-08'});
+  restored.day='2026-10-09';assert.equal(run(restored,'choreInfo(chore).diff'),-1);
+});
+test('completing a postponed chore resumes its interval and ignores old moves',()=>{
+  const c=choreMoveEnv();c.click();c.day='2026-10-07';c.chore.log[c.day]='h';
+  assert.equal(run(c,'choreInfo(chore).due'),'2026-10-09');assert.equal(run(c,'choreDueCount()'),0);
+  c.day='2026-10-09';assert.equal(run(c,'choreDueCount()'),1);assert.equal(c.chore.every,2);
+});
+test('scheduled chore postponement preserves the next regular occurrence',()=>{
+  const c=choreMoveEnv();Object.assign(c.chore,{target:'wd',wd:[2,4],log:{'2026-10-01':'w'}});c.click();
+  assert.equal(run(c,'choreInfo(chore).due'),'2026-10-07');assert.equal(run(c,"choreOn(chore,'2026-10-08')"),true);
+  c.day='2026-10-07';c.chore.log[c.day]='h';assert.equal(run(c,'choreInfo(chore).due'),'2026-10-08');
+});
+test('an old saved postponed chore and a cancelled move render correctly',()=>{
+  const c=choreMoveEnv();c.chore.moved={'2026-09-25':'2026-10-02','2026-10-06':'2026-10-07'};
+  assert.equal(run(c,'choreInfo(chore).due'),'2026-10-07');c.chore.moved['2026-10-06']=null;assert.equal(run(c,'choreInfo(chore).due'),'2026-10-03');
+});
 
 const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','sharedBoth','bothRoleOrder','bothPick','myT','dayTime','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];

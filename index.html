@@ -2187,7 +2187,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="282";
+const APP_VERSION="283";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6028,9 +6028,23 @@ function choreLast(c){ const ks=Object.keys(c.log||{}).filter(k=>c.log[k]).sort(
 const chSch=c=>["wd","mn","mo","ar"].includes(String(c.target||""));
 const CH_FQ=[["iv","○日ごと"],["wd","曜日で"],["mo","○か月ごと"],["mn","毎月 第○曜"]];
 const chFqLabel=c=>chSch(c)?tgtLabel(c):Number(c.every||7)===1?"毎日":`${c.every||7}日ごと`;
+/* v283: 一覧・件数・タイムテーブルで移動先を共通の次回日にする。
+   旧版の「明日へ」は期限日でなく押した日を moved のキーにしている。 */
+function choreMovedDue(c,due,L){
+  const t=today(), M=c.moved||{}, log=c.log||{};
+  const moves=Object.entries(M).filter(([f,d])=>/^\d{4}-\d{2}-\d{2}$/.test(d||"")&&f!==d&&f>=due&&(!L||d>L.d)&&!log[d]&&!(d<t&&chSkip(c,d))).sort(([a],[b])=>a.localeCompare(b));
+  if(!moves.length) return due;
+  const current=moves.filter(([f])=>f===due||f<=t).pop();
+  if(!chSch(c)) return current?current[1]:[due,...moves.map(([,d])=>d)].sort()[0];
+  if(current) due=hNextOn(c,addDays(current[0],1))||addDays(t,400);
+  // A later scheduled occurrence may also have been moved; keep the next unmoved one.
+  for(let i=0;i<moves.length&&moves.some(([f])=>f===due);i++) due=hNextOn(c,addDays(due,1))||addDays(t,400);
+  return [due,...moves.map(([,d])=>d)].sort()[0];
+}
 function choreInfo(c){ const L=choreLast(c), ev=Math.max(1,Number(c.every||7)), since0=c.createdAt?ymd(new Date(c.createdAt)):today(), base=L?L.d:since0, since=chSch(c)&&c.schFrom&&c.schFrom>since0?c.schFrom:since0; let due;
   if(chSch(c)){ const sk=Object.keys(c.skip||{}).filter(k=>c.skip[k]&&k<today()).sort().pop(), b=[L&&L.d,sk].filter(x=>x&&x>=since).sort().pop(); due=hNextOn(c,b?addDays(b,1):since)||addDays(today(),400); }
   else due=L?addDays(base,ev):base;
+  due=choreMovedDue(c,due,L);
   const t=today(), diff=Math.round((parse(due)-parse(t))/864e5);
   const who=c.who==="alt"?(L?(L.r==="h"?"w":"h"):"h"):c.who||"both";
   return {L,due,diff,who,st:diff<0?"over":diff===0?"today":diff<=2?"soon":"ok"}; }
