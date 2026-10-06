@@ -35,6 +35,7 @@ function env(names, overrides = {}) {
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
+  if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -106,7 +107,7 @@ test('an old saved postponed chore and a cancelled move render correctly',()=>{
   assert.equal(run(c,'choreInfo(chore).due'),'2026-10-07');c.chore.moved['2026-10-06']=null;assert.equal(run(c,'choreInfo(chore).due'),'2026-10-03');
 });
 
-const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiMic','aiVoiceCancel','aiComposerHTML'];
+const voiceFns=['aiRec','aiRecM','aiSRS','aiSRStart','aiSRFinish','aiVoiceAIOk','aiVoiceClean','aiVoiceFix','aiVoiceText','aiVoiceDraft','aiRequest','aiVoiceRec','aiMic','aiVoiceCancel','aiComposerHTML'];
 const talkCalFns=['aiDate','talkCalendarDates','talkShared','TALK_CAL_KINDS','talkRecurringOn','talkCalendarData','talkCalendarSummary','talkCalendarTimes','sharedBoth','bothRoleOrder','bothPick','myT','dayTime','talkCalendarRow','talkCalendarHTML','talkCalendarMove','hSince','tgtCode','hSch','hOn','hWd','hNth','hNextOn','moOn','moS','moN','hPeriod','mondayOf','dDiff','dayIn','rActive','rPaid','choreInfo','choreOn','chSch','choreLast','chSkip'];
 function talkCalEnv(overrides={}){return env(talkCalFns,{shiftOf:()=>'',shiftBadge:()=>'',offState:()=>'',jpDate:String,tgtLabel:()=> '繰り返し',eventRow:x=>'<li>'+x.text+'</li>',itemRow:x=>'<li>'+x.text+'</li>',planRow:x=>'<li>'+x.text+'</li>',cautionRow:x=>'<li>'+x.text+'</li>',...overrides});}
 test('talk calendar month handles leap February and year boundaries',()=>{
@@ -846,4 +847,51 @@ test('hour list wraps titles, escapes markup, and only tasks have completion but
  const entries=[{s:19*60,e:20*60,t:'<長い予定名>',kind:'e',c:'events',x:{id:'event'},col:'cal'},{s:19*60+15,e:19*60+30,t:'長いタスク名',kind:'i',c:'items',x:{id:'task'},col:'task',done:true}];
  const c=env(['ttGrpSheetHTML','hhmm'],{dayEntries:()=>entries,CHECK:'check'});c.state.ttGrp={date:'2026-10-06',hour:'19',keys:['events|event','items|task']};
  const html=run(c,'ttGrpSheetHTML("2026-10-06")');assert.match(html,/19:00–20:00 · 2件/);assert.match(html,/&lt;長い予定名&gt;/);assert.match(html,/data-tgsel="events\|event"/);assert.doesNotMatch(html,/data-ttck="events\|event"/);assert.match(html,/data-ttck="items\|task"/);assert.match(html,/19:15–19:30/);assert.match(html,/長いタスク名を未完了に戻す/);
+});
+
+// Voice lifecycle regressions: delayed browser events and AI responses use isolated sessions.
+function voiceClock(){let serial=0;const timers=new Map();return {setTimeout:(fn,ms)=>{timers.set(++serial,{fn,ms});return serial;},clearTimeout:id=>timers.delete(id),setInterval:()=>++serial,clearInterval(){},fire(ms){const t=[...timers].find(([,v])=>v.ms===ms);assert.ok(t,'missing timer '+ms);timers.delete(t[0]);t[1].fn();},timers};}
+test('voice errors without end events release the microphone and allow three consecutive sessions',()=>{
+ const clock=voiceClock(),v=voiceEnv(clock);for(let i=0;i<3;i++){run(v.c,'aiMic()');assert.equal(v.c.state.aiListening,true);const old=v.rec;old.onerror({error:'network'});assert.equal(v.c.state.aiListening,false);assert.equal(run(v.c,'aiRec'),null);assert.equal(run(v.c,'aiSRS'),null);old.onresult({results:[{0:{transcript:'遅い結果'},isFinal:true}]});assert.equal(v.c.state.ai.q,'元の入力');}assert.equal(clock.timers.size,0);
+});
+test('missing stop notification releases state and stale callbacks cannot affect the next recording',()=>{
+ const clock=voiceClock(),v=voiceEnv(clock);run(v.c,'aiMic()');const old=v.rec;old.stop=()=>{};old.abort=()=>{};old.onresult({results:[{0:{transcript:'最初の入力'},isFinal:false}]});run(v.c,'aiMic()');assert.equal(v.c.state.aiListening,true);clock.fire(1200);assert.equal(v.c.state.aiListening,false);v.c.input.value=v.c.state.ai.q;run(v.c,'aiMic()');const next=v.rec;old.onend();old.onerror({error:'not-allowed'});assert.equal(run(v.c,'aiRec'),next);assert.equal(v.c.state.aiListening,true);next.onresult({results:[{0:{transcript:'続き'},isFinal:true}]});assert.equal(v.c.state.ai.q,'元の入力\n最初の入力\n続き');run(v.c,'aiVoiceCancel()');
+});
+test('automatic voice restart retries a releasing microphone and preserves interim words',()=>{
+ const clock=voiceClock(),records=[];let starts=0;class Recognition{constructor(){records.push(this);}start(){if(++starts===2)throw Object.assign(Error('still releasing'),{name:'InvalidStateError'});this.onstart();}stop(){this.onend();}abort(){this.onend();}}
+ const v=voiceEnv({...clock,window:{SpeechRecognition:Recognition}});run(v.c,'aiMic()');records[0].onresult({results:[{0:{transcript:'まだ確定前'},isFinal:false}]});records[0].onend();clock.fire(150);assert.equal(v.c.state.aiListening,true);clock.fire(300);records[2].onresult({results:[{0:{transcript:'続けて話す'},isFinal:true}]});assert.equal(v.c.state.ai.q,'元の入力\nまだ確定前\n続けて話す');run(v.c,'aiVoiceCancel()');
+});
+test('repeated busy starts and missing start events both recover without leaving listening stuck',()=>{
+ const clock=voiceClock();let starts=0;class Busy{start(){starts++;throw Object.assign(Error('busy'),{name:'InvalidStateError'});}abort(){}}
+ const v=voiceEnv({...clock,window:{SpeechRecognition:Busy}});run(v.c,'aiMic()');clock.fire(300);clock.fire(600);assert.equal(starts,3);assert.equal(v.c.state.aiListening,false);assert.equal(run(v.c,'aiSRS'),null);
+ const w=voiceEnv(clock);run(w.c,'aiMic()');clock.fire(5000);assert.equal(w.c.state.aiListening,false);assert.match(w.c.state.aiVoiceStatus,/再開/);
+});
+test('late AI correction cannot overwrite a second voice session, an edited draft, or cancelled text',async()=>{
+ for(const change of ['restart','edit','cancel']){const clock=voiceClock(),v=voiceEnv({...clock,aiVoiceHints:()=>''});let resolve,signal;v.c.prefs.voiceAI='fix';v.c.state.sample={json:(_,o)=>(signal=o.signal,new Promise(r=>resolve=r))};v.c.state.ai.q='最初の聞き取り';const p=run(v.c,'aiVoiceFix("","最初の聞き取り")');
+  if(change==='restart'){v.c.input.value='次の下書き';run(v.c,'aiMic()');run(v.c,'aiMic()');}else if(change==='cancel')run(v.c,'aiVoiceCancel()');else v.c.state.ai.q='手動の修正';
+  const draft=v.c.state.ai.q,status=v.c.state.aiVoiceStatus;resolve({text:'遅れた補正'});await p;assert.equal(v.c.state.ai.q,draft);assert.equal(v.c.state.aiVoiceStatus,status);if(change!=='edit')assert.equal(signal.aborted,true);run(v.c,'aiVoiceCancel()');
+ }
+});
+function recorderEnv(options={}){const records=[],tracks=[],clock=voiceClock();const stream=()=>{const track={stopped:false,stop(){this.stopped=true;}};tracks.push(track);return {getTracks:()=>[track]};};class Recorder{constructor(s){this.stream=s;this.state='inactive';this.mimeType='audio/webm';records.push(this);}start(){this.state='recording';}stop(){this.state='inactive';this.ondataavailable?.({data:new Blob(['sound'])});this.finished=this.onstop?.();}}
+ const v=voiceEnv({...clock,window:{__FUTARI_PWA:true,MediaRecorder:Recorder},navigator:{mediaDevices:{getUserMedia:async()=>stream()}},MediaRecorder:Recorder,Blob,aiToWav:async b=>b,aiVoiceHints:()=>'',...options});v.c.prefs.voiceAI='on';v.c.state.sample={json:async()=>({text:'聞き取り'})};return {...v,records,tracks,stream,clock};}
+test('cancel during microphone permission releases the late stream and permits the next recording',async()=>{
+ let allow;const v=recorderEnv({navigator:{mediaDevices:{getUserMedia:()=>new Promise(r=>allow=r)}}});const pending=run(v.c,'aiVoiceRec()');assert.equal(v.c.state.aiVoiceStarting,true);run(v.c,'aiMic()');assert.equal(v.c.state.aiListening,false);allow(v.stream());await pending;assert.equal(v.records.length,0);assert.equal(v.tracks[0].stopped,true);
+ const next=run(v.c,'aiVoiceRec()');allow(v.stream());await next;assert.equal(v.records.length,1);assert.equal(v.c.state.aiListening,true);run(v.c,'aiVoiceCancel()');assert.ok(v.tracks.every(t=>t.stopped));
+});
+test('recording transcription unlocks after completion and can be used repeatedly without lost text',async()=>{
+ const v=recorderEnv();for(let i=0;i<3;i++){let answer;v.c.state.sample={json:()=>new Promise(r=>answer=r)};await run(v.c,'aiVoiceRec()');const rec=v.records.at(-1);await run(v.c,'aiVoiceRec()');await microtasks();assert.equal(v.c.state.aiVoiceTranscribing,true);run(v.c,'aiMic()');assert.equal(v.records.length,i+1);answer({text:'音声'+i});await rec.finished;assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.aiListening,false);v.c.input.value=v.c.state.ai.q;}
+ assert.equal(v.c.state.ai.q,'元の入力\n音声0\n音声1\n音声2');assert.ok(v.tracks.every(t=>t.stopped));
+});
+test('recording cancel ignores late transcription and closes the stream immediately',async()=>{
+ const v=recorderEnv();let answer,signal;v.c.state.sample={json:(_,o)=>(signal=o.signal,new Promise(r=>answer=r))};await run(v.c,'aiVoiceRec()');const rec=v.records[0];await run(v.c,'aiVoiceRec()');await microtasks();run(v.c,'aiVoiceCancel()');answer({text:'キャンセル後の音声'});await rec.finished;assert.equal(v.c.state.ai.q,'');assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(signal.aborted,true);assert.ok(v.tracks.every(t=>t.stopped));
+});
+test('recorder constructor errors and missing stop notifications release resources for retry',async()=>{
+ const v=recorderEnv({MediaRecorder:class {constructor(){throw Error('unsupported format');}}});await run(v.c,'aiVoiceRec()');assert.equal(v.c.state.aiListening,false);assert.equal(v.tracks[0].stopped,true);
+ const w=recorderEnv();await run(w.c,'aiVoiceRec()');w.records[0].stop=function(){this.state='inactive';};await run(w.c,'aiVoiceRec()');w.clock.fire(2500);assert.equal(w.c.state.aiListening,false);assert.equal(w.tracks[0].stopped,true);await run(w.c,'aiVoiceRec()');assert.equal(w.records.length,2);run(w.c,'aiVoiceCancel()');
+});
+test('AI refresh cancels pending voice work and releases recorders without clearing the draft',async()=>{
+ const v=recorderEnv();vm.runInContext(declaration('aiRefresh'),v.c);await run(v.c,'aiVoiceRec()');run(v.c,'aiRefresh()');assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力');assert.equal(run(v.c,'aiRecM'),null);assert.ok(v.tracks.every(t=>t.stopped));
+});
+test('transcription timeout unlocks the microphone and offers retry without discarding the draft',async()=>{
+ const v=recorderEnv();v.c.state.sample={json:()=>new Promise(()=>{})};await run(v.c,'aiVoiceRec()');const rec=v.records[0];await run(v.c,'aiVoiceRec()');await microtasks();const html=run(v.c,'aiComposerHTML()');assert.match(html,/data-act="aiMic" disabled/);assert.match(html,/data-act="aiVoiceCancel"/);v.clock.fire(45000);await rec.finished;assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.ai.q,'元の入力');assert.match(v.c.state.aiVoiceStatus,/もう一度/);await run(v.c,'aiVoiceRec()');assert.equal(v.c.state.aiListening,true);run(v.c,'aiVoiceCancel()');
 });
