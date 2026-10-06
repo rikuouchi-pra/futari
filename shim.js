@@ -196,15 +196,20 @@
     });
   }
   var aiConnectionIssue=null;
+  var aiStoreIssue=null;
+  function aiStoreLimited_(e){return !!e&&(e.code==="ai_store_rate_limited"||/(^|\/)resource-exhausted$/.test(String(e.code||""))||/問い合わせ内容を読めませんでした[（(]429[）)]/.test(String(e.detail||e.message||"")));}
+  function aiStoreError_(e){var x=gasError_("ai_store_rate_limited","質問の保存先が利用制限（429）に達しています。時間をおいて再送してください。");x.detail=String(e.detail||e.message||x.message);return x;}
+  function aiDelay_(ms,signal){return new Promise(function(ok,ng){var timer,done=false;function finish(error){if(done)return;done=true;clearTimeout(timer);if(signal)signal.removeEventListener("abort",abort);error?ng(error):ok();}function abort(){finish(aiAbortError_());}if(signal&&signal.aborted){abort();return;}if(signal)signal.addEventListener("abort",abort,{once:true});timer=setTimeout(function(){finish();},ms);});}
   async function aiAsk(prompt, o){
     o=o||{}; var signal=o.signal, G=gasUrl();
     if(signal&&signal.aborted)throw aiAbortError_();
     if(!G){var e0=new Error("no_gas");e0.code="no_gas";throw e0;}
     if(aiConnectionIssue&&aiConnectionIssue.url===G&&Date.now()<aiConnectionIssue.until)throw aiConnectionIssue.error;
+    if(aiStoreIssue&&aiStoreIssue.url===G&&Date.now()<aiStoreIssue.until)throw aiStoreIssue.error;
     var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[], id="ai"+rid(), ref=M.doc(fs,"aitmp",id), doc={prompt:String(prompt).slice(0,40000),at:Date.now(),by:me.uid};
     if(o.modelTier)doc.tier=String(o.modelTier).slice(0,10); /* v193: pro＝賢いモデル（Apps Script v10 以降で有効） */
     var ctl=new AbortController(), expired=false, budget=Math.max(1000,Math.min(150000,Number(o.timeoutMs)||(imgs.length||o.audio?90000:30000)));
-    var cancel=function(){ctl.abort();}, timer=setTimeout(function(){expired=true;ctl.abort();},budget), written=null;
+    var cancel=function(){ctl.abort();}, timer=setTimeout(function(){expired=true;ctl.abort();},budget), written=null,deadline=Date.now()+budget,storeIssue=null;
     if(signal)signal.addEventListener("abort",cancel,{once:true});
     var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
     try{
@@ -215,11 +220,27 @@
       written=M.setDoc(ref,doc);await waitAbort_(written,ctl.signal);
       var tok=await waitAbort_(me.getIdToken(),ctl.signal);
       phase("AIに問い合わせています");
-      var j=await gasCall_(G,{idToken:tok,tool:"ai",args:{doc:id}},budget,ctl.signal);
-      if(j.error){var z=new Error(j.error.message||j.error.code);z.code=j.error.code||"tool_error";z.detail=j.error.message;throw z;}
+      /* A read-limit response occurs before the model runs. Retry the same uploaded document only, never re-upload or switch models for a storage quota. */
+      var j;
+      for(var attempt=0;attempt<3;attempt++){
+        if(ctl.signal.aborted)throw aiAbortError_();
+        j=await gasCall_(G,{idToken:tok,tool:"ai",args:{doc:id}},Math.max(1,deadline-Date.now()),ctl.signal);
+        if(!j.error)break;
+        var z=new Error(j.error.message||j.error.code);z.code=j.error.code||"tool_error";z.detail=j.error.message;
+        if(!aiStoreLimited_(z))throw z;
+        z=aiStoreError_(z);storeIssue=aiStoreIssue={url:G,until:Date.now()+60000,error:z};
+        if(attempt===2)throw z;
+        var delay=2000*Math.pow(2,attempt)+Math.floor(Math.random()*1000);
+        if(deadline-Date.now()<=delay+1000)throw z;
+        phase("質問の保存先が混み合っています。少し待って再試行します（"+(attempt+1)+"/2）");
+        await aiDelay_(delay,ctl.signal);
+        phase("AIに問い合わせています");
+      }
+      if(storeIssue&&aiStoreIssue===storeIssue)aiStoreIssue=null;
       aiConnectionIssue=null;return j.payload;
     }catch(e){
       if(expired){var t=new Error("AIの応答が時間内に届きませんでした");t.code="ai_timeout";throw t;}
+      if(aiStoreLimited_(e)){var limited=aiStoreError_(e);aiStoreIssue={url:G,until:Date.now()+60000,error:limited};throw limited;}
       if(e.code==="gas_access"||e.code==="gas_response")aiConnectionIssue={url:G,until:Date.now()+60000,error:e};
       throw e;
     }finally{

@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="shim.js?v=200"></script>
+<script src="shim.js?v=287"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2192,7 +2192,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="286";
+const APP_VERSION="287";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7203,7 +7203,7 @@ JSONだけを返す：{"text":"文字起こし"}`,{audio:wav,modelTier:"quick"},
       const text=aiVoiceClean(String((d&&(d.text||d.transcript))||""));
       if(!text)state.aiVoiceStatus="声を聞き取れませんでした。もう一度話すか、入力欄で編集できます。";
       else{state.ai.q=aiVoiceDraft(base,text);state.aiVoiceStatus="聞き取り完了（AI）。確認して送るか、マイクで続けて話せます。";haptic("done");}
-    }catch(e){if(!current())return;state.aiVoiceStatus="AIで文字起こしできませんでした。もう一度マイクを押すか、キーボードで入力してください。";}
+    }catch(e){if(!current())return;state.aiVoiceStatus=aiStoreLimited(e)?"音声の保存先が利用制限（429）に達しています。時間をおいて話し直すか、キーボードで入力してください。入力中の文章は残しています。":"AIで文字起こしできませんでした。もう一度マイクを押すか、キーボードで入力してください。";}
     finally{clearWork();ctl.signal.removeEventListener("abort",clearWork);if(aiVoiceCtl===ctl)aiVoiceCtl=null;if(id===aiVoiceRun){state.aiVoiceTranscribing=false;aiMicUI();}}
   };
   try{R.start(1000);if(aiRecM!==R)return;R._tick=setInterval(()=>{if(aiRecM!==R)return;const sec=Math.floor((Date.now()-t0)/1000);state.aiVoiceStatus=`録音中 ${sec}秒（最長28秒）。■ を押すと音声をAIへ送り、文字にします。`;const el=$("aiVoiceStatus");if(el)el.textContent=state.aiVoiceStatus;if(sec>=28)aiVoiceRec();},500);state.aiVoiceStatus="録音中… 話し終わったら ■ を押すと、音声をAIへ送って文字にします。";haptic("arm");aiMicUI();}
@@ -7280,8 +7280,9 @@ function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,r
   timer=setTimeout(()=>{finish(Object.assign(new Error('応答が時間内に届きませんでした'),{code:'ai_timeout'}));ctl.abort();},ms);
   Promise.resolve().then(()=>{if(ctl.signal.aborted)throw Object.assign(new Error('cancelled'),{code:'ai_cancelled'});return provider.json(prompt,{...options,signal:ctl.signal,timeoutMs:ms});}).then(v=>finish(null,v),e=>finish(e));
 });}
+function aiStoreLimited(e){return !!e&&(e.code==="ai_store_rate_limited"||/(^|\/)resource-exhausted$/.test(String(e.code||""))||/問い合わせ内容を読めませんでした[（(]429[）)]/.test(String(e.detail||e.message||"")));}
 function aiFailure(e,q){try{usageFeat("aiFail");}catch(_){}const code=String(e?.code||''),detail=String(e?.detail||e?.message||code||'接続エラー').slice(0,700),config=/gas_access|gas_response|no_gas/.test(code)||/ログイン画面|デプロイ/.test(detail),busy=/busy|rate_limited|混み合|回数制限|混雑/.test(code+detail);
-  return {reply:code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
+  return {reply:aiStoreLimited(e)?"質問の保存先が利用制限（429）に達しています。質問は入力欄に残しています。1分ほど待ってから再送してください。続く場合は保存先の利用枠の確認が必要です。":code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
 }
 async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy||state.aiListening||state.aiVoiceTranscribing) return;aiVoiceInvalidate();state.aiVoiceStatus=""; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
   const runId=A.runId=(A.runId||0)+1,ctl=A.ctl=new AbortController(),entry={q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief};
@@ -7356,7 +7357,7 @@ ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフ�
   /* v212: 「追加して・変更して」などの操作は速いモデル、相談はPro。Proが時間切れ・接続エラーのときは速いモデルで自動でやり直す */
   const isOp=!opt.brief&&q.length<=80&&/(して|しといて|しておいて|に変更|に変えて|追加|登録|消して|削除|入れて|戻して|にして|変えて|設定)[。！!]?\s*$/.test(q.trim());
   const RF={...(state.ai.refs||{})}, req=(tier,c2)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},c2,tier==="pro"?(opt.brief?90000:60000):45000);
-  let d; try{ d=await req(isOp?"quick":"pro",ctl); }catch(e1){ if(isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
+  let d; try{ d=await req(isOp?"quick":"pro",ctl); }catch(e1){ if(aiStoreLimited(e1)||isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
     if(A.runId!==runId)return;
     const reply=String((d&&(d.reply||d.answer||d.text))||"").trim()||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null,...(Array.isArray(x.refs)?{_rs:x.refs.map(k=>RF[k]).filter(Boolean)}:{})}));

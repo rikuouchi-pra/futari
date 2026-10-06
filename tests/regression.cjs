@@ -36,7 +36,7 @@ function env(names, overrides = {}) {
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('aiComposerHTML'))names=['aiRecM','aiVoiceAIOk',...names];
-  if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceStartTimer','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
+  if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiStoreLimited','aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceStartTimer','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
   return c;
@@ -935,4 +935,13 @@ test('stalled audio decoding unlocks the UI and late decoding cannot overwrite t
 test('music pauses before capture and cannot play or preload during input or transcription',async()=>{
  let paused=0;const v=recorderEnv({songStop(){paused++;}});v.c.state.songPlaying=true;v.c.state.songPlayNext=true;await run(v.c,'aiMic()');assert.equal(paused,1);assert.equal(v.c.state.songPlayNext,false);run(v.c,'aiVoiceCancel()');
  const c=env(['songPreload','songToggle'],{songOf(){throw Error('must not start audio');}});for(const phase of ['aiListening','aiVoiceTranscribing']){c.state[phase]=true;run(c,'songPreload();songToggle()');c.state[phase]=false;}assert.equal(c.notices.length,2);
+});
+
+test('storage 429 does not trigger a second model request and preserves the question with the correct explanation',async()=>{
+ for(const error of [Object.assign(Error('問い合わせ内容を読めませんでした（429）'),{code:'tool_error'}),Object.assign(Error('保存先の制限'),{code:'ai_store_rate_limited'}),Object.assign(Error('quota'),{code:'resource-exhausted'})]){
+  const c=aiChatEnv();let calls=0;c.state._smt={json:async()=>{calls++;throw error;}};await run(c,"aiAsk('今日の予定を相談したい')");assert.equal(calls,1);assert.equal(c.state.ai.q,'今日の予定を相談したい');assert.equal(c.state.ai.busy,false);assert.match(c.state.ai.log[0].a.reply,/保存先が利用制限（429）/);assert.doesNotMatch(c.state.ai.log[0].a.reply,/通信状態/);
+ }
+});
+test('recording transcription reports storage quota distinctly and releases the microphone',async()=>{
+ const v=recorderEnv();v.c.state.sample={json:async()=>{throw Object.assign(Error('保存先の制限'),{code:'ai_store_rate_limited'});}};await run(v.c,'aiMic()');await run(v.c,'aiMic()');await v.records[0].finished;assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力');assert.match(v.c.state.aiVoiceStatus,/保存先が利用制限（429）/);assert.ok(v.tracks.every(t=>t.stopped));
 });

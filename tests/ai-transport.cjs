@@ -1,10 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const src=fs.readFileSync(path.join(__dirname,'../shim.js'),'utf8').split('\n');
 function decl(name){const start=src.findIndex(l=>new RegExp('^  (?:async )?function '+name+'\\(').test(l));assert.ok(start>=0,name);for(let end=start;end<src.length;end++){const s=src.slice(start,end+1).join('\n');try{new vm.Script(s);return s;}catch{}}throw Error(name);}
-function setup(overrides={}){const scripts=[],removed=[],timers=new Map();let timerId=0;const ctx=vm.createContext({Promise,Date,AbortController,Error,JSON,Object,String,Number,Math,Uint8Array,encodeURIComponent,window:{},navigator:{onLine:true},gasMode:null,jpN:0,aiConnectionIssue:null,
+function setup(overrides={}){const scripts=[],removed=[],timers=new Map();let timerId=0;const ctx=vm.createContext({Promise,Date,AbortController,Error,JSON,Object,String,Number,Math,Uint8Array,encodeURIComponent,window:{},navigator:{onLine:true},gasMode:null,jpN:0,aiConnectionIssue:null,aiStoreIssue:null,
  setTimeout:(fn,ms)=>{timers.set(++timerId,{fn,ms});return timerId;},clearTimeout:id=>timers.delete(id),
  document:{createElement:()=>({remove(){removed.push(this);}}),head:{appendChild:sc=>scripts.push(sc)}},fetch:()=>Promise.resolve({status:200,text:async()=>JSON.stringify({payload:{reply:'OK'}})}),...overrides});
- for(const name of ['aiAbortError_','waitAbort_','gasError_','gasCall_','jsonp_'])vm.runInContext(decl(name),ctx);return {ctx,scripts,removed,timers,run:s=>vm.runInContext(s,ctx)};}
+ for(const name of ['aiAbortError_','waitAbort_','gasError_','gasCall_','jsonp_','aiStoreLimited_','aiStoreError_','aiDelay_'])vm.runInContext(decl(name),ctx);return {ctx,scripts,removed,timers,run:s=>vm.runInContext(s,ctx)};}
 const tick=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
 test('POST response body remains covered by the deadline',async()=>{const t=setup({fetch:async()=>({text:()=>new Promise(()=>{})})});const p=t.run("gasCall_('https://example.test',{tool:'ai'},30000)");await tick();[...t.timers.values()][0].fn();await assert.rejects(p,e=>e.code==='ai_timeout');assert.equal(t.timers.size,0);assert.equal(t.scripts.length,0);});
 test('external cancellation aborts POST without starting a fallback',async()=>{let signal;const t=setup({fetch:(_,o)=>(signal=o.signal,new Promise(()=>{}))});t.ctx.ctl=new AbortController();const p=t.run("gasCall_('https://example.test',{},30000,ctl.signal)");t.ctx.ctl.abort();await assert.rejects(p,e=>e.name==='AbortError');assert.equal(signal.aborted,true);assert.equal(t.scripts.length,0);assert.equal(t.timers.size,0);});
@@ -21,3 +21,31 @@ test('known access failures return promptly on repeat and do not upload another 
 test('v193 audio is uploaded as-is with its type and the model tier is passed to Apps Script',async()=>{let doc=null;const t=setup({gasUrl:()=> 'https://example.test',rid:()=> 'test',fs:{},me:{uid:'u',getIdToken:async()=> 'fixture-token'},M:{doc:()=>({}),Bytes:{fromUint8Array:u=>({n:u.length})},setDoc:async(_,d)=>{doc=d;},deleteDoc:async()=>{}},fetch:async()=>({status:200,text:async()=>JSON.stringify({payload:{text:'こんにちは'}})})});vm.runInContext(decl('aiAsk'),t.ctx);t.ctx.MAX_ONE=900*1024;
   const audio={size:8,type:'audio/wav',arrayBuffer:async()=>new ArrayBuffer(8)};t.ctx.__a=audio;const r=await t.run("aiAsk('文字起こし',{audio:__a,modelTier:'pro'})");
   assert.equal(doc.mime,'audio/wav');assert.equal(doc.img.n,8);assert.equal(doc.tier,'pro');assert.equal(r.text,'こんにちは');});
+
+const store429={error:{code:'tool_error',message:'問い合わせ内容を読めませんでした（429）'}};
+function storeSetup(responses,overrides={}){const calls=[],writes=[],deleted=[];let now=0;const fakeMath=Object.create(Math);fakeMath.random=()=>0;
+ const t=setup({Math:fakeMath,Date:{now:()=>now},gasUrl:()=> 'https://example.test',rid:()=> 'test',fs:{},me:{uid:'u',getIdToken:async()=> 'fixture-token'},M:{doc:(_db,_coll,id)=>({id}),setDoc:async(ref,doc)=>writes.push({ref,doc}),deleteDoc:async ref=>deleted.push(ref)},fetch:async(_url,o)=>{calls.push(JSON.parse(o.body));const j=responses[Math.min(calls.length-1,responses.length-1)];return {status:200,text:async()=>JSON.stringify(j)};},...overrides});
+ vm.runInContext(decl('aiAsk'),t.ctx);return {...t,calls,writes,deleted,advance(ms){now+=ms;},fire(ms){const entry=[...t.timers].find(([,x])=>x.ms===ms);assert.ok(entry,'missing timer '+ms);t.timers.delete(entry[0]);entry[1].fn();}};
+}
+test('storage 429 retries the same document with backoff and keeps it until a successful response',async()=>{
+ const t=storeSetup([store429,store429,{payload:{reply:'回復'}}]);const phases=[];t.ctx.progress=s=>phases.push(s);const p=t.run("aiAsk('同じ質問',{onProgress:progress})");await tick();assert.equal(t.writes.length,1);assert.equal(t.deleted.length,0);assert.equal(t.calls.length,1);
+ t.fire(2000);await tick();assert.equal(t.calls.length,2);assert.equal(t.deleted.length,0);t.fire(4000);const r=await p;await tick();assert.equal(r.reply,'回復');assert.equal(t.calls.length,3);assert.equal(new Set(t.calls.map(x=>x.args.doc)).size,1);assert.equal(t.writes.length,1);assert.equal(t.deleted.length,1);assert.equal(t.ctx.aiStoreIssue,null);assert.equal(t.timers.size,0);assert.equal(phases.filter(x=>x.includes('再試行')).length,2);
+});
+test('persistent storage 429 stops at three calls and cooldown blocks another upload even after refresh',async()=>{
+ const t=storeSetup([store429]);const p=t.run("aiAsk('質問',{})");await tick();t.fire(2000);await tick();t.fire(4000);await assert.rejects(p,e=>e.code==='ai_store_rate_limited');await tick();assert.equal(t.calls.length,3);assert.equal(t.writes.length,1);assert.equal(t.deleted.length,1);
+ const a=src.findIndex(l=>l.includes('var SAMPLE = {')),b=src.findIndex((l,i)=>i>a&&l==='  };');vm.runInContext(src.slice(a,b+1).join('\n'),t.ctx);t.run('SAMPLE.resetConnection()');await assert.rejects(t.run("aiAsk('再送',{})"),e=>e.code==='ai_store_rate_limited');assert.equal(t.writes.length,1);assert.equal(t.calls.length,3);assert.equal(t.timers.size,0);
+ t.advance(60001);t.ctx.fetch=async()=>({text:async()=>JSON.stringify({payload:{reply:'解除後'}})});assert.equal((await t.run("aiAsk('再送',{})")).reply,'解除後');assert.equal(t.writes.length,2);
+});
+test('cancelling during storage backoff removes the timer and deletes the temporary document once',async()=>{
+ const t=storeSetup([store429]);t.ctx.ctl=new AbortController();const p=t.run("aiAsk('質問',{signal:ctl.signal})");await tick();assert.equal(t.calls.length,1);t.ctx.ctl.abort();await assert.rejects(p,e=>e.code==='ai_cancelled');await tick();assert.equal(t.calls.length,1);assert.equal(t.deleted.length,1);assert.equal(t.timers.size,0);
+});
+test('storage cooldown also blocks parallel AI work from creating more temporary documents',async()=>{
+ const t=storeSetup([store429,{payload:{reply:'回復'}}]);const p=t.run("aiAsk('一つ目',{})");await tick();await assert.rejects(t.run("aiAsk('二つ目',{})"),e=>e.code==='ai_store_rate_limited');assert.equal(t.writes.length,1);t.fire(2000);await p;assert.equal(t.ctx.aiStoreIssue,null);
+});
+test('storage retries stay within the request budget and other backend errors are not retried here',async()=>{
+ const t=storeSetup([store429]);await assert.rejects(t.run("aiAsk('短い予算',{timeoutMs:2500})"),e=>e.code==='ai_store_rate_limited');assert.equal(t.calls.length,1);assert.equal(t.timers.size,0);
+ for(const message of ['問い合わせ内容を読めませんでした（403）','Geminiの回数制限（429）']){const s=storeSetup([{error:{code:'tool_error',message}}]);await assert.rejects(s.run("aiAsk('質問',{})"),e=>e.message===message);assert.equal(s.calls.length,1);assert.equal(s.ctx.aiStoreIssue,null);}
+});
+test('Firestore SDK resource-exhausted during upload is classified without contacting the AI gateway',async()=>{
+ const t=storeSetup([],{M:{doc:()=>({}),setDoc:async()=>{throw Object.assign(Error('resource exhausted'),{code:'resource-exhausted'});},deleteDoc:async()=>{throw Error('unwritten');}}});await assert.rejects(t.run("aiAsk('質問',{})"),e=>e.code==='ai_store_rate_limited');assert.equal(t.calls.length,0);assert.equal(t.timers.size,0);assert.ok(t.ctx.aiStoreIssue);
+});
