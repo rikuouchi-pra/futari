@@ -796,6 +796,23 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tt-overlap-shell.at-end::after{display:none}
 .tt-swipe-tip{font-size:12px;color:var(--muted);margin:0 4px 6px}
 .tt-bar .tb-title b{display:block;-webkit-line-clamp:unset;overflow-wrap:anywhere}
+/* Readable hour hierarchy; the hour gutter opens its individual entries. */
+.tt-h{pointer-events:none;box-sizing:border-box;border-top-color:color-mix(in srgb,var(--ink) 24%,var(--surface))}
+.tt-h.alt{background:color-mix(in srgb,var(--ink) 2%,transparent)}
+.tt-h>span,.tt-hour-open>span{position:absolute;left:4px;top:0;font-size:12px;line-height:16px;font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums}
+.tt-q span,.tt-q:not(.h) span{font-size:10px;line-height:14px;text-align:right;width:37px;left:-46px;color:var(--muted);font-weight:400}
+.tt-q.h span{font-weight:600;color:color-mix(in srgb,var(--ink) 75%,var(--muted))}
+.tt-q{border-top-color:color-mix(in srgb,var(--line) 50%,transparent)}
+.tt-hour-open{position:absolute;left:0;top:0;width:50px;height:100%;padding:0;border:0;border-radius:0;background:color-mix(in srgb,var(--accent) 6%,transparent);text-align:left;cursor:pointer;pointer-events:auto;touch-action:pan-y}
+.tt-hour-open>i{position:absolute;top:1px;right:2px;color:var(--accent);font-size:12px;line-height:14px;font-style:normal}
+.tt-hour-open:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tg-sheet .ted-h{flex-wrap:wrap;gap:6px}
+.tg-sheet .ted-h>.who{order:3;flex-basis:100%;font-size:12px}
+.tg-sheet .tg-l li{min-height:56px;box-sizing:border-box;border-left:4px solid var(--bc,var(--task))}
+.tg-sheet .tg-l .tg-ck{width:40px;height:40px;border-radius:10px}
+.tg-sheet .tg-l .tg-n{display:grid;gap:3px;align-content:center;min-height:44px}
+.tg-sheet .tg-l .tg-n b{white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-overflow:clip;overflow:visible}
+.tg-sheet .tg-l .tg-n small{font-size:12px;line-height:1.5}
 
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
@@ -2170,7 +2187,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="281";
+const APP_VERSION="282";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3480,8 +3497,8 @@ function ttLayout(ents){ const sorted=ents.map(o=>({...o})).sort((a,b)=>a.s-b.s|
   for(const G of groups){ const lanes=[]; for(const o of G){ let k=0; while(lanes[k]!==undefined&&lanes[k]>o.s) k++; lanes[k]=o.e; o.lane=k; } for(const o of G){ o.lanes=lanes.length; o.groupStart=G[0].s; o.groupEnd=Math.max(...G.map(p=>p.e)); } }
   return sorted; }
 function ttGrpSheetHTML(date){ const G=state.ttGrp; if(!G||G.date!==date) return ""; const E=dayEntries(date), L=G.keys.map(k=>E.find(o=>o.kind!=="g"&&o.c+"|"+o.x.id===k)).filter(Boolean); if(!L.length) return "";
-  return `<div class="ted-ov" data-act="ttgrpx"></div><div class="ted-sheet tg-sheet" role="dialog" aria-label="まとめた項目"><div class="ted-h"><b>${hhmm(L[0].s)}〜 ${L.length}件</b><span class="who">名前をタップで選択（時間・長さ・日付を変更）</span><button class="tb-x" data-act="ttgrpx" aria-label="閉じる">✕</button></div>
-    <ul class="tg-l">${L.map(o=>`<li class="${o.done?"done":""} ${o.skip?"skp":""}"><button class="tg-ck" data-ttck="${o.c}|${esc(o.x.id)}" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button><button class="tg-n" data-tgsel="${o.c}|${esc(o.x.id)}"><b>${esc(o.t)}</b><small>${hhmm(o.s)}–${hhmm(o.e%1440)}</small></button></li>`).join("")}</ul></div>`; }
+  return `<div class="ted-ov" data-act="ttgrpx"></div><div class="ted-sheet tg-sheet" role="dialog" aria-label="この時間の項目"><div class="ted-h"><b>${G.hour!=null?G.hour+":00–"+(Number(G.hour)+1)+":00":hhmm(L[0].s)+"〜"} · ${L.length}件</b><span class="who">名前をタップで選択（時間・長さ・日付を変更）</span><button class="tb-x" data-act="ttgrpx" aria-label="閉じる">✕</button></div>
+    <ul class="tg-l">${L.map(o=>`<li class="${o.done?"done":""} ${o.skip?"skp":""}" style="--bc:var(--${o.col})">${o.kind==="i"?`<button class="tg-ck" data-ttck="${o.c}|${esc(o.x.id)}" aria-label="${esc(o.t)}を${o.done?"未完了に戻す":"完了にする"}">${CHECK}</button>`:""}<button class="tg-n" data-tgsel="${o.c}|${esc(o.x.id)}"><b>${esc(o.t)}</b><small>${hhmm(o.s)}–${hhmm(o.e%1440)}</small></button></li>`).join("")}</ul></div>`; }
 function ttScrollRestore(){ const tt=$("tt"); if(!tt) return; const saved=state.ttScroll?.date===tt.dataset.ttdate?state.ttScroll.positions:{};
   tt.querySelectorAll("[data-ttscroll]").forEach(el=>{ el.scrollLeft=saved[el.dataset.ttscroll]||0; el.parentElement.classList.toggle("at-end",el.scrollWidth-el.clientWidth-el.scrollLeft<2); }); }
 document.addEventListener("scroll",e=>{ const el=e.target; if(!el?.dataset?.ttscroll) return; const date=el.closest("#tt")?.dataset.ttdate; if(!date) return;
@@ -3491,7 +3508,11 @@ window.addEventListener("resize",()=>ttScrollRestore());
 function timetable(date){
   const S=Number(prefs.ttStart||4), E=24, H=TT_H, ents=dayEntries(date), top=m=>(m/60-S)*H;
   let h=`<div class="tt ${state.ttPick?"picking":""} ${state.ttSel?"has-sel":""}" id="tt" data-ttdate="${date}" style="height:${(E-S)*H}px" role="grid" aria-label="${jpDate(date)}のタイムテーブル">`;
-  for(let k=S;k<E;k++){ h+=`<div class="tt-h" style="top:${(k-S)*H}px"><span>${k}:00</span></div>`; for(const q of [15,30,45]) h+=`<div class="tt-q ${q===30?"h":""}" style="top:${(k-S)*H+q/60*H}px"><span>${k}:${q}</span></div>`; }
+  for(let k=S;k<E;k++){
+    const hourEntries=ents.filter(o=>o.kind!=="g"&&o.s<(k+1)*60&&o.e>k*60), keys=hourEntries.map(o=>o.c+"|"+o.x.id).join(",");
+    h+=`<div class="tt-h ${k%2?"alt":""}" style="top:${(k-S)*H}px;height:${H}px">${hourEntries.length?`<button type="button" class="tt-hour-open" data-ttgrp="${esc(keys)}" data-tthour="${k}" aria-label="${k}時台の${hourEntries.length}件を一覧で見る" title="この時間の項目を一覧で見る"><span>${k}:00</span><i aria-hidden="true">›</i></button>`:`<span>${k}:00</span>`}</div>`;
+    for(const q of [15,30,45]) h+=`<div class="tt-q ${q===30?"h":""}" style="top:${(k-S)*H+q/60*H}px" aria-label="${k}:${q}"><span aria-hidden="true">:${q}</span></div>`;
+  }
   if(date===today()){ const n=new Date(), m=n.getHours()*60+n.getMinutes(); if(m/60>=S) h+=`<div class="tt-now" style="top:${top(m)}px"></div>`; }
   const groups=new Map(); for(const o of ttLayout(ents.filter(o=>o.s<E*60&&o.e>S*60))){ if(!groups.has(o.groupStart)) groups.set(o.groupStart,[]); groups.get(o.groupStart).push(o); }
   for(const G of groups.values()){
@@ -3517,7 +3538,7 @@ function ttNewPaint(){ const el=$("ttNew"), N=state.ttNew; if(!el||!N) return; c
 { let lp=null, nd=null;
   document.addEventListener("pointerdown",e=>{ if(state.view!=="cal"||state.editing||state.paint.on) return; const tt=e.target.closest("#tt"); if(!tt) return;
     const nh=e.target.closest("[data-nh]"); if(nh&&state.ttNew){ nd={k:nh.dataset.nh,pid:e.pointerId}; e.preventDefault(); e.stopPropagation(); return; }
-    if(e.target.closest(".tt-b,#ttNew,.tt-grp")||state.ttPick||state.ttSel) return;
+    if(e.target.closest(".tt-b,#ttNew,[data-ttgrp]")||state.ttPick||state.ttSel) return;
     const y0=e.clientY; lp={x:e.clientX,y:y0,pid:e.pointerId,t:setTimeout(()=>{ if(!lp) return; const m=Math.min(Math.max(ttY2mF(tt,y0,15),ttS()*60),23*60+45);
       state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; state.ttNewJust=Date.now(); nd={k:"range",pid:lp.pid}; lp=null; haptic("tick"); renderTT(); },380)};
   },true);
@@ -3613,6 +3634,7 @@ function pschedDayHTML(byDay){ const t=today(), me=myRole(), ot=otherRole(); let
   const bAll=blocksFor(d).map(b=>blockAt(b,d)).filter(b=>b.allDay||!b.start);
   if(gAll.length||bAll.length) h+=`<div class="gall">${bAll.map(b=>`<button class="gchip mine" data-tb="blocks" data-tid="${esc(b.id)}">終日｜${esc(b.text)}</button>`).join("")}${gAll.map(g=>`<button class="gchip" data-gid="${esc(g.id)}">終日｜${esc(g.t)}</button>`).join("")}</div>`;
   if(dayEntries(d).some(o=>o.lanes>1)) h+=`<p class="tt-swipe-tip">重なる予定は横へスワイプ · タップで名前の全文・編集</p>`;
+  h+=`<p class="who mx" style="margin:0 0 6px">15分刻み · 左の時刻をタップすると項目名を一覧表示</p>`;
   h+=timetable(d)+ttBarHTML(d)+gEditHTML(d);
   /* v243: タイムテーブルと同じ内容の一覧は、折りたたんで重ねて見せない（開けばチェック・スワイプ・長押しで操作できる） */
   const dupN=evTimed.length+timed.length+blocksFor(d).length;
@@ -5103,7 +5125,7 @@ $("main").addEventListener("click",e=>{
   const tb=e.target.closest("[data-tb]"); if(tb){ openEdit(tb.dataset.tb,tb.dataset.tid); return; }
   const gb=e.target.closest("[data-gid]"); if(gb){ state.gEdit={date:$("tt").dataset.ttdate,id:gb.dataset.gid}; state.gDelArm=false; render(); setTimeout(()=>{ const el=document.querySelector(".gedit"); if(el) el.scrollIntoView({block:"center",behavior:"smooth"}); },60); return; }
   const dg=e.target.closest("[data-dg]"); if(dg){ const [c,id]=dg.dataset.dg.split("|"); state.ttPick=state.ttPick&&state.ttPick.id===id?null:{c,id}; haptic("tick"); render(); if(state.ttPick) setTimeout(()=>{ const t=$("tt"); if(t) t.scrollIntoView({block:"start",behavior:"smooth"}); },60); return; }
-  { const tg=e.target.closest("[data-ttgrp]"); if(tg&&!state.ttPick){ state.ttGrp={date:($("tt")||{}).dataset?.ttdate||state.sel,keys:tg.dataset.ttgrp.split(",")}; state.ttSel=null; haptic("tick"); render(); return; }
+  { const tg=e.target.closest("[data-ttgrp]"); if(tg&&!state.ttPick){ state.ttGrp={date:($("tt")||{}).dataset?.ttdate||state.sel,keys:tg.dataset.ttgrp.split(","),hour:tg.dataset.tthour??null}; state.ttSel=null; state.ttNew=null; haptic("tick"); render(); return; }
     const ts=e.target.closest("[data-tgsel]"); if(ts){ state.ttSel=ts.dataset.tgsel; state.ttGrp=null; state.ttDelArm=false; haptic("tick"); render(); return; } }
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
   if(tt&&state.ttNewJust&&Date.now()-state.ttNewJust<400) return;
