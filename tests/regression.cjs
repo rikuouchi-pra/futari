@@ -40,6 +40,27 @@ function env(names, overrides = {}) {
   return c;
 }
 const core = ['tmin','hhmm','isRecItem','sharedBoth','bothRoleOrder','bothPick','myT','myD','timeCh','hasDayTime','dayTimeKey','dayTime','timeAt','durAt','timeChangeFor','blockAt'];
+const shopFns=['DEFAULT_CHIPS','cleanShopChips','shopChipNames','shopChipsHTML','shopChipAction','saveShopChips'];
+test('edited shopping candidates replace automatic history and empty saved lists stay empty',()=>{
+ const c=env(shopFns);c.state.history=['牛乳','牛乳','購入履歴'];assert.equal(run(c,'shopChipNames().filter(x=>x==="牛乳").length'),1);
+ c.state.shopChips=['豆乳'];assert.deepEqual(plain(run(c,'shopChipNames()')),['豆乳']);c.state.history=['牛乳','追加履歴'];assert.deepEqual(plain(run(c,'shopChipNames()')),['豆乳']);
+ c.state.shopChips=[];assert.deepEqual(plain(run(c,'shopChipNames()')),[]);assert.match(run(c,'shopChipsHTML([])'),/data-shop-chips="edit"/);assert.doesNotMatch(run(c,'shopChipsHTML([])'),/data-chip=/);
+});
+test('shopping candidates preserve exact names safely and hide already open items',()=>{
+ const c=env(shopFns);c.state.shopChips=['牛乳','<豆乳>"'];const html=run(c,'shopChipsHTML([{text:"牛乳"}])');assert.doesNotMatch(html,/data-chip="牛乳"/);assert.match(html,/&lt;豆乳&gt;&quot;/);
+ c.state.shopChipsLoaded=true;run(c,'shopChipAction("edit")');assert.match(run(c,'shopChipsHTML([])'),/value="牛乳"/);c.state.shopChipDraft[0]='変更';run(c,'shopChipAction("cancel")');assert.deepEqual(plain(c.state.shopChips),['牛乳','<豆乳>"']);
+});
+test('shopping candidate validation and failed saves retain the draft for retry',async()=>{
+ let writes=0;const c=env(shopFns,{shopChipsDoc:{set:async()=>{writes++;throw Error('write failed');}}});c.state.shopChipsLoaded=true;c.state.shopChips=['保存済み'];
+ for(const draft of [[''],['同名',' 同名 ']]){c.state.shopChipDraft=draft;assert.equal(await run(c,'saveShopChips()'),false);}assert.equal(writes,0);
+ c.state.shopChipDraft=['新候補'];assert.equal(await run(c,'saveShopChips()'),false);assert.equal(writes,1);assert.deepEqual(plain(c.state.shopChipDraft),['新候補']);assert.deepEqual(plain(c.state.shopChips),['保存済み']);assert.equal(c.state.shopChipSaving,false);
+});
+test('shopping candidate saves use a separate shared document and reload an explicitly empty list',async()=>{
+ let listener,saved,docPath;const c=env([...shopFns,'bindShopChips'],{shopChipsDoc:null,db:{doc:p=>{docPath=p;return {onSnapshot:fn=>listener=fn,set:async x=>{saved=x;}};}}});run(c,'bindShopChips()');assert.equal(docPath,'meta/shopSuggestions');
+ listener({exists:false,fromCache:true});assert.equal(c.state.shopChipsLoaded,false);listener({exists:false,fromCache:false});assert.equal(c.state.shopChipsLoaded,true);
+ c.state.shopChipDraft=[' 豆乳 ','お茶'];assert.equal(await run(c,'saveShopChips()'),true);assert.deepEqual(plain(saved.names),['豆乳','お茶']);assert.equal(c.state.shopChipDraft,null);
+ c.state.shopChipDraft=[];assert.equal(await run(c,'saveShopChips()'),true);c.state.shopChips=null;listener({exists:true,data:()=>saved});assert.deepEqual(plain(run(c,'shopChipNames()')),[]);
+});
 function run(c, s) { return vm.runInContext(s,c); }
 function plain(x) { return JSON.parse(JSON.stringify(x)); }
 

@@ -337,6 +337,11 @@ a.glink{font-size:13px;color:var(--cal);font-weight:700;text-decoration:none;pad
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);background:var(--surface);font-size:13px;padding:7px 12px;border-radius:99px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.shop-chip-head{font-size:14px;letter-spacing:0;flex-wrap:wrap}.shop-chip-head button{min-height:44px;min-width:60px}
+.shop-chip-editor{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);margin:8px 0 16px}
+.shop-chip-editor p{font-size:14px;margin:0 0 10px;color:var(--muted)}
+.shop-chip-row{display:flex;gap:8px;align-items:center;margin:8px 0}.shop-chip-row input{flex:1;min-width:0;width:100%;box-sizing:border-box;font-size:16px;min-height:44px}
+.shop-chip-editor button{min-height:44px;flex-shrink:0}.shop-chip-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:flex-end}
 input[type=text],input[type=date],input[type=time],textarea{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--ground);color:var(--ink);min-width:0}
 input[type=date],input[type=time]{font-size:14px;padding:8px 8px}
 input[type=number],input[type=month],select{font:inherit;font-size:15px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--ground);color:var(--ink);min-width:0;max-width:100%;box-sizing:border-box}
@@ -2187,7 +2192,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="283";
+const APP_VERSION="284";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4378,6 +4383,43 @@ async function saveItemFavorites(items){const next=parseFavorites(items),previou
 }
 const itemFavorite=(x,c)=>itemFavorites().some(f=>f.text===x.text&&f.list===x.list&&f.private===(c==="pitems"));
 async function toggleItemFavorite(c,id){ const x=(state[c]||[]).find(i=>i.id===id); if(!x) return; const a=itemFavorites(), on=itemFavorite(x,c), next=on?a.filter(f=>!(f.text===x.text&&f.list===x.list&&f.private===(c==="pitems"))):[...a,{text:x.text,list:x.list,private:c==="pitems",who:getWho(x)}];if(!await saveItemFavorites(next.slice(-60)))return;toast(on?"お気に入りから外しました":"お気に入りを保存しました（元の項目を片付けても残ります）");const b=document.querySelector(`[data-favorite="${c}|${CSS.escape(id)}"]`);if(b)b.textContent=on?"☆ お気に入りに保存":"★ お気に入りから外す"; }
+/* Shared, separately stored candidates survive purchase-history cleanup and older clients. */
+let shopChipsDoc=null;
+function cleanShopChips(names){return [...new Set((Array.isArray(names)?names:[]).filter(x=>typeof x==="string").map(x=>x.trim()).filter(Boolean))].slice(0,60);}
+function shopChipNames(){return Array.isArray(state.shopChips)?cleanShopChips(state.shopChips):cleanShopChips([...(state.history||[]),...DEFAULT_CHIPS]);}
+function bindShopChips(){if(shopChipsDoc||!db)return;shopChipsDoc=db.doc("meta/shopSuggestions");
+  shopChipsDoc.onSnapshot(s=>{const data=s.exists?s.data():{};state.shopChips=Array.isArray(data.names)?cleanShopChips(data.names):null;state.shopChipsLoaded=s.exists||!s.fromCache;requestRender();},()=>{state.shopChipsLoaded=false;requestRender();});
+}
+function shopChipsHTML(open){
+  let h=`<div class="section-label shop-chip-head"><span>よく買うもの</span><button type="button" class="link" data-shop-chips="edit" ${state.shopChipDraft||state.shopChipSaving?'disabled':''}>編集</button></div>`;
+  if(state.shopChipDraft){const locked=state.shopChipSaving?'disabled':'';return h+`<section class="shop-chip-editor" aria-label="よく買うものを編集"><p>候補の名前を変更・追加・削除できます。保存するとふたりに反映されます。</p>${state.shopChipDraft.map((name,i)=>`<div class="shop-chip-row"><input type="text" data-shop-chip-name="${i}" value="${esc(name)}" maxlength="80" aria-label="候補${i+1}の名前" ${locked}><button type="button" class="btn danger" data-shop-chips="remove" data-i="${i}" aria-label="候補${i+1}を削除" ${locked}>削除</button></div>`).join('')}<button type="button" class="btn" data-shop-chips="add" ${locked||state.shopChipDraft.length>=60?'disabled':''}>＋ 候補を追加</button><div class="shop-chip-actions"><button type="button" class="btn" data-shop-chips="cancel" ${locked}>キャンセル</button><button type="button" class="btn primary" data-shop-chips="save" ${locked}>${state.shopChipSaving?'保存中…':'保存'}</button></div></section>`;}
+  const have=new Set(open.map(i=>i.text)),names=shopChipNames().filter(name=>!have.has(name)),chips=Array.isArray(state.shopChips)?names:names.slice(0,10);
+  return h+(chips.length?`<div class="chips">${chips.map(name=>`<button type="button" class="chip" data-chip="${esc(name)}" aria-label="${esc(name)}を今日の買い物に追加">＋ ${esc(name)}</button>`).join('')}</div>`:`<p class="who">${shopChipNames().length?'候補はすべて買い物リストに追加済みです':'候補はありません。「編集」から追加できます'}</p>`);
+}
+function shopChipAction(action,index){
+  if(state.shopChipSaving)return;
+  if(action==="edit"){if(!state.shopChipsLoaded){toast("候補の読み込みが完了していません。少し待ってからもう一度お試しください");return;}state.shopChipDraft=[...shopChipNames()];}
+  else if(action==="cancel")state.shopChipDraft=null;
+  else if(action==="save"){saveShopChips();return;}
+  else if(!Array.isArray(state.shopChipDraft))return;
+  else if(action==="add"){if(state.shopChipDraft.length>=60)return;state.shopChipDraft.push("");}
+  else if(action==="remove"){const i=Number(index);if(!Number.isInteger(i)||i<0||i>=state.shopChipDraft.length)return;state.shopChipDraft.splice(i,1);}
+  render();
+  if(action==="add")document.querySelector(`[data-shop-chip-name="${state.shopChipDraft.length-1}"]`)?.focus();
+}
+async function saveShopChips(){
+  if(state.shopChipSaving||!Array.isArray(state.shopChipDraft))return false;
+  const names=state.shopChipDraft.map(x=>x.trim());
+  if(names.some(x=>!x||x.length>80)){toast("候補名を1〜80文字で入力してください。不要な行は削除できます");return false;}
+  if(new Set(names).size!==names.length){toast("同じ名前の候補があります。名前を変更するか削除してください");return false;}
+  if(!shopChipsDoc||!state.shopChipsLoaded){toast("候補を読み込めていないため保存できません");return false;}
+  state.shopChipSaving=true;render();
+  try{await shopChipsDoc.set({names,updatedAt:Date.now()});state.shopChips=names;state.shopChipDraft=null;toast("よく買うものを保存しました");return true;}
+  catch(e){toast("保存できませんでした。編集内容は残っています。もう一度保存してください");return false;}
+  finally{state.shopChipSaving=false;render();}
+}
+document.addEventListener("input",e=>{if(e.target.matches?.('[data-shop-chip-name]')&&Array.isArray(state.shopChipDraft)&&!state.shopChipSaving){const i=Number(e.target.dataset.shopChipName);if(Number.isInteger(i)&&i>=0&&i<state.shopChipDraft.length)state.shopChipDraft[i]=e.target.value;}});
+document.addEventListener("click",e=>{const b=e.target.closest('[data-shop-chips]');if(b){e.preventDefault();shopChipAction(b.dataset.shopChips,b.dataset.i);}});
 function viewList(list,c="items"){
   const shared=c==="items";
   const all=state[c].filter(i=>i.list===list), mine0=shared?byWho(all):all;
@@ -4385,11 +4427,7 @@ function viewList(list,c="items"){
   const open=mine.filter(i=>!i.done).sort(sortItems(list)), done=mine.filter(i=>i.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   let h=shared?whoBar():"";
   if(["task","shop"].includes(list)){ const f=itemFavorites().map((x,i)=>({...x,i})).filter(x=>x.list===list); if(f.length) h+=`<div class="section-label">★ お気に入り（タップで今日に追加）</div><div class="chips">${f.map(x=>`<button class="chip" data-favadd="${x.i}">${x.private?"🔒":""}＋ ${esc(x.text)}</button><button class="chip mini" data-favremove="${x.i}" aria-label="${esc(x.text)}のお気に入りを解除">☆</button>`).join("")}</div>`; }
-  if(list==="shop"&&shared){
-    const have=new Set(open.map(i=>i.text));
-    const chips=[...state.history,...DEFAULT_CHIPS].filter((v,k,a)=>a.indexOf(v)===k&&!have.has(v)).slice(0,10);
-    if(chips.length) h+=`<div class="section-label">よく買うもの（タップで追加）</div><div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}">＋ ${esc(c)}</button>`).join("")}</div>`;
-  }
+  if(list==="shop"&&shared)h+=shopChipsHTML(open);
   const LB={task:["未完了","やることはありません","完了"],shop:["買うもの","買うものはありません","カゴに入れた"],wish:["やりたいこと","やりたいことはまだありません","叶った"]}[list];
   if(list==="task"){ const t=today(), R=shared?[...((prefs.whoF==="all"||prefs.whoF===myRole())?privateRecTasks():[]),...byWho(state.items.filter(isRecItem))]:c==="pitems"?privateRecTasks():[], rT=R.filter(recToday), rO=R.filter(h=>!recToday(h));
     const oT=open.filter(i=>i.due&&i.due<=t), oL=open.filter(i=>!(i.due&&i.due<=t)), nT=oT.length+rT.filter(h=>!habitLog(h)[t]&&!hMiss(h,t)).length;
@@ -9379,7 +9417,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   claude.use("assets").then(a=>{ state.assets=a||null; if(a) loadAssetUsage(); requestRender(); }).catch(()=>{});
   claude.use("sample").then(async sm=>{ if(sm){ state.sampleTxt=sm; requestRender(); } if(!sm){ state.sampleWhy="この表示環境ではClaudeへの問い合わせ機能そのものが提供されていません"; state.sampleNote="この画面ではClaudeの自動読み取りが使えません。写真を見ながら入力してください"; requestRender(); return; } try{ const L=await sm.limits(); if(!L||!L.images){ state.sampleWhy="Claudeへの問い合わせはできますが、この表示環境は写真の送信に対応していません"; state.sampleNote="この画面では写真の自動読み取りに対応していません。写真を見ながら入力してください"; requestRender(); } if(L&&L.images){ state.sample=sm; state.sampleImg=L.images; const inp=$("rcptIn"); if(inp&&L.images.mediaTypes) inp.accept=L.images.mediaTypes.join(","); requestRender(); } }catch(e){} }).catch(()=>{});
   claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="cal") requestRender(); if(m) gAutoKick(8000); }).catch(()=>{});
-  histDoc=db.doc("meta/history");
+  histDoc=db.doc("meta/history");bindShopChips();
   if(state.me){ try{ prefsDoc=db.doc(`data/users/${state.me}/prefs`); privBase=db.doc(`data/users/${state.me}/private`); privCol=privBase.collection("diary"); }catch(e){ prefsDoc=null; privCol=null; privBase=null; } }
   famDoc=db.doc("meta/family");
   rolesDoc=db.doc("meta/roles");

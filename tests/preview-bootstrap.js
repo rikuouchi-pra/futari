@@ -51,6 +51,7 @@
   put('events','seen-notice',{text:'先週共有した予定',date:addDays(d,-7),who:'both',notice:{from:'w',to:'h',at:now-604800000,seenAt:now-600000000}});
   window.SpeechRecognition=class {start(){this.timer=setTimeout(()=>{const r=[{0:{transcript:'明日の19時に自分だけの予定で買い物'},isFinal:true}];this.onresult?.({results:r,resultIndex:0});},400);}stop(){clearTimeout(this.timer);this.onend?.();}abort(){clearTimeout(this.timer);this.onend?.();}};
   bindFavorites();
+  bindShopChips();
   state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
   for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','cautions','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
   for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
