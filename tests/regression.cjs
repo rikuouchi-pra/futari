@@ -718,3 +718,9 @@ test('v202 household import starts from September 2026 and moves later starts ba
   assert.ok(added.filter(w=>w.data.kind==='save').every(w=>w.data.goal));
   assert.equal(c.state.kakei.limit,270000); assert.equal(c.state.kakei.catGoals.house,195000); assert.equal(c.state.kakei.catGoals.food,25000);
 });
+test('timetable keeps dense overlaps independent and connected overlap lanes disjoint',()=>{
+  const c=env(['ttLayout']);const input=[{s:540,e:600},{s:555,e:570},{s:565,e:585},{s:580,e:630},{s:600,e:615},{s:615,e:630},{s:630,e:645}].map((o,i)=>({...o,x:{id:String(i)},kind:'i',c:'items',t:'予定'+i}));
+  c.input=input;const out=plain(run(c,'ttLayout(input)'));assert.equal(out.length,input.length);assert.ok(out.every(o=>!o.grp));assert.equal(new Set(out.map(o=>o.x.id)).size,input.length);
+  for(const a of out)for(const b of out)if(a!==b&&a.s<b.e&&a.e>b.s){assert.equal(a.lanes,b.lanes);assert.notEqual(a.lane,b.lane);}
+  assert.equal(out.at(-1).lane,0);assert.equal(out.at(-1).lanes,1);
+});
