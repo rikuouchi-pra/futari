@@ -16,3 +16,5 @@ node node_modules/esbuild/bin/esbuild crypto-entry.mjs --bundle --format=iife --
 ```
 
 Tests from repository root: `node --test tests/regression.cjs tests/ai-transport.cjs tests/gas/push.cjs`. Tests independently verify the JWT using Node crypto and cover ownership, private/shared separation, endpoint restrictions, retry, deduplication, expiry and device shutdown.
+
+Notification policy: each device retains its own weekday and quiet-hour policy (Japan time). Suppressed notifications are discarded, not deferred. Manual tests bypass quiet hours. Shared updates are rescheduled using the recipient device’s lead, morning and evening times; one partner cannot overwrite the other device’s timing preferences.

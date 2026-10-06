@@ -2170,7 +2170,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="280";
+const APP_VERSION="281";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2255,7 +2255,7 @@ const AUTO_SV=["home","cal","talk","task","shop","money","future","diary","duo",
 const DEFAULT_PREFS={hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
-  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
+  onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",pushAmTime:"",pushPmTime:"20:30",pushDays:"0,1,2,3,4,5,6",pushQuiet:"0",pushQuietStart:"22:00",pushQuietEnd:"07:00",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
 let prefs={...DEFAULT_PREFS};
 try{Object.assign(prefs,JSON.parse(store.get("futari.prefs")||"{}"));}catch(e){}
 { /* migrate the older rail key */ try{const o=JSON.parse(store.get("futari.rail")||"null"); if(o&&prefs.railY===-1&&typeof o.y==="number"){prefs.railSide=o.side;prefs.railY=o.y;}}catch(e){} }
@@ -3906,20 +3906,24 @@ const pushStandaloneIOS=()=>/iPhone|iPad/.test(navigator.userAgent)&&!(navigator
 function pushCardRefresh(){ const c=$("pushCard"); if(c) c.innerHTML=pushCardHTML(); }
 const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); };
 /* この先48時間の通知予定をつくる（ふたり分の共有＋自分の🔒） */
-function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=[0,5,10,15,30,60].includes(Number(prefs.pushLead))?Number(prefs.pushLead):30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
+function pushSettings(){const clock=(v,f)=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v||"")?v:f;return {am:clock(prefs.pushAmTime,`${String(prefs.pushAmH||"7").padStart(2,"0")}:00`),pm:clock(prefs.pushPmTime,"20:30"),days:String(prefs.pushDays??"0,1,2,3,4,5,6").split(",").filter(v=>/^[0-6]$/.test(v)).map(Number),quiet:prefs.pushQuiet==="1",start:clock(prefs.pushQuietStart,"22:00"),end:clock(prefs.pushQuietEnd,"07:00"),lead:[0,5,10,15,30,45,60,90,120].includes(Number(prefs.pushLead))?Number(prefs.pushLead):30};}
+function pushDetailsHTML(){const p=state.pushDetailDraft||pushSettings();return `<details class="tt-more" open><summary>通知の詳細設定</summary><p class="who">時刻は日本時間です。このアカウントの設定として保存し、この端末の送信サーバーへ反映します。</p><div class="edit-row"><label>朝のまとめ<input type="time" id="pushAmTimeIn" value="${p.am}"></label><label>夜の質問<input type="time" id="pushPmTimeIn" value="${p.pm}"></label></div><h2>通知を受け取る曜日</h2><div class="opts">${[1,2,3,4,5,6,0].map(d=>`<label class="opt"><input type="checkbox" data-push-day="${d}" ${p.days.includes(d)?"checked":""}>${"日月火水木金土"[d]}</label>`).join("")}</div><label class="opt"><input type="checkbox" id="pushQuietIn" ${p.quiet?"checked":""}>通知しない時間帯を使う</label><div class="edit-row"><label>開始<input type="time" id="pushQuietStartIn" value="${p.start}"></label><label>終了<input type="time" id="pushQuietEndIn" value="${p.end}"></label></div><p class="who">例：22:00〜07:00。選ばない曜日・通知しない時間帯の通知は送らず、あとからまとめて送りません。テスト通知は対象外です。</p><button class="btn primary" data-act="pushSaveDetails" ${state.pushBusy?"disabled":""}>詳細設定を保存・反映</button></details>`;}
+async function pushSaveDetails(){if(state.pushBusy)return;const fields={pushAmTime:$("pushAmTimeIn").value,pushPmTime:$("pushPmTimeIn").value,pushQuietStart:$("pushQuietStartIn").value,pushQuietEnd:$("pushQuietEndIn").value};if(Object.values(fields).some(v=>!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))){toast("時刻を入力してください");return;}const quiet=$("pushQuietIn").checked;if(quiet&&fields.pushQuietStart===fields.pushQuietEnd){toast("通知しない時間帯の開始と終了を別の時刻にしてください");return;}Object.assign(prefs,fields,{pushQuiet:quiet?"1":"0",pushDays:[...document.querySelectorAll("[data-push-day]:checked")].map(el=>el.dataset.pushDay).sort().join(",")});state.pushDetailDraft=null;savePrefs(true);state.pushBusy=true;state.pushMsg="通知設定を反映しています…";pushCardRefresh();try{await pushSync();}finally{state.pushBusy=false;pushCardRefresh();}}
+document.addEventListener("input",e=>{if(!e.target.matches?.("#pushAmTimeIn,#pushPmTimeIn,#pushQuietIn,#pushQuietStartIn,#pushQuietEndIn,[data-push-day]")||!$("pushAmTimeIn"))return;state.pushDetailDraft={...pushSettings(),am:$("pushAmTimeIn").value,pm:$("pushPmTimeIn").value,start:$("pushQuietStartIn").value,end:$("pushQuietEndIn").value,quiet:$("pushQuietIn").checked,days:[...document.querySelectorAll("[data-push-day]:checked")].map(el=>Number(el.dataset.pushDay))};});
+function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lead=[0,5,10,15,30,45,60,90,120].includes(Number(prefs.pushLead))?Number(prefs.pushLead):30, me=myRole(), R=["h","w"], at=(d,hm)=>new Date(`${d}T${hm}:00+09:00`).getTime();
   const shared=[], priv=[], rolesOf=x=>{ const w=getWho(x); return w==="both"?R:R.includes(w)?[w]:R; };
   for(const d of days){
-    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a>now-10*60e3) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:lead?`${lead}分後：${x.text}`:`開始：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
-    for(const i of state.items) if(!i.done&&i.due===d&&myT(i)&&!isRecItem(i)){ const a=at(d,myT(i))-lead*60e3; if(a>now-10*60e3) shared.push({id:`it:${i.id}:${d}:${myT(i)}:${lead}`,at:a,roles:rolesOf(i).filter(r=>!doneOf(i,r)),kind:"ev",t:lead?`${lead}分後：${i.text}`:`開始：${i.text}`,b:`${myT(i)}・${i.list==="shop"?"買い物":"やること"}`}); }
+    for(const x of state.events) if(x.date===d&&x.start){ const a=at(d,x.start)-lead*60e3; if(a+lead*60e3>now-10*60e3) shared.push({id:`ev:${x.id}:${d}:${x.start}:${lead}`,at:a,roles:rolesOf(x),kind:"ev",t:lead?`${lead}分後：${x.text}`:`開始：${x.text}`,b:`${x.start}${x.end?"〜"+x.end:""}・${getWho(x)==="both"?"ふたり":nameOf(getWho(x))}`}); }
+    for(const i of state.items) if(!i.done&&i.due===d&&myT(i)&&!isRecItem(i)){ const a=at(d,myT(i))-lead*60e3; if(a+lead*60e3>now-10*60e3) shared.push({id:`it:${i.id}:${d}:${myT(i)}:${lead}`,at:a,roles:rolesOf(i).filter(r=>!doneOf(i,r)),kind:"ev",t:lead?`${lead}分後：${i.text}`:`開始：${i.text}`,b:`${myT(i)}・${i.list==="shop"?"買い物":"やること"}`}); }
     for(const b of (typeof blocksFor==="function"?blocksFor(d):[]).map(b=>blockAt(b,d)).filter(b=>b.start&&!b.allDay)){ const a=at(d,b.start)-lead*60e3; if(a>now-10*60e3) priv.push({id:`bl:${b.id}:${d}:${b.start}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${b.text}`:`開始：${b.text}`,b:`🔒 ${b.start}${b.end?"〜"+b.end:""}`}); }
     for(const o of dayEntries(d)){if(o.done||o.skip||o.kind==="g"||o.c==="blocks"||o.c==="events"||(o.c==="items"&&!isRecItem(o.x)))continue;
       const a=at(d,hhmm(o.s))-lead*60e3;if(a<=now-10*60e3)continue;const privateEntry=["pitems","habits"].includes(o.c),target=privateEntry?priv:shared;
       target.push({id:`timed:${o.c}:${o.x.id}:${me}:${d}:${o.s}:${lead}`,at:a,roles:[me],kind:"ev",t:lead?`${lead}分後：${o.t}`:`開始：${o.t}`,b:`${privateEntry?"🔒 ":""}${hhmm(o.s)}・${ttInfo(o).type}`}); }
-    const amH=String(prefs.pushAmH||"7").padStart(2,"0"), am=at(d,`${amH}:00`);
-    if(am>now-10*60e3) for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
+    const amH=pushSettings().am, am=at(d,amH);
+    for(const r of R){ const ev=state.events.filter(x=>x.date===d&&(getWho(x)==="both"||getWho(x)===r)).sort((a,b)=>(a.start||"").localeCompare(b.start||"")), G=gomiOn(d), W=wxDay(d), tk=state.items.filter(i=>!i.done&&i.list==="task"&&i.due&&i.due<=d&&(getWho(i)==="both"||getWho(i)===r)).length, sh=SHIFT_NAME[shiftOf(r,d)];
       const parts=[sh?`シフト：${sh}`:"",W?`${WXN[W.k]} ${W.max}°/${W.min}°${W.pop>=30?` ☂${W.pop}%`:""}${W.dry?`・洗濯：${W.dry.l}`:""}`:"",G.length?`ごみ：${G.join("・")}`:"",ev.length?`予定：${ev.slice(0,3).map(x=>`${x.start||"終日"} ${x.text}`).join("、")}${ev.length>3?` ほか${ev.length-3}件`:""}`:"",tk?`やること ${tk}件`:""].filter(Boolean);
       shared.push({id:`am:${d}:${r}:${amH}`,at:am,roles:[r],kind:"am",t:`${d.slice(5).replace("-","/")}（${"日月火水木金土"[parse(d).getDay()]}）のまとめ`,b:parts.join("\n")||"今日は予定はありません"}); }
-    const pm=at(d,"20:30"); if(pm>now-10*60e3) for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
+    const pm=at(d,pushSettings().pm); for(const r of R){ if(qaAns(d,r)) continue; shared.push({id:`pm:${d}:${r}:${pushSettings().pm}`,at:pm,roles:[r],kind:"pm",t:"今日の質問",b:`${qaQ(d)}（まだ答えていません）`}); }
   }
   return {shared:shared.filter(x=>x.roles.length).sort((a,b)=>a.at-b.at).slice(0,60),priv:priv.sort((a,b)=>a.at-b.at).slice(0,40)}; }
 let pushT=null, pushQ=[];
@@ -3936,8 +3940,8 @@ function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in
   else if(!ok) body='<p class="who">このブラウザはプッシュ通知に対応していません。</p>';
   else if(perm==="denied") body='<p class="who">通知が拒否されています。端末またはブラウザの通知設定で、このアプリの通知を許可してください。</p>';
   else if(on) body=`<p class="who">この端末の通知：${state.pushLast?"登録済み":"登録の確認が必要"}（${esc(nameOf(myRole()))}あて）</p><p class="who">自分だけの内容は自分あての通知にだけ含まれます。</p><div class="opts">${PUSH_K.map(([k,l])=>`<button class="opt" data-act="pushKind" data-k="${k}" aria-pressed="${!off.has(k)}" ${busy}>${l}</button>`).join("")}</div>
-    <h2>開始の何分前</h2><div class="opts">${["0","5","10","15","30","60"].map(v=>`<button class="opt" data-act="pushLead" data-v="${v}" aria-pressed="${prefs.pushLead===v}" ${busy}>${v==="0"?"開始時":v+"分前"}</button>`).join("")}</div>
-    <h2>朝のまとめ</h2><div class="opts">${["6","7","8"].map(v=>`<button class="opt" data-act="pushAm" data-v="${v}" aria-pressed="${prefs.pushAmH===v}" ${busy}>${v}時</button>`).join("")}</div>
+    <h2>開始の何分前</h2><div class="opts">${["0","5","10","15","30","45","60","90","120"].map(v=>`<button class="opt" data-act="pushLead" data-v="${v}" aria-pressed="${prefs.pushLead===v}" ${busy}>${v==="0"?"開始時":v+"分前"}</button>`).join("")}</div>
+    ${pushDetailsHTML()}
     <div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して再登録":"通知登録を確認・修復"}</button><button class="opt" data-act="pushTest" ${busy}>テスト通知を送る</button><button class="opt" data-act="pushRefresh" ${busy}>通知予定を更新</button><button class="opt" data-act="pushOffDev" ${busy}>この端末の通知を停止</button></div>
     <p class="who">${state.pushLast?`最終同期：${esc(new Date(state.pushLast).toLocaleString("ja-JP"))}。`:"送信サーバーとの同期は未確認です。"}今日と明日の通知予定を、アプリを開いたとき・予定変更時に更新します。送信間隔により数分遅れることがあります。</p>`;
   else body=`<p class="who">予定・時間を決めたタスク・習慣・家事の開始前、朝のまとめ、夜の質問を通知します。</p><div class="opts"><button class="opt" data-act="${state.pushPrepared?"pushOn":"pushPrepare"}" ${busy}>${state.pushPrepared?"通知を許可して有効にする":state.pushBackendMissing?"送信側の更新後に再確認":"この端末の通知を準備"}</button></div>`;
@@ -3975,7 +3979,7 @@ async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)retur
   const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
   (reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
   const plan=pushPlan(),queued=pushQ.slice(),off=(prefs.pushOff||"").split(",").filter(Boolean);
-  await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,at:Date.now(),shared:plan.shared,now:queued})});
+  await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,policy:pushSettings(),at:Date.now(),shared:plan.shared,now:queued})});
   await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
   const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`});if(!r||r.error||r.ok===false)throw Error("送信サーバーが通知の保存を確認できませんでした");
   pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
@@ -3991,6 +3995,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act
   else if(a==="pushOn") pushOn();
   else if(a==="pushTest"||a==="pushRefresh"){ if(state.pushBusy)return;state.pushBusy=true;state.pushMsg="送信サーバーと通信しています…";pushCardRefresh();pushSync(a==="pushTest"?"test":"sync").finally(()=>{state.pushBusy=false;pushCardRefresh();}); }
   else if(a==="pushOffDev") pushOffDevice();
+  else if(a==="pushSaveDetails") pushSaveDetails();
   else if(a==="pushKind"){ const S=new Set((prefs.pushOff||"").split(",").filter(Boolean)); S.has(b.dataset.k)?S.delete(b.dataset.k):S.add(b.dataset.k); prefs.pushOff=[...S].join(","); savePrefs(true); pushCardRefresh(); pushSync(); }
   else if(a==="pushLead"){ prefs.pushLead=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); }
   else if(a==="pushAm"){ prefs.pushAmH=b.dataset.v; savePrefs(true); pushCardRefresh(); pushSync(); } },true);
@@ -6876,7 +6881,25 @@ function updBanner(){ let el=$("updBar"); if(!el){ el=document.createElement("di
 async function updNow(){ toast("更新しています…"); try{ const rs=navigator.serviceWorker?await navigator.serviceWorker.getRegistrations():[]; await Promise.all(rs.map(r=>r.update().catch(()=>{}))); if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){} location.replace(location.pathname+"?v="+Date.now()); }
 setTimeout(()=>updCheck(false),6000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&(!state.upd||Date.now()-state.upd.at>10*60e3)) updCheck(false); });
 /* v151: AIの提案する操作（押したときだけ実行） */
-const AI_PREFS={eveH:["夜の入力時刻",["17","18","19","20","21"]],shRem:["シフトのお知らせ",["on","off"]],qaPop:["今日の質問",["on","off"]],hintsAlways:["ヒント表示",["0","1"]],music:["音楽",["on","off"]],songAuto:["音楽の自動再生",["on","off"]],wx:["天気表示",["on","off"]],startView:["起動画面",["home","cal","last"]],ttStart:["時間割の開始時刻",["3","4","5","6","7","8"]],diaryPriv:["日記の公開範囲",["0","1"]],haptic:["振動",["on","off"]],fs:["文字サイズ",["m","l","xl"]],mode:["明るさ",["auto","light","dark"]],density:["表示密度",["normal","compact"]],hand:["利き手",["left","right"]],nav:["メニュー形式",["rail","railc","flick","railf"]],aiBrief:["朝のAI提案",["on","off"]]};
+const AI_PREFS={pushLead:["開始前の通知",["0","5","10","15","30","45","60","90","120"]],pushAmTime:["朝の通知時刻",{time:true}],pushPmTime:["夜の通知時刻",{time:true}],pushQuiet:["通知しない時間帯",["0","1"]],pushQuietStart:["通知しない時間帯の開始",{time:true}],pushQuietEnd:["通知しない時間帯の終了",{time:true}],pushDays:["通知する曜日",{days:true}],appName:["アプリの名前",{text:true,max:16}],greet:["あいさつ表示",["0","1"]],celebrate:["完了時の演出",["confetti","heart","none"]],logoSz:["アイコンの大きさ",["s","m","l","xl"]],eveH:["夜の入力時刻",["17","18","19","20","21"]],shRem:["シフトのお知らせ",["on","off"]],qaPop:["今日の質問",["on","off"]],hintsAlways:["ヒント表示",["0","1"]],music:["音楽",["on","off"]],songAuto:["音楽の自動再生",["on","off"]],wx:["天気表示",["on","off"]],startView:["起動画面",["home","cal","last"]],ttStart:["時間割の開始時刻",["3","4","5","6","7","8"]],diaryPriv:["日記の公開範囲",["0","1"]],haptic:["振動",["on","light","off"]],fs:["文字サイズ",["m","l","xl"]],mode:["明るさ",["auto","light","dark"]],density:["表示密度",["normal","compact"]],hand:["利き手",["left","right"]],nav:["メニュー形式",["rail","railc","flick","railf"]],aiBrief:["朝のAI提案",["on","off"]]};
+function aiPrefValue(key,raw){
+  if(!Object.prototype.hasOwnProperty.call(AI_PREFS,key)) throw Error("その設定はAIから変更できません");
+  const spec=AI_PREFS[key][1]; if(typeof raw!=="string"&&typeof raw!=="number") throw Error("設定の値を確認してください");
+  const value=String(raw).trim();
+  if(Array.isArray(spec)){if(!spec.includes(value))throw Error("設定の値を確認してください");}
+  else if(spec.time){if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(value))throw Error("時刻は00:00〜23:59で指定してください");}
+  else if(spec.days){if(value!==""&&!/^[0-6](,[0-6])*$/.test(value))throw Error("曜日を確認してください");return [...new Set(value.split(",").filter(Boolean))].sort().join(",");}
+  else if(value.length>spec.max||/[\u0000-\u001f\u007f]/.test(value))throw Error(`${AI_PREFS[key][0]}は改行なし・${spec.max}文字以内で指定してください`);
+  return value;
+}
+function aiPrefLabel(key,value){
+  const labels={diaryPriv:{"0":"新しい日記はふたりで見る","1":"新しい日記は自分だけ"},nav:{rail:"メニュー",railc:"コンパクトメニュー",flick:"スワイプ",railf:"メニューとスワイプ"},mode:{auto:"自動",light:"明るい",dark:"暗い"},fs:{m:"標準",l:"大",xl:"特大"},density:{normal:"標準",compact:"コンパクト"},celebrate:{confetti:"紙吹雪",heart:"ハート",none:"なし"},logoSz:{s:"小",m:"中",l:"大",xl:"特大"},haptic:{on:"しっかり",light:"軽め",off:"なし"},startView:{home:"ホーム",cal:"カレンダー",last:"前回の画面"},hand:{left:"左",right:"右"}};
+  if(key==="pushLead")return value==="0"?"開始時":value+"分前";
+  if(key==="pushDays")return value?value.split(",").map(v=>"日月火水木金土"[Number(v)]).join("・"):"通知しない";
+  if(key==="pushQuiet")return value==="1"?"使う":"使わない";
+  if(key==="appName")return value||"ふたりのリスト（既定）";
+  return labels[key]?.[value]||({on:"オン",off:"オフ","1":"表示する","0":"表示しない"}[value])||value;
+}
 const AI_ACT_L={add_chore:"家事に追加",add_auto:"条件で自動を追加",edit_auto:"条件で自動を変更",add_money:"毎月の支払いを追加",edit_money:"毎月の支払いを変更",set_check:"決めたことを記録",add_recurring:"繰り返しを追加",open_view:"画面を開く",set_pref:"設定を変更",report_bug:"改善要望を送信",remember:"覚える",add_plan:"将来に追加",edit:"変更",delete:"削除",skip:"この日はやらない",add_task:"やることに追加",add_shop:"買い物に追加",add_event:"予定に追加",add_block:"自分の時間の予定に追加",add_topic:"議題に追加",add_dinner:"夕飯メモに記録",done:"完了にする",set_shift:"シフトを入れる"};
 const aiTime=v=>{ const s=String(v||"").padStart(5,"0"); return /^([01]\d|2[0-3]):[0-5]\d$/.test(s)?s:""; };
 function aiWho(v){ if(v==null||v===""||v==="both") return "both"; if(v==="priv"||v==="自分だけ"||v==="じぶんだけ") return "priv"; if(v==="me") return myRole(); if(v==="partner") return otherRole(); if(v==="h"||v==="夫") return "h";if(v==="w"||v==="妻")return "w"; for(const r of ["h","w"]) if(v===nameOf(r)) return r; return null; }
@@ -6912,7 +6935,7 @@ function aiActText(x){ if(x.type==="edit_money"){ const L=aiMoneyTargets(x); ret
   const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id);
   if(x.type==="add_recurring"){try{const h=aiRecurring(x),w=aiWho(x.who);return `${x.kind==="habit"?"習慣":"繰り返しタスク"}：${cut2(x.text)}・${tgtLabel({...h,createdAt:Date.now()})}${x.date?"・"+(aiDate(x.date)||x.date)+"から":""}${x.time||x.start?"・"+(x.time||x.start)+(x.end?"–"+x.end:""):""}・${w==="priv"?"自分だけ":w==="both"?"ふたり（共有）":w?nameOf(w)+"（共有）":"担当を確認"}`;}catch(e){return `繰り返し：${cut2(x.text)}（${e.message}）`;}}
   if(x.type==="open_view") return `画面を開く：${TITLES[x.view]||"不明"}${x.cat&&PCATS[x.cat]?" › "+PCATS[x.cat].label:""}`;
-  if(x.type==="set_pref") return `設定：${AI_PREFS[x.key]?AI_PREFS[x.key][0]:"変更できない項目"} → ${String(x.value||"")}`;
+  if(x.type==="set_pref"){try{const v=aiPrefValue(x.key,x.value);return `${AI_PREFS[x.key][0]}：${aiPrefLabel(x.key,String(prefs[x.key]??""))} → ${aiPrefLabel(x.key,v)}`;}catch(e){return `設定を確認：${e.message}`;}}
   if(x.type==="report_bug") return `改善要望を送信：${cut2(x.text)}`;
   if(x.type==="add_dinner") return `夕飯メモ：${cut2([x.main,x.side,x.soup].filter(Boolean).join("／")||x.text)}`;
   const dt=aiDate(x.date)?` ${aiDate(x.date)}`:"", tm=x.start||x.time?` ${x.start||x.time}${x.end?"–"+x.end:""}`:"", aw=aiWho(x.who), w=x.who&&x.who!=="both"?`（${aw==="priv"?"🔒じぶん":aw?nameOf(aw):"担当を確認"}）`:"";
@@ -6942,7 +6965,7 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
   if(tm&&x.end&&x.end!=="00:00"&&tmin(x.end)<=tmin(tm)){toast("終了は開始より後の時刻にしてください（翌0:00まで）");return;}
   try{
     if(x.type==="open_view"){ if(!Object.prototype.hasOwnProperty.call(TITLES,x.view)){ toast("その画面は開けません"); return; } x.ok=true; aiLogSave(); if(x.view==="cal") state.sel=d||t; if(x.view==="reflect") state.refDate=d||t; if(x.view==="diary") state.diaryDate=d||t; if(x.view==="talk") state.talkDate=d||t; if(x.view==="future") state.fut=PCATS[x.cat]?x.cat:null; go(x.view); return; }
-    else if(x.type==="set_pref"){ const spec=AI_PREFS[x.key], value=String(x.value); if(!spec||!spec[1].includes(value)){ toast("その設定変更はできません。設定画面で確認してください"); return; } const old=prefs[x.key]; prefs[x.key]=value; savePrefs(); undo=()=>{prefs[x.key]=old;savePrefs();}; }
+    else if(x.type==="set_pref"){ const value=aiPrefValue(x.key,x.value),old=prefs[x.key]; prefs[x.key]=value; savePrefs(true); renderChrome(); if(x.key.startsWith("push")&&pushEnabled())pushSync(); undo=()=>{prefs[x.key]=old;savePrefs(true);renderChrome();if(x.key.startsWith("push")&&pushEnabled())pushSync();render();}; }
     else if(x.type==="report_bug"){ const text=String(x.text||"").trim().slice(0,1200); if(!text){ toast("要望の内容がありません"); return; } dset("bugs",id,{text,view:state.view,ver:APP_VERSION,role:me,by:state.me||null,at:now,status:"new",source:"ai"}); undo=()=>ddel("bugs",id); }
     else if(x.type==="add_recurring"){if(x.kind!=null&&!["habit","task"].includes(x.kind))throw Error("習慣かやることかを指定してください");if(x.kind==="habit"&&who!=="priv")throw Error("習慣は自分だけを指定してください");const hv={entryKind:x.kind==="habit"?"habit":"task",...(x.kind==="habit"?{showInTimetable:x.showInTimetable===true||(!!tm&&x.showInTimetable!==false)}:{}),text:String(x.text).trim().slice(0,120),...aiRecurring(x),log:{},since:d||t,createdAt:now,updatedAt:now};if(tm){hv.time=tm;hv.dur=x.end?(x.end==="00:00"?1440:tmin(x.end))-tmin(tm):30;}const c=who==="priv"?"habits":"items";if(c==="items")Object.assign(hv,{list:"rtask",who,by:state.me||null});dset(c,id,hv);undo=()=>ddel(c,id);}
     else if(x.type==="add_task"||x.type==="add_shop"){ const L=x.type==="add_task"?"task":"shop", dd=d||(tm?t:""), en=x.end?(x.end==="00:00"?1440:tmin(x.end)):null, dur=tm&&en!=null&&en>tmin(tm)?en-tmin(tm):null;
@@ -7143,6 +7166,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 - 【確認】日付・担当・種類のどれかに迷ったら、acts は作ったうえで reply の最初に「〇〇として登録します。違えば直してね」と一言書く
 - 「追加して」「完了にして」など操作を頼まれたら、必ず acts に入れる。日時などが足りないときは、いちばん自然な案で acts を作り、replyで「違えば直してね」と添える
 - 「防災にTODO」などカテゴリ指定は add_plan の cat に反映する。改善要望・不具合の報告は report_bug、画面切替は open_view、設定変更は set_pref を使う
+- 設定の変更依頼は、設定画面を開く案内だけで終わらず set_pref の実行ボタンを作る。アプリ名の変更は key:"appName"。例：「アプリの名前ふたりすとにして」→ {"type":"set_pref","key":"appName","value":"ふたりすと"}。まだ変更済みと言わず「実行を押すと変更します」と伝える。本人が頼んだ設定だけ変更する。
 - 献立は主菜・副菜・汁物で提案する。冷蔵庫は最終確認時点の在庫なので現在の残量・鮮度を断定しない。献立を記録する場合は add_dinner の main/side/soup を分ける
 - 繰り返し項目の時刻を動かす edit には必ず対象 date を付ける（その日だけ変更）
 - 既存の予定・やること・家事などを直したいと言われたら、新しく追加せず edit を使う（[r番号]で指定）
@@ -7170,7 +7194,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
   {"type":"add_dinner","main":"主菜","side":"副菜","soup":"汁物","date":"YYYY-MM-DD"}
   {"type":"report_bug","text":"不具合・改善要望の内容"}
   {"type":"open_view","view":"home|cal|task|shop|talk|habit|reflect|diary|future|money|settings","cat":"防災ならbousaiなど(任意)","date":"YYYY-MM-DD(任意)"}
-  {"type":"set_pref","key":"設定キー","value":"値"}（許可されたキーと値だけ：${JSON.stringify(AI_PREFS)}。未対応の設定は settings を開いて案内する）
+  {"type":"set_pref","key":"設定キー","value":"値"}（許可されたキーと値だけ：${JSON.stringify(AI_PREFS)}。配列は選択可能な値、{time:true}はHH:MM、{days:true}は曜日0=日〜6=土をカンマで区切る（例：平日="1,2,3,4,5"、全曜日="0,1,2,3,4,5,6"、なし=""）。通知しない時間帯を頼まれたらpushQuiet="1"と開始・終了をセットで提案し、開始と終了は別の時刻にする。{text:true,max:16}は16文字以内の自由入力（空文字は既定名に戻す）。appName はアプリ内の表示名。インストール済みのホーム画面アイコン名を変更したとは言わない。現在の設定：${JSON.stringify(Object.fromEntries(Object.keys(AI_PREFS).map(k=>[k,prefs[k]??""])))}。対応する設定は必ずこの操作にする。未対応の設定だけ settings を開いて案内する）
   {"type":"done","ref":"r12"}（[r番号]の項目を完了にする。完了済みなら未完了に戻す）
   {"type":"edit_money","refs":["r3","r4"],"all":false,"kind":"fixed|var|save(allのときの絞り込み・任意)","day":20,"amount":円(任意),"split_w":妻の負担額(任意),"split_h":夫の負担額(任意),"bank":"振込先(任意)","status":"paid|skip|clear(任意)","ym":"YYYY-MM(statusの対象月・任意)"}（「毎月の支払い」の[r番号]の項目をまとめて直す。全部なら "all":true。変える欄だけ書く。例：振込の指定日を全部20日に→{"type":"edit_money","all":true,"day":20}）
   {"type":"set_check","ref":"r12","item":"チェック項目の文字","note":"ふたりで決めたこと・結果","done":true}（将来（防災・子育てなど）の項目の中のチェック項目に、決めたことを書く。話し合いの後片付けで、議題が将来の項目に関係するときはこれを使う。done は決まって済んだときだけ）

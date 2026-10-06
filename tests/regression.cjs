@@ -24,13 +24,15 @@ function env(names, overrides = {}) {
     today: () => '2026-09-28', myRole: () => 'h', otherRole: () => 'w', getWho: x => x.who || 'both',
     parse: d => new Date(d + 'T00:00:00'), ymd: d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
     addDays: (d,n) => { const x=new Date(d+'T00:00:00Z'); x.setUTCDate(x.getUTCDate()+n); return x.toISOString().slice(0,10); },
-    newId: () => 'new-id', nameOf: r => r, toast: (...a) => notices.push(a), haptic() {}, render() {}, renderTT() {}, requestRender() {}, savePrefs() {}, aiLogSave() {},
+    newId: () => 'new-id', nameOf: r => r, toast: (...a) => notices.push(a), haptic() {}, render() {}, renderTT() {}, renderChrome() {}, requestRender() {}, savePrefs() {}, aiLogSave() {},
     dset: (c,id,data) => writes.push({op:'set',c,id,data}), dupd: (c,id,data) => writes.push({op:'update',c,id,data}), ddel: (c,id) => writes.push({op:'delete',c,id}),
     esc: s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
     snapUndo: () => () => {}, aiActText: () => 'test', APP_VERSION: source.match(/APP_VERSION="(\d+)"/)[1],
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',pushEnabled:()=>false,...overrides });
+  if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
+  if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
   for(const name of new Set(['isRecItem','isHabit','habitItems','privateRecTasks','AI_RELEASE_184','bugRelease184','AI_RELEASE_190','bugRelease190',...names])) vm.runInContext(declaration(name), c, {filename: name});
@@ -754,4 +756,16 @@ test('notification sync retains recently due reminders for the five-minute sende
  const c=pushEnv(['pushPlan','hhmm'],{Date:class extends Date{static now(){return now;}},myT:x=>x.time,doneOf:x=>x.done,dayEntries:()=>[],blocksFor:()=>[],blockAt:x=>x,ttInfo:()=>({type:'タスク'}),gomiOn:()=>[],wxDay:()=>null,SHIFT_NAME:{},shiftOf:()=>'',qaAns:()=>true});
  c.prefs.pushLead='0';c.state.events=[{id:'recent',date:'2026-09-28',start:'10:00',text:'最近の予定',who:'h'},{id:'old',date:'2026-09-28',start:'09:45',text:'古い予定',who:'h'}];
  c.state.items=[{id:'completed',done:true,due:'2026-09-28',time:'10:00',text:'完了済み',who:'h'}];const plan=plain(run(c,'pushPlan()'));assert.ok(!plan.shared.some(x=>x.id.startsWith('it:completed:')));assert.ok(plan.shared.some(x=>x.id.startsWith('ev:recent:')));assert.ok(!plan.shared.some(x=>x.id.startsWith('ev:old:')));
+});
+test('AI settings changes apply only on execution, refresh the name, and can be undone',()=>{
+ let painted=0,saved=0;const c=env(ai,{renderChrome:()=>painted++,savePrefs:()=>saved++});c.prefs.appName='ふたりのリスト';const x={type:'set_pref',key:'appName',value:'ふたりすと'};c.state.ai.log=[{a:{acts:[x]}}];assert.equal(c.prefs.appName,'ふたりのリスト');run(c,'aiDoAct(0,0)');assert.equal(c.prefs.appName,'ふたりすと');assert.equal(x.ok,true);assert.equal(painted,1);assert.equal(saved,1);c.notices.at(-1)[1]();assert.equal(c.prefs.appName,'ふたりのリスト');assert.equal(painted,2);
+});
+test('AI settings accepts names and supported appearance choices but rejects invalid or unknown settings',()=>{
+ const c=env(['AI_PREFS','aiPrefValue']);assert.equal(run(c,'aiPrefValue("appName"," ふたりすと ")'),'ふたりすと');assert.equal(run(c,'aiPrefValue("appName","")'),'');assert.equal(run(c,'aiPrefValue("celebrate","heart")'),'heart');for(const [key,value]of [['appName','あ'.repeat(17)],['appName','a\nb'],['appName',{}],['mode','invalid'],['__proto__','x'],['pushSec','secret']]){c.key=key;c.value=value;assert.throws(()=>run(c,'aiPrefValue(key,value)'));}
+});
+test('invalid AI name change is not marked done and preview shows before and after',()=>{
+ const c=env([...ai,'aiActText','aiPrefLabel']);c.prefs.appName='元の名前';const x={type:'set_pref',key:'appName',value:'あ'.repeat(17)};act(c,x);assert.equal(c.prefs.appName,'元の名前');assert.notEqual(x.ok,true);assert.match(run(c,'aiActText({type:"set_pref",key:"appName",value:"ふたりすと"})'),/元の名前 → ふたりすと/);
+});
+test('detailed notification preferences migrate old morning hour and validate AI clock/day changes',()=>{
+ const c=env(['pushSettings','AI_PREFS','aiPrefValue']);c.prefs.pushAmH='8';assert.equal(run(c,'pushSettings().am'),'08:00');c.prefs.pushAmTime='06:35';c.prefs.pushPmTime='21:45';c.prefs.pushDays='1,3,5';c.prefs.pushQuiet='1';assert.equal(run(c,'pushSettings().am'),'06:35');assert.equal(run(c,'pushSettings().pm'),'21:45');assert.deepEqual(plain(run(c,'pushSettings().days')),[1,3,5]);assert.equal(run(c,'aiPrefValue("pushDays","5,1,5")'),'1,5');assert.equal(run(c,'aiPrefValue("pushAmTime","06:35")'),'06:35');assert.throws(()=>run(c,'aiPrefValue("pushAmTime","24:00")'));assert.throws(()=>run(c,'aiPrefValue("pushDays","7")'));
 });
