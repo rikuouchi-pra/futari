@@ -945,3 +945,30 @@ test('storage 429 does not trigger a second model request and preserves the ques
 test('recording transcription reports storage quota distinctly and releases the microphone',async()=>{
  const v=recorderEnv();v.c.state.sample={json:async()=>{throw Object.assign(Error('保存先の制限'),{code:'ai_store_rate_limited'});}};await run(v.c,'aiMic()');await run(v.c,'aiMic()');await v.records[0].finished;assert.equal(v.c.state.aiVoiceTranscribing,false);assert.equal(v.c.state.aiListening,false);assert.equal(v.c.state.ai.q,'元の入力');assert.match(v.c.state.aiVoiceStatus,/保存先が利用制限（429）/);assert.ok(v.tracks.every(t=>t.stopped));
 });
+
+test('shared snapshot updates keep family names without issuing profile lookups',()=>{
+ const callbacks=[],c=env(['roleOf','nameOf','who'],{db:{collection:()=>({onSnapshot:cb=>callbacks.push(cb)})},live(){},lost(){},GK:new Set(),cacheSave(){},resolveNames(){throw Error('unexpected profile lookup');}});c.state.fam={h:'夫の表示名',w:'妻の表示名'};
+ vm.runInContext(source.match(/^  const sub=\(c,onChange\)=>db\.collection\(c\).*$/m)[0].trim(),c);run(c,'sub("items",()=>{});sub("diary",()=>{})');
+ for(let i=0;i<20;i++)for(const cb of callbacks)cb({docs:[{id:'shared',data:()=>({by:'partner',text:'共有の記録'})}],metadata:{fromCache:false}});
+ assert.equal(c.state.items[0].text,'共有の記録');assert.equal(c.state.diary[0].text,'共有の記録');assert.equal(run(c,'who("partner")'),'妻の表示名');assert.equal(run(c,'who(state.me)'),'夫の表示名');c.state.fam.w='新しい表示名';assert.equal(run(c,'who("partner")'),'新しい表示名');
+});
+function assetUsageEnv(overrides={}){return env(['assetUsageJob','aiStoreLimited','assetUsagePendingHTML','loadAssetUsage'],overrides);}
+test('rendering photo usage prompts never fetches the full asset list automatically',()=>{
+ let reads=0;const c=assetUsageEnv();c.state.assets={list(){reads++;throw Error('must require a button');}};
+ for(let i=0;i<30;i++)assert.match(run(c,'assetUsagePendingHTML()'),/data-act="assetUsage"/);assert.equal(reads,0);
+ c.state.assetUsageError='取得に失敗';assert.match(run(c,'assetUsagePendingHTML()'),/再確認/);assert.equal(reads,0);
+});
+test('repeated photo usage clicks share a single request and preserve cleanup metadata',async()=>{
+ let resolve,reads=0;const c=assetUsageEnv();c.state.assets={list:()=>{reads++;return new Promise(r=>resolve=r);}};
+ const a=run(c,'loadAssetUsage()'),b=run(c,'loadAssetUsage()');assert.equal(a,b);assert.equal(c.state.assetUsageLoading,true);assert.match(run(c,'assetUsagePendingHTML()'),/確認中/);await microtasks();assert.equal(reads,1);
+ resolve({usage:{files:1,bytes:40,maxBytes:100},assets:[{id:'photo',by:'test-user',mine:true,size:40}]});assert.equal(await a,true);assert.equal(c.state.assetUsageLoading,false);assert.equal(c.state.assetUsage.files,1);assert.equal(c.state.assetUsage.meta.photo.by,'test-user');assert.deepEqual(plain(c.state.assetUsage.ids),['photo']);
+});
+test('failed photo usage reads do not loop on redraw and explicit retry recovers',async()=>{
+ let reads=0;const c=assetUsageEnv();c.state.assets={list:async()=>{reads++;throw Object.assign(Error('quota'),{code:'resource-exhausted'});}};assert.equal(await run(c,'loadAssetUsage()'),false);assert.equal(c.state.assetUsageLoading,false);
+ for(let i=0;i<20;i++)assert.match(run(c,'assetUsagePendingHTML()'),/利用枠が上限/);assert.equal(reads,1);
+ c.state.assets.list=async()=>{reads++;return {usage:{files:0,bytes:0},assets:[]};};assert.equal(await run(c,'loadAssetUsage()'),true);assert.equal(reads,2);assert.equal(c.state.assetUsageError,'');assert.equal(c.state.assetUsage.files,0);
+});
+test('quota listener errors explain the limit instead of encouraging a reload loop',()=>{
+ const labels={sync:{classList:{remove(){}}},syncText:{}},c=env(['aiStoreLimited'],{$:id=>labels[id],off:message=>c.reason=message});vm.runInContext(source.match(/^  const lost=.*$/m)[0].trim(),c);
+ run(c,'lost({code:"resource-exhausted"})');assert.equal(labels.syncText.textContent,'読み取り上限');assert.match(c.reason,/繰り返し再読み込みせず/);
+});

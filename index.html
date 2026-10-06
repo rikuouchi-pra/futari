@@ -2192,7 +2192,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="287";
+const APP_VERSION="288";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2414,15 +2414,7 @@ addEventListener("error",e=>{ state.lastErr=String(e.message||"").slice(0,200)+"
 function typingInMain(){ const a=document.activeElement; return a&&a.closest&&a.closest("#main")&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&a.type==="text")); }
 document.addEventListener("focusout",()=>setTimeout(()=>{ if(state.dirty&&!typingInMain()&&!state.busy&&!state.editing) render(); },120));
 let ttIdle=null; function requestRender(){ if(state.view==="cal"&&!state.busy&&!state.editing&&$("tt")&&!typingInMain()&&!(document.querySelector(".gedit"))){ state.dirty=true; renderTT(); if(!state.ttSel) renderChrome(); clearTimeout(ttIdle); ttIdle=setTimeout(()=>{ if(state.view==="cal"&&state.dirty&&!tdrag&&!state.editing&&!state.ttSel&&!state.busy) render(); },1500); return; } if(state.busy||state.editing||state.view==="settings"||typingInMain()){state.dirty=true; if(!state.busy) renderChrome(); return;} render(); }
-async function resolveNames(){
-  if(!user||!user.profiles) return;
-  const ids=new Set(); for(const c of ["items","troubles","cautions","diary"]) state[c].forEach(x=>{if(x.by&&x.by!==state.me) ids.add(x.by);});
-  state.troubles.forEach(t=>{(t.replies||[]).forEach(r=>{if(r.by&&r.by!==state.me) ids.add(r.by);}); if(t.assignee&&t.assignee!==state.me) ids.add(t.assignee);});
-  if(!ids.size) return;
-  try{ const ps=await user.profiles([...ids]); let ch=false;
-    for(const id of ids){const n=((ps[id]&&ps[id].name)||"").split(/\s+/)[0]; if(n&&state.names[id]!==n){state.names[id]=n;ch=true;}}
-    if(ch) requestRender(); }catch(e){}
-}
+/* Names come from the shared family document via nameOf(). The old per-snapshot profile lookups had no display consumer. */
 
 
 /* ================= private vault for accounts without an id (invited from outside the organization) =================
@@ -4971,12 +4963,12 @@ function storageHTML(){
   return `<dl class="gest"><dt>ふたりのデータ</dt><dd>${sN}件・約${fmt(sB)}（多い順：${esc(top)}）</dd><dt>じぶんのデータ</dt><dd>${pN}件・約${fmt(pB)}</dd>
     <dt>いちばん大きい1件</dt><dd>約${fmt(mx)}（1件の上限 256KB の ${Math.max(1,Math.round(mx/262144*100))}%）</dd><dt>この端末の控え</dt><dd>約${fmt(cache)}</dd></dl>
     ${(()=>{ const U=state.assetUsage; if(!state.assets) return `<p class="who">写真：この画面では写真の保存領域を使えません（編集できる人の画面で表示されます）</p>`;
-      if(!U){ setTimeout(loadAssetUsage,0); return `<p class="who">写真の保存容量を確認中…</p>`; }
+      if(!U)return assetUsagePendingHTML();
       const pct=U.maxBytes?Math.round(U.bytes/U.maxBytes*100):0;
       return `<div class="who" style="margin-top:8px"><b>写真</b> ${U.files}枚・${fmt(U.bytes)} / ${fmt(U.maxBytes)}（${pct}%）${U.maxFiles?`・枚数上限 ${U.maxFiles}`:""}</div><div class="mbar"><i class="${pct>90?"over":""}" style="width:${Math.max(1,pct)}%"></i></div>
         <div class="who">1枚は長辺1600pxに縮めて保存（約200〜400KB）。${U.maxBytes?`この容量ならあと約${Math.max(0,Math.floor((U.maxBytes-U.bytes)/300000))}枚保存できます。`:""}</div>
         ${orphanHTML()}`; })()}
-    <p class="who">文字のデータはとても小さく、毎日使っても1年で数MB程度の見込みです。保存先（${window.__FUTARI_PWA?"Firebase":"Anthropicのサーバー"}）の合計の上限は公開されておらず、ここでは測れません。上限に達したときは「保存上限に達しました」と表示され、新しい項目だけが追加できなくなります（既存の編集はできます）。</p>`;
+    <p class="who">${window.__FUTARI_PWA?"Firebaseの無料枠には、読み取り5万件／日・書き込み2万件／日などの上限があります。枠を使い切ると、AIへの問い合わせや同期が止まる場合があります。上の保存容量と件数だけでは、残りの利用枠は分かりません。":"文字のデータはとても小さく、毎日使っても1年で数MB程度の見込みです。保存先の利用上限は、この画面では確認できません。"}</p>`;
 }
 function diagHTML(){
   const D=state.diag||{}, yn=v=>v===true?"はい":v===false?"いいえ":"不明";
@@ -5343,6 +5335,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcpt") rcptStart();
   else if(a==="rcsave") rcptSave();
   else if(a==="orphans") cleanOrphans();
+  else if(a==="assetUsage") loadAssetUsage();
   else if(a==="orphOpen"){ state.orphOpen=true; state.orphSel=new Set(); render(); }
   else if(a==="orphClose"){ state.orphOpen=false; state.orphArm=false; render(); }
   else if(a==="orphAll"){ const L=orphanIds(); state.orphSel=state.orphSel&&state.orphSel.size===L.length?new Set():new Set(L); state.orphArm=false; render(); }
@@ -7553,7 +7546,16 @@ async function savePhoto(file){ if(!state.assets||!file) return null; try{ const
 const photoUrl=id=>window.__blobUrl?window.__blobUrl(id):"/_blob/"+id;
 function openPhoto(id){ const o=document.createElement("div"); o.className="lightbox"; o.innerHTML=`<img src="${photoUrl(id)}" alt="レシートの写真"><button aria-label="閉じる">✕</button>`; o.onclick=()=>o.remove(); document.body.appendChild(o); }
 const photoRefs=()=>{ const s2=new Set(); for(const p of state.photos) if(p.kind&&p.kind!=="receipt") s2.add(p.id); for(const x of state.diary) for(const id of (x.photos||[])) s2.add(id); for(const x of state.priv) for(const id of (x.photos||[])) s2.add(id); for(const x of state.spend) if(x.photo) s2.add(x.photo); for(const c of ["items","pitems","plans"]) for(const x of state[c]) if(x.receipt&&x.receipt.photo) s2.add(x.receipt.photo); return s2; };
-async function loadAssetUsage(){ if(!state.assets) return; try{ const r=await state.assets.list(); state.assetUsage={...r.usage,ids:r.assets.map(a=>a.id),meta:Object.fromEntries(r.assets.map(a=>[a.id,a]))}; if(state.view==="settings") render(); }catch(e){} }
+let assetUsageJob=null;
+function assetUsagePendingHTML(){return state.assetUsageLoading?'<p class="who" role="status">写真の保存容量を確認中…</p>':`<p class="who">${esc(state.assetUsageError||"写真の保存容量は、必要なときに確認できます。")}</p><button class="opt" data-act="assetUsage">${state.assetUsageError?"写真の保存容量を再確認":"写真の保存容量を確認"}</button>`;}
+function loadAssetUsage(){if(!state.assets)return Promise.resolve(false);if(assetUsageJob)return assetUsageJob;
+  const assets=state.assets;state.assetUsageLoading=true;state.assetUsageError="";
+  const job=Promise.resolve().then(()=>assets.list()).then(r=>{if(state.assets!==assets)return false;
+    state.assetUsage={...r.usage,ids:r.assets.map(a=>a.id),meta:Object.fromEntries(r.assets.map(a=>[a.id,a]))};return true;
+  }).catch(e=>{if(state.assets===assets)state.assetUsageError=aiStoreLimited(e)?"保存先の利用枠が上限に達しているため、写真の保存容量を確認できません。時間をおいて再確認してください。":"写真の保存容量を確認できませんでした。必要なときに再確認してください。";return false;
+  }).finally(()=>{if(assetUsageJob===job){assetUsageJob=null;state.assetUsageLoading=false;if(state.view==="settings")render();}});
+  assetUsageJob=job;if(state.view==="settings")render();return job;
+}
 /* v172: 使われていない写真＝日記・レシートなどを消したあとに残った写真。相手が入れた写真は、相手の「自分だけの日記」などで使っている可能性があるので出さない */
 function orphanIds(){ const U=state.assetUsage; if(!U) return []; const refs=photoRefs(); if(prefs.bgPhoto) refs.add(prefs.bgPhoto); const M=U.meta||{};
   return U.ids.filter(id=>!refs.has(id)&&!(M[id]&&M[id].by&&M[id].mine===false)); }
@@ -9480,7 +9482,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   /* the page owner is rikurussel14@gmail.com (夫); any other signed-in account is 妻 */
   resolveRole(); render();
   if(!db){ const at=cacheLoad(); if(at){ render(); off(`オフライン：${new Date(at).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})} 時点の控えを表示しています（変更は保存されません）`); return; } off("共有データに接続できません。claude.aiに招待されたアカウントでログインしているか確認してください（招待は「編集可」）。"); return; }
-  claude.use("assets").then(a=>{ state.assets=a||null; if(a) loadAssetUsage(); requestRender(); }).catch(()=>{});
+  claude.use("assets").then(a=>{ state.assets=a||null; requestRender(); }).catch(()=>{});
   claude.use("sample").then(async sm=>{ if(sm){ state.sampleTxt=sm; requestRender(); } if(!sm){ state.sampleWhy="この表示環境ではClaudeへの問い合わせ機能そのものが提供されていません"; state.sampleNote="この画面ではClaudeの自動読み取りが使えません。写真を見ながら入力してください"; requestRender(); return; } try{ const L=await sm.limits(); if(!L||!L.images){ state.sampleWhy="Claudeへの問い合わせはできますが、この表示環境は写真の送信に対応していません"; state.sampleNote="この画面では写真の自動読み取りに対応していません。写真を見ながら入力してください"; requestRender(); } if(L&&L.images){ state.sample=sm; state.sampleImg=L.images; const inp=$("rcptIn"); if(inp&&L.images.mediaTypes) inp.accept=L.images.mediaTypes.join(","); requestRender(); } }catch(e){} }).catch(()=>{});
   claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="cal") requestRender(); if(m) gAutoKick(8000); }).catch(()=>{});
   histDoc=db.doc("meta/history");bindShopChips();
@@ -9500,9 +9502,9 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
   if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(pushEnabled()){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} if(c!=="gsync") gAutoKick(4000); if(c==="blocks"||c==="pitems") autoCook(); requestRender(); },()=>{});
   const live=()=>{ $("sync").classList.add("live"); netChip(); };
-  const lost=()=>{ $("sync").classList.remove("live"); $("syncText").textContent="再読み込みしてください"; };
+  const lost=e=>{ $("sync").classList.remove("live");if(aiStoreLimited(e)){off("保存先の読み取りが利用上限に達したため、最新の変更を受信できません。繰り返し再読み込みせず、利用枠が回復してから確認してください。");$("syncText").textContent="読み取り上限";return;} $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} resolveNames(); cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
+  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
