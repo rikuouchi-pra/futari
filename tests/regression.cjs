@@ -32,7 +32,7 @@ function env(names, overrides = {}) {
     go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',pushEnabled:()=>false,...overrides });
   if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['stableJSON','pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
-  if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
+  if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML','firestoreProjectHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
@@ -973,7 +973,16 @@ test('quota listener errors explain the limit instead of encouraging a reload lo
  const labels={sync:{classList:{remove(){}}},syncText:{}},c=env(['aiStoreLimited'],{$:id=>labels[id],off:message=>c.reason=message});vm.runInContext(source.match(/^  const lost=.*$/m)[0].trim(),c);
  run(c,'lost({code:"resource-exhausted"})');assert.equal(labels.syncText.textContent,'読み取り上限');assert.match(c.reason,/繰り返し再読み込みせず/);
 });
-test('Firestore settings use local diagnostics without API setup or stale project totals',()=>{const s={report:{checkedAt:1,metrics:{reads:{count:54227}}},day:{end:1000}},c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');assert.match(h,/API接続不要/);assert.match(h,/端末内で計測/);assert.match(h,/正確な無料枠残量/);assert.doesNotMatch(h,/54,227|setupFirestoreMonitoring|firestoreRefresh|5分ごと|monitoring.googleapis/);});
+test('Firestore settings show Google totals, storage, unknowns and the independent local diagnostics',()=>{
+ const t=Date.now(),s={report:{schema:2,checkedAt:t,day:{start:t-600000},metrics:{reads:{count:54227,lastPointAt:t-60000},writes:{count:null},deletes:{count:0,lastPointAt:t-60000},storage:{bytes:536870912,lastPointAt:t-60000}}},day:{end:t+600000},current:true,stale:false,storageFresh:true,connected:true};
+ const c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');
+ assert.match(h,/二人全体/);assert.match(h,/54,227件/);assert.match(h,/512.00 MiB/);assert.match(h,/データ＋インデックス/);assert.match(h,/不明/);assert.match(h,/0件/);assert.match(h,/firestoreRefresh/);assert.match(h,/請求件数や正確な残量とは異なります/);assert.doesNotMatch(h,/API接続不要|課金設定は不要/);
+ s.current=false;s.stale=true;s.storageFresh=false;const old=run(c,'firestoreCardHTML()');assert.match(old,/前回集計日/);assert.match(old,/前回値・最新値は未確認/);assert.doesNotMatch(old,/quota-high/);
+});
+test('monitor setup failures remain actionable and escaped, without inventing totals',()=>{
+ const s={day:{end:Date.now()},error:'<script>blocked</script>',setupReason:'billing',setupUrl:'https://console.cloud.google.com/billing/enable?project=futari-list-17396'},c=env(['firestoreProjectHTML'],{});c.s=s;
+ const h=run(c,'firestoreProjectHTML(s)');assert.match(h,/&lt;script&gt;/);assert.doesNotMatch(h,/<script>/);assert.match(h,/Googleの課金設定を開く/);assert.equal((h.match(/<strong>不明<\/strong>/g)||[]).length,4);
+});
 test('Firestore settings distinguish local changes from synchronization and provide export',()=>{const c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>null,firestoreOffline:()=>({paused:true,pending:3,until:Date.now()})});const h=run(c,'firestoreCardHTML()');assert.match(h,/未同期の変更：<b>3件/);assert.match(h,/相手の最新変更はまだ受信できません/);assert.match(h,/firestoreExport/);});
 test('process diagnostics distinguish device scope, estimates, ranking and unknown requests',()=>{
  const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'test',user:'test',version:'290',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});

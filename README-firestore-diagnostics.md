@@ -1,3 +1,24 @@
+# Google API usage monitoring (v293 — current)
+
+Settings → Firestoreの利用状況 shows **二人全体の使用状況** first:
+
+- Read/write/delete counts for the default Firestore database, accumulated from Pacific midnight (DST-aware), across both accounts, all devices and server operations represented by the metrics.
+- The latest `firestore.googleapis.com/storage/data_and_index_storage_bytes` gauge, including data and indexes. Successive size samples are never added together. The query looks back 24 hours so a daily reset does not erase the latest known size.
+- Four separate graphical cards with free-tier reference ratios, measurement timestamps and explicit unknown/stale states. These are Google measurements, not exact billing counts or guaranteed remaining quota. Network transfer and other unmeasured service limits remain unknown.
+- Both accounts route authenticated form POSTs to the owner's Apps Script endpoint. No ID token is put in a URL. The backend re-verifies the family account before returning a shared five-minute script cache; monitoring never reads/writes Firestore documents.
+- The visible, online client checks at most every five minutes (manual checks have a 30-second cooldown and still use the server cache). Setup errors stop automatic polling until manual retry. Billing, disabled API, OAuth scope and IAM failures have distinct messages and project-specific setup links.
+- v1 servers remain readable for operation counts; storage is unknown with an explicit server-update notice. v2 reports add the storage metric. Cache versions are separate.
+- Existing local diagnostics, rankings, capacity estimates and offline recovery remain available. They are labeled as this device's observations and never added to Google totals. Diagnostic JSON exports include the separately labeled Google report.
+- Existing full-history display, filters, unread/update counts, notifications and the v292 duplicate-operation reductions remain unchanged.
+
+Activation: update the existing Apps Script `Code` file without replacing its manifest or other files, then run `setupFirestoreMonitoring`. If it adds `monitoring.read`, run it again and approve Google's consent. The setup checks access before publishing at the existing URL. Enable Cloud Monitoring API / grant Monitoring Viewer if the response asks. If the project requires billing, the owner must link a billing account; this makes Firestore free-tier overages billable as well. This change does not enable billing or alter IAM on its own.
+
+Validation: `node --test --test-force-exit tests/regression.cjs tests/firestore-reads.cjs tests/firestore.cjs tests/ai-transport.cjs tests/gas/*.cjs`. Tests cover gauge semantics, paging, unknown/zero distinctions, malformed/partial data, owner/partner shared cache, family authorization, setup errors, old-server compatibility, background throttling, stale values, HTML escaping and the original application behavior. Live Google authentication, billing activation and production API results require an authenticated owner session.
+
+Official metric reference checked 2026-10-07: https://docs.cloud.google.com/monitoring/api/metrics_gcp_d_h#firestore
+
+The sections below describe earlier releases; their local-only monitoring policy is superseded by v293.
+
 # Firestore process diagnostics (v291)
 
 Settings → Firestoreの利用状況 → 処理別の読み取り.
