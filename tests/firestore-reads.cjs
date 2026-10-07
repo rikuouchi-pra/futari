@@ -27,7 +27,7 @@ test('legacy gateway calls remain unknown rather than guessed as successful read
 // Exercise the real shim wrapper, not just counters, with a fake SDK.
 const shim=fs.readFileSync(require('node:path').join(__dirname,'../shim.js'),'utf8').split('\n');
 function decl(name){const i=shim.findIndex(l=>new RegExp('^  (?:async )?function '+name+'\\(').test(l));for(let j=i;j<shim.length;j++){const s=shim.slice(i,j+1).join('\n');try{new vm.Script(s);return s;}catch{}}throw Error(name);}
-test('shim monitors metadata but forwards content and first server confirmation only',()=>{let listener,options,stops=0;const {m}=meter(),seen=[];const c=vm.createContext({fbReads:m,fbWatches:new Set(),fbOffline:null,fbError_:()=>{},M:{onSnapshot:(ref,o,cb)=>{options=o;listener=cb;return ()=>stops++;}},colSnap:s=>s,docSnap:s=>s,ref:{path:'items',ref:{}},cb:s=>seen.push(s)});vm.runInContext(decl('fbListen_'),c);const stop=vm.runInContext('fbListen_(ref,true,cb)',c);assert.equal(options.includeMetadataChanges,true);const a=col([['a',{x:1}]],{fromCache:true}),b=col([['a',{x:1}]]);a.docChanges=()=>[{type:'added',doc:doc('a',{x:1})}];b.docChanges=()=>[];listener(a);listener(b);listener(b);assert.equal(seen.length,2);assert.equal(m.snapshot().total.reads,1);stop();assert.equal(stops,1);assert.equal(m.snapshot().active,0);});
+test('shim monitors metadata but forwards content and first server confirmation only',()=>{let listener,options,stops=0;const {m}=meter(),seen=[];const c=vm.createContext({fbReads:m,fbWatches:new Set(),fbWatchGroups:new Map(),fbOffline:null,fbError_:()=>{},M:{onSnapshot:(ref,o,cb)=>{options=o;listener=cb;return ()=>stops++;}},colSnap:s=>s,docSnap:s=>s,ref:{path:'items',ref:{}},cb:s=>seen.push(s)});vm.runInContext(decl('fbListen_'),c);const stop=vm.runInContext('fbListen_(ref,true,cb)',c);assert.equal(options.includeMetadataChanges,true);const a=col([['a',{x:1}]],{fromCache:true}),b=col([['a',{x:1}]]);a.docChanges=()=>[{type:'added',doc:doc('a',{x:1})}];b.docChanges=()=>[];listener(a);listener(b);listener(b);assert.equal(seen.length,2);assert.equal(m.snapshot().total.reads,1);stop();assert.equal(stops,1);assert.equal(m.snapshot().active,0);});
 test('shim shares simultaneous get calls without losing offline overlay handling',async()=>{const {m}=meter();let calls=0,resolve;const c=vm.createContext({fbReads:m,fbSharedReads:R.singleFlight(),fbOffline:{snapshot:()=>({paused:false}),overlay:(_,s)=>({...s,overlay:true})},M:{getDoc:()=>{calls++;return new Promise(r=>resolve=r);}},colSnap:s=>s,docSnap:s=>s,ref:{path:'music/today',ref:{}}});for(const f of ['fbReadRaw_','fbReadShared_','fbGet_'])vm.runInContext(decl(f),c);const a=vm.runInContext('fbGet_(ref,false)',c),b=vm.runInContext('fbGet_(ref,false)',c);await Promise.resolve();resolve(doc('today',{q:'x'}));assert.equal((await a).overlay,true);assert.equal((await b).overlay,true);assert.equal(calls,1);assert.equal(m.snapshot().total.reads,1);assert.equal(m.snapshot().total.reused,1);});
 
 test('writes and deletes count only SDK acknowledgements, preserve failed attempts and return values',async()=>{const {m}=meter();let done;const p=m.write('items/private-id','set',{text:'秘密'},()=>new Promise(r=>done=r));assert.equal(m.snapshot().total.writes,0);assert.equal(m.snapshot().total.writeAttempts,1);done('ok');assert.equal(await p,'ok');assert.equal(m.snapshot().total.writes,1);await assert.rejects(m.write('items/private-id','delete',null,()=>Promise.reject(Error('quota'))));assert.equal(m.snapshot().total.deletes,0);assert.equal(m.snapshot().total.deleteErrors,1);await m.write('items/private-id','delete',null,async()=>{});assert.equal(m.snapshot().total.deletes,1);assert.equal(m.snapshot().capacity.docs,0);assert.doesNotMatch(JSON.stringify(m.export()),/private-id|秘密/);});
@@ -39,10 +39,26 @@ test('all direct Firestore SDK mutations are centralized in the monitored send w
 
 test('write acknowledgements do not erase a newer complete listener snapshot',async()=>{const {m}=meter(),l=m.listener('items',true);l.snapshot(col([['a',{text:'before'}]]));let done;const p=m.write('items/a','update',{text:'after'},()=>new Promise(r=>done=r));l.snapshot(col([['a',{text:'after',full:true}]]));const size=m.snapshot().capacity.bytes;done();await p;assert.equal(m.snapshot().capacity.docs,1);assert.equal(m.snapshot().capacity.bytes,size);});
 
-test('bounded query pages preserve previously observed capacity and name notification writes',async()=>{
- const {m}=meter();const l=m.listener('activity',true,true);l.snapshot(col([['new',{at:2}]]));
- await m.get('activity',true,async()=>col([['old',{at:1}]]),undefined,true);assert.equal(m.snapshot().capacity.docs,2);
- const s=col([['newer',{at:3}]]);s.docChanges=()=>[{type:'removed',doc:doc('new',{at:2})},{type:'added',doc:doc('newer',{at:3})}];l.snapshot(s);
- assert.equal(m.snapshot().capacity.docs,3);await m.write('push/device-secret','set',{json:'payload'},async()=>{});
- const row=m.snapshot().rows.find(x=>x.process==='write:push');assert.match(row.label,/通知予定/);assert.doesNotMatch(JSON.stringify(m.export()),/device-secret|payload/);
+
+test('notification writes have explicit shared and private process labels',async()=>{
+ const {m}=meter();await m.write('push/device-secret','set',{json:'payload'},async()=>{});await m.write('data/users/u/private/push/device-secret','set',{json:'payload'},async()=>{});
+ const rows=m.snapshot().rows;assert.match(rows.find(x=>x.process==='write:push').label,/通知予定/);assert.match(rows.find(x=>x.process==='write:private/push').label,/自分：通知予定/);assert.doesNotMatch(JSON.stringify(m.export()),/device-secret|payload/);
+});
+
+function sharedWatchEnv(){
+ let sink,onError,starts=0,stops=0;const {m}=meter(),left=[],right=[],errors=[];
+ const c=vm.createContext({fbReads:m,fbWatches:new Set(),fbWatchGroups:new Map(),fbOffline:null,fbError_:()=>{},M:{onSnapshot:(_ref,_opts,cb,err)=>{starts++;sink=cb;onError=err;return ()=>stops++;}},colSnap:s=>s,docSnap:s=>s,setTimeout,ref:{path:'activity',ref:{}},left:s=>left.push(s),right:s=>right.push(s),err:e=>errors.push(e)});
+ vm.runInContext(decl('fbListen_'),c);return {c,m,left,right,errors,get starts(){return starts;},get stops(){return stops;},emit:s=>sink(s),error:e=>onError(e),run:s=>vm.runInContext(s,c)};
+}
+test('two history consumers share one read of all 3508 documents without truncation',()=>{
+ const t=sharedWatchEnv();t.run('var a=fbListen_(ref,true,left,err);');const rows=Array.from({length:3508},(_,i)=>[String(i),{at:i}]);const first=col(rows);first.docChanges=()=>rows.map(([id,d])=>({type:'added',doc:doc(id,d)}));t.emit(first);
+ t.run('var b=fbListen_(ref,true,right,err);');assert.equal(t.starts,1);assert.equal(t.left[0].docs.length,3508);assert.equal(t.right[0].docs.length,3508);assert.equal(t.m.snapshot().total.reads,3508);
+ const changed=col(rows.slice(1));changed.docs[0]=doc('1',{at:9999});changed.docChanges=()=>[{type:'removed',doc:doc('0',{at:0})},{type:'modified',doc:doc('1',{at:9999})}];t.emit(changed);
+ assert.equal(t.left.at(-1).docs.length,3507);assert.equal(t.right.at(-1).docs[0].data().at,9999);assert.equal(t.m.snapshot().total.reads,3509);
+ t.run('a();a();');assert.equal(t.stops,0);t.emit(changed);assert.equal(t.left.length,2);t.run('b();');assert.equal(t.stops,1);assert.equal(t.m.snapshot().active,0);
+});
+test('shared listeners recover after errors and overlay queued changes for every consumer',()=>{
+ const t=sharedWatchEnv();t.run('var a=fbListen_(ref,true,left,err);');t.error(Error('temporary'));assert.equal(t.errors.length,1);t.run('var b=fbListen_(ref,true,right,err);');assert.equal(t.starts,2);
+ const s=col([['a',{at:1}]]);s.docChanges=()=>[{type:'added',doc:doc('a',{at:1})}];t.emit(s);
+ t.c.fbOffline={overlay:(_path,base)=>({...base,docs:[...base.docs,doc('queued',{at:2})]})};vm.runInContext(decl('fbEmit_'),t.c);t.run('fbEmit_("activity/queued")');assert.equal(t.left.at(-1).docs.length,2);assert.equal(t.right.at(-1).docs.length,2);t.run('a();b()');
 });

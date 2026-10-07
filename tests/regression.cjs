@@ -990,7 +990,7 @@ test('quota dashboard separates operation filters, storage unknowns and graphica
  run(c,'firestoreMetric="deletes"');assert.match(run(c,'firestoreReadsHTML()'),/やること・買い物 \/ 削除/);
 });
 
-// v292: exercise no-op writes, history paging, offline/error retry and report startup order.
+// v292: preserve full history while avoiding no-op writes and duplicate report generation.
 test('reordered shared AI profile fields never trigger writes and real edits update only the own profile',async()=>{
  const updates=[],c=env(['stableJSON','AIP_FIELDS','aiProfMe','aiProfSync','kakeiPut'],{kakeiDoc:{update:async d=>updates.push(d)},err(){}});
  c.state.kakeiLoaded=true;c.prefs.aiProf=JSON.stringify({commute:'30分'});
@@ -1019,26 +1019,18 @@ test('failed notification sync is retried even when its payload is unchanged',as
  let calls=0;const c=pushSyncEnv({pushQ:[],claude:{use:async()=>({call:async()=>{if(++calls===1)throw Error('offline');return {ok:true};}})}});
  assert.equal(await run(c,'pushSyncRun()'),null);assert.equal(c.state.pushSyncKey,undefined);await run(c,'pushSyncRun()');assert.equal(calls,2);assert.ok(c.state.pushLast);
 });
-function activityEnv(){
- let listener;const calls=[],pages=[],c=env(['ACT_PAGE_SIZE','activityCursor','activityMerge','bindActivity','loadActivityMore','activityMoreHTML'],{actPrune(){},setTimeout:()=>0,colRef:()=>({page:(field,n,cursor)=>{calls.push({field,n,cursor});return {onSnapshot:fn=>listener=fn,get:async()=>{const x=pages.shift();if(x instanceof Error)throw x;return x;}};}})});
- const snap=(start,n,cache=false)=>{const docs=Array.from({length:n},(_,i)=>({id:'a'+String(start-i).padStart(5,'0'),data:()=>({at:start-i,role:'h'})}));return {docs,cursor:docs.at(-1)||null,metadata:{fromCache:cache}};};
- run(c,'bindActivity()');return {c,calls,pages,snap,emit:s=>listener(s)};
-}
-test('activity attaches one 100-row listener and pages without gaps or duplicate rows',async()=>{
- const t=activityEnv();t.emit(t.snap(3508,100));assert.equal(t.calls.length,1);assert.equal(t.calls[0].n,100);assert.equal(t.c.state.activity.length,100);
- t.pages.push(t.snap(3408,100));await run(t.c,'loadActivityMore()');assert.equal(t.c.state.activity.length,200);assert.equal(t.calls[1].cursor.id,'a03409');
- t.emit(t.snap(3509,100));assert.equal(t.c.state.activity.length,201);assert.equal(t.c.state.activity[0].at,3509);
- t.pages.push(t.snap(3308,8));await run(t.c,'loadActivityMore()');assert.equal(t.calls[2].cursor.id,'a03309');assert.equal(t.c.state.activity.length,209);assert.equal(t.c.state.activityMore,false);
-});
-test('activity deletion is not resurrected, and cache-only/failed pages keep the retry cursor',async()=>{
- const t=activityEnv();t.emit(t.snap(200,100));const cursor=run(t.c,'activityCursor');
- t.pages.push(t.snap(100,20,true));await run(t.c,'loadActivityMore()');assert.equal(run(t.c,'activityCursor'),cursor);assert.equal(t.c.state.activityMore,true);assert.match(t.c.state.activityError,/接続後/);
- t.pages.push(Error('offline'));await run(t.c,'loadActivityMore()');assert.equal(run(t.c,'activityCursor'),cursor);assert.equal(t.c.state.activityLoading,false);
- t.pages.push(t.snap(100,100));await run(t.c,'loadActivityMore()');
- const changed=t.snap(200,101);changed.docs=changed.docs.filter(x=>x.id!=='a00180');t.emit(changed);assert.equal(t.c.state.activity.some(x=>x.id==='a00180'),false);
-});
 test('automatic report waits for reports to load and rechecks before its delayed save',()=>{
  const jobs=[],c=env(['usageAutoReport'],{setTimeout:(fn,ms)=>{jobs.push({fn,ms});},usgAutoStart(){},usgPrune(){},usageSaveReport:()=>{c.saved=(c.saved||0)+1;}});c.state.usage=[{}];c.state.usageLoaded=true;c.state.usageReports=[];
  run(c,'usageAutoReport()');assert.equal(jobs.length,0);c.state.usageReportsLoaded=true;run(c,'usageAutoReport()');assert.equal(jobs.length,3);
  c.state.usageReports=[{auto:true,at:Date.now()}];jobs.find(x=>x.ms===10000).fn();assert.equal(c.saved,undefined);
+});
+
+test('full history retains unread totals and 300-row per-person history beyond the first 100 entries',()=>{
+ const now=Date.now(),c=env(['actNewCount','actCardHTML','viewLog'],{homeCard:(title,body)=>title+body,actLine:x=>x.text,ago:()=>'',seg:()=>'',dayLabel:String,hint:String});c.prefs.actSeen=now-86400000;c.state.activity=Array.from({length:3508},(_,i)=>({id:String(i),at:now-i*1000,role:i<150?'h':'w',text:'history-'+i,view:'task'}));
+ assert.equal(run(c,'actNewCount()'),3358);assert.match(run(c,'actCardHTML()'),/3358/);c.state.logF='ot';const html=run(c,'viewLog()');assert.equal((html.match(/class="arow/g)||[]).length,300);assert.match(html,/history-449/);assert.doesNotMatch(html,/activityMore|最新100件/);
+});
+test('36-hour agenda includes partner updates beyond entry 100 and excludes older history',()=>{
+ const now=Date.now(),c=env(['agendaHTML'],{mondayOf:t=>t,contribEvents:()=>[],choreInfo:()=>({diff:0}),shiftOf:()=>'',offState:()=>'',moneyEntries:()=>[],short:String,talkState:()=> 'off',qaCardHTML:()=>'',ic:()=>'',ICP:{plus:''}});
+ c.state.activity=Array.from({length:200},(_,i)=>({id:String(i),at:now-i*1000,role:'h',kind:'予定'}));c.state.activity.push({id:'partner-new',at:now-35*3600000,role:'w',kind:'買い物'},{id:'partner-old',at:now-37*3600000,role:'w',kind:'予定'});
+ const html=run(c,'agendaHTML()');assert.match(html,/wの更新（1日半） 1件/);assert.match(html,/買い物/);
 });

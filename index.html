@@ -6004,60 +6004,22 @@ function actCardHTML(){
   const since=prefs.actSeen||0, ot=otherRole(), list=(state.activity||[]).filter(a=>a.role===ot&&a.at>since).sort((a,b)=>b.at-a.at);
   const body=list.length?`<ul class="hlist">${list.slice(0,5).map(a=>`<li><button data-hgo="${esc(a.view||"home")}"><span class="ht">${esc(ago(a.at))}</span><span class="hdot" style="--bc:var(--who-${a.role})"></span><span>${actLine(a,false)}</span></button></li>`).join("")}</ul>`
     :`<div class="hempty">新しい更新はありません</div>`;
-  return homeCard(`${esc(nameOf(ot))}の更新 ${list.length?`<span class="hn">${list.length}</span>`:""}`,body+`${state.activityPaged?`<p class="who">最新${ACT_PAGE_SIZE}件の範囲で表示</p>`:""}<div class="hmore"><button class="link" data-act="openLog">更新ログを見る ›</button></div>`,null);
+  return homeCard(`${esc(nameOf(ot))}の更新 ${list.length?`<span class="hn">${list.length}</span>`:""}`,body+`<div class="hmore"><button class="link" data-act="openLog">更新ログをすべて見る ›</button></div>`,null);
 }
 function viewLog(){
   const f=state.logF||"all", ot=otherRole(), since=state.logSince??(prefs.actSeen||0);
-  const all=(state.activity||[]).filter(a=>f==="all"||(f==="ot"?a.role===ot:a.role===myRole())).sort((a,b)=>b.at-a.at);
+  const all=(state.activity||[]).filter(a=>f==="all"||(f==="ot"?a.role===ot:a.role===myRole())).sort((a,b)=>b.at-a.at).slice(0,300);
   let h=`<div class="tools">${seg("logf",f,[["all","ふたり"],["ot",esc(nameOf(ot))],["me",esc(nameOf(myRole()))]])}</div>`;
-  if(!all.length) return h+`<div class="empty">${state.activityLoaded?"表示範囲に該当する記録がありません":"履歴を読み込み中…"}</div>`+activityMoreHTML();
+  if(!all.length) return h+`<div class="empty">まだ記録がありません<br>これからの追加・変更・完了・削除がここに残ります</div>`;
   let day="";
   h+=`<ul class="alog">`;
   for(const a of all){ const d=ymd(new Date(a.at));
     if(d!==day){ day=d; h+=`<li class="aday">${esc(dayLabel(d))}・${parse(d).getMonth()+1}/${parse(d).getDate()}</li>`; }
     const tm=new Date(a.at).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
     h+=`<li class="arow ${a.role===ot&&a.at>since?"new":""}"><button data-hgo="${esc(a.view||"home")}"><span class="at">${tm}</span><span class="adot ${a.role}"></span><span class="atx">${actLine(a)}</span>${a.role===ot&&a.at>since?'<span class="anew">NEW</span>':""}</button></li>`; }
-  return h+`</ul>`+activityMoreHTML()+hint("ふたりの追加・変更・完了・削除を記録します（じぶんの項目は記録しません）。60日を過ぎた履歴は順次整理します。<br>タップでその画面へ");
+  return h+`</ul>`+hint("ふたりの追加・変更・完了・削除を60日分残します（じぶんの項目は記録しません）<br>タップでその画面へ");
 }
-const ACT_PAGE_SIZE=100;
-let activityCursor=null,activityRecent=[],activityArchive=new Map(),activityHasPages=false;
-function activityMerge(){
-  const rows=new Map(activityArchive);for(const x of activityRecent)rows.set(x.id,x);
-  state.activity=[...rows.values()].sort((a,b)=>b.at-a.at||(a.id<b.id?1:a.id>b.id?-1:0));
-}
-function bindActivity(){
-  const col=colRef("activity");if(!col)return;state.activityPaged=typeof col.page==="function";
-  const query=state.activityPaged?col.page("at",ACT_PAGE_SIZE):col;
-  query.onSnapshot(s=>{
-    const rows=s.docs.map(x=>({id:x.id,...x.data()}));
-    // Retain already fetched rows that roll out of the live window. No historical listener is attached.
-    if(state.activityPaged)for(const x of activityRecent)if(!rows.some(y=>y.id===x.id)){const last=rows[rows.length-1],rolledOut=last&&rows.length>=ACT_PAGE_SIZE&&(x.at<last.at||(x.at===last.at&&x.id<last.id));if(rolledOut&&activityHasPages)activityArchive.set(x.id,x);else activityArchive.delete(x.id);}
-    activityRecent=rows;activityMerge();state.activityLoaded=true;
-    if(!activityHasPages){activityCursor=s.cursor;state.activityMore=state.activityPaged&&s.docs.length>=ACT_PAGE_SIZE;}
-    state.activityError="";if(state.view==="home"||state.view==="log")requestRender();else renderChrome();
-    if(!s.metadata?.fromCache&&!s.metadata?.pendingLocal)setTimeout(actPrune,5000);
-  },()=>{state.activityError="履歴を同期できません。接続が戻ってから確認してください。";if(state.view==="log")requestRender();});
-}
-async function loadActivityMore(){
-  if(state.activityLoading||!state.activityMore||!activityCursor)return;
-  state.activityLoading=true;activityHasPages=true;state.activityError="";requestRender();
-  try{const s=await colRef("activity").page("at",ACT_PAGE_SIZE,activityCursor).get();
-    for(const x of s.docs)activityArchive.set(x.id,{id:x.id,...x.data()});activityMerge();
-    // A cache-only page may have gaps; never advance its server cursor or mark history complete.
-    if(!s.metadata?.fromCache&&!s.metadata?.pendingLocal){activityHasPages=true;activityCursor=s.cursor;state.activityMore=s.docs.length>=ACT_PAGE_SIZE;}
-    else state.activityError="端末にある履歴を表示しました。過去分の続きは接続後に読み込めます。";
-  }catch(e){state.activityError="過去の履歴を取得できませんでした。時間をおいて再試行してください。";}
-  finally{state.activityLoading=false;requestRender();}
-}
-function activityMoreHTML(){return `<p class="who">${state.activityPaged?`最新${ACT_PAGE_SIZE}件を自動同期・${state.activity.length}件を取得済み。過去分は追加読み込みできます。`:"取得済みの履歴を表示しています。"}</p>${state.activityError?`<p class="who" role="status">${esc(state.activityError)}</p>`:""}${state.activityMore?`<button class="opt" data-act="activityMore" ${state.activityLoading?"disabled":""}>${state.activityLoading?"読み込み中…":`過去の${ACT_PAGE_SIZE}件を表示`}</button>`:""}`;}
-async function actPrune(){
-  const col=colRef("activity"),key="futari.activityPrune:"+meKey(),day=today();if(!col||typeof col.before!=="function"||actPrune.busy||store.get(key)===day)return;
-  actPrune.busy=true;try{const s=await col.before("at",Date.now()-60*864e5,40).get();if(s.metadata?.fromCache||s.metadata?.pendingLocal)return;
-    await Promise.all(s.docs.map(x=>col.doc(x.id).delete()));store.set(key,day);
-    for(const x of s.docs)activityArchive.delete(x.id);activityMerge();
-  }catch(e){}finally{actPrune.busy=false;}
-}
-document.addEventListener("click",e=>{const b=e.target.closest('[data-act="activityMore"]');if(!b)return;e.preventDefault();loadActivityMore();});
+function actPrune(){ const lim=Date.now()-60*864e5, old=(state.activity||[]).filter(a=>a.at<lim).slice(0,40); const col=colRef("activity"); if(col) old.forEach(a=>col.doc(a.id).delete().catch(()=>{})); }
 
 
 /* ================= 見える化（グラフ） ================= */
@@ -9638,7 +9600,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
   sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
-  bindActivity();
+  { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
   histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
   if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};

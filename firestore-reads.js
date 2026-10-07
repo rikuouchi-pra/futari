@@ -59,8 +59,8 @@
       if(value===null){known.delete(path);return 0;}
       const bytes=docSize(path,value);known.set(path,{group:pathKey(path),bytes,...shape(value)});return bytes;
     }
-    function observeSnapshot(path,col,s,partial){
-      const a=docs(s,col);if(col&&!partial){const paths=new Set(a.map(d=>path+'/'+d.id));for(const k of known.keys())if(k.startsWith(path+'/')&&!k.slice(path.length+1).includes('/')&&!paths.has(k))known.delete(k);}
+    function observeSnapshot(path,col,s){
+      const a=docs(s,col);if(col){const paths=new Set(a.map(d=>path+'/'+d.id));for(const k of known.keys())if(k.startsWith(path+'/')&&!k.slice(path.length+1).includes('/')&&!paths.has(k))known.delete(k);}
       if(!col&&!a.length)known.delete(path);
       return a.reduce((n,d)=>n+observe(col?path+'/'+d.id:path,d.data()),0);
     }
@@ -74,12 +74,12 @@
       try{record(p,{[del?'deletes':'writes']:1});if(del)known.delete(path);else if(known.get(path)===prior){if(kind==='set')observe(path,value);else known.delete(path);}}catch(_){}
       return result;
     }
-    async function get(path,col,fn,tag,partial){const p=tag||process(path,col);record(p,{gets:1});try{const s=await fn(),n=docs(s,col).length,m=s.metadata||{};let bytes=0;try{bytes=observeSnapshot(path,col,s,partial);}catch(_){}if(m.fromCache)record(p,{cacheEvents:1,cacheDocs:n});else if(m.hasPendingWrites)record(p,{localEvents:1});else record(p,{reads:Math.max(1,n),receivedBytes:bytes,empty:n===0?1:0});return s;}catch(e){record(p,{errors:1,unknown:1});throw e;}}
-    function listener(path,col,partial){
+    async function get(path,col,fn,tag){const p=tag||process(path,col);record(p,{gets:1});try{const s=await fn(),n=docs(s,col).length,m=s.metadata||{};let bytes=0;try{bytes=observeSnapshot(path,col,s);}catch(_){}if(m.fromCache)record(p,{cacheEvents:1,cacheDocs:n});else if(m.hasPendingWrites)record(p,{localEvents:1});else record(p,{reads:Math.max(1,n),receivedBytes:bytes,empty:n===0?1:0});return s;}catch(e){record(p,{errors:1,unknown:1});throw e;}}
+    function listener(path,col){
       const p='listen:'+pathKey(path);let baseline=null,lastSeen=null,firstServer=true,closed=false;
       record(p,{attaches:1});active.set(p,(active.get(p)||0)+1);
       return {snapshot(s){
-        const a=docs(s,col),m=s.metadata||{};let next;try{if(lastSeen&&col&&typeof s.docChanges==='function'){for(const c of s.docChanges()){if(c.type!=='removed'||!partial)observe(path+'/'+c.doc.id,c.type==='removed'?null:c.doc.data());}}else observeSnapshot(path,col,s,partial);}catch(_){}
+        const a=docs(s,col),m=s.metadata||{};let next;try{if(lastSeen&&col&&typeof s.docChanges==='function'){for(const c of s.docChanges())observe(path+'/'+c.doc.id,c.type==='removed'?null:c.doc.data());}else observeSnapshot(path,col,s);}catch(_){}
         if(lastSeen&&col&&typeof s.docChanges==='function'){next=new Map(lastSeen);for(const c of s.docChanges()){if(c.type==='removed')next.delete(c.doc.id);else next.set(c.doc.id,hash(c.doc.data()));}}
         else next=new Map(a.map(d=>[d.id,hash(d.data())]));
         const changed=lastSeen===null||next.size!==lastSeen.size||[...next].some(([k,v])=>lastSeen.get(k)!==v);lastSeen=next;

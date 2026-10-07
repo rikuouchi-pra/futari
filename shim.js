@@ -9,7 +9,7 @@
 
   var M = {};            // firebase modules
   var app, auth, fs, me = null, fbMonitor=null, fbOffline=null;
-  var fbWatches=new Set(), fbReads=null;
+  var fbWatches=new Set(), fbWatchGroups=new Map(), fbReads=null;
   var fbSharedReads=window.FutariFirestoreReads?window.FutariFirestoreReads.singleFlight():function(key,fn){return fn();};
   var readyResolve, readyReject;
   var ready = new Promise(function(ok, ng){ readyResolve = ok; readyReject = ng; });
@@ -107,32 +107,43 @@
   }
   function fbSend_(path,kind,value){var send=function(){var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});};return fbReads?fbReads.write(path,kind,value,send):send();}
   function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);return fbSend_(path,kind,value);}
-  function fbReadRaw_(path,collection,fn,tag,partial){return fbReads?fbReads.get(path,collection,fn,tag,partial):fn();}
-  function fbReadShared_(path,collection,cache,fn,queryKey){return fbSharedReads((collection?"list:":"get:")+path+":"+(cache?"cache":"default")+":"+(queryKey||""),function(){return fbReadRaw_(path,collection,fn,undefined,!!queryKey);},function(){if(fbReads)fbReads.reused(path,collection);});}
+  function fbReadRaw_(path,collection,fn,tag){return fbReads?fbReads.get(path,collection,fn,tag):fn();}
+  function fbReadShared_(path,collection,cache,fn){return fbSharedReads((collection?"list:":"get:")+path+":"+(cache?"cache":"default"),function(){return fbReadRaw_(path,collection,fn);},function(){if(fbReads)fbReads.reused(path,collection);});}
   async function fbGet_(ref,collection){
-    var local=fbOffline&&fbOffline.snapshot().paused,read=function(cache){return fbReadShared_(ref.path,collection,cache,function(){return collection?(cache?M.getDocsFromCache(ref.ref):M.getDocs(ref.ref)):(cache?M.getDocFromCache(ref.ref):M.getDoc(ref.ref));},ref.queryKey);},s;
+    var local=fbOffline&&fbOffline.snapshot().paused,read=function(cache){return fbReadShared_(ref.path,collection,cache,function(){return collection?(cache?M.getDocsFromCache(ref.ref):M.getDocs(ref.ref)):(cache?M.getDocFromCache(ref.ref):M.getDoc(ref.ref));});},s;
     try{s=await read(local);}catch(e){fbError_(e,"read");if(local||!fbOffline||!window.FutariFirestoreMonitor.limited(e))throw e;await fbOffline.pause(e);s=await read(true);}
-    var base=collection?colSnap(s):docSnap(s);if(fbOffline)base=fbOffline.overlay(ref.path,base,collection);return ref.filterSnapshot?ref.filterSnapshot(base):base;
+    var base=collection?colSnap(s):docSnap(s);return fbOffline?fbOffline.overlay(ref.path,base,collection):base;
   }
   function fbListen_(ref,collection,cb,err){
-    var w={path:ref.path,collection:collection,cb:function(base){cb(ref.filterSnapshot?ref.filterSnapshot(base):base);},raw:null,un:null,bind:function(){
-      if(w.un)w.un();
-      var meter=fbReads?fbReads.listener(ref.path,collection,!!ref.queryKey):null,first=true;
-      var stop=M.onSnapshot(ref.ref,{includeMetadataChanges:true},function(s){
-        var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
-        var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
-        try{if(meter)meter.snapshot(s);}catch(e){/* Diagnostics must never interrupt synchronization. */}
-        if(!first&&!changed&&!confirmed)return;first=false;
-        w.raw=collection?colSnap(s):docSnap(s);w.cb(fbOffline?fbOffline.overlay(ref.path,w.raw,collection):w.raw);
-      },function(e){if(meter){meter.error();meter.close();}fbError_(e,"read");if(err)err(e);});
-      w.un=function(){stop();if(meter)meter.close();};
-    }};
-    fbWatches.add(w);w.bind();return function(){if(w.un)w.un();fbWatches.delete(w);};
+    // Identical active subscriptions share one SDK listener; every consumer still receives all rows.
+    var key=(collection?"list:":"doc:")+ref.path,subscriber={cb:cb,err:err},w=fbWatchGroups.get(key);
+    if(!w){
+      w={path:ref.path,collection:collection,subscribers:new Set(),raw:null,un:null,
+        cb:function(s){Array.from(w.subscribers).forEach(function(x){try{if(w.subscribers.has(x))x.cb(s);}catch(e){setTimeout(function(){throw e;},0);}});},
+        bind:function(){
+          if(w.un)w.un();w.failed=false;
+          var meter=fbReads?fbReads.listener(ref.path,collection):null,first=true;
+          var stop=M.onSnapshot(ref.ref,{includeMetadataChanges:true},function(s){
+            var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
+            var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
+            try{if(meter)meter.snapshot(s);}catch(e){}
+            if(!first&&!changed&&!confirmed)return;first=false;
+            w.raw=collection?colSnap(s):docSnap(s);w.cb(fbOffline?fbOffline.overlay(w.path,w.raw,collection):w.raw);
+          },function(e){w.failed=true;if(meter){meter.error();meter.close();}fbError_(e,"read");Array.from(w.subscribers).forEach(function(x){if(x.err)try{x.err(e);}catch(error){setTimeout(function(){throw error;},0);}});});
+          w.un=function(){stop();if(meter)meter.close();};
+        }
+      };
+      w.subscribers.add(subscriber);fbWatchGroups.set(key,w);fbWatches.add(w);w.bind();
+    }else{
+      w.subscribers.add(subscriber);
+      if(w.failed)w.bind();else if(w.raw)cb(fbOffline?fbOffline.overlay(w.path,w.raw,collection):w.raw);
+    }
+    var closed=false;return function(){if(closed)return;closed=true;w.subscribers.delete(subscriber);if(!w.subscribers.size){if(w.un)w.un();fbWatches.delete(w);fbWatchGroups.delete(key);}};
   }
 
   /* ---------- db（Claude の db 互換） ---------- */
   function segs(path){ return String(path).split("/").filter(Boolean); }
-  function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), cursor:qs.docs.length?qs.docs[qs.docs.length-1]:null, size: qs.size, empty: qs.empty, metadata: { fromCache: !!(qs.metadata && qs.metadata.fromCache) } }; }
+  function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), size: qs.size, empty: qs.empty, metadata: { fromCache: !!(qs.metadata && qs.metadata.fromCache) } }; }
   function docSnap(s){ return { id: s.id, exists: s.exists(), fromCache: !!(s.metadata && s.metadata.fromCache), data: function(){ return s.data(); } }; }
   function DocRef(path){ this.path = path; this.ref = M.doc.apply(null, [fs].concat(segs(path))); }
   DocRef.prototype.set = function(d){ return fbWrite_(this.path,"set",clean(d)); };
@@ -145,24 +156,6 @@
   ColRef.prototype.doc = function(id){ return new DocRef(this.path + "/" + id); };
   ColRef.prototype.get = function(){ return fbGet_(this,true); };
   ColRef.prototype.onSnapshot = function(cb, err){ return fbListen_(this,true,cb,err); };
-  /* Bounded history queries. Cursor snapshots retain Firestore's document-ID tie breaker. */
-  function HistoryQuery(path,field,count,cursor,before){
-    this.path=path;this.field=field;this.count=count;this.cursor=cursor||null;this.before=before;
-    this.queryKey=JSON.stringify([field,count,cursor?[cursor.id,cursor.data()[field]]:null,before]);
-    var constraints=[M.orderBy(field,before===undefined?"desc":"asc"),M.limit(count)];
-    if(cursor)constraints.push(M.startAfter(cursor));
-    if(before!==undefined)constraints.push(M.where(field,"<",before));
-    this.ref=M.query.apply(null,[M.collection.apply(null,[fs].concat(segs(path)))].concat(constraints));
-  }
-  HistoryQuery.prototype.get=function(){return fbGet_(this,true);};
-  HistoryQuery.prototype.onSnapshot=function(cb,err){return fbListen_(this,true,cb,err);};
-  HistoryQuery.prototype.filterSnapshot=function(s){
-    var q=this,dir=q.before===undefined?-1:1,cmp=function(a,b){var av=a.data()[q.field],bv=b.data()[q.field];return dir*(av<bv?-1:av>bv?1:a.id<b.id?-1:a.id>b.id?1:0);};
-    var rows=s.docs.filter(function(d){var v=d.data()[q.field];return v!==undefined&&(q.before===undefined||v<q.before)&&(!q.cursor||cmp(d,q.cursor)>0);}).sort(cmp).slice(0,q.count);
-    return Object.assign({},s,{docs:rows,size:rows.length,empty:rows.length===0});
-  };
-  ColRef.prototype.page=function(field,count,cursor){return new HistoryQuery(this.path,field,count,cursor);};
-  ColRef.prototype.before=function(field,value,count){return new HistoryQuery(this.path,field,count,null,value);};
   function clean(o){ return JSON.parse(JSON.stringify(o, function(k, v){ return v === undefined ? null : v; })); }
   var DB = { collection: function(p){ return new ColRef(p); }, doc: function(p){ return new DocRef(p); } };
 
