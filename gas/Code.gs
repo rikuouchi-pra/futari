@@ -43,7 +43,7 @@ function doGet(e) {
     const cb = String(p.cb).replace(/[^A-Za-z0-9_$.]/g, "");
     return ContentService.createTextOutput(cb + "(" + JSON.stringify(handle_(p.q || "{}")) + ");").setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-  return json_({ ok: true, app: "futari-list-gcal", v: 12, firestoreMonitor: 2, directAI: 1 });
+  return json_({ ok: true, app: "futari-list-gcal", v: 12, firestoreMonitor: 1, directAI: 1 });
 }
 
 function handle_(raw) {
@@ -52,7 +52,7 @@ function handle_(raw) {
     const email = verifyUser_(req.idToken);
     if (["firestoreUsage", "aiDirect", "capabilities"].indexOf(String(req.tool || "")) >= 0) {
       if (AI_USERS.map(function(x){return x.toLowerCase();}).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
-      if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:2}};
+      if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:1}};
       return {payload: req.tool === "aiDirect" ? aiDirect_(req.args || {}) : firestoreUsage_()};
     }
     if (String(req.tool || "") === "push") return { payload: push_(req.idToken, email, req.args || {}) };
@@ -482,62 +482,34 @@ function firestoreDay_(now) {
   function midnight(day){let t=day;for(let i=0;i<4;i++){const z=Utilities.formatDate(new Date(t),tz,'Z');t=day-(Number(z.slice(0,3))*60+Number(z.slice(3))* (z[0]==='-'?-1:1))*60000;}return t;}
   return {start:midnight(base),end:midnight(base+86400000)};
 }
-function firestoreSeries_(metric,start,now) {
-  const filter='project = "'+FIREBASE_PROJECT_ID+'" AND metric.type = "firestore.googleapis.com/'+metric+'" AND resource.type = "firestore.googleapis.com/Database" AND resource.labels.database_id = "(default)"';
-  const base='https://monitoring.googleapis.com/v3/projects/'+encodeURIComponent(FIREBASE_PROJECT_ID)+'/timeSeries?filter='+encodeURIComponent(filter)+'&interval.startTime='+encodeURIComponent(new Date(start).toISOString())+'&interval.endTime='+encodeURIComponent(new Date(now).toISOString())+'&view=FULL&pageSize=100000';
-  let page='',series=[];
+function firestoreMetric_(kind,day,now) {
+  const filter='project = "'+FIREBASE_PROJECT_ID+'" AND metric.type = "firestore.googleapis.com/document/'+kind+'_ops_count" AND resource.type = "firestore.googleapis.com/Database" AND resource.labels.database_id = "(default)"';
+  const base='https://monitoring.googleapis.com/v3/projects/'+encodeURIComponent(FIREBASE_PROJECT_ID)+'/timeSeries?filter='+encodeURIComponent(filter)+'&interval.startTime='+encodeURIComponent(new Date(day.start).toISOString())+'&interval.endTime='+encodeURIComponent(new Date(now).toISOString())+'&view=FULL&pageSize=100000';
+  let page='',sum=0,points=0,lastPointAt=0;
   for(let n=0;n<8;n++){
     const r=UrlFetchApp.fetch(base+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken()},muteHttpExceptions:true});
     const code=r.getResponseCode();let j;try{j=JSON.parse(r.getContentText());}catch(_){throw err_('monitoring_unavailable','利用状況の応答を読めませんでした。');}
     if(code!==200){
       const detail=JSON.stringify(j.error||{});
       Logger.log('Firestore Monitoring error: '+JSON.stringify({http:code,status:(j.error||{}).status||'',message:String((j.error||{}).message||'').slice(0,1500),reasons:((j.error||{}).details||[]).map(function(d){return {reason:d.reason||'',domain:d.domain||''};})}));
-      if(code===401||code===403){
-        const reason=/requires billing|billing.{0,40}(?:enabled|disabled)|BILLING_DISABLED/i.test(detail)?'billing':/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'scope':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'api':'permission';
-        const messages={billing:'Googleの監視APIが課金設定を要求しています。プロジェクトの課金を有効にすると、Firestoreの無料枠超過分も課金対象になります。',scope:'監視を読む権限の承認が必要です。Apps Scriptで setupFirestoreMonitoring を実行してください。',api:'Cloud Monitoring APIを有効にしてください。',permission:'Apps Scriptを実行するGoogleアカウントに、このFirebaseプロジェクトの監視閲覧権限が必要です。'};
-        const e=err_('monitoring_setup',messages[reason]);e.reason=reason;throw e;
-      }
+      if(code===401||code===403)throw err_('monitoring_setup',/requires billing|billing.{0,40}(?:enabled|disabled)|BILLING_DISABLED/i.test(detail)?'Googleの監視APIが、このプロジェクトで課金の有効化を要求しています。無料プランではこのAPIから利用件数を取得できません。権限の追加では解決しません。Firestoreコンソールで利用状況を確認してください。':/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'利用状況を読む権限の追加が必要です。設定手順を開いてください。':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'Cloud Monitoring APIを有効にする必要があります。設定手順を開いてください。':'このGoogleアカウントに、Firebaseプロジェクトの監視閲覧権限が必要です。');
       throw err_('monitoring_unavailable','利用状況を取得できませんでした（'+code+'）。前回の計測値を残しています。');
     }
     if(j.executionErrors&&j.executionErrors.length)throw err_('monitoring_unavailable','一部の計測値を取得できませんでした。');
-    series=series.concat(j.timeSeries||[]);
-    page=j.nextPageToken||'';if(!page)return series;
+    for(const series of j.timeSeries||[])for(const p of series.points||[]){const at=Date.parse((p.interval||{}).endTime),v=Number((p.value||{}).int64Value);if(!Number.isSafeInteger(v)||v<0)throw err_('monitoring_unavailable','計測値の形式を確認できませんでした。');if(at>day.start&&at<=now){sum+=v;points++;lastPointAt=Math.max(lastPointAt,at);}}
+    page=j.nextPageToken||'';if(!page)return {count:points?sum:null,lastPointAt:lastPointAt||null};
   }
   throw err_('monitoring_unavailable','計測値が多いため、全件を確認できませんでした。');
 }
-function firestorePoint_(p){
-  const at=Date.parse((p.interval||{}).endTime),raw=(p.value||{}).int64Value,v=typeof raw==='string'&&/^\d+$/.test(raw)?Number(raw):NaN;
-  if(!Number.isFinite(at)||!Number.isSafeInteger(v)||v<0)throw err_('monitoring_unavailable','計測値の形式を確認できませんでした。');
-  return {at:at,value:v};
-}
-function firestoreMetric_(kind,day,now) {
-  let sum=0,points=0,lastPointAt=0;
-  for(const series of firestoreSeries_('document/'+kind+'_ops_count',day.start,now))for(const p of series.points||[]){
-    const q=firestorePoint_(p);if(q.at>day.start&&q.at<=now){sum+=q.value;points++;lastPointAt=Math.max(lastPointAt,q.at);}
-  }
-  if(!Number.isSafeInteger(sum))throw err_('monitoring_unavailable','計測値が大きいため確認できませんでした。');
-  return {count:points?sum:null,lastPointAt:lastPointAt||null};
-}
-function firestoreStorage_(now){
-  // Storage is a GAUGE: use its latest observation, never sum successive samples.
-  const start=now-86400000,series=firestoreSeries_('storage/data_and_index_storage_bytes',start,now);
-  let latest=null,identity=null;
-  for(const s of series){
-    const labels=(s.resource||{}).labels||{},id=Object.keys(labels).sort().map(k=>k+':'+labels[k]).join('|');
-    if(identity!==null&&identity!==id)throw err_('monitoring_unavailable','保存容量の計測対象を一意に確認できませんでした。');identity=id;
-    for(const p of s.points||[]){const q=firestorePoint_(p);if(q.at>start&&q.at<=now&&(!latest||q.at>latest.at))latest=q;}
-  }
-  return {bytes:latest?latest.value:null,lastPointAt:latest?latest.at:null};
-}
 function firestoreUsage_() {
-  const now=Date.now(),day=firestoreDay_(now),cache=CacheService.getScriptCache(),key='firestoreUsage:v2:'+day.start,hit=cache.get(key);
+  const now=Date.now(),day=firestoreDay_(now),cache=CacheService.getScriptCache(),key='firestoreUsage:v1:'+day.start,hit=cache.get(key);
   if(hit)return JSON.parse(hit);
   const lock=LockService.getScriptLock();if(!lock.tryLock(1000))throw err_('monitoring_busy','利用状況を確認中です。少し待って再確認してください。');
   try{
     const again=cache.get(key);if(again)return JSON.parse(again);
-    const out={schema:2,project:FIREBASE_PROJECT_ID,database:'(default)',source:'Cloud Monitoring',checkedAt:now,day:day,metrics:{reads:firestoreMetric_('read',day,now),writes:firestoreMetric_('write',day,now),deletes:firestoreMetric_('delete',day,now),storage:firestoreStorage_(now)}};
+    const out={schema:1,project:FIREBASE_PROJECT_ID,database:'(default)',source:'Cloud Monitoring',checkedAt:now,day:day,metrics:{reads:firestoreMetric_('read',day,now),writes:firestoreMetric_('write',day,now),deletes:firestoreMetric_('delete',day,now)}};
     cache.put(key,JSON.stringify(out),300);return out;
-  }catch(e){if(e.code==='monitoring_setup'){const project=encodeURIComponent(FIREBASE_PROJECT_ID),links={billing:'https://console.cloud.google.com/billing/enable?project='+project,api:'https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project='+project,permission:'https://console.cloud.google.com/iam-admin/iam?project='+project};const out={status:'setup_required',reason:e.reason||'scope',message:e.message,setupUrl:links[e.reason]||'https://script.google.com/home/projects/'+ScriptApp.getScriptId()+'/edit'};cache.put(key,JSON.stringify(out),60);return out;}throw e;
+  }catch(e){if(e.code==='monitoring_setup'){const out={status:'setup_required',message:e.message,setupUrl:'https://script.google.com/home/projects/'+ScriptApp.getScriptId()+'/edit'};cache.put(key,JSON.stringify(out),60);return out;}throw e;
   }finally{lock.releaseLock();}
 }
 /* Run in the editor. The first run only updates HEAD's scope list; deployed code stays on its old version.
@@ -548,7 +520,7 @@ function setupFirestoreMonitoring(){
   const m=JSON.parse(manifest.source),scope='https://www.googleapis.com/auth/monitoring.read';
   if(!Array.isArray(m.oauthScopes))throw Error('既存のoauthScopesを確認してから設定してください。');
   if(m.oauthScopes.indexOf(scope)<0){m.oauthScopes.push(scope);manifest.source=JSON.stringify(m,null,2);sapi_('put','/content',{files:content.files});Logger.log('読み取り専用の監視権限を追加しました。エディタを開き直して setupFirestoreMonitoring をもう一度実行し、Googleの許可画面で承認してください。公開中の版は変更していません。');return {needsConsent:true};}
-  const day=firestoreDay_(Date.now());CacheService.getScriptCache().remove('firestoreUsage:v2:'+day.start);
+  const day=firestoreDay_(Date.now());CacheService.getScriptCache().remove('firestoreUsage:v1:'+day.start);
   const result=firestoreUsage_();if(result.status==='setup_required')throw Error(result.message+' Monitoring API: https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project='+FIREBASE_PROJECT_ID);
   const id=deploymentId_(),cur=sapi_('get','/deployments/'+id),v=sapi_('post','/versions',{description:'Enable read-only Firestore monitoring'});
   PropertiesService.getScriptProperties().setProperty('GAS_PREV_VERSION',String(cur.deploymentConfig.versionNumber||''));

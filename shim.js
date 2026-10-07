@@ -95,7 +95,7 @@
     }
     window.__futariStorageEstimate=function(){if(!fbReads)return Promise.resolve();return navigator.storage&&navigator.storage.estimate?navigator.storage.estimate().then(function(v){fbReads.browserEstimate(v);},function(){fbReads.browserEstimate(null);}):Promise.resolve(fbReads.browserEstimate(null));};
     window.__futariStorageEstimate();
-    fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,fetchUsage:fbFetchUsage_,isVisible:function(){return !document.hidden&&navigator.onLine!==false;},onChange:fbNotify_});
+    fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,localOnly:true,onChange:fbNotify_});
     fbOffline=O.create({project:CFG.projectId,store:O.storage(window.indexedDB,CFG.projectId+":"+me.uid),id:rid,dayWindow:F.dayWindow,limited:F.limited,onChange:fbNotify_,onError:function(e){fbMonitor.observeError(e,"read");},
       pauseNetwork:function(){return M.disableNetwork(fs);},resumeNetwork:function(){return M.enableNetwork(fs);},probe:async function(){await fbDeadline_(fbReadRaw_("meta/family",false,function(){return M.getDocFromServer(M.doc(fs,"meta","family"));},"get:recovery"));fbMonitor.clearIssue();},
       send:function(path,kind,value){return fbDeadline_(fbSend_(path,kind,value));},emit:fbEmit_,unbind:fbUnbind_,rebind:fbRebind_
@@ -103,16 +103,7 @@
     window.__futariFirestore=fbMonitor;window.__futariOffline=fbOffline;await fbOffline.loaded;if(fbOffline.snapshot().paused)await M.disableNetwork(fs);
     fbMonitor.start();
     setInterval(function(){if(!document.hidden&&navigator.onLine!==false)fbOffline.resume(false).catch(function(){fbNotify_();});},60000);
-    document.addEventListener("visibilitychange",function(){if(!document.hidden){if(navigator.onLine!==false)fbMonitor.refresh(false);fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
-  }
-  async function fbFetchUsage_(){
-    // Both accounts use the owner's endpoint, sharing its five-minute server cache.
-    var G=(window.FUTARI_GAS_URLS||{})[OWNER]||window.FUTARI_GAS_URL||gasUrl();
-    if(!G)return {status:"setup_required",message:"監視用のApps Script接続先が未設定です。"};
-    if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(G))throw Error("監視用Apps Scriptの接続先URLを確認してください。");
-    try{var tok=await me.getIdToken(),j=await gasForm_(G,{idToken:tok,tool:"firestoreUsage",args:{}},30000);
-      if(j.error)throw gasError_(j.error.code||"monitoring_unavailable",j.error.message||"利用状況を取得できませんでした。");return j.payload;
-    }catch(e){if(e.code==="ai_timeout")throw gasError_("monitoring_timeout","監視サーバーから時間内に応答がありません。接続設定と公開バージョンを確認してください。");throw e;}
+    document.addEventListener("visibilitychange",function(){if(!document.hidden){fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
   }
   function fbSend_(path,kind,value){var send=function(){var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});};return fbReads?fbReads.write(path,kind,value,send):send();}
   function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);return fbSend_(path,kind,value);}
@@ -357,17 +348,16 @@
   function gasForm_(url,req,ms,signal){
     return new Promise(function(ok,ng){
       var nonce=rid(),frame=document.createElement("iframe"),form=document.createElement("form"),done=false,timer;
-      var monitor=req.tool==="firestoreUsage",recipient=monitor?"監視サーバー":"AI";
-      frame.name="futari_rpc_"+nonce;frame.hidden=true;frame.title=recipient+"への送信";form.method="POST";form.action=url;form.target=frame.name;form.hidden=true;
+      frame.name="futari_rpc_"+nonce;frame.hidden=true;frame.title="AIへの送信";form.method="POST";form.action=url;form.target=frame.name;form.hidden=true;
       function cleanup(){clearTimeout(timer);window.removeEventListener("message",message);if(signal)signal.removeEventListener("abort",abort);form.remove();frame.remove();}
       function finish(error,result){if(done)return;done=true;cleanup();error?ng(error):ok(result);}
       function abort(){finish(aiAbortError_());}
       function message(e){if(!/^https:\/\/(?:[a-z0-9-]+-)?script\.googleusercontent\.com$/.test(e.origin)&&e.origin!=="https://script.google.com")return;
-        var d=e.data;if(!d||d.type!=="futari-rpc"||d.nonce!==nonce)return;if(!d.result||typeof d.result!=="object"||(!Object.prototype.hasOwnProperty.call(d.result,"payload")&&!d.result.error)){finish(gasError_("gas_response",recipient+"の応答形式を確認できませんでした"));return;}finish(null,d.result);}
+        var d=e.data;if(!d||d.type!=="futari-rpc"||d.nonce!==nonce)return;if(!d.result||typeof d.result!=="object"||(!Object.prototype.hasOwnProperty.call(d.result,"payload")&&!d.result.error)){finish(gasError_("gas_response","AIの応答形式を確認できませんでした"));return;}finish(null,d.result);}
       if(signal&&signal.aborted){abort();return;}window.addEventListener("message",message);if(signal)signal.addEventListener("abort",abort,{once:true});
       for(var pair of [["futariRpc",nonce],["rpcPayload",JSON.stringify(req)]]){var input=document.createElement("input");input.type="hidden";input.name=pair[0];input.value=pair[1];form.appendChild(input);}
       timer=setTimeout(function(){finish(gasError_("ai_timeout","AIから時間内に返事が届きませんでした。入力は残しています。"));},ms);
-      document.body.appendChild(frame);document.body.appendChild(form);try{form.submit();}catch(e){finish(gasError_("gas_connection",recipient+"へ送信できませんでした"));}
+      document.body.appendChild(frame);document.body.appendChild(form);try{form.submit();}catch(e){finish(gasError_("gas_connection","AIへ送信できませんでした"));}
     });
   }
 

@@ -64,24 +64,3 @@ as successful saves. This does not make another device's latest data available d
 a server outage, and clearing browser data removes local unsynced changes.
 
 Validation: `node --test tests/regression.cjs tests/ai-transport.cjs tests/firestore.cjs tests/gas/push.cjs tests/gas/firestore.cjs`.
-
-
-## Google usage and storage monitoring (v293)
-
-The current endpoint returns schema 2 with `metrics.reads`, `writes`, `deletes` and
-`storage` (`bytes`, `lastPointAt`). Document operation metrics are DELTA totals
-for the Pacific quota day. Storage is the latest GAUGE sample from a 24-hour
-window, including indexes; it is not summed over time. Empty responses mean
-unknown, not zero. Pages and errors are checked before caching the whole report.
-Both family accounts use the owner's endpoint and the same five-minute script
-cache. An authenticated request must pass `verifyUser_` and the family allowlist
-before any cached report is returned. No Firestore document calls are involved.
-
-Update only Code.gs in the existing owner project, preserving its other files,
-configuration and manifest. Run `setupFirestoreMonitoring` after updating. The
-scope-consent staging and successful-probe gate above still apply. A billing-required
-response now links to the exact Firebase project's billing page; API-disabled,
-scope and IAM errors have separate instructions. No function enables billing or
-grants IAM roles. The monitoring response is an observation, not a billing ledger.
-The frontend's 1 GiB/50k/20k/20k references remain free-tier comparison values,
-not enforced spending caps for a billing-enabled project.

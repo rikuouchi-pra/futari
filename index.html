@@ -11,10 +11,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="firestore-monitor.js?v=293"></script>
-<script src="firestore-reads.js?v=293"></script>
-<script src="firestore-offline.js?v=293"></script>
-<script src="shim.js?v=293"></script>
+<script src="firestore-monitor.js?v=294"></script>
+<script src="firestore-reads.js?v=294"></script>
+<script src="firestore-offline.js?v=294"></script>
+<script src="shim.js?v=294"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2199,7 +2199,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="293";
+const APP_VERSION="294";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4963,33 +4963,21 @@ function roleCardHTML(){
     <div class="edit-row">${(state.roles||{}).code?`<input type="text" id="bindCode" maxlength="30" placeholder="合言葉" style="flex:1">`:""}<button class="btn primary" data-act="bindW">${esc(nameOf("w"))}として登録</button></div>`;
 }
 /* 保存容量の目安：プラットフォームは合計容量の上限を公開していないため、件数と推定サイズを示す */
-/* v293: Google project totals and local process diagnostics have separate scopes. */
+/* v291: local diagnostics and durable local changes require no monitoring API. */
 function firestoreStatus(){return window.__futariFirestore?window.__futariFirestore.snapshot():null;}
 function firestoreOffline(){return window.__futariOffline?window.__futariOffline.snapshot():null;}
-function firestoreProjectHTML(S){
-  const r=S?.report,m=r?.metrics||{},n=v=>v.toLocaleString('ja-JP'),when=t=>t?new Date(t).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'未計測';
-  const cards=[['reads','読み取り',50000,'count','50,000件／日'],['writes','書き込み',20000,'count','20,000件／日'],['deletes','削除',20000,'count','20,000件／日'],['storage','保存容量',1073741824,'bytes','1 GiB']];
-  const html=cards.map(([key,title,limit,field,baseline])=>{
-    const item=m[key],v=item?.[field],known=Number.isSafeInteger(v)&&v>=0,ratio=known?v/limit*100:0,fresh=key==='storage'?S?.storageFresh:S?.current&&!S?.stale&&!S?.error;
-    const value=!known?'不明':field==='bytes'?(v>=1073741824?(v/1073741824).toFixed(2)+' GiB':(v/1048576).toFixed(2)+' MiB'):n(v)+'件';
-    return `<div class="quota-tile ${fresh&&ratio>=80?'quota-high':''}"><span>${title}${key==='storage'?'':S?.current?'・今日':'・前回集計日'}</span><strong>${value}</strong><div class="quota-track" role="img" aria-label="${title}：${known?ratio.toFixed(1)+'%・無料枠との比較':'未計測'}"><i style="width:${Math.min(100,ratio)}%"></i></div><small>無料枠 ${baseline}${known?' · '+ratio.toFixed(1)+'%':''}<br>${key==='storage'?'データ＋インデックス<br>':''}計測時点：${when(item?.lastPointAt)}${known&&!fresh?'<br>前回値・最新値は未確認':''}</small></div>`;
-  }).join('');
-  const stateText=S?.loading?'確認中…':S?.error?'接続を確認してください':S?.connected?'Google APIに接続済み':r?'前回の取得値':'未取得';
-  const setupLabels={billing:'Googleの課金設定を開く',api:'監視APIを有効にする',permission:'Googleの権限設定を開く',scope:'Apps Scriptを開く'};
-  return `<div id="firestoreProjectPanel"><h3>二人全体の使用状況</h3><p class="who">全端末・サーバーを含むデータベース全体。${stateText}</p><div class="quota-grid">${html}</div>
-    <p class="who">${r?'取得日時：'+when(r.checkedAt)+'。集計期間：'+when(r.day.start)+'〜'+when(r.checkedAt)+'。':''}${S?' 次の集計日切替：'+when(S.day.end)+'（日本時間）。':''}<br>保存容量は計測時点の値です。操作件数はGoogleの計測値で、請求件数や正確な残量とは異なります。無料枠は比較基準で、有料プランの停止上限ではありません。</p>
-    ${S?.error?`<p role="alert">${esc(S.error)}</p>`:''}${S?.needsUpdate?'<p role="alert">保存容量の取得には、監視サーバーの更新が必要です。</p>':''}
-    <div class="opts"><button class="opt" data-act="firestoreRefresh" ${S?.loading?'disabled':''}>${S?.loading?'確認中…':'使用状況を再確認'}</button>${S?.setupUrl?`<a class="opt" href="${esc(S.setupUrl)}" target="_blank" rel="noopener">${setupLabels[S.setupReason]||'接続設定を開く'}</a>`:''}<a class="opt" href="https://console.firebase.google.com/project/futari-list-17396/firestore/usage" target="_blank" rel="noopener">Googleで確認</a></div>
-    <p class="who">表示中は5分ごとに確認。二人で同じ取得結果を共有します。監視によるFirestore文書の追加読み取りはありません。計測値のない項目と全体の通信量は不明です。</p>
-    <details><summary>接続設定</summary><p class="who">Googleの課金設定・Cloud Monitoring API・監視閲覧権限を確認し、更新したApps Scriptで setupFirestoreMonitoring を実行してください。権限の追加後は再実行してGoogleの許可画面で承認します。課金を有効にすると、Firestoreの無料枠超過分も課金対象になります。</p><a href="https://script.google.com/home/projects/1Zl8_i1eLEiqKUVol8ea1au8TxBi7rGFhR46splNbZNrjgJp1nSl0Gxye/edit" target="_blank" rel="noopener">Apps Scriptの設定を開く</a></details></div>`;
-}
 function firestoreCardHTML(){
   if(!window.__FUTARI_PWA)return "";
   const S=firestoreStatus(),O=firestoreOffline();
   const when=t=>new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
-  return `<h2>Firestoreの利用状況</h2>${firestoreProjectHTML(S)}
+  return `<h2>Firestoreの利用状況</h2><p class="who">課金設定を追加しないモード・API接続不要・端末内で計測</p>
+    <p><b>二人全体の実数：未取得</b></p><p class="who">監視APIは停止中です。以下はこのブラウザ・アカウントで確認した範囲で、二人の全端末合計ではありません。</p>
+    <p class="who">普段の読み取り・保存・削除の結果から利用量を記録します。監視用の通信・追加のFirestore読み取りは行いません。Googleの監視設定や課金設定は不要です。</p>
+    ${S?`<p class="who">次の集計日切替：${when(S.day.end)}（日本時間・Firestoreの無料枠と同じ区切り）</p>`:""}
     ${S&&S.issue?`<p role="alert">利用制限を検知：${when(S.issue.at)}。最新情報を受信できない場合があります。</p>`:""}
     ${firestoreReadsHTML()}
+    <p class="who">全端末の合計・正確な無料枠残量・課金件数は、この計測では取得できません。</p>
+    <div class="opts"><a class="opt" href="https://console.firebase.google.com/project/futari-list-17396/firestore/usage" target="_blank" rel="noopener">Firebaseで全体を確認</a></div>
     ${O&&(O.paused||O.pending)?`<hr><h3>${O.recovering?"同期を確認中":"端末内で使うモード"}</h3><p>未同期の変更：<b>${O.pending}件</b>。この端末に保存し、復旧後に同期します。相手の最新変更はまだ受信できません。</p><p class="who">次の同期確認：${when(O.until)}。未同期の間はアプリの保存データを消さないでください。同じ項目を双方で編集すると、後から同期した内容が優先されます。</p><div class="opts"><button class="opt" data-act="firestoreReconnect" ${O.recovering?"disabled":""}>復旧を確認して同期</button>${O.pending?'<button class="opt" data-act="firestoreExport">未同期の変更を書き出す</button>':""}</div>`:""}
     ${O&&O.error?`<p role="alert">${esc(O.error)}</p>`:""}
     `;
@@ -5005,7 +4993,7 @@ function firestoreReadsHTML(){
   const row=r=>`<div class="read-process"><div class="read-process-title"><b>${esc(r.label)}</b><strong>${isBytes?bytes(r.value):n(r.value)+'件'} <small>(${sum?(r.value/sum*100).toFixed(1):0}%)</small></strong></div><div class="quota-track"><i style="width:${r.value/peak*100}%"></i></div><p class="who">${metric==='storage'?n(r.docs)+'文書・このタブで確認済み':`初回 ${n(r.initial)}・更新 ${n(r.updates)}・個別取得 ${n(r.gets)}回<br>書込成功 ${n(r.writes)} / 試行 ${n(r.writeAttempts)}・削除成功 ${n(r.deletes)} / 試行 ${n(r.deleteAttempts)}<br>キャッシュ ${n(r.cacheDocs)}件・失敗 ${n(r.errors)}回・件数不明 ${n(r.unknown)}回・共用 ${n(r.reused)}回`}</p>${r.hints.length?`<p class="read-hint">${r.hints.map(esc).join('<br>')}</p>`:''}</div>`;
   const trend=week.trend||[],trendField=metric==='storage'?'reads':metric,trendMax=Math.max(1,...trend.map(d=>d[trendField]||0));
   const photo=state.assetUsage,photoNote=photo?'前回の写真一覧から算出・自動再取得なし':'未取得・監視のための一覧取得は行いません';
-  return `<div id="firestoreReadsPanel"><h3>この端末の処理別診断</h3><p class="who">${esc(s.scope)}。記録開始後の値です。上のGoogle全体値とは集計範囲が異なります。小さい値でも全体の余裕を保証しません。</p>
+  return `<div id="firestoreReadsPanel"><h3>利用量ダッシュボード</h3><p class="who">${esc(s.scope)}。記録開始後の値です。小さい値でも全体の余裕を保証しません。</p>
     <div class="quota-heading">今日の操作 <small>全体の無料枠を比較基準に表示</small></div><div class="quota-grid">
     ${gauge('読取推定',today.total.reads,50000,'件','端末分の推定 / 無料枠 50,000件・日')}
     ${gauge('書込成功',today.total.writes||0,20000,'件','端末分の成功 / 無料枠 20,000件・日')}
@@ -5035,7 +5023,7 @@ function firestoreReadsHTML(){
 }
 function firestoreReadsPaint(){const p=$("firestoreReadsPanel");if(!p)return;const open=[...p.querySelectorAll('details')].map(d=>d.open),focus=p.contains(document.activeElement)?document.activeElement?.dataset?.act:null,value=document.activeElement?.dataset?.value;p.outerHTML=firestoreReadsHTML();const next=$("firestoreReadsPanel");next.querySelectorAll('details').forEach((d,i)=>d.open=!!open[i]);if(focus)next.querySelector(`[data-act="${focus}"]${value?`[data-value="${value}"]`:""}`)?.focus({preventScroll:true});}
 addEventListener("futari-read-status",firestoreReadsPaint);
-async function firestoreReadsExport(){try{const api=window.__futariReads;if(!api)return;api.flush();const data=api.export();data.monitoringMode="google-api+local-diagnostics";data.projectUsage=firestoreStatus();const dl=await claude.use("downloads");if(dl)await dl.save({filename:"futari-firestore-diagnostics.json",data:JSON.stringify(data,null,2)});}catch(e){if(e?.code!=="declined")toast("診断を書き出せませんでした。もう一度お試しください");}}
+async function firestoreReadsExport(){try{const api=window.__futariReads;if(!api)return;api.flush();const data=api.export();data.monitoringMode="local-only";const dl=await claude.use("downloads");if(dl)await dl.save({filename:"futari-firestore-diagnostics.json",data:JSON.stringify(data,null,2)});}catch(e){if(e?.code!=="declined")toast("診断を書き出せませんでした。もう一度お試しください");}}
 function firestorePaint(){
   const S=firestoreStatus(),O=firestoreOffline(),el=$("firestoreNotice"),card=$("firestoreCard");
   if(O&&!O.paused&&state.connIssue&&state.connIssue.startsWith("保存先の読み取りが利用上限")){state.connIssue="";$("offline").hidden=true;}
@@ -5043,7 +5031,6 @@ function firestorePaint(){
   let text="";
   if(O&&O.paused)text=`${O.recovering?"同期を確認中":"端末内で使っています"}：変更${O.pending}件は未同期です。相手の最新変更はまだ受信できません。`;
   else if(S&&S.issue)text="保存先の利用制限を検知しました。共有の最新情報を確認できない場合があります。";
-  else if(S&&['warning','critical','limit'].includes(S.level))text=`Googleの全体計測値が無料枠の${S.level==='limit'?'100':S.level==='critical'?'95':'80'}%以上です。使用状況を確認してください。`;
   el.hidden=!text;el.innerHTML=text?`${esc(text)} <button class="link" id="firestoreOpen">詳しく見る</button>`:"";
   const b=$("firestoreOpen");if(b)b.onclick=()=>{go("settings");$("firestoreCard")?.scrollIntoView({block:"start"});};
 }
@@ -5433,7 +5420,6 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcsave") rcptSave();
   else if(a==="orphans") cleanOrphans();
   else if(a==="assetUsage") loadAssetUsage();
-  else if(a==="firestoreRefresh") window.__futariFirestore?.refresh(true);
   else if(a==="firestoreReconnect") window.__futariOffline?.resume(true);
   else if(a==="firestoreExport") firestoreExport();
   else if(a==="firestoreStorageRefresh") window.__futariStorageEstimate?.();
