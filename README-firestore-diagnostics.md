@@ -1,3 +1,13 @@
+# Firestore quota-based diagnostics (v295)
+
+The goal is attributing unnecessary work to application processes, without billing setup or Monitoring API calls. The dashboard uses Firestore Standard free quotas (50k reads/day, 20k writes/day, 20k deletes/day, 1 GiB storage, 10 GiB outbound/month) and hard limits (1 MiB document, 1 MiB−89 B field, 10 MiB request, 20 nesting levels). Free quotas and per-operation hard limits are not interchangeable.
+
+Per-process rankings now include observed maximum document/field/body sizes and nesting as well as operation counts and capacity. Maxima are compared as maxima, never added as usage shares. Scalar timestamp/bytes/geopoint/reference values do not add map/array nesting. A failed send still contributes to attempted request-body size, not stored capacity. SDK batching/protocol bytes remain unmeasured. Received document size remains a transfer proxy, not actual network usage. No path or document content is exported.
+
+Indexes, rules evaluation, transactions, names/paths and administrative limits have explicit unmeasured/reference entries with official thresholds. Unobserved data is not presented as zero or safe. Browser storage and the application's photo targets remain accessible in a separate reference panel and are not Firestore quotas. Size/structure trends are unrecorded and no longer replaced by a read-count chart. Initial reads per listener attachment are shown beside the operation breakdown; load alone does not establish waste or improvement.
+
+Official reference checked 2026-10-07: https://firebase.google.com/docs/firestore/quotas
+
 # Current policy (v294): no billing setup
 
 The user requested proceeding without billing. The unshipped v293 Google API activation is withdrawn; its code remains in git history only. The frontend uses local-only diagnostics, never polls Monitoring (including manual refresh/startup/foreground), ignores old project reports, and has no billing activation link. No Google login, billing, IAM, Apps Script deployment, or OAuth scope change is needed for this release.

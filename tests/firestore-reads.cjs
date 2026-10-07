@@ -62,3 +62,11 @@ test('shared listeners recover after errors and overlay queued changes for every
  const s=col([['a',{at:1}]]);s.docChanges=()=>[{type:'added',doc:doc('a',{at:1})}];t.emit(s);
  t.c.fbOffline={overlay:(_path,base)=>({...base,docs:[...base.docs,doc('queued',{at:2})]})};vm.runInContext(decl('fbEmit_'),t.c);t.run('fbEmit_("activity/queued")');assert.equal(t.left.at(-1).docs.length,2);assert.equal(t.right.at(-1).docs.length,2);t.run('a();b()');
 });
+
+test('quota sizes are attributed by process, do not sum maxima, and exclude scalar objects from nesting',async()=>{
+ const m=R.create({project:'test',user:'test',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
+ await m.write('diary/hidden-doc','set',{text:'a'.repeat(500),nested:{list:[{value:'x'}]},date:new Date(),bytes:new Uint8Array(16)},async()=>{});
+ await m.write('items/hidden-doc','set',{text:'short'},async()=>{});
+ const c=m.snapshot(1).capacity,d=c.rows.find(x=>x.group==='diary'),i=c.rows.find(x=>x.group==='items');assert.equal(d.maxDepth,3);assert.equal(i.maxDepth,0);assert.equal(c.maxDoc,d.maxDoc);assert.equal(c.maxField,d.maxField);assert.equal(d.maxField,501);assert(d.maxRequest>i.maxRequest);assert.equal(c.maxRequest,d.maxRequest);assert(!JSON.stringify(c).includes('hidden-doc'));assert(!JSON.stringify(c).includes('a'.repeat(100)));
+ await assert.rejects(m.write('comments/failed','set',{text:'attempt'},async()=>{throw Error('network');}));const failed=m.snapshot(1).capacity.rows.find(x=>x.group==='comments');assert.equal(failed.docs,0);assert(failed.maxRequest>0);assert.equal(failed.bytes,0);
+});

@@ -985,7 +985,7 @@ test('quota dashboard separates operation filters, storage unknowns and graphica
  const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'t',user:'u',version:'291',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
  await api.write('diary/secret','set',{text:'private'},async()=>{});await api.write('items/secret','delete',null,async()=>{});
  const c=env(['firestoreReadsDays','firestoreReadsHTML'],{window:{__futariReads:api}});
- for(const metric of ['reads','writes','deletes','receivedBytes','storage']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
+ for(const metric of ['reads','writes','deletes','receivedBytes','storage','maxDoc','maxField','maxDepth','maxRequest']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.match(h,/Firestoreの上限対象外/);assert.match(h,/Firestoreのその他の上限（未計測）/);assert.match(h,/1 MiB − 89 B/);assert.match(h,/20階層/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
  run(c,'firestoreMetric="writes"');assert.match(run(c,'firestoreReadsHTML()'),/日記 \/ 書き込み/);
  run(c,'firestoreMetric="deletes"');assert.match(run(c,'firestoreReadsHTML()'),/やること・買い物 \/ 削除/);
 });
