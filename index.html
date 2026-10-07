@@ -479,6 +479,11 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .meal-h{display:flex;justify-content:space-between;align-items:center}.meal-btns{display:flex;gap:8px;flex-wrap:wrap}
 .meal-new{font-size:13px;font-weight:700;color:var(--accent)}.meal-chips{display:flex;flex-wrap:wrap;gap:6px}
 .meal-l .item{padding:10px 14px;display:block}.meal-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;gap:10px;align-items:baseline;cursor:pointer}.meal-r small{color:var(--muted);width:40px;flex:none}
+.meal-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--surface);margin-bottom:12px}.meal-mode button{flex:1;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:10px;cursor:pointer}.meal-mode button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.meal-week-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}.meal-week-nav label{display:flex;align-items:center;gap:8px;font-size:14px}.meal-week-nav input{min-width:0;width:155px;font-size:16px}.meal-week-range{font-size:16px!important;line-height:1.5;overflow-wrap:anywhere}
+.meal-week{display:grid;gap:10px;margin-bottom:12px}.meal-week-day{margin:0!important;padding:14px!important;background:color-mix(in srgb,var(--surface) 96%,transparent)!important;border:1px solid var(--line);border-radius:16px}.meal-week-day.is-today{border:2px solid var(--accent)}.meal-week-day h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:16px}.meal-week-day h3 small{font-size:13px;color:var(--accent)}
+.meal-week-fields{display:grid;gap:8px}.meal-week-fields .meal-f span{font-size:14px}.meal-week-fields input{width:100%;font-size:16px}.meal-week-save{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;margin-bottom:12px}.meal-week-save p{margin:0;font-size:14px}.meal-week-help{font-size:14px;color:var(--muted);margin:8px 0 12px}.meal-week-save .btn{min-height:44px}.meal-week-summary{font-size:14px;margin-bottom:10px}
+@media(min-width:680px){.meal-week-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.meal-week-fields .meal-f{grid-template-columns:1fr;gap:4px}}
 .r-short{font-size:12px;font-weight:700;color:var(--danger);margin-left:auto}
 .unpaid h3{display:flex;justify-content:space-between;align-items:baseline}.unpaid h3 b{color:var(--danger);font-family:var(--font-display);font-size:22px}.unpaid.zero h3 b{color:var(--habit)}
 .up-l{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}.up-l button{width:100%;border:0;background:var(--ground);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer}.up-l b{color:var(--danger)}.up-l small{grid-column:1/-1;color:var(--muted);font-size:11px}
@@ -2221,7 +2226,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="296";
+const APP_VERSION="297";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2495,10 +2500,10 @@ function err(e){
   $("offline").hidden=false;
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
-async function dset(c,id,data){ if(guestBlock(c)) return; const existed=(state[c]||[]).some(x=>x.id===id); netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data);try{pushNotifyAdded(c,id,data,existed)}catch(_){}}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} }
+async function dset(c,id,data){ if(guestBlock(c)) return false; const existed=(state[c]||[]).some(x=>x.id===id); netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data);try{pushNotifyAdded(c,id,data,existed)}catch(_){}}catch(e){err(e);return false;}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} return true; }
 async function dupd(c,id,ch){ if(guestBlock(c)) return; netMark(); ch=dayMeta(c,id,ch); ch.updatedAt=Date.now();
   { const ex0=(state[c]||[]).find(i=>i.id===id); if(ex0&&ex0.auto&&!arWriting&&!("touched" in ch)&&["text","date","start","end","due","time","who"].some(k=>k in ch)) ch.touched=true; } /* v207: 自動で入ったものを手で直したら、以後は自動で変えない */ if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); logAct(actOpOf(ch),c,id,{...(ex||{}),...ch},ch); ch.updBy=myRole(); ch.updAt=Date.now(); } const r=colRef(c); if(r){try{await r.doc(id).update(ch)}catch(e){err(e)}} else {const x=state[c].find(i=>i.id===id); if(x){ for(const k in ch){ if(ch[k]&&typeof ch[k]==="object"&&!Array.isArray(ch[k])) x[k]={...(x[k]||{}),...ch[k]}; else x[k]=ch[k]; } } vaultSave(c);requestRender();} }
-async function ddel(c,id){ if(guestBlock(c)) return; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e)}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} }
+async function ddel(c,id){ if(guestBlock(c)) return false; netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); if(ex) logAct("del",c,id,ex,null); } const r=colRef(c); if(r){try{await r.doc(id).delete()}catch(e){err(e);return false;}} else {state[c]=state[c].filter(x=>x.id!==id);vaultSave(c);requestRender();} return true; }
 function removeWithUndo(c,ids,msg){
   if(c==="blocks"||c==="pitems"||c==="events"||c==="items"){ const ks=ids.map(id=>id.match(/^auto_(.+)_(\d{4}-\d{2}-\d{2})$/)).filter(Boolean).map(m=>`${m[1]}:${m[2]}`); if(ks.length){ const sk=arSkip(); ks.forEach(k=>sk.add(k)); prefs.autoSkip=[...sk].filter(k=>k.slice(-10)>=addDays(today(),-7)).join(","); savePrefs(true); } }
   const saved=ids.map(id=>state[c].find(i=>i.id===id)).filter(Boolean);
@@ -4956,6 +4961,7 @@ function go(v,anim){
   if(v==="settings"&&state.view==="settings") v=prefs.view||"talk";
   if(v==="check"&&state.view==="check") v=prefs.view||"talk";
   if(state.view==="diary") flushExtras();
+  if(state.view==="meal") flushMeal();
   state.view=v; actEnter(v);
   if(v!=="cal") state.paint.on=false;
   if(v!=="cal") state.ttPick=null; state.ttNew=null;
@@ -5470,7 +5476,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="hhImport"){ householdImport(); }
   else if(a==="upAll"){ state.upAll=true; render(); }
   else if(a==="fridgeUndo"){ state.fridgeDraft=null; render(); }
-  else if(a==="mealDay"){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } const n=Number(b.dataset.n); state.mealDate=addDays(mealDate(),n); render(n<0?-40:40); }
+  else if(a==="mealDay"){ flushMeal(); const n=Number(b.dataset.n); state.mealDate=addDays(mealDate(),n); render(n<0?-40:40); }
   else if(a==="fridgeSuggest"){ const items=fridgeItems(); if(!items.length){ toast("先に冷蔵庫の食材を保存してください"); return; } state.aiOpen=true; render(); window.scrollTo({top:0,behavior:"smooth"}); aiAsk("冷蔵庫の食材を優先して、初心者でも作れる夕飯を主菜・副菜・汁物の組み合わせで3案提案して。足りない物は買い物として分けて"); }
   else if(a==="bugShowAI"){state.bugShowFixed=true;refreshBugCard();document.querySelector('[data-bug-history="fixed"]')?.scrollIntoView({block:"center",behavior:"smooth"});}
   else if(a==="bugExport") saveFile("futari-requests.json",new Blob([JSON.stringify(bugExportData(),null,2)],{type:"application/json"}));
@@ -5692,14 +5698,92 @@ function fridgeNames(d){ const out=[], pick=v=>{ if(typeof v==="string") out.pus
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-rhym]"); if(!b||e.target.closest("input")) return; state.moneyRef=b.dataset.rhym+"-01"; render(); setTimeout(()=>{ const l=document.querySelector("#main .ramt"); if(l) l.closest(".list").scrollIntoView({block:"start",behavior:"smooth"}); },80); });
 /* v200: 料理タブ（献立の記録・冷蔵庫・AIの献立提案）。日記から分けた */
 function mealDate(){ return state.mealDate||today(); }
+/* v297: weekly planning uses the same date-keyed dinner records as the daily editor. */
+function mealValues(x){ return {main:x?(x.main||(!x.side&&!x.soup?x.text:"")||""):"",side:x?x.side||"":"",soup:x?x.soup||"":""}; }
+function mealWeekDays(){ const start=mondayOf(mealDate()); return Array.from({length:7},(_,i)=>addDays(start,i)); }
+function mealWeekValues(d){ return {...mealValues(dinnerOf(d)),...((state.mealWeekDrafts||{})[d]||{})}; }
+function mealWeekDirty(){ return mealWeekDays().filter(d=>Object.keys((state.mealWeekDrafts||{})[d]||{}).length); }
+function mealModeHTML(){ const week=state.mealMode!=="day"; return `<div class="meal-mode" role="group" aria-label="献立の表示"><button type="button" data-mealmode="week" aria-pressed="${week}">週で計画</button><button type="button" data-mealmode="day" aria-pressed="${!week}">1日ずつ</button></div>`; }
+function mealWeekHTML(){
+  const days=mealWeekDays(), start=parse(days[0]), end=parse(days[6]), count=days.filter(d=>Object.values(mealWeekValues(d)).some(v=>v.trim())).length;
+  const range=`${start.getFullYear()}/${start.getMonth()+1}/${start.getDate()} 〜 ${start.getFullYear()!==end.getFullYear()?end.getFullYear()+"/":""}${end.getMonth()+1}/${end.getDate()}`;
+  return `<div class="dstrip"><button type="button" class="icon-btn" data-mealweek="prev" aria-label="前の週">‹</button><div class="ttl meal-week-range">${range}</div><button type="button" class="icon-btn" data-mealweek="next" aria-label="次の週">›</button></div>
+    <div class="meal-week-nav"><label>週を選ぶ<input type="date" data-mealweek-date value="${esc(mealDate())}" aria-label="計画する週の日付"></label><button type="button" class="btn" data-mealweek="today">今週</button></div>
+    <div class="meal-week-summary" id="mealWeekCount">夕飯の計画 · ${count} / 7日 入力済み</div>
+    <p class="meal-week-help">月曜〜日曜をまとめて入力。変更後は「この週を保存」を押してください。</p>
+    <div class="meal-week">${days.map(d=>{const x=mealWeekValues(d), date=parse(d);return `<section class="card meal-week-day${d===today()?" is-today":""}" aria-label="${esc(d)}の献立"><h3>${date.getMonth()+1}/${date.getDate()}（${WD[date.getDay()]}）${d===today()?"<small>今日</small>":""}</h3><div class="meal-week-fields">${[["main","主菜"],["side","副菜"],["soup","汁物"]].map(([k,label])=>`<label class="meal-f"><span>${label}</span><input type="text" data-mealweek-day="${d}" data-mealweek-field="${k}" aria-label="${d} ${label}" maxlength="80" placeholder="${label}を入力" value="${esc(x[k])}" ${state.mealWeekSaving?"disabled":""}></label>`).join("")}</div></section>`;}).join("")}</div>
+    <div class="meal-week-save"><p id="mealWeekStatus" role="status">${esc(mealWeekStatus())}</p><button type="button" class="btn primary" data-mealweek="save" ${state.mealWeekSaving||!mealWeekDirty().length?"disabled":""}>${state.mealWeekSaving?"保存中…":"この週を保存"}</button></div>`;
+}
+function mealWeekStatus(){
+  if(state.mealWeekSaving) return "保存中…";
+  const n=mealWeekDirty().length, all=Object.keys(state.mealWeekDrafts||{}).length;
+  return (state.mealWeekMessage||(n?`${n}日分の変更が未保存`:"保存した献立はふたりで共有されます"))+(all>n?` · ほかの週に未保存 ${all-n}日`:"");
+}
+function mealWeekPaint(){
+  const s=$("mealWeekStatus"), count=$("mealWeekCount"), btn=document.querySelector('[data-mealweek="save"]');
+  if(s) s.textContent=mealWeekStatus();
+  if(count) count.textContent=`夕飯の計画 · ${mealWeekDays().filter(d=>Object.values(mealWeekValues(d)).some(v=>v.trim())).length} / 7日 入力済み`;
+  if(btn) btn.disabled=!!state.mealWeekSaving||!mealWeekDirty().length;
+}
+function mealWeekInput(d,k,value){
+  if(!mealWeekDays().includes(d)||!["main","side","soup"].includes(k)||state.mealWeekSaving) return;
+  const drafts=state.mealWeekDrafts||(state.mealWeekDrafts={}), patch=drafts[d]||(drafts[d]={});
+  if(value.trim()===mealValues(dinnerOf(d))[k]) delete patch[k]; else patch[k]=value.slice(0,80);
+  if(!Object.keys(patch).length) delete drafts[d];
+  state.mealWeekMessage=""; mealWeekPaint();
+}
+async function saveMealWeek(){
+  if(state.mealWeekSaving||guestBlock("dinner")) return false;
+  const days=mealWeekDirty(); if(!days.length) return true;
+  state.mealWeekSaving=true; state.mealWeekMessage=""; render();
+  let saved=0, failed=0;
+  try{
+    for(const d of days){
+      const patch={...(state.mealWeekDrafts||{})[d]}, old=dinnerOf(d), values={...mealValues(old)};
+      for(const [k,v] of Object.entries(patch)) values[k]=v.trim();
+      const text=[values.main,values.side,values.soup].filter(Boolean).join("、");
+      // Only edited dates are written; untouched fields use the latest shared record.
+      const {id:ignored,...rest}=old||{}, data={...rest,...values,date:d,text,role:myRole(),by:state.me||null,at:Date.now()};
+      let ok=false;
+      try{ ok=text?await dset("dinner",d,data):old?await ddel("dinner",d):true; }catch(e){ok=false;}
+      if(!ok){failed++;continue;}
+      // Keep the saved values visible even before the subscription callback arrives.
+      const current=dinnerOf(d); state.dinner=state.dinner.filter(x=>x.id!==d); if(text) state.dinner.push({...current,id:d,...data});
+      const pending=(state.mealWeekDrafts||{})[d];
+      for(const [k,v] of Object.entries(patch)) if(pending&&pending[k]===v) delete pending[k];
+      if(pending&&!Object.keys(pending).length) delete state.mealWeekDrafts[d];
+      saved++;
+    }
+  }finally{
+    state.mealWeekSaving=false;
+    state.mealWeekMessage=failed?`${failed}日分を保存できませんでした。入力は残っています`:`${saved}日分を保存しました`;
+    toast(state.mealWeekMessage); if(state.view==="meal") render();
+  }
+  return !failed;
+}
+function flushMeal(){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } }
+function mealWeekMove(action){
+  if(action==="save"){saveMealWeek();return;}
+  flushMeal(); state.mealWeekMessage="";
+  state.mealDate=action==="today"?today():addDays(mealDate(),action==="prev"?-7:7); render();
+}
+document.addEventListener("input",e=>{ const D=e.target.dataset||{}; if(D.mealweekDay) mealWeekInput(D.mealweekDay,D.mealweekField,e.target.value); });
+document.addEventListener("change",e=>{ if(!e.target.matches("[data-mealweek-date]")) return; const d=e.target.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||ymd(parse(d))!==d) return; flushMeal();state.mealDate=d;state.mealWeekMessage="";render(); });
+document.addEventListener("click",e=>{
+  const b=e.target.closest("#main [data-mealmode],#main [data-mealweek]"); if(!b) return;
+  if(b.dataset.mealmode){flushMeal();state.mealMode=b.dataset.mealmode;render();}else mealWeekMove(b.dataset.mealweek);
+});
 function viewMeal(){ const d=mealDate(), dn=dinnerOf(d), F=fridgeItems(), fr=(state.kakei||{}).fridge||{};
   const recent=state.dinner.filter(x=>dinnerText(x)).sort((a,b)=>a.id<b.id?1:-1).slice(0,10);
-  let h=`<div class="dstrip" data-strip="meal"><button class="icon-btn" data-act="mealDay" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===today()?"・今日":""}</div><button class="icon-btn" data-act="mealDay" data-n="1" aria-label="次の日">›</button></div>`;
+  let h=mealModeHTML();
+  if(state.mealMode!=="day") h+=mealWeekHTML();
+  else { h+=`<div class="dstrip" data-strip="meal"><button class="icon-btn" data-act="mealDay" data-n="-1" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${d===today()?"・今日":""}</div><button class="icon-btn" data-act="mealDay" data-n="1" aria-label="次の日">›</button></div>`;
   h+=`<section class="card meal-c"><h3>🍽 献立</h3>
     <label class="meal-f"><span>主菜</span><input type="text" id="mealMain" maxlength="80" placeholder="豚の生姜焼き" value="${esc(dn?(dn.main||(!dn.side&&!dn.soup?dn.text:"")||""):"")}"></label>
     <label class="meal-f"><span>副菜</span><input type="text" id="mealSide" maxlength="80" placeholder="ほうれん草のおひたし" value="${esc(dn?dn.side||"":"")}"></label>
     <label class="meal-f"><span>汁物</span><input type="text" id="mealSoup" maxlength="80" placeholder="玉ねぎの味噌汁" value="${esc(dn?dn.soup||"":"")}"></label>
     <div class="who" id="mealSave">${dn?"保存済み（ふたりで共有）":"入力すると自動で保存されます"}</div></section>`;
+  }
   h+=`<section class="card meal-c"><div class="meal-h"><h3>🧊 冷蔵庫</h3><span class="who">${fr.at?`${short(ymd(new Date(fr.at)))} 更新`:""}</span></div>
     <div class="meal-btns"><button class="btn primary" data-act="fridgePick" ${state.fridgeBusy?"disabled":""}>${state.fridgeBusy?"読み取り中…":"📷 写真で読み取る"}</button>${F.length?'<button class="btn" data-act="fridgeSuggest">✦ 献立を提案</button>':""}</div>
     ${state.fridgeDraft!=null?`<div class="meal-new">読み取った食材を確認して「保存」を押してください</div>`:""}
@@ -5714,7 +5798,7 @@ function saveMeal(){ const el=$("mealMain"); if(!el) return; const d=mealDate(),
   const s2=$("mealSave"); if(s2) s2.textContent="保存しました（ふたりで共有）"; }
 let mealTimer=null;
 document.addEventListener("input",e=>{ const id=e.target&&e.target.id; if(id==="mealMain"||id==="mealSide"||id==="mealSoup"){ const s2=$("mealSave"); if(s2) s2.textContent="入力中…"; clearTimeout(mealTimer); mealTimer=setTimeout(()=>{ mealTimer=null; saveMeal(); },800); } });
-document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-mealday]"); if(b){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } state.mealDate=b.dataset.mealday; render(); window.scrollTo({top:0,behavior:"smooth"}); } });
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-mealday]"); if(b){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } state.mealDate=b.dataset.mealday; state.mealMode="day"; render(); window.scrollTo({top:0,behavior:"smooth"}); } });
 async function fridgeRead(files){
   const fs=[...(files||[])].slice(0,3); if(!fs.length||state.fridgeBusy) return;
   if(!state.sample){ toast("写真の読み取りを利用できません（設定 › AI機能を確認）"); return; }
