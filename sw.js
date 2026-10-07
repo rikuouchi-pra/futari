@@ -1,5 +1,5 @@
 /* ふたりのリスト：オフラインでも開けるようにするサービスワーカー */
-const V="futari-291-local-monitoring";
+const V="futari-294-daily-activity";
 const SHELL=["./","index.html","shim.js","config.js","firestore-monitor.js","firestore-reads.js","firestore-offline.js","manifest.webmanifest","icon-192.png","icon-512.png","apple-touch-icon.png"];
 const FB="https://www.gstatic.com/firebasejs/10.12.2/";
 const LIBS=["firebase-app.js","firebase-auth.js","firebase-firestore.js"].map(f=>FB+f);
