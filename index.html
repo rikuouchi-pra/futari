@@ -11,9 +11,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="firestore-monitor.js?v=289"></script>
-<script src="firestore-offline.js?v=289"></script>
-<script src="shim.js?v=289"></script>
+<script src="firestore-monitor.js?v=290"></script>
+<script src="firestore-reads.js?v=290"></script>
+<script src="firestore-offline.js?v=290"></script>
+<script src="shim.js?v=290"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2114,6 +2115,8 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 .tt-b.ovr{border-left-style:double;border-left-width:6px}
 .tt-bar .tb-sc button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .bugsync{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:12px;background:var(--ground)}
+.read-process{padding:12px 0;border-bottom:1px solid var(--line)}
+.read-process-title{display:flex;gap:8px;justify-content:space-between;align-items:baseline;flex-wrap:wrap}.read-process-title b{font-size:13px;overflow-wrap:anywhere}.read-process-title strong{font-size:15px}.read-process-title small{font-size:11px;color:var(--muted)}.read-process .mbar{margin-top:6px}.read-process p{margin:6px 0}.read-hint{font-size:12px;color:var(--caution);line-height:1.6}.read-summary{display:flex;gap:8px;flex-wrap:wrap;padding:10px 0;font-size:12px}.read-summary b{font-size:15px}#firestoreReadsPanel summary{padding:12px 0;font-size:13px;cursor:pointer}#firestoreReadsPanel .opts{flex-wrap:wrap}
 </style>
 <style id="palStyle"></style>
 
@@ -2195,7 +2198,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="289";
+const APP_VERSION="290";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4972,10 +4975,28 @@ function firestoreCardHTML(){
     ${S&&S.issue?`<p class="who" style="color:var(--danger,#db7777)">利用制限を検知：${when(S.issue.at)}。件数の反映が遅れている場合があります。</p>`:""}
     <p class="who">ふたり・全端末の計測値です。無料枠に対して80%・95%・100%で警告します。数分の遅れがあり、請求上の件数とは差が出ます。残量や超過防止を保証する数値ではありません。アプリを開いている間、5分ごとに確認します。監視自体はFirestoreの読み取りを使いません。</p>
     <div class="opts"><button class="opt" data-act="firestoreRefresh" ${S&&S.loading?"disabled":""}>${S&&S.loading?"確認中…":"利用状況を再確認"}</button><a class="opt" href="https://console.firebase.google.com/project/futari-list-17396/firestore/usage" target="_blank" rel="noopener">Firebaseで確認</a></div>
+    ${firestoreReadsHTML()}
     ${O&&(O.paused||O.pending)?`<hr><h3>${O.recovering?"同期を確認中":"端末内で使うモード"}</h3><p>未同期の変更：<b>${O.pending}件</b>。この端末に保存し、復旧後に同期します。相手の最新変更はまだ受信できません。</p><p class="who">次の同期確認：${when(O.until)}。未同期の間はアプリの保存データを消さないでください。同じ項目を双方で編集すると、後から同期した内容が優先されます。</p><div class="opts"><button class="opt" data-act="firestoreReconnect" ${O.recovering?"disabled":""}>復旧を確認して同期</button>${O.pending?'<button class="opt" data-act="firestoreExport">未同期の変更を書き出す</button>':""}</div>`:""}
     ${O&&O.error?`<p role="alert">${esc(O.error)}</p>`:""}
     <details class="gguide"><summary>監視の接続設定</summary><p>最初の1回は、Firebaseを管理しているGoogleアカウントで監視の読み取り権限を許可します。</p><ol class="steps"><li>${S&&S.setupUrl?`<a href="${esc(S.setupUrl)}" target="_blank" rel="noopener">接続サーバーの設定を開く</a>`:'既存のApps Scriptの編集画面を開く'}。</li><li>関数 <code>setupFirestoreMonitoring</code> を実行する。</li><li>エディタを開き直し、同じ関数をもう一度実行してGoogleの許可画面を承認する。成功すると公開も更新されます。</li><li>ここで「利用状況を再確認」を押す。</li></ol><p class="who">APIの有効化を求められたときは<a href="https://console.cloud.google.com/apis/library/monitoring.googleapis.com?project=futari-list-17396" target="_blank" rel="noopener">Cloud Monitoring API</a>を確認してください。課金プランを変更する操作は含みません。</p></details>`;
 }
+/* Per-process diagnostics stay on this browser and never create Firestore traffic. */
+let firestoreReadsDays=1;
+function firestoreReadsHTML(){
+  const api=window.__futariReads;if(!api)return '<div id="firestoreReadsPanel"><hr><h3>処理別の読み取り</h3><p class="who">ログイン後に、この端末で計測を開始します。</p></div>';
+  const s=api.snapshot(firestoreReadsDays),n=x=>Number(x||0).toLocaleString("ja-JP"),when=t=>new Date(t).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  const row=r=>`<div class="read-process"><div class="read-process-title"><b>${esc(r.label)}</b><strong>${n(r.reads)}件 <small>(${r.share}%)</small></strong></div><div class="mbar"><i style="width:${r.share}%"></i></div><p class="who">初回 ${n(r.initial)}・更新 ${n(r.updates)}・個別取得 ${n(r.gets)}回<br>キャッシュ ${n(r.cacheDocs)}件・失敗 ${n(r.errors)}回・件数不明 ${n(r.unknown)}回${r.reused?`・共用 ${n(r.reused)}回`:""}</p>${r.hints.length?`<p class="read-hint">${r.hints.map(esc).join('<br>')}</p>`:""}</div>`;
+  return `<div id="firestoreReadsPanel"><hr><h3>処理別の読み取り</h3><p class="who">${esc(s.scope)}。この版の導入後から記録します。</p><div class="opts"><button class="opt ${firestoreReadsDays===1?"on":""}" data-act="firestoreReadsToday" aria-pressed="${firestoreReadsDays===1}">今日の集計日</button><button class="opt ${firestoreReadsDays===7?"on":""}" data-act="firestoreReadsWeek" aria-pressed="${firestoreReadsDays===7}">直近7日</button></div>
+    <div class="read-summary"><b>読取推定 ${n(s.total.reads)}件</b><span>キャッシュ ${n(s.total.cacheDocs)}件</span><span>自動同期 ${s.active}接続（このタブ）</span></div><p class="who">${s.first?`記録：${when(s.first)}〜${when(s.last)}（日本時間）`:"まだ記録がありません。普段どおり使うと集計されます。"}</p>
+    ${s.storageError?'<p role="alert">端末への記録保存に失敗しています。今の記録を診断ファイルに書き出してください。</p>':""}
+    <p class="who">上の全端末合計とは対象が異なります。請求件数ではありません。再接続・権限ルール・インデックス等の内部読取は正確に数えられません。</p>
+    ${s.rows.slice(0,5).map(row).join('')}${s.rows.length>5?`<details><summary>残り${s.rows.length-5}処理を見る</summary>${s.rows.slice(5).map(row).join('')}</details>`:""}
+    <details><summary>版ごとの比較・計測方法</summary><p class="who">利用量や期間が異なるため、件数差だけで改善効果とは判定しません。次の版でも同じ指標を記録します。</p>${s.versions.map(v=>`<p class="who"><b>v${esc(v.version)}</b>：${n(v.reads)}件 / 初回1接続あたり ${v.attaches?(v.initial/v.attaches).toFixed(1):'—'}件 / 個別取得 ${n(v.gets)}回</p>`).join('')}<p class="who">${s.notes.map(esc).join('<br>')}</p><p class="who">初回は受信全件、以降は変更された文書を推定計上。キャッシュ・端末内編集・変化のない通知は読取推定に加算しません。AIの旧接続サーバーへの通信は件数不明として記録します。</p></details>
+    <div class="opts"><button class="opt" data-act="firestoreReadsExport">改善用の診断を書き出す</button></div><p class="who">診断には処理別・日別・版別の数値を含め、入力内容や写真は含めません。診断を添付して改善を依頼できます。</p></div>`;
+}
+function firestoreReadsPaint(){const p=$("firestoreReadsPanel");if(!p)return;const open=[...p.querySelectorAll('details')].map(d=>d.open),focus=p.contains(document.activeElement)?document.activeElement?.dataset?.act:null;p.outerHTML=firestoreReadsHTML();const next=$("firestoreReadsPanel");next.querySelectorAll('details').forEach((d,i)=>d.open=!!open[i]);if(focus)next.querySelector(`[data-act="${focus}"]`)?.focus({preventScroll:true});}
+addEventListener("futari-read-status",firestoreReadsPaint);
+async function firestoreReadsExport(){try{const api=window.__futariReads;if(!api)return;api.flush();const data=api.export();data.projectUsage=firestoreStatus()?.report||null;const dl=await claude.use("downloads");if(dl)await dl.save({filename:"futari-firestore-diagnostics.json",data:JSON.stringify(data,null,2)});}catch(e){if(e?.code!=="declined")toast("診断を書き出せませんでした。もう一度お試しください");}}
 function firestorePaint(){
   const S=firestoreStatus(),O=firestoreOffline(),el=$("firestoreNotice"),card=$("firestoreCard");
   if(O&&!O.paused&&state.connIssue&&state.connIssue.startsWith("保存先の読み取りが利用上限")){state.connIssue="";$("offline").hidden=true;}
@@ -5377,6 +5398,8 @@ $("main").addEventListener("click",e=>{
   else if(a==="firestoreRefresh") window.__futariFirestore?.refresh(true);
   else if(a==="firestoreReconnect") window.__futariOffline?.resume(true);
   else if(a==="firestoreExport") firestoreExport();
+  else if(a==="firestoreReadsToday"||a==="firestoreReadsWeek"){firestoreReadsDays=a==="firestoreReadsWeek"?7:1;firestoreReadsPaint();}
+  else if(a==="firestoreReadsExport") firestoreReadsExport();
   else if(a==="orphOpen"){ state.orphOpen=true; state.orphSel=new Set(); render(); }
   else if(a==="orphClose"){ state.orphOpen=false; state.orphArm=false; render(); }
   else if(a==="orphAll"){ const L=orphanIds(); state.orphSel=state.orphSel&&state.orphSel.size===L.length?new Set():new Set(L); state.orphArm=false; render(); }

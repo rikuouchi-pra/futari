@@ -7,7 +7,7 @@ const marker='/* ================= connect ================= */';
 const start=html.indexOf(marker),end=html.indexOf('</script>',start);
 if(start<0||end<0)throw new Error('Cannot find connection bootstrap');
 html=html.slice(0,start)+boot+'\n'+html.slice(end);
-html=html.replace(/<script src="(?:config\.js|(?:shim|firestore-monitor|firestore-offline)\.js[^\"]*)"><\/script>/g,'');
+html=html.replace(/<script src="(?:config\.js|(?:shim|firestore-monitor|firestore-offline|firestore-reads)\.js[^\"]*)"><\/script>/g,'');
 html=html.replace(/<link[^>]*>/g,'');
 html=html.replace(/<script>if\("serviceWorker"[\s\S]*?<\/script>/,'');
 html=html.replaceAll('localStorage','previewStorage');

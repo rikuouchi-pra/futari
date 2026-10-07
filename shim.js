@@ -9,7 +9,8 @@
 
   var M = {};            // firebase modules
   var app, auth, fs, me = null, fbMonitor=null, fbOffline=null;
-  var fbWatches=new Set();
+  var fbWatches=new Set(), fbReads=null;
+  var fbSharedReads=window.FutariFirestoreReads?window.FutariFirestoreReads.singleFlight():function(key,fn){return fn();};
   var readyResolve, readyReject;
   var ready = new Promise(function(ok, ng){ readyResolve = ok; readyReject = ng; });
 
@@ -85,13 +86,19 @@
   function fbDeadline_(p){var timer;return Promise.race([p,new Promise(function(_,ng){timer=setTimeout(function(){ng(gasError_("store_timeout","保存先の応答を確認できませんでした"));},20000);})]).finally(function(){clearTimeout(timer);});}
   async function initFirestoreStatus_(){
     if(!window.FutariFirestoreMonitor||!window.FutariFirestoreOffline)return;
-    var F=window.FutariFirestoreMonitor,O=window.FutariFirestoreOffline,local;try{local=localStorage;}catch(e){local={getItem:function(){return null;},setItem:function(){}};}
+    var F=window.FutariFirestoreMonitor,O=window.FutariFirestoreOffline,local;try{local=localStorage;}catch(e){local={getItem:function(){return null;},setItem:function(){},unavailable:true};}
+    if(window.FutariFirestoreReads){
+      fbReads=window.FutariFirestoreReads.create({project:CFG.projectId,user:me.uid,storage:local,dayWindow:F.dayWindow,version:function(){try{return APP_VERSION;}catch(e){return "unknown";}},onChange:function(){window.dispatchEvent(new Event("futari-read-status"));}});
+      window.__futariReads=fbReads;
+      window.addEventListener("pagehide",function(){fbReads.flush();});
+      document.addEventListener("visibilitychange",function(){if(document.hidden)fbReads.flush();});
+    }
     fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,isVisible:function(){return !document.hidden&&navigator.onLine!==false;},onChange:fbNotify_,fetchUsage:async function(){
       var G=(window.FUTARI_GAS_URLS||{})[OWNER]||gasUrl();if(!G)throw Error("利用状況を確認する接続先がありません");
       var tok=await me.getIdToken(),r=await gasCall_(G,{idToken:tok,tool:"firestoreUsage",args:{}},25000);if(r.error)throw gasError_(r.error.code,r.error.message);return r.payload;
     }});
     fbOffline=O.create({project:CFG.projectId,store:O.storage(window.indexedDB,CFG.projectId+":"+me.uid),id:rid,dayWindow:F.dayWindow,limited:F.limited,onChange:fbNotify_,onError:function(e){fbMonitor.observeError(e,"read");},
-      pauseNetwork:function(){return M.disableNetwork(fs);},resumeNetwork:function(){return M.enableNetwork(fs);},probe:async function(){await fbDeadline_(M.getDocFromServer(M.doc(fs,"meta","family")));fbMonitor.clearIssue();},
+      pauseNetwork:function(){return M.disableNetwork(fs);},resumeNetwork:function(){return M.enableNetwork(fs);},probe:async function(){await fbDeadline_(fbReadRaw_("meta/family",false,function(){return M.getDocFromServer(M.doc(fs,"meta","family"));},"get:recovery"));fbMonitor.clearIssue();},
       send:function(path,kind,value){var ref=M.doc.apply(null,[fs].concat(segs(path)));return fbDeadline_(kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{}));},emit:fbEmit_,unbind:fbUnbind_,rebind:fbRebind_
     });
     window.__futariFirestore=fbMonitor;window.__futariOffline=fbOffline;await fbOffline.loaded;if(fbOffline.snapshot().paused)await M.disableNetwork(fs);
@@ -100,13 +107,26 @@
     document.addEventListener("visibilitychange",function(){if(!document.hidden){fbMonitor.refresh(false);fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
   }
   function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});}
+  function fbReadRaw_(path,collection,fn,tag){return fbReads?fbReads.get(path,collection,fn,tag):fn();}
+  function fbReadShared_(path,collection,cache,fn){return fbSharedReads((collection?"list:":"get:")+path+":"+(cache?"cache":"default"),function(){return fbReadRaw_(path,collection,fn);},function(){if(fbReads)fbReads.reused(path,collection);});}
   async function fbGet_(ref,collection){
-    var local=fbOffline&&fbOffline.snapshot().paused,read=function(cache){return collection?(cache?M.getDocsFromCache(ref.ref):M.getDocs(ref.ref)):(cache?M.getDocFromCache(ref.ref):M.getDoc(ref.ref));},s;
+    var local=fbOffline&&fbOffline.snapshot().paused,read=function(cache){return fbReadShared_(ref.path,collection,cache,function(){return collection?(cache?M.getDocsFromCache(ref.ref):M.getDocs(ref.ref)):(cache?M.getDocFromCache(ref.ref):M.getDoc(ref.ref));});},s;
     try{s=await read(local);}catch(e){fbError_(e,"read");if(local||!fbOffline||!window.FutariFirestoreMonitor.limited(e))throw e;await fbOffline.pause(e);s=await read(true);}
     var base=collection?colSnap(s):docSnap(s);return fbOffline?fbOffline.overlay(ref.path,base,collection):base;
   }
   function fbListen_(ref,collection,cb,err){
-    var w={path:ref.path,collection:collection,cb:cb,raw:null,un:null,bind:function(){if(w.un)w.un();w.un=M.onSnapshot(ref.ref,function(s){w.raw=collection?colSnap(s):docSnap(s);cb(fbOffline?fbOffline.overlay(ref.path,w.raw,collection):w.raw);},function(e){fbError_(e,"read");if(err)err(e);});}};
+    var w={path:ref.path,collection:collection,cb:cb,raw:null,un:null,bind:function(){
+      if(w.un)w.un();
+      var meter=fbReads?fbReads.listener(ref.path,collection):null,first=true;
+      var stop=M.onSnapshot(ref.ref,{includeMetadataChanges:true},function(s){
+        var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
+        var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
+        try{if(meter)meter.snapshot(s);}catch(e){/* Diagnostics must never interrupt synchronization. */}
+        if(!first&&!changed&&!confirmed)return;first=false;
+        w.raw=collection?colSnap(s):docSnap(s);cb(fbOffline?fbOffline.overlay(ref.path,w.raw,collection):w.raw);
+      },function(e){if(meter){meter.error();meter.close();}fbError_(e,"read");if(err)err(e);});
+      w.un=function(){stop();if(meter)meter.close();};
+    }};
     fbWatches.add(w);w.bind();return function(){if(w.un)w.un();fbWatches.delete(w);};
   }
 
@@ -134,7 +154,7 @@
     isOwner: async function(){ return !!OWNER && (me.email || "").toLowerCase() === OWNER; },
     me: async function(){ return { name: me.displayName || (me.email || "").split("@")[0], email: me.email }; },
     can: async function(){ return true; },
-    profiles: async function(ids){ var out = {}; await Promise.all(ids.map(async function(id){ try{ var s = await M.getDoc(M.doc(fs, "profiles", id)); if(s.exists()) out[id] = { name: s.data().name || "" }; }catch(e){} })); return out; },
+    profiles: async function(ids){ var out = {}; await Promise.all(ids.map(async function(id){ try{ var s = await fbReadShared_("profiles/"+id,false,!!(fbOffline&&fbOffline.snapshot().paused),function(){return fbOffline&&fbOffline.snapshot().paused?M.getDocFromCache(M.doc(fs,"profiles",id)):M.getDoc(M.doc(fs,"profiles",id));}); if(s.exists()) out[id] = { name: s.data().name || "" }; }catch(e){} })); return out; },
     signOut: function(){ return M.signOut(auth).then(function(){ location.reload(); }); },
     email: function(){ return me && me.email; }
   };
@@ -172,14 +192,14 @@
   function fill(id, u){ document.querySelectorAll('img[src$="#fb=' + id + '"]').forEach(function(im){ im.src = u; }); }
   window.__blobUrl = function(id){
     if(urlCache.has(id)) return urlCache.get(id);
-    if(!loading.has(id)) loading.set(id, ready.then(function(){ return fbOffline&&fbOffline.snapshot().paused?M.getDocFromCache(M.doc(fs,"blobs",id)):M.getDoc(M.doc(fs, "blobs", id)); }).then(function(s){
+    if(!loading.has(id)) loading.set(id, ready.then(function(){ return fbReadShared_("blobs/"+id,false,!!(fbOffline&&fbOffline.snapshot().paused),function(){return fbOffline&&fbOffline.snapshot().paused?M.getDocFromCache(M.doc(fs,"blobs",id)):M.getDoc(M.doc(fs,"blobs",id));}); }).then(function(s){
       if(!s.exists()) return; var d = s.data(), u = URL.createObjectURL(new Blob([d.data.toUint8Array()], { type: d.type || "image/jpeg" })); urlCache.set(id, u); fill(id, u); }).catch(function(){}).finally(function(){ setTimeout(function(){ loading.delete(id); }, 30000); }));
     return PIX + "#fb=" + id;
   };
   var ASSETS = {
     upload: function(blob, o){ return putBlob(rid(), blob, (o && o.type) || blob.type); },
     putWithId: function(id, blob){ return putBlob(id, blob, blob.type || "image/jpeg"); },
-    list: async function(){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真一覧の取得は同期が復旧してからできます。");var qs = await M.getDocs(M.collection(fs, "blobmeta")); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
+    list: async function(){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真一覧の取得は同期が復旧してからできます。");var qs = await fbReadShared_("blobmeta",true,false,function(){return M.getDocs(M.collection(fs,"blobmeta"));}); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
       return { assets: as, usage: { files: as.length, bytes: as.reduce(function(a, x){ return a + x.size; }, 0), maxFiles: MAX_FILES, maxBytes: MAX_BYTES } }; },
     delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await M.deleteDoc(M.doc(fs, "blobs", id)); await M.deleteDoc(M.doc(fs, "blobmeta", id)); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
   };
@@ -355,7 +375,7 @@
       if(ctl.signal.aborted)throw aiAbortError_();
       if(gasMode!=="jsonp"){
         var r=null;
-        try{r=await waitAbort_(fetch(url,{method:"POST",body:JSON.stringify(req),headers:{"Content-Type":"text/plain;charset=utf-8"},redirect:"follow",signal:ctl.signal,credentials:"omit"}),ctl.signal);}
+        try{if(req.tool==="ai"&&typeof fbReads!=="undefined"&&fbReads)fbReads.remoteAttempt();r=await waitAbort_(fetch(url,{method:"POST",body:JSON.stringify(req),headers:{"Content-Type":"text/plain;charset=utf-8"},redirect:"follow",signal:ctl.signal,credentials:"omit"}),ctl.signal);}
         catch(e){if(ctl.signal.aborted)throw e;/* Transport failure only: try JSONP once within the same deadline. */}
         if(r){
           var txt=await waitAbort_(r.text(),ctl.signal), j;
@@ -365,6 +385,7 @@
         }
       }
       if(ctl.signal.aborted)throw aiAbortError_();
+      if(req.tool==="ai"&&typeof fbReads!=="undefined"&&fbReads)fbReads.remoteAttempt();
       var j2=await jsonp_(url,req,Math.max(1,deadline-Date.now()),ctl.signal);gasMode="jsonp";return j2;
     }catch(e){if(expired)throw gasError_("ai_timeout","Apps Scriptの応答が時間内に届きませんでした");throw e;}
     finally{clearTimeout(tm);if(signal)signal.removeEventListener("abort",cancel);}
