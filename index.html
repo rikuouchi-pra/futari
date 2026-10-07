@@ -481,9 +481,10 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .meal-l .item{padding:10px 14px;display:block}.meal-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;gap:10px;align-items:baseline;cursor:pointer}.meal-r small{color:var(--muted);width:40px;flex:none}
 .meal-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--surface);margin-bottom:12px}.meal-mode button{flex:1;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:10px;cursor:pointer}.meal-mode button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
 .meal-week-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}.meal-week-nav label{display:flex;align-items:center;gap:8px;font-size:14px}.meal-week-nav input{min-width:0;width:155px;font-size:16px}.meal-week-range{font-size:16px!important;line-height:1.5;overflow-wrap:anywhere}
-.meal-week{display:grid;gap:10px;margin-bottom:12px}.meal-week-day{margin:0!important;padding:14px!important;background:color-mix(in srgb,var(--surface) 96%,transparent)!important;border:1px solid var(--line);border-radius:16px}.meal-week-day.is-today{border:2px solid var(--accent)}.meal-week-day h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:16px}.meal-week-day h3 small{font-size:13px;color:var(--accent)}
-.meal-week-fields{display:grid;gap:8px}.meal-week-fields .meal-f span{font-size:14px}.meal-week-fields input{width:100%;font-size:16px}.meal-week-save{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;margin-bottom:12px}.meal-week-save p{margin:0;font-size:14px}.meal-week-help{font-size:14px;color:var(--muted);margin:8px 0 12px}.meal-week-save .btn{min-height:44px}.meal-week-summary{font-size:14px;margin-bottom:10px}
-@media(min-width:680px){.meal-week-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.meal-week-fields .meal-f{grid-template-columns:1fr;gap:4px}}
+.meal-week{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-bottom:12px}.meal-week-day{min-width:0;margin:0!important;padding:14px!important;background:color-mix(in srgb,var(--surface) 96%,transparent)!important;border:1px solid var(--line);border-radius:16px}.meal-week-day.is-today{border:2px solid var(--accent)}.meal-week-day h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:16px}.meal-week-day h3 small{font-size:13px;color:var(--accent)}
+/* Include input padding/borders in the grid width, including on narrow iPhones. */
+.meal-week-fields{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;gap:8px}.meal-week-fields .meal-f{grid-template-columns:44px minmax(0,1fr);min-width:0}.meal-week-fields .meal-f span{font-size:14px}.meal-week-fields input{box-sizing:border-box;min-width:0;width:100%;max-width:100%;font-size:16px}.meal-week-save{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 0;margin-bottom:12px}.meal-week-save p{margin:0;font-size:14px}.meal-week-help{font-size:14px;color:var(--muted);margin:8px 0 12px}.meal-week-save .btn{min-height:44px}.meal-week-summary{font-size:14px;margin-bottom:10px}
+@media(min-width:680px){.meal-week-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.meal-week-fields .meal-f{grid-template-columns:minmax(0,1fr);gap:4px}}
 .r-short{font-size:12px;font-weight:700;color:var(--danger);margin-left:auto}
 .unpaid h3{display:flex;justify-content:space-between;align-items:baseline}.unpaid h3 b{color:var(--danger);font-family:var(--font-display);font-size:22px}.unpaid.zero h3 b{color:var(--habit)}
 .up-l{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}.up-l button{width:100%;border:0;background:var(--ground);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer}.up-l b{color:var(--danger)}.up-l small{grid-column:1/-1;color:var(--muted);font-size:11px}
@@ -2226,7 +2227,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="298";
+const APP_VERSION="300";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4683,11 +4684,23 @@ function setAnchorApply(){ if(!setAnchor||Date.now()-setAnchor.t>2500) return; c
 function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"&&!x.classList.contains("pointer-settings")); const box={};
   for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
   for(const sc of secs){ const h=(sc.querySelector("h2")||{}).textContent||""; const g=SET_GROUPS.find(([k,l,hs])=>hs.some(x=>h.startsWith(x))); box[g?g[0]:"data"].appendChild(sc); } }
+function screenPointerIcon(type){
+  const shapes={
+    ring:'<circle cx="22" cy="22" r="18" fill="#ec24491f" stroke="#fff" stroke-width="7"/><circle cx="22" cy="22" r="18" fill="none" stroke="#ec2449" stroke-width="3"/><circle cx="22" cy="22" r="3" fill="#ec2449" stroke="#fff"/>',
+    arrow:'<path d="M6 4V34L14 26L20 39L27 35L20 22H32Z" fill="#ec2449" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>',
+    cross:'<path d="M22 4V14M22 30V40M4 22H14M30 22H40" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M22 4V14M22 30V40M4 22H14M30 22H40" fill="none" stroke="#ec2449" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="22" r="4" fill="#ec2449" stroke="#fff" stroke-width="2"/>'
+  };
+  return `<svg viewBox="0 0 44 44" aria-hidden="true" focusable="false">${shapes[type]||shapes.ring}</svg>`;
+}
+function screenPointerSettingsHTML(){
+  const pointer=window.futariPointer,type=pointer?.type||'ring';
+  return `<section class="card pointer-settings"><h2>画面共有</h2><div class="pointer-setting-row"><span>操作位置のポインタ</span><button type="button" class="opt" data-screen-pointer="toggle" aria-pressed="${!!pointer?.enabled}">ポインタ ${pointer?.enabled?'ON':'OFF'}</button></div><p>LINEなどで画面を共有するとき、触れた位置を表示します。タップ・スクロールは普段どおり使えます。</p><div class="pointer-types" role="group" aria-label="ポインタの種類">${[['ring','丸'],['arrow','矢印'],['cross','十字']].map(([value,label])=>`<button type="button" data-screen-pointer-type="${value}" aria-pressed="${type===value}"><span class="pointer-type-preview">${screenPointerIcon(value)}</span><span>${label}</span></button>`).join('')}</div><p class="who">選んだ種類はこの端末に保存します。ポインタはふたりすと内だけに表示します。</p></section>`;
+}
 function viewSettings(){
   const sw=Object.entries(PALETTES).map(([k,p])=>`<button class="sw" data-pal="${k}" aria-pressed="${prefs.pal===k}"><span class="cs">${["task","shop","cal","trouble","diary"].map(c=>`<i style="background:${p.light[c]}"></i>`).join("")}</span>${p.name}</button>`).join("");
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
-  <section class="card pointer-settings"><h2>画面共有</h2><div class="pointer-setting-row"><span>操作位置のポインタ</span><button type="button" class="opt" data-screen-pointer="toggle" aria-pressed="${!!window.futariPointer?.enabled}">ポインタ ${window.futariPointer?.enabled?"ON":"OFF"}</button></div><p>LINEなどで画面を共有するとき、触れた位置を赤い丸で表示します。タップ・スクロールは普段どおり使えます。</p><p class="who">この端末のふたりすと内だけに表示します。</p></section>
+  ${screenPointerSettingsHTML()}
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
   ${window.__FUTARI_PWA?`<section class="card" id="firestoreCard">${firestoreCardHTML()}</section>`:""}
   <section class="card" id="repCard"><h2>くり返し・自動</h2>${repAllHTML()}</section>
@@ -9875,8 +9888,8 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
 
 <style>
 .pointer-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:16px}.pointer-setting-row button{min-height:44px;font-size:14px}
-#screenPointer{position:fixed;left:0;top:0;width:44px;height:44px;box-sizing:border-box;border:3px solid #ec2449;border-radius:50%;background:rgba(236,36,73,.12);box-shadow:0 0 0 3px #fff,0 2px 9px #0009;pointer-events:none!important;z-index:2147483647;margin:0;padding:0}
-#screenPointer::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:#ec2449;box-shadow:0 0 0 1px #fff;transform:translate(-50%,-50%)}
+.pointer-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.pointer-types button{min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 4px;box-sizing:border-box;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:700 14px/1.4 system-ui,sans-serif;cursor:pointer}.pointer-types button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface))}.pointer-types button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.pointer-type-preview{display:block;width:36px;height:36px;pointer-events:none}.pointer-type-preview svg,#screenPointer svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 1px 2px #0008)}
+#screenPointer{position:fixed;left:0;top:0;width:44px;height:44px;box-sizing:border-box;pointer-events:none!important;z-index:2147483647;margin:0;padding:0}#screenPointer *{pointer-events:none!important}
 #screenPointerOff{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(94px + env(safe-area-inset-bottom,0px));z-index:2147483646;min-height:44px;max-width:calc(100vw - 24px);box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:10px 14px;border:1px solid #fecdd3;border-radius:99px;background:#fff;color:#881337;font:700 14px/1.4 system-ui,sans-serif;box-shadow:0 3px 14px #0003;cursor:pointer}
 #screenPointerOff i{width:12px;height:12px;box-sizing:border-box;border:2px solid #ec2449;border-radius:50%;flex:none}#screenPointerOff strong{padding-left:8px;border-left:1px solid #fecdd3}
 #screenPointer[hidden],#screenPointerOff[hidden]{display:none!important}#screenPointerOff:focus-visible{outline:3px solid #ec2449;outline-offset:3px}body.screen-pointer-on #toTop{bottom:calc(148px + env(safe-area-inset-bottom,0px))}
@@ -9885,25 +9898,29 @@ body.hdr-bottom #screenPointerOff{bottom:calc(var(--hdrH,120px) + 94px + env(saf
 <div id="screenPointer" hidden aria-hidden="true"></div>
 <button id="screenPointerOff" type="button" data-screen-pointer="off" hidden aria-label="ポインタをOFFにする"><i aria-hidden="true"></i><span>ポインタ ON</span><strong>OFF ×</strong></button>
 <script>
-/* v298: device-local screen-sharing pointer. Passive listeners never consume app gestures. */
+/* Device-local screen-sharing pointer; passive listeners preserve app gestures. */
 (()=>{
-  const dot=document.getElementById('screenPointer'),off=document.getElementById('screenPointerOff'),key='futari.screenPointer';
-  let enabled=false,controller=null,frame=0,timer=0,touchId=null,x=0,y=0;
+  const dot=document.getElementById('screenPointer'),off=document.getElementById('screenPointerOff'),key='futari.screenPointer',typeKey='futari.screenPointerType',types={ring:'丸',arrow:'矢印',cross:'十字'};
+  let enabled=false,type='ring',controller=null,frame=0,timer=0,touchId=null,x=0,y=0;
   const hide=()=>{clearTimeout(timer);cancelAnimationFrame(frame);frame=0;dot.hidden=true;touchId=null;};
   const paint=(point,target)=>{
     if(!enabled)return;
-    if(target?.closest?.('[data-screen-pointer]')){hide();return;}
+    if(target?.closest?.('[data-screen-pointer],[data-screen-pointer-type]')){hide();return;}
     // Native modal dialogs are above body overlays; keep the marker in their top layer.
     const host=target?.closest?.('dialog[open]')||document.body;
     if(dot.parentNode!==host)host.appendChild(dot);
     x=point.clientX;y=point.clientY;clearTimeout(timer);
-    if(!frame)frame=requestAnimationFrame(()=>{frame=0;if(!enabled)return;dot.style.transform=`translate3d(${x-22}px,${y-22}px,0)`;dot.hidden=false;});
+    if(!frame)frame=requestAnimationFrame(()=>{frame=0;if(!enabled)return;const ax=type==='arrow'?6:22,ay=type==='arrow'?4:22;dot.style.transform=`translate3d(${x-ax}px,${y-ay}px,0)`;dot.hidden=false;});
   };
   const fade=()=>{clearTimeout(timer);timer=setTimeout(hide,900);};
   const sync=()=>{
     off.hidden=!enabled;document.body.classList.toggle('screen-pointer-on',enabled);
+    dot.dataset.pointerType=type;dot.innerHTML=screenPointerIcon(type);
+    off.querySelector('span').textContent='ポインタ ON · '+types[type];
     document.querySelectorAll('[data-screen-pointer="toggle"]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.textContent='ポインタ '+(enabled?'ON':'OFF');});
+    document.querySelectorAll('[data-screen-pointer-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.screenPointerType===type)));
   };
+  const setType=value=>{if(!Object.prototype.hasOwnProperty.call(types,value))return;type=value;hide();sync();try{localStorage.setItem(typeKey,type);}catch(_){};};
   const set=on=>{
     enabled=!!on;controller?.abort();controller=null;hide();
     if(enabled){
@@ -9924,9 +9941,9 @@ body.hdr-bottom #screenPointerOff{bottom:calc(var(--hdrH,120px) + 94px + env(saf
     }
     sync();try{localStorage.setItem(key,enabled?'1':'0');}catch(_){}
   };
-  window.futariPointer={get enabled(){return enabled;},set};
-  document.addEventListener('click',e=>{const b=e.target.closest?.('[data-screen-pointer]');if(b)set(b.dataset.screenPointer==='off'?false:!enabled);});
-  let saved=false;try{saved=localStorage.getItem(key)==='1';}catch(_){}set(saved);
+  window.futariPointer={get enabled(){return enabled;},get type(){return type;},set,setType};
+  document.addEventListener('click',e=>{const choice=e.target.closest?.('[data-screen-pointer-type]');if(choice){setType(choice.dataset.screenPointerType);return;}const b=e.target.closest?.('[data-screen-pointer]');if(b)set(b.dataset.screenPointer==='off'?false:!enabled);});
+  let saved=false;try{saved=localStorage.getItem(key)==='1';const value=localStorage.getItem(typeKey);if(Object.prototype.hasOwnProperty.call(types,value))type=value;}catch(_){}set(saved);
 })();
 </script>
 <script>if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
