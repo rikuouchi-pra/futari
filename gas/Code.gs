@@ -492,7 +492,7 @@ function firestoreMetric_(kind,day,now) {
     if(code!==200){
       const detail=JSON.stringify(j.error||{});
       Logger.log('Firestore Monitoring error: '+JSON.stringify({http:code,status:(j.error||{}).status||'',message:String((j.error||{}).message||'').slice(0,1500),reasons:((j.error||{}).details||[]).map(function(d){return {reason:d.reason||'',domain:d.domain||''};})}));
-      if(code===401||code===403)throw err_('monitoring_setup',/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'利用状況を読む権限の追加が必要です。設定手順を開いてください。':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'Cloud Monitoring APIを有効にする必要があります。設定手順を開いてください。':'このGoogleアカウントに、Firebaseプロジェクトの監視閲覧権限が必要です。');
+      if(code===401||code===403)throw err_('monitoring_setup',/requires billing|billing.{0,40}(?:enabled|disabled)|BILLING_DISABLED/i.test(detail)?'Googleの監視APIが、このプロジェクトで課金の有効化を要求しています。無料プランではこのAPIから利用件数を取得できません。権限の追加では解決しません。Firestoreコンソールで利用状況を確認してください。':/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'利用状況を読む権限の追加が必要です。設定手順を開いてください。':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'Cloud Monitoring APIを有効にする必要があります。設定手順を開いてください。':'このGoogleアカウントに、Firebaseプロジェクトの監視閲覧権限が必要です。');
       throw err_('monitoring_unavailable','利用状況を取得できませんでした（'+code+'）。前回の計測値を残しています。');
     }
     if(j.executionErrors&&j.executionErrors.length)throw err_('monitoring_unavailable','一部の計測値を取得できませんでした。');
