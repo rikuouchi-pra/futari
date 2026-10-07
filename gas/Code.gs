@@ -403,7 +403,7 @@ function deployLog_(name, res) {
   if (!ss) { ss = SpreadsheetApp.create("ふたりのリスト 不具合・利用状況（Claude用）"); P.setProperty("DEV_SHEET_ID", ss.getId()); }
   const sh = ss.getSheetByName("配信ログ") || ss.insertSheet("配信ログ");
   if (!sh.getLastRow()) sh.appendRow(["日時", "ファイル", "結果", "コミット / エラー"]);
-  sh.appendRow([new Date(), name, res.ok ? "反映" : "失敗", res.ok ? (res.commit || "") + "（" + res.files.join(", ") + "）" : res.error]);
+  sh.appendRow([new Date(), name, res.ok ? "反映" : "失敗", res.ok ? (res.commit || "") + "（" + (res.files || []).join(", ") + "）" : res.error]);
 }
 
 
@@ -491,6 +491,7 @@ function firestoreMetric_(kind,day,now) {
     const code=r.getResponseCode();let j;try{j=JSON.parse(r.getContentText());}catch(_){throw err_('monitoring_unavailable','利用状況の応答を読めませんでした。');}
     if(code!==200){
       const detail=JSON.stringify(j.error||{});
+      Logger.log('Firestore Monitoring error: '+JSON.stringify({http:code,status:(j.error||{}).status||'',message:String((j.error||{}).message||'').slice(0,1500),reasons:((j.error||{}).details||[]).map(function(d){return {reason:d.reason||'',domain:d.domain||''};})}));
       if(code===401||code===403)throw err_('monitoring_setup',/ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient.*scope/i.test(detail)?'利用状況を読む権限の追加が必要です。設定手順を開いてください。':/SERVICE_DISABLED|has not been used|disabled/i.test(detail)?'Cloud Monitoring APIを有効にする必要があります。設定手順を開いてください。':'このGoogleアカウントに、Firebaseプロジェクトの監視閲覧権限が必要です。');
       throw err_('monitoring_unavailable','利用状況を取得できませんでした（'+code+'）。前回の計測値を残しています。');
     }
