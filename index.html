@@ -11,10 +11,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
-<script src="firestore-monitor.js?v=291"></script>
-<script src="firestore-reads.js?v=291"></script>
-<script src="firestore-offline.js?v=291"></script>
-<script src="shim.js?v=291"></script>
+<script src="firestore-monitor.js?v=292"></script>
+<script src="firestore-reads.js?v=292"></script>
+<script src="firestore-offline.js?v=292"></script>
+<script src="shim.js?v=292"></script>
 </head><body>
 <title>ふたりのリスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2199,7 +2199,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="291";
+const APP_VERSION="292";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4005,10 +4005,12 @@ async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)retur
   const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
   (reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
   const plan=pushPlan(),queued=pushQ.slice(),off=(prefs.pushOff||"").split(",").filter(Boolean);
+  const syncKey=stableJSON({dev,owner:state.me,sec,sub,role:myRole(),off,policy:pushSettings(),plan,queued});
+  if(!op&&!queued.length&&state.pushSyncKey===syncKey&&Date.now()-(state.pushLast||0)<10*60e3)return {ok:true,unchanged:true};
   await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,policy:pushSettings(),at:Date.now(),shared:plan.shared,now:queued})});
   await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
   const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`});if(!r||r.error||r.ok===false)throw Error("送信サーバーが通知の保存を確認できませんでした");
-  pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
+  state.pushSyncKey=syncKey;pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
 }catch(e){state.pushMsg="通知の同期に失敗："+String(e.detail||e.message||e).slice(0,140);pushCardRefresh();return null;} }
 function pushNotifyAdded(c,id,data,existed){if(existed||!data||data.auto||!["events","items","topics"].includes(c))return;const me=myRole(),ot=otherRole(),w=data.who||"both";if(w!==ot&&w!=="both")return;pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:String(data.text||"")}); }
 
@@ -6002,22 +6004,60 @@ function actCardHTML(){
   const since=prefs.actSeen||0, ot=otherRole(), list=(state.activity||[]).filter(a=>a.role===ot&&a.at>since).sort((a,b)=>b.at-a.at);
   const body=list.length?`<ul class="hlist">${list.slice(0,5).map(a=>`<li><button data-hgo="${esc(a.view||"home")}"><span class="ht">${esc(ago(a.at))}</span><span class="hdot" style="--bc:var(--who-${a.role})"></span><span>${actLine(a,false)}</span></button></li>`).join("")}</ul>`
     :`<div class="hempty">新しい更新はありません</div>`;
-  return homeCard(`${esc(nameOf(ot))}の更新 ${list.length?`<span class="hn">${list.length}</span>`:""}`,body+`<div class="hmore"><button class="link" data-act="openLog">更新ログをすべて見る ›</button></div>`,null);
+  return homeCard(`${esc(nameOf(ot))}の更新 ${list.length?`<span class="hn">${list.length}</span>`:""}`,body+`${state.activityPaged?`<p class="who">最新${ACT_PAGE_SIZE}件の範囲で表示</p>`:""}<div class="hmore"><button class="link" data-act="openLog">更新ログを見る ›</button></div>`,null);
 }
 function viewLog(){
   const f=state.logF||"all", ot=otherRole(), since=state.logSince??(prefs.actSeen||0);
-  const all=(state.activity||[]).filter(a=>f==="all"||(f==="ot"?a.role===ot:a.role===myRole())).sort((a,b)=>b.at-a.at).slice(0,300);
+  const all=(state.activity||[]).filter(a=>f==="all"||(f==="ot"?a.role===ot:a.role===myRole())).sort((a,b)=>b.at-a.at);
   let h=`<div class="tools">${seg("logf",f,[["all","ふたり"],["ot",esc(nameOf(ot))],["me",esc(nameOf(myRole()))]])}</div>`;
-  if(!all.length) return h+`<div class="empty">まだ記録がありません<br>これからの追加・変更・完了・削除がここに残ります</div>`;
+  if(!all.length) return h+`<div class="empty">${state.activityLoaded?"表示範囲に該当する記録がありません":"履歴を読み込み中…"}</div>`+activityMoreHTML();
   let day="";
   h+=`<ul class="alog">`;
   for(const a of all){ const d=ymd(new Date(a.at));
     if(d!==day){ day=d; h+=`<li class="aday">${esc(dayLabel(d))}・${parse(d).getMonth()+1}/${parse(d).getDate()}</li>`; }
     const tm=new Date(a.at).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
     h+=`<li class="arow ${a.role===ot&&a.at>since?"new":""}"><button data-hgo="${esc(a.view||"home")}"><span class="at">${tm}</span><span class="adot ${a.role}"></span><span class="atx">${actLine(a)}</span>${a.role===ot&&a.at>since?'<span class="anew">NEW</span>':""}</button></li>`; }
-  return h+`</ul>`+hint("ふたりの追加・変更・完了・削除を60日分残します（じぶんの項目は記録しません）<br>タップでその画面へ");
+  return h+`</ul>`+activityMoreHTML()+hint("ふたりの追加・変更・完了・削除を記録します（じぶんの項目は記録しません）。60日を過ぎた履歴は順次整理します。<br>タップでその画面へ");
 }
-function actPrune(){ const lim=Date.now()-60*864e5, old=(state.activity||[]).filter(a=>a.at<lim).slice(0,40); const col=colRef("activity"); if(col) old.forEach(a=>col.doc(a.id).delete().catch(()=>{})); }
+const ACT_PAGE_SIZE=100;
+let activityCursor=null,activityRecent=[],activityArchive=new Map(),activityHasPages=false;
+function activityMerge(){
+  const rows=new Map(activityArchive);for(const x of activityRecent)rows.set(x.id,x);
+  state.activity=[...rows.values()].sort((a,b)=>b.at-a.at||(a.id<b.id?1:a.id>b.id?-1:0));
+}
+function bindActivity(){
+  const col=colRef("activity");if(!col)return;state.activityPaged=typeof col.page==="function";
+  const query=state.activityPaged?col.page("at",ACT_PAGE_SIZE):col;
+  query.onSnapshot(s=>{
+    const rows=s.docs.map(x=>({id:x.id,...x.data()}));
+    // Retain already fetched rows that roll out of the live window. No historical listener is attached.
+    if(state.activityPaged)for(const x of activityRecent)if(!rows.some(y=>y.id===x.id)){const last=rows[rows.length-1],rolledOut=last&&rows.length>=ACT_PAGE_SIZE&&(x.at<last.at||(x.at===last.at&&x.id<last.id));if(rolledOut&&activityHasPages)activityArchive.set(x.id,x);else activityArchive.delete(x.id);}
+    activityRecent=rows;activityMerge();state.activityLoaded=true;
+    if(!activityHasPages){activityCursor=s.cursor;state.activityMore=state.activityPaged&&s.docs.length>=ACT_PAGE_SIZE;}
+    state.activityError="";if(state.view==="home"||state.view==="log")requestRender();else renderChrome();
+    if(!s.metadata?.fromCache&&!s.metadata?.pendingLocal)setTimeout(actPrune,5000);
+  },()=>{state.activityError="履歴を同期できません。接続が戻ってから確認してください。";if(state.view==="log")requestRender();});
+}
+async function loadActivityMore(){
+  if(state.activityLoading||!state.activityMore||!activityCursor)return;
+  state.activityLoading=true;activityHasPages=true;state.activityError="";requestRender();
+  try{const s=await colRef("activity").page("at",ACT_PAGE_SIZE,activityCursor).get();
+    for(const x of s.docs)activityArchive.set(x.id,{id:x.id,...x.data()});activityMerge();
+    // A cache-only page may have gaps; never advance its server cursor or mark history complete.
+    if(!s.metadata?.fromCache&&!s.metadata?.pendingLocal){activityHasPages=true;activityCursor=s.cursor;state.activityMore=s.docs.length>=ACT_PAGE_SIZE;}
+    else state.activityError="端末にある履歴を表示しました。過去分の続きは接続後に読み込めます。";
+  }catch(e){state.activityError="過去の履歴を取得できませんでした。時間をおいて再試行してください。";}
+  finally{state.activityLoading=false;requestRender();}
+}
+function activityMoreHTML(){return `<p class="who">${state.activityPaged?`最新${ACT_PAGE_SIZE}件を自動同期・${state.activity.length}件を取得済み。過去分は追加読み込みできます。`:"取得済みの履歴を表示しています。"}</p>${state.activityError?`<p class="who" role="status">${esc(state.activityError)}</p>`:""}${state.activityMore?`<button class="opt" data-act="activityMore" ${state.activityLoading?"disabled":""}>${state.activityLoading?"読み込み中…":`過去の${ACT_PAGE_SIZE}件を表示`}</button>`:""}`;}
+async function actPrune(){
+  const col=colRef("activity"),key="futari.activityPrune:"+meKey(),day=today();if(!col||typeof col.before!=="function"||actPrune.busy||store.get(key)===day)return;
+  actPrune.busy=true;try{const s=await col.before("at",Date.now()-60*864e5,40).get();if(s.metadata?.fromCache||s.metadata?.pendingLocal)return;
+    await Promise.all(s.docs.map(x=>col.doc(x.id).delete()));store.set(key,day);
+    for(const x of s.docs)activityArchive.delete(x.id);activityMerge();
+  }catch(e){}finally{actPrune.busy=false;}
+}
+document.addEventListener("click",e=>{const b=e.target.closest('[data-act="activityMore"]');if(!b)return;e.preventDefault();loadActivityMore();});
 
 
 /* ================= 見える化（グラフ） ================= */
@@ -7463,7 +7503,7 @@ const aiProfOf=r=>r===myRole()?aiProfMe():Object.fromEntries(Object.entries((((s
 function aiProfSave(k,v){ const o={...aiProfMe(),[k]:String(v||"").trim().slice(0,160)}; if(!o[k]) delete o[k]; prefs.aiProf=JSON.stringify(o); savePrefs(true); aiProfSync(); }
 /* v198: 共有の meta/kakei は「上書き」せず、変えた欄だけ合わせる（読み込み前の空データで音楽の好み・ごみ設定などが消える問題の対策） */
 function kakeiPut(o){ if(!kakeiDoc) return Promise.resolve(); if(!state.kakeiLoaded){ kakeiPut.q={...(kakeiPut.q||{}),...o}; return Promise.resolve(); } return kakeiDoc.update(o); }
-function aiProfSync(){ if(!state.kakeiLoaded) return; const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}, me=prefs.aiProfShare==="off"?{}:aiProfMe(); P[r]=Object.fromEntries([...new Set([...AIP_FIELDS.map(([k])=>k),...Object.keys(me)])].map(k=>[k,me[k]||null])); if(JSON.stringify(P[r])===JSON.stringify((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); }
+function aiProfSync(){ if(!state.kakeiLoaded) return; const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}, me=prefs.aiProfShare==="off"?{}:aiProfMe(); P[r]=Object.fromEntries([...new Set([...AIP_FIELDS.map(([k])=>k),...Object.keys(me)])].map(k=>[k,me[k]||null])); if(stableJSON(P[r])===stableJSON((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut({aiProf:{[r]:P[r]},updatedAt:state.kakei.updatedAt}).catch(err); }
 function aiProfCardHTML(){ const P=aiProfMe(), ot=otherRole(), op=aiProfOf(ot), on=Object.keys(op).length;
   return `<section class="card" id="aiProfCard"><h2>AIに伝える基本情報</h2><p class="who">AI相談・今日を組む・今日の1曲などで使います。書いた分だけ提案が正確になります（空欄でもOK）</p>
     <div class="aip">${AIP_FIELDS.map(([k,l,ph])=>`<label><span>${l}</span><input type="text" id="aipf_${k}" data-aip="${k}" maxlength="160" placeholder="${esc(ph)}" value="${esc(P[k]||"")}"></label>`).join("")}</div>
@@ -7980,6 +8020,7 @@ $("form").addEventListener("submit",e=>{
 
 /* ================= prefs sync ================= */
 let prefTimer=null;
+let prefWriteKey=null;
 /* v171: オフライン（災害時など）。この端末に保存したデータで動き、変更は端末にためておき、つながったら自動で送る（送った内容で上書き） */
 state.netOff=navigator.onLine===false;
 function netMark(){ if(state.netOff||navigator.onLine===false){ state.netOff=true; state.pendW=(state.pendW||0)+1; netChip(); } }
@@ -7989,7 +8030,8 @@ addEventListener("online",async()=>{ const n=state.pendW||0; state.netOff=false;
   state.pendW=0; netChip(); toast(n?`オンラインに戻りました。オフライン中の変更 ${n}件を送りました`:"オンラインに戻りました"); requestRender(); });
 function savePrefs(silent){ try{ if(typeof aiProfSync==="function"&&state.kakei&&kakeiDoc) setTimeout(aiProfSync,0); }catch(e){}
   store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs();
-  if(prefsDoc) prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } });
+  const writeKey=stableJSON(prefs);
+  if(prefsDoc&&writeKey!==prefWriteKey){ prefWriteKey=writeKey; prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(prefWriteKey===writeKey)prefWriteKey=null; if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } }); }
   if(!silent&&state.view==="settings"){ const y=window.scrollY; $("main").innerHTML=viewSettings(); setGroups(); window.scrollTo(0,y); setAnchorApply(); requestAnimationFrame(setAnchorApply); }
   placeRail(false);
 }
@@ -9244,7 +9286,7 @@ function wcRun(r,force){
   for(let d=start; d<=end; d=addDays(d,1)){ const want=wcWant(C,d), cur=shiftOf(r,d);
     if(!cur||(auto[d]&&cur===auto[d])){ if(cur!==want) ch[d]=want; auto[d]=want; } else if(auto[d]&&cur!==auto[d]) delete auto[d]; }
   const n=Object.keys(ch).length; if(n) writeShifts(r,ch);
-  if(n||JSON.stringify(auto)!==JSON.stringify(C.auto)) wcSave(r,{auto});
+  if(n||stableJSON(auto)!==stableJSON(C.auto)) wcSave(r,{auto});
   return n; }
 let wcT=null; function wcKick(){ clearTimeout(wcT); wcT=setTimeout(()=>{ const r=myRole(); if(r&&wcCfg(r).on&&wcRun(r)) requestRender(); dcalCheck(false); },db?4000:300); }
 const dcalCan=()=>!!(window.__FUTARI_PWA&&state.mcp&&aiOn());
@@ -9528,8 +9570,8 @@ async function usageSaveReport(auto){ const days=auto?7:Number(state.usagePer)||
 function usgTopViews(n,days){ const {A}=usgAgg(days||14), V={...(A[myRole()]||{views:{}}).views}; for(const k of Object.keys(V)) if(k.startsWith("🔒")){ const b=k.slice(2); if(TITLES[b]) V[b]=(V[b]||0)+V[k]; delete V[k]; }
   return Object.entries(V).filter(([k])=>AUTO_SV.includes(k)||k==="habit"||k==="reflect"||k==="trouble").sort((a,b)=>b[1]-a[1]).slice(0,n); }
 function usgAutoStart(){ const L=usgTopViews(12), hm=(L.find(([k])=>k==="home")||[0,0])[1], top=L.find(([k])=>AUTO_SV.includes(k)&&k!=="home"); const v=top&&top[1]>=Math.max(600,hm*1.2)?top[0]:"home"; if(prefs.autoStartV!==v){ prefs.autoStartV=v; savePrefs(true); } }
-function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded) return; state.usgAutoDone=true; setTimeout(usgAutoStart,3000); setTimeout(usgPrune,8000);
-  const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>usageSaveReport(true),10000); }
+function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded||!state.usageReportsLoaded) return; state.usgAutoDone=true; setTimeout(usgAutoStart,3000); setTimeout(usgPrune,8000);
+  const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>{const latest=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0);if(Date.now()-latest>7*864e5)usageSaveReport(true);},10000); }
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast("コピーしました。改修を頼むときに貼り付けてください"); }catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("コピーできませんでした。ファイルで保存してください"); } ta.remove(); } }
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=ug],#main [data-ugcopy]"); if(!b||state.view!=="usage") return; e.stopPropagation(); const a=b.dataset.act;
   usageFlush(true);
@@ -9591,12 +9633,12 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const live=()=>{ $("sync").classList.add("live"); netChip(); };
   const lost=e=>{ $("sync").classList.remove("live");if(aiStoreLimited(e)){off("保存先の読み取りが利用上限に達したため、最新の変更を受信できません。繰り返し再読み込みせず、利用枠が回復してから確認してください。");$("syncText").textContent="読み取り上限";return;} $("syncText").textContent="再読み込みしてください"; };
   const GK=new Set(["items","events","plans","shifts"]);
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
+  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(s); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",()=>{ if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
-  { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log") requestRender(); else renderChrome(); },()=>{}); }
+  bindActivity();
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
   histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
   if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
@@ -9604,6 +9646,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
     /* 古い版が未対応のキーを落として同期しても、お気に入りは消さない。 */
     if(state.favoritesLoaded||p.itemFavorites===undefined) next.itemFavorites=JSON.stringify(itemFavorites());
     if(next.autoRules!==prefs.autoRules) AR=null;
+    prefWriteKey=stableJSON(next);
     const first=firstPrefs; firstPrefs=false;
     if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
     if(!s.fromCache&&next.voiceMig!=="196"){ next.voiceMig="196"; if(next.voiceAI==="on") next.voiceAI="fix"; setTimeout(()=>savePrefs(true),500); } /* v196: 録音方式で「？」になる問題のため、端末の聞き取り＋AI補正を標準に */

@@ -31,7 +31,7 @@ function env(names, overrides = {}) {
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',pushEnabled:()=>false,...overrides });
-  if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
+  if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['stableJSON','pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
   if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
@@ -988,4 +988,57 @@ test('quota dashboard separates operation filters, storage unknowns and graphica
  for(const metric of ['reads','writes','deletes','receivedBytes','storage']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
  run(c,'firestoreMetric="writes"');assert.match(run(c,'firestoreReadsHTML()'),/日記 \/ 書き込み/);
  run(c,'firestoreMetric="deletes"');assert.match(run(c,'firestoreReadsHTML()'),/やること・買い物 \/ 削除/);
+});
+
+// v292: exercise no-op writes, history paging, offline/error retry and report startup order.
+test('reordered shared AI profile fields never trigger writes and real edits update only the own profile',async()=>{
+ const updates=[],c=env(['stableJSON','AIP_FIELDS','aiProfMe','aiProfSync','kakeiPut'],{kakeiDoc:{update:async d=>updates.push(d)},err(){}});
+ c.state.kakeiLoaded=true;c.prefs.aiProf=JSON.stringify({commute:'30分'});
+ const own=Object.fromEntries(plain(run(c,'AIP_FIELDS')).map(([k])=>[k,k==='commute'?'30分':null]).sort((a,b)=>a[0].localeCompare(b[0])));
+ c.state.kakei={aiProf:{h:own,w:{commute:'10分'}},limit:999};
+ for(let i=0;i<40;i++)run(c,'aiProfSync()');assert.equal(updates.length,0);
+ c.prefs.aiProf=JSON.stringify({commute:'40分'});run(c,'aiProfSync()');await Promise.resolve();
+ assert.equal(updates.length,1);assert.deepEqual(Object.keys(updates[0]).sort(),['aiProf','updatedAt']);assert.deepEqual(Object.keys(updates[0].aiProf),['h']);assert.equal(updates[0].aiProf.h.commute,'40分');assert.equal(c.state.kakei.aiProf.w.commute,'10分');
+});
+test('identical preference saves are skipped, real changes persist and failed saves can retry',async()=>{
+ const writes=[],c=env(['stableJSON','prefWriteKey','savePrefs'],{kakeiDoc:null,prefsDoc:{set:async d=>writes.push(d)},store:{set(){}},applyPrefs(){},placeRail(){}});
+ c.prefs={mode:'dark',pal:'forest'};run(c,'savePrefs(true);savePrefs(true)');assert.equal(writes.length,1);
+ c.prefs={pal:'forest',mode:'dark'};run(c,'savePrefs(true)');assert.equal(writes.length,1);
+ c.prefs.mode='light';run(c,'savePrefs(true)');assert.equal(writes.length,2);
+ let fail=true;c.prefsDoc.set=async d=>{writes.push(d);if(fail)throw Error('offline');};c.prefs.mode='dark';run(c,'savePrefs(true)');await Promise.resolve();await Promise.resolve();fail=false;run(c,'savePrefs(true)');await Promise.resolve();assert.equal(writes.length,4);
+});
+test('unchanged automatic notification sync is skipped but changes, tests and ten-minute refresh send',async()=>{
+ let now=Date.now();const c=pushSyncEnv({pushQ:[],Date:class extends Date{static now(){return now;}}});
+ await run(c,'pushSyncRun()');await run(c,'pushSyncRun()');assert.equal(c.pushWrites.length,2);assert.equal(c.pushCalls.length,1);
+ c.prefs.pushLead='15';await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,2);
+ await run(c,'pushSyncRun("test")');assert.equal(c.pushCalls.length,3);
+ now+=600001;await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,4);
+ c.pushQ.push({id:'new'});await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,5);assert.equal(c.pushQ.length,0);
+});
+test('failed notification sync is retried even when its payload is unchanged',async()=>{
+ let calls=0;const c=pushSyncEnv({pushQ:[],claude:{use:async()=>({call:async()=>{if(++calls===1)throw Error('offline');return {ok:true};}})}});
+ assert.equal(await run(c,'pushSyncRun()'),null);assert.equal(c.state.pushSyncKey,undefined);await run(c,'pushSyncRun()');assert.equal(calls,2);assert.ok(c.state.pushLast);
+});
+function activityEnv(){
+ let listener;const calls=[],pages=[],c=env(['ACT_PAGE_SIZE','activityCursor','activityMerge','bindActivity','loadActivityMore','activityMoreHTML'],{actPrune(){},setTimeout:()=>0,colRef:()=>({page:(field,n,cursor)=>{calls.push({field,n,cursor});return {onSnapshot:fn=>listener=fn,get:async()=>{const x=pages.shift();if(x instanceof Error)throw x;return x;}};}})});
+ const snap=(start,n,cache=false)=>{const docs=Array.from({length:n},(_,i)=>({id:'a'+String(start-i).padStart(5,'0'),data:()=>({at:start-i,role:'h'})}));return {docs,cursor:docs.at(-1)||null,metadata:{fromCache:cache}};};
+ run(c,'bindActivity()');return {c,calls,pages,snap,emit:s=>listener(s)};
+}
+test('activity attaches one 100-row listener and pages without gaps or duplicate rows',async()=>{
+ const t=activityEnv();t.emit(t.snap(3508,100));assert.equal(t.calls.length,1);assert.equal(t.calls[0].n,100);assert.equal(t.c.state.activity.length,100);
+ t.pages.push(t.snap(3408,100));await run(t.c,'loadActivityMore()');assert.equal(t.c.state.activity.length,200);assert.equal(t.calls[1].cursor.id,'a03409');
+ t.emit(t.snap(3509,100));assert.equal(t.c.state.activity.length,201);assert.equal(t.c.state.activity[0].at,3509);
+ t.pages.push(t.snap(3308,8));await run(t.c,'loadActivityMore()');assert.equal(t.calls[2].cursor.id,'a03309');assert.equal(t.c.state.activity.length,209);assert.equal(t.c.state.activityMore,false);
+});
+test('activity deletion is not resurrected, and cache-only/failed pages keep the retry cursor',async()=>{
+ const t=activityEnv();t.emit(t.snap(200,100));const cursor=run(t.c,'activityCursor');
+ t.pages.push(t.snap(100,20,true));await run(t.c,'loadActivityMore()');assert.equal(run(t.c,'activityCursor'),cursor);assert.equal(t.c.state.activityMore,true);assert.match(t.c.state.activityError,/接続後/);
+ t.pages.push(Error('offline'));await run(t.c,'loadActivityMore()');assert.equal(run(t.c,'activityCursor'),cursor);assert.equal(t.c.state.activityLoading,false);
+ t.pages.push(t.snap(100,100));await run(t.c,'loadActivityMore()');
+ const changed=t.snap(200,101);changed.docs=changed.docs.filter(x=>x.id!=='a00180');t.emit(changed);assert.equal(t.c.state.activity.some(x=>x.id==='a00180'),false);
+});
+test('automatic report waits for reports to load and rechecks before its delayed save',()=>{
+ const jobs=[],c=env(['usageAutoReport'],{setTimeout:(fn,ms)=>{jobs.push({fn,ms});},usgAutoStart(){},usgPrune(){},usageSaveReport:()=>{c.saved=(c.saved||0)+1;}});c.state.usage=[{}];c.state.usageLoaded=true;c.state.usageReports=[];
+ run(c,'usageAutoReport()');assert.equal(jobs.length,0);c.state.usageReportsLoaded=true;run(c,'usageAutoReport()');assert.equal(jobs.length,3);
+ c.state.usageReports=[{auto:true,at:Date.now()}];jobs.find(x=>x.ms===10000).fn();assert.equal(c.saved,undefined);
 });

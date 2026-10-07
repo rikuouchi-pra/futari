@@ -38,3 +38,11 @@ test('quota retry queues do not become successful writes until replay acknowledg
 test('all direct Firestore SDK mutations are centralized in the monitored send wrapper',()=>{const src=shim.join('\n');assert.equal((src.match(/M\.setDoc\(/g)||[]).length,1);assert.equal((src.match(/M\.deleteDoc\(/g)||[]).length,1);assert.match(decl('fbSend_'),/fbReads.write/);});
 
 test('write acknowledgements do not erase a newer complete listener snapshot',async()=>{const {m}=meter(),l=m.listener('items',true);l.snapshot(col([['a',{text:'before'}]]));let done;const p=m.write('items/a','update',{text:'after'},()=>new Promise(r=>done=r));l.snapshot(col([['a',{text:'after',full:true}]]));const size=m.snapshot().capacity.bytes;done();await p;assert.equal(m.snapshot().capacity.docs,1);assert.equal(m.snapshot().capacity.bytes,size);});
+
+test('bounded query pages preserve previously observed capacity and name notification writes',async()=>{
+ const {m}=meter();const l=m.listener('activity',true,true);l.snapshot(col([['new',{at:2}]]));
+ await m.get('activity',true,async()=>col([['old',{at:1}]]),undefined,true);assert.equal(m.snapshot().capacity.docs,2);
+ const s=col([['newer',{at:3}]]);s.docChanges=()=>[{type:'removed',doc:doc('new',{at:2})},{type:'added',doc:doc('newer',{at:3})}];l.snapshot(s);
+ assert.equal(m.snapshot().capacity.docs,3);await m.write('push/device-secret','set',{json:'payload'},async()=>{});
+ const row=m.snapshot().rows.find(x=>x.process==='write:push');assert.match(row.label,/通知予定/);assert.doesNotMatch(JSON.stringify(m.export()),/device-secret|payload/);
+});

@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.FutariFirestoreReads=api;})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
   const FIELDS=['reads','initial','updates','gets','attaches','cacheDocs','cacheEvents','localEvents','errors','unknown','reused','empty','removed','writes','deletes','writeAttempts','deleteAttempts','writeErrors','deleteErrors','sentBytes','receivedBytes'];
-  const NAMES={items:'やること・買い物',events:'ふたりの予定',shifts:'シフト',diary:'日記',comments:'日記コメント',activity:'操作履歴',usage:'利用履歴',usageReports:'利用レポート',photos:'写真情報',blobs:'写真本体',blobmeta:'写真一覧',profiles:'プロフィール',aitmp:'AI一時データ',chores:'家事',plans:'長期計画',topics:'話すこと',talks:'話し合い記録',bugs:'改善要望',troubles:'困りごと',cautions:'注意事項',qa:'今日の質問',music:'今日の曲',spend:'支出',recur:'定期支払い',goals:'目標',thanks:'ありがとう',dinner:'夕食',pitems:'自分のタスク',blocks:'自分の予定',gsync:'カレンダー同期',habits:'習慣',reflect:'行動実施',pwish:'自分の希望',vault_w:'個人保管庫'};
+  const NAMES={items:'やること・買い物',events:'ふたりの予定',shifts:'シフト',diary:'日記',comments:'日記コメント',activity:'操作履歴',push:'通知予定',usage:'利用履歴',usageReports:'利用レポート',photos:'写真情報',blobs:'写真本体',blobmeta:'写真一覧',profiles:'プロフィール',aitmp:'AI一時データ',chores:'家事',plans:'長期計画',topics:'話すこと',talks:'話し合い記録',bugs:'改善要望',troubles:'困りごと',cautions:'注意事項',qa:'今日の質問',music:'今日の曲',spend:'支出',recur:'定期支払い',goals:'目標',thanks:'ありがとう',dinner:'夕食',pitems:'自分のタスク',blocks:'自分の予定',gsync:'カレンダー同期',habits:'習慣',reflect:'行動実施',pwish:'自分の希望',vault_w:'個人保管庫'};
   const META={family:'家族名',roles:'家族の担当',history:'買い物履歴',shopSuggestions:'買い物候補',kakei:'家計設定',favorites:'お気に入り',prefs_w:'個人設定'};
   function pathKey(path){const p=String(path||'').split('/').filter(Boolean);if(p[0]==='data'&&p[1]==='users')return p[3]==='private'?'private/'+(NAMES[p[4]]?p[4]:'other'):'private/'+(['prefs','favorites'].includes(p[3])?p[3]:'other');if(p[0]==='meta')return 'meta/'+(META[p[1]]?p[1]:'other');return NAMES[p[0]]?p[0]:'other';}
   function label(key){const p=key.split(':'),kind=p[0],path=p.slice(1).join(':'),parts=path.split('/'),base=path==='recovery'?'復旧確認':path==='legacyAI'?'AI接続サーバー':parts[0]==='private'?'自分：'+(parts[1]==='prefs'?'設定':parts[1]==='favorites'?'お気に入り':NAMES[parts[1]]||'その他'):parts[0]==='meta'?(META[parts[1]]||'共通設定'):NAMES[path]||'その他';return base+' / '+({listen:'自動同期',get:'個別取得',list:'一覧取得',remote:'推定・未確認',write:'書き込み',delete:'削除'}[kind]||kind);}
@@ -59,8 +59,8 @@
       if(value===null){known.delete(path);return 0;}
       const bytes=docSize(path,value);known.set(path,{group:pathKey(path),bytes,...shape(value)});return bytes;
     }
-    function observeSnapshot(path,col,s){
-      const a=docs(s,col);if(col){const paths=new Set(a.map(d=>path+'/'+d.id));for(const k of known.keys())if(k.startsWith(path+'/')&&!k.slice(path.length+1).includes('/')&&!paths.has(k))known.delete(k);}
+    function observeSnapshot(path,col,s,partial){
+      const a=docs(s,col);if(col&&!partial){const paths=new Set(a.map(d=>path+'/'+d.id));for(const k of known.keys())if(k.startsWith(path+'/')&&!k.slice(path.length+1).includes('/')&&!paths.has(k))known.delete(k);}
       if(!col&&!a.length)known.delete(path);
       return a.reduce((n,d)=>n+observe(col?path+'/'+d.id:path,d.data()),0);
     }
@@ -74,12 +74,12 @@
       try{record(p,{[del?'deletes':'writes']:1});if(del)known.delete(path);else if(known.get(path)===prior){if(kind==='set')observe(path,value);else known.delete(path);}}catch(_){}
       return result;
     }
-    async function get(path,col,fn,tag){const p=tag||process(path,col);record(p,{gets:1});try{const s=await fn(),n=docs(s,col).length,m=s.metadata||{};let bytes=0;try{bytes=observeSnapshot(path,col,s);}catch(_){}if(m.fromCache)record(p,{cacheEvents:1,cacheDocs:n});else if(m.hasPendingWrites)record(p,{localEvents:1});else record(p,{reads:Math.max(1,n),receivedBytes:bytes,empty:n===0?1:0});return s;}catch(e){record(p,{errors:1,unknown:1});throw e;}}
-    function listener(path,col){
+    async function get(path,col,fn,tag,partial){const p=tag||process(path,col);record(p,{gets:1});try{const s=await fn(),n=docs(s,col).length,m=s.metadata||{};let bytes=0;try{bytes=observeSnapshot(path,col,s,partial);}catch(_){}if(m.fromCache)record(p,{cacheEvents:1,cacheDocs:n});else if(m.hasPendingWrites)record(p,{localEvents:1});else record(p,{reads:Math.max(1,n),receivedBytes:bytes,empty:n===0?1:0});return s;}catch(e){record(p,{errors:1,unknown:1});throw e;}}
+    function listener(path,col,partial){
       const p='listen:'+pathKey(path);let baseline=null,lastSeen=null,firstServer=true,closed=false;
       record(p,{attaches:1});active.set(p,(active.get(p)||0)+1);
       return {snapshot(s){
-        const a=docs(s,col),m=s.metadata||{};let next;try{if(lastSeen&&col&&typeof s.docChanges==='function'){for(const c of s.docChanges())observe(path+'/'+c.doc.id,c.type==='removed'?null:c.doc.data());}else observeSnapshot(path,col,s);}catch(_){}
+        const a=docs(s,col),m=s.metadata||{};let next;try{if(lastSeen&&col&&typeof s.docChanges==='function'){for(const c of s.docChanges()){if(c.type!=='removed'||!partial)observe(path+'/'+c.doc.id,c.type==='removed'?null:c.doc.data());}}else observeSnapshot(path,col,s,partial);}catch(_){}
         if(lastSeen&&col&&typeof s.docChanges==='function'){next=new Map(lastSeen);for(const c of s.docChanges()){if(c.type==='removed')next.delete(c.doc.id);else next.set(c.doc.id,hash(c.doc.data()));}}
         else next=new Map(a.map(d=>[d.id,hash(d.data())]));
         const changed=lastSeen===null||next.size!==lastSeen.size||[...next].some(([k,v])=>lastSeen.get(k)!==v);lastSeen=next;
