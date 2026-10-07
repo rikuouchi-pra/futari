@@ -1,24 +1,25 @@
 <!doctype html>
 <html lang="ja"><head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<script>const previewMemory=new Map([['futari.prefs',JSON.stringify({onboarded:'1',tipDone:'1',music:'off',wx:'off',haptic:'off',qaPop:'off',aiBrief:'off'})]]);const previewStorage={getItem:k=>previewMemory.get(k)||null,setItem:(k,v)=>previewMemory.set(k,String(v))};</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#EEF2EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111816" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="icon-192.png">
-<script src="config.js"></script>
-<script src="firestore-monitor.js?v=295"></script>
-<script src="firestore-reads.js?v=295"></script>
-<script src="firestore-offline.js?v=295"></script>
-<script src="shim.js?v=295"></script>
+
+
+
+
+
+
+
+
 </head><body>
 <title>ふたりのリスト</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+
+
 <meta name="apple-mobile-web-app-title" content="ふたりのリスト">
 <style>
 :root{
@@ -2204,7 +2205,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="295";
+const APP_VERSION="294";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2241,7 +2242,7 @@ const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d);};
 const jpDate=s=>{const d=parse(s);return `${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;};
 const short=s=>{const d=parse(s);return `${d.getMonth()+1}/${d.getDate()}`;};
 const ago=t=>{ if(!t) return ""; const m=Math.floor((Date.now()-t)/6e4); if(m<1) return "たった今"; if(m<60) return `${m}分前`; const h=Math.floor(m/60); if(h<24) return `${h}時間前`; return `${Math.floor(h/24)}日前`; };
-const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const store={get:k=>{try{return previewStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{previewStorage.setItem(k,v)}catch(e){}}};
 
 /* ================= theme palettes ================= */
 const PALETTES={
@@ -3932,7 +3933,7 @@ function duoRow(i){ const P=state.duoPick&&state.duoPick.id===i.id, w=getWho(i);
   return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱"}</span></button><span class="duo-grip" data-duo-grip="${esc(i.id)}" role="button" aria-label="つかんでタイムテーブルへ">⋮⋮</span></li>`; }
 /* ================= v225: スマホへの通知（Web Push）。予定の前・朝のまとめ・夜の質問・相手が追加したとき ================= */
 const PUSH_K=[["ev","予定・タスク・習慣・家事の開始前"],["am","朝のまとめ（予定・ごみ・天気・やること）"],["pm","夜：今日の質問が未回答のとき"],["add","相手が予定・やることを追加したとき"]];
-const pushDev=()=>{ try{ return localStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
+const pushDev=()=>{ try{ return previewStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
 const pushStandaloneIOS=()=>/iPhone|iPad/.test(navigator.userAgent)&&!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
 function pushCardRefresh(){ const c=$("pushCard"); if(c) c.innerHTML=pushCardHTML(); }
 const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); };
@@ -3960,8 +3961,8 @@ function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lea
 let pushT=null, pushQ=[];
 function pushQueue(m){ if(!pushEnabled()) return; pushQ.push(m); clearTimeout(pushT); pushT=setTimeout(()=>pushSync(),4000); }
 /* v276: 端末ごとの通知登録と、成功・未確認・失敗の区別 */
-function pushEnabled(){ try{ const v=localStorage.getItem("futari.pushEnabled"), owner=localStorage.getItem("futari.pushOwner"); return !!pushDev()&&(!owner||owner===state.me)&&(v===null?prefs.pushOn==="1":v==="1"); }catch(e){return false;} }
-function pushSetEnabled(on){ localStorage.setItem("futari.pushEnabled",on?"1":"0"); if(on) localStorage.setItem("futari.pushOwner",state.me); }
+function pushEnabled(){ try{ const v=previewStorage.getItem("futari.pushEnabled"), owner=previewStorage.getItem("futari.pushOwner"); return !!pushDev()&&(!owner||owner===state.me)&&(v===null?prefs.pushOn==="1":v==="1"); }catch(e){return false;} }
+function pushSetEnabled(on){ previewStorage.setItem("futari.pushEnabled",on?"1":"0"); if(on) previewStorage.setItem("futari.pushOwner",state.me); }
 function pushWait(p,ms=12000){ return new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error("通知の準備が時間切れになりました。再読み込みして試してください")),ms);Promise.resolve(p).then(v=>{clearTimeout(t);resolve(v);},e=>{clearTimeout(t);reject(e);});}); }
 function pushResultMessage(r){ return r&&Number(r.sent)>0?"送信サーバーがテスト通知を送信しました。端末に届いたか確認してください。":"通知の登録は保存しました。テスト通知の送信は確認できていません。"; }
 function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window, perm=ok?Notification.permission:"", on=pushEnabled()&&perm==="granted", off=new Set((prefs.pushOff||"").split(",").filter(Boolean));
@@ -3987,10 +3988,10 @@ async function pushPrepare(){ if(state.pushBusy)return;state.pushBusy=true;state
 }catch(e){state.pushPrepared=null;const msg=String(e.detail||e.message||e);state.pushBackendMissing=/未対応の操作.*push|unknown.*push|unsupported.*push/i.test(msg);state.pushMsg=state.pushBackendMissing?"送信サーバーに通知機能がありません。端末の設定では解消できません。送信側の更新が必要です。":"準備できませんでした："+msg.slice(0,140);}finally{state.pushBusy=false;pushCardRefresh();} }
 async function pushOn(){ if(state.pushBusy)return; const ready=state.pushPrepared;if(!ready||ready.owner!==state.me){await pushPrepare();return;}state.pushBusy=true;try{
   const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("通知が許可されませんでした");
-  const {P,key,reg}=ready;const previousOwner=localStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
+  const {P,key,reg}=ready;const previousOwner=previewStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
   if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-  let dev=ownerChanged?"":pushDev(),sec=ownerChanged?"":localStorage.getItem("futari.pushSec")||"";if(!dev)dev="d"+crypto.randomUUID();if(!sec)sec=crypto.randomUUID()+crypto.randomUUID();
-  localStorage.setItem("futari.pushDev",dev);localStorage.setItem("futari.pushSec",sec);pushSetEnabled(true);state.pushSub=sub.toJSON();
+  let dev=ownerChanged?"":pushDev(),sec=ownerChanged?"":previewStorage.getItem("futari.pushSec")||"";if(!dev)dev="d"+crypto.randomUUID();if(!sec)sec=crypto.randomUUID()+crypto.randomUUID();
+  previewStorage.setItem("futari.pushDev",dev);previewStorage.setItem("futari.pushSec",sec);pushSetEnabled(true);state.pushSub=sub.toJSON();
   const r=await pushSync("test");if(!r)throw Error(state.pushMsg||"送信サーバーへの登録を確認できませんでした");
   prefs.pushOn="1";savePrefs(true);state.pushPrepared=null;state.pushStopRetry=false;state.pushMsg=pushResultMessage(r);
 }catch(e){state.pushMsg="通知の設定を完了できませんでした："+String(e.detail||e.message||e).slice(0,160);}finally{state.pushBusy=false;pushCardRefresh();} }
@@ -4006,16 +4007,14 @@ function pushSync(op){ if(pushFlight){if(op)return pushFlight.then(()=>pushSync(
 async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)return null;try{
   if(!db||!privBase||!state.me)throw Error("ログインとデータの読み込みが完了していません");
   const reg=await pushWait(navigator.serviceWorker.ready),subscription=await reg.pushManager.getSubscription(),sub=subscription&&subscription.toJSON();if(!sub||!sub.endpoint)throw Error("この端末の通知登録がありません。通知を準備し直してください");
-  const sec=localStorage.getItem("futari.pushSec");if(!sec)throw Error("通知登録の情報がありません。通知を準備し直してください");
+  const sec=previewStorage.getItem("futari.pushSec");if(!sec)throw Error("通知登録の情報がありません。通知を準備し直してください");
   const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
   (reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
   const plan=pushPlan(),queued=pushQ.slice(),off=(prefs.pushOff||"").split(",").filter(Boolean);
-  const syncKey=stableJSON({dev,owner:state.me,sec,sub,role:myRole(),off,policy:pushSettings(),plan,queued});
-  if(!op&&!queued.length&&state.pushSyncKey===syncKey&&Date.now()-(state.pushLast||0)<10*60e3)return {ok:true,unchanged:true};
   await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,policy:pushSettings(),at:Date.now(),shared:plan.shared,now:queued})});
   await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
   const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`});if(!r||r.error||r.ok===false)throw Error("送信サーバーが通知の保存を確認できませんでした");
-  state.pushSyncKey=syncKey;pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
+  pushQ=pushQ.filter(m=>!queued.includes(m));previewStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
 }catch(e){state.pushMsg="通知の同期に失敗："+String(e.detail||e.message||e).slice(0,140);pushCardRefresh();return null;} }
 function pushNotifyAdded(c,id,data,existed){if(existed||!data||data.auto||!["events","items","topics"].includes(c))return;const me=myRole(),ot=otherRole(),w=data.who||"both";if(w!==ot&&w!=="both")return;pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:String(data.text||"")}); }
 
@@ -4903,9 +4902,9 @@ function renderChrome(){ applyTabOrder();
   renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); songRender(); logoApply();
 }
 const hintSess=new Set();
-function hintsApply(v){ let hs={}; try{ hs=JSON.parse(localStorage.getItem("fl_hints")||"{}"); }catch(_){}
+function hintsApply(v){ let hs={}; try{ hs=JSON.parse(previewStorage.getItem("fl_hints")||"{}"); }catch(_){}
   const off=prefs.hintsAlways!=="1"&&hs[v]&&!hintSess.has(v); document.body.classList.toggle("hints-off",!!off);
-  if(!off&&!hs[v]){ hintSess.add(v); hs[v]=1; try{ localStorage.setItem("fl_hints",JSON.stringify(hs)); }catch(_){} } }
+  if(!off&&!hs[v]){ hintSess.add(v); hs[v]=1; try{ previewStorage.setItem("fl_hints",JSON.stringify(hs)); }catch(_){} } }
 function render(anim){
   state.dirty=false;
   if(VIEW_ALIAS[state.view]) state.view=VIEW_ALIAS[state.view]; if(state.view==="future"&&FAM_CATS.includes(state.fut)){ state.babyTab=state.fut; state.fut=null; state.view="baby"; } /* v247 */ if(state.view==="pwish"){ state.view="future"; state.fut="_mine"; }
@@ -4975,8 +4974,7 @@ function firestoreCardHTML(){
   if(!window.__FUTARI_PWA)return "";
   const S=firestoreStatus(),O=firestoreOffline();
   const when=t=>new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
-  return `<h2>Firestoreの利用状況</h2><p class="who">課金設定を追加しないモード・API接続不要・端末内で計測</p>
-    <p><b>二人全体の実数：未取得</b></p><p class="who">監視APIは停止中です。以下はこのブラウザ・アカウントで確認した範囲で、二人の全端末合計ではありません。</p>
+  return `<h2>Firestoreの利用状況</h2><p class="who">API接続不要・端末内で計測</p>
     <p class="who">普段の読み取り・保存・削除の結果から利用量を記録します。監視用の通信・追加のFirestore読み取りは行いません。Googleの監視設定や課金設定は不要です。</p>
     ${S?`<p class="who">次の集計日切替：${when(S.day.end)}（日本時間・Firestoreの無料枠と同じ区切り）</p>`:""}
     ${S&&S.issue?`<p role="alert">利用制限を検知：${when(S.issue.at)}。最新情報を受信できない場合があります。</p>`:""}
@@ -4993,13 +4991,12 @@ function firestoreReadsHTML(){
   const api=window.__futariReads;if(!api)return '<div id="firestoreReadsPanel"><h3>処理別の利用状況</h3><p class="who">ログイン後に、この端末で計測を開始します。</p></div>';
   const s=api.snapshot(firestoreReadsDays),today=api.snapshot(1),week=api.snapshot(7),cap=s.capacity||{bytes:0,docs:0,maxDoc:0,maxField:0,maxDepth:0,maxRequest:0,rows:[]},bs=s.browserStorage||{},n=x=>Number(x||0).toLocaleString("ja-JP"),bytes=x=>x>=1073741824?(x/1073741824).toFixed(2)+" GiB":x>=1048576?(x/1048576).toFixed(1)+" MiB":x>=1024?(x/1024).toFixed(1)+" KiB":n(x)+" B",when=t=>new Date(t).toLocaleString("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
   const gauge=(title,value,limit,unit,note,unknown=false)=>{const pct=limit?value/limit*100:0;return `<div class="quota-tile ${!unknown&&pct>=80?'quota-high':''}"><span>${title}</span><strong>${unknown?'不明':unit==='bytes'?bytes(value):n(value)+(unit||'')}</strong><div class="quota-track" role="img" aria-label="${esc(title)}：${unknown?'未計測':pct.toFixed(1)+'%・全体使用率ではありません'}"><i style="width:${unknown?0:Math.max(0,Math.min(100,pct))}%"></i></div><small>${note}</small>${!unknown&&pct>=80?'<b class="quota-attention">確認できた範囲でも基準の80%以上</b>':''}</div>`;};
-  const metrics={reads:['読み取り','件'],writes:['書き込み','件'],deletes:['削除','件'],receivedBytes:['転送量の参考','bytes'],storage:['保存容量','bytes'],maxDoc:['文書サイズ','bytes'],maxField:['フィールドサイズ','bytes'],maxDepth:['入れ子','階層'],maxRequest:['要求サイズ','bytes']},metric=metrics[firestoreMetric]?firestoreMetric:'reads',isBytes=metrics[metric][1]==='bytes';
-  const capacityMetric=['storage','maxDoc','maxField','maxDepth','maxRequest'].includes(metric),maxMetric=capacityMetric&&metric!=='storage';
-  const ranked=(capacityMetric?cap.rows.map(r=>({...r,value:metric==='storage'?r.bytes:r[metric]||0,hints:[]})):s.rows.map(r=>({...r,value:r[metric]||0}))).filter(r=>r.value>0||r.errors||r.unknown).sort((a,b)=>b.value-a.value||(b.errors||0)-(a.errors||0)),sum=ranked.reduce((a,r)=>a+r.value,0),peak=Math.max(1,...ranked.map(r=>r.value));
-  const row=r=>`<div class="read-process"><div class="read-process-title"><b>${esc(r.label)}</b><strong>${isBytes?bytes(r.value):n(r.value)+metrics[metric][1]} <small>${maxMetric?'処理内の最大値':'('+(sum?(r.value/sum*100).toFixed(1):0)+'%)'}</small></strong></div><div class="quota-track"><i style="width:${r.value/peak*100}%"></i></div><p class="who">${capacityMetric?n(r.docs)+'文書・このタブで確認済み（要求サイズは送信本文のみ）':`初回 ${n(r.initial)}・更新 ${n(r.updates)}・個別取得 ${n(r.gets)}回<br>初回1接続あたり ${r.attaches?(r.initial/r.attaches).toFixed(1):'—'}件<br>書込成功 ${n(r.writes)} / 試行 ${n(r.writeAttempts)}・削除成功 ${n(r.deletes)} / 試行 ${n(r.deleteAttempts)}<br>キャッシュ ${n(r.cacheDocs)}件・失敗 ${n(r.errors)}回・件数不明 ${n(r.unknown)}回・共用 ${n(r.reused)}回`}</p>${r.hints.length?`<p class="read-hint">${r.hints.map(esc).join('<br>')}</p>`:''}</div>`;
+  const metrics={reads:['読み取り','件'],writes:['書き込み','件'],deletes:['削除','件'],receivedBytes:['受信サイズ','bytes'],storage:['保存サイズ','bytes']},metric=metrics[firestoreMetric]?firestoreMetric:'reads',isBytes=metrics[metric][1]==='bytes';
+  const ranked=(metric==='storage'?cap.rows.map(r=>({...r,value:r.bytes,hints:r.bytes>=1048576?["容量が大きい：不要な写真・履歴の整理や圧縮を検討"]:[]})):s.rows.map(r=>({...r,value:r[metric]||0}))).filter(r=>r.value>0||r.errors||r.unknown).sort((a,b)=>b.value-a.value||(b.errors||0)-(a.errors||0)),sum=ranked.reduce((a,r)=>a+r.value,0),peak=Math.max(1,...ranked.map(r=>r.value));
+  const row=r=>`<div class="read-process"><div class="read-process-title"><b>${esc(r.label)}</b><strong>${isBytes?bytes(r.value):n(r.value)+'件'} <small>(${sum?(r.value/sum*100).toFixed(1):0}%)</small></strong></div><div class="quota-track"><i style="width:${r.value/peak*100}%"></i></div><p class="who">${metric==='storage'?n(r.docs)+'文書・このタブで確認済み':`初回 ${n(r.initial)}・更新 ${n(r.updates)}・個別取得 ${n(r.gets)}回<br>書込成功 ${n(r.writes)} / 試行 ${n(r.writeAttempts)}・削除成功 ${n(r.deletes)} / 試行 ${n(r.deleteAttempts)}<br>キャッシュ ${n(r.cacheDocs)}件・失敗 ${n(r.errors)}回・件数不明 ${n(r.unknown)}回・共用 ${n(r.reused)}回`}</p>${r.hints.length?`<p class="read-hint">${r.hints.map(esc).join('<br>')}</p>`:''}</div>`;
   const trend=week.trend||[],trendField=metric==='storage'?'reads':metric,trendMax=Math.max(1,...trend.map(d=>d[trendField]||0));
   const photo=state.assetUsage,photoNote=photo?'前回の写真一覧から算出・自動再取得なし':'未取得・監視のための一覧取得は行いません';
-  return `<div id="firestoreReadsPanel"><h3>Firestoreの上限別・処理別診断</h3><p class="who">${esc(s.scope)}。記録開始後の値です。小さい値でも全体の余裕を保証しません。</p>
+  return `<div id="firestoreReadsPanel"><h3>利用量ダッシュボード</h3><p class="who">${esc(s.scope)}。記録開始後の値です。小さい値でも全体の余裕を保証しません。</p>
     <div class="quota-heading">今日の操作 <small>全体の無料枠を比較基準に表示</small></div><div class="quota-grid">
     ${gauge('読取推定',today.total.reads,50000,'件','端末分の推定 / 無料枠 50,000件・日')}
     ${gauge('書込成功',today.total.writes||0,20000,'件','端末分の成功 / 無料枠 20,000件・日')}
@@ -5007,30 +5004,23 @@ function firestoreReadsHTML(){
     ${gauge('今月の受信本文',s.month?.receivedBytes||0,10737418240,'bytes','文書サイズの概算 / 転送無料枠 10 GiB・月。実通信量は不明')}
     </div><div class="read-summary"><span>キャッシュ ${n(s.total.cacheDocs)}件</span><span>失敗 ${n(s.total.errors)}回</span><span>自動同期 ${s.active}接続（このタブ）</span></div>
     <div class="quota-heading">容量・1件の大きさ <small>未取得データは含みません</small></div><div class="quota-grid">
-    ${gauge('確認済み文書の容量',cap.bytes,1073741824,'bytes',n(cap.docs)+'文書 / 無料枠 1 GiB。インデックス除外・全体不明',cap.docs===0)}
+    ${gauge('確認済み文書の容量',cap.bytes,1073741824,'bytes',n(cap.docs)+'文書 / 無料枠 1 GiB。インデックス除外・全体不明')}
     ${gauge('最大の1文書',cap.maxDoc,1048576,'bytes','確認済みの推定 / Firestore上限 1 MiB',cap.docs===0)}
-    ${gauge('最大フィールド',cap.maxField,1048487,'bytes','確認済みの推定 / 上限 1 MiB − 89 B',cap.docs===0)}
-    ${gauge('入れ子の深さ',cap.maxDepth,20,'階層','確認済みの値 / 上限 20階層',cap.docs===0)}
-    ${gauge('最大の要求本文',cap.maxRequest,10485760,'bytes','送信本文の概算 / API要求上限 10 MiB。SDKのまとめ送信・付加分は未計測',!cap.maxRequest)}
-    </div><p class="who">容量は確認済み文書の概算です。未取得文書・インデックスは含みません。各上限に対して負荷の大きい処理を下で確認できます。</p>
-    <details><summary>端末・写真の参考情報（Firestoreの上限対象外）</summary><div class="quota-grid">
     ${gauge('端末の保存領域',bs.usage||0,bs.quota||0,'bytes',bs.status==='available'?'ブラウザ推定 / 割当 '+bytes(bs.quota)+'・他の保存も含む':'ブラウザが使用量を提供していません',bs.status!=='available')}
     ${gauge('写真の保存量',photo?.bytes||0,734003200,'bytes',photoNote+' / アプリの目安 700 MiB',!photo)}
-    </div><p class="who">容量はこのタブで確認した文書の概算です。再起動で確認範囲が変わります。ブラウザの割当容量は変動し、localStorage単独の残量ではありません。</p><button class="opt" data-act="firestoreStorageRefresh">端末の保存領域を再確認</button><p class="who">写真900 KiB・700 MiB・5,000枚はアプリ独自の目安です。Firestoreの上限とは区別します。</p></details>
-    <div class="quota-heading">どの処理が上限を消費しているか</div><p class="who">読み書き・転送量は処理別件数と割合、文書・フィールド・要求サイズは処理別の最大値を比較します。負荷が大きいだけで無駄とは断定しません。改善候補を開いて原因を確認してください。</p><div class="opts"><button class="opt ${firestoreReadsDays===1?'on':''}" data-act="firestoreReadsToday" aria-pressed="${firestoreReadsDays===1}">今日の集計日</button><button class="opt ${firestoreReadsDays===7?'on':''}" data-act="firestoreReadsWeek" aria-pressed="${firestoreReadsDays===7}">直近7日</button></div><div class="opts quota-tabs">${Object.entries(metrics).map(([k,[v]])=>`<button class="opt ${metric===k?'on':''}" data-act="firestoreMetric" data-value="${k}" aria-pressed="${metric===k}">${v}</button>`).join('')}</div>
+    </div><p class="who">容量はこのタブで確認した文書の概算です。再起動で確認範囲が変わります。ブラウザの割当容量は変動し、previewStorage単独の残量ではありません。</p><button class="opt" data-act="firestoreStorageRefresh">端末の保存領域を再確認</button>
+    <div class="quota-heading">処理別の負荷・改善候補</div><div class="opts"><button class="opt ${firestoreReadsDays===1?'on':''}" data-act="firestoreReadsToday" aria-pressed="${firestoreReadsDays===1}">今日の集計日</button><button class="opt ${firestoreReadsDays===7?'on':''}" data-act="firestoreReadsWeek" aria-pressed="${firestoreReadsDays===7}">直近7日</button></div><div class="opts quota-tabs">${Object.entries(metrics).map(([k,[v]])=>`<button class="opt ${metric===k?'on':''}" data-act="firestoreMetric" data-value="${k}" aria-pressed="${metric===k}">${v}</button>`).join('')}</div>
     <p class="who">${metric==='storage'?'このタブの確認済み容量。期間ボタンの対象外です。':s.first?`記録：${when(s.first)}〜${when(s.last)}（日本時間）`:'まだ記録がありません。普段どおり使うと集計されます。'}</p>
     ${ranked.slice(0,5).map(row).join('')||'<p class="who">この指標の記録はまだありません。</p>'}${ranked.length>5?`<details><summary>残り${ranked.length-5}処理を見る</summary>${ranked.slice(5).map(row).join('')}</details>`:''}
-    ${capacityMetric?'<div class="quota-trend"><p class="who">容量・構造・要求サイズはこのタブで確認した値です。過去の推移は未記録です。</p></div>':`<div class="quota-heading">7日間の推移 <small>${metric==='storage'?'読み取り':metrics[metric][0]}・太平洋時間の集計日</small></div><div class="quota-trend" role="img" aria-label="7日間の${metric==='storage'?'読み取り':metrics[metric][0]}推移：${trend.map(d=>new Date(d.day).toLocaleDateString('ja-JP',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric'})+' '+(trendField==='receivedBytes'?bytes(d[trendField]||0):n(d[trendField]))).join('、')}">${trend.map(d=>`<div><strong>${trendField==='receivedBytes'?bytes(d[trendField]||0):n(d[trendField])}</strong><span><i style="height:${Math.max(1,(d[trendField]||0)/trendMax*100)}%"></i></span><small>${new Date(d.day).toLocaleDateString('ja-JP',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric'})}</small></div>`).join('')||'<p class="who">記録後に表示します</p>'}</div>`}
-
+    <div class="quota-heading">7日間の推移 <small>${metric==='storage'?'読み取り':metrics[metric][0]}・太平洋時間の集計日</small></div><div class="quota-trend" role="img" aria-label="7日間の${metric==='storage'?'読み取り':metrics[metric][0]}推移：${trend.map(d=>new Date(d.day).toLocaleDateString('ja-JP',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric'})+' '+(trendField==='receivedBytes'?bytes(d[trendField]||0):n(d[trendField]))).join('、')}">${trend.map(d=>`<div><strong>${trendField==='receivedBytes'?bytes(d[trendField]||0):n(d[trendField])}</strong><span><i style="height:${Math.max(1,(d[trendField]||0)/trendMax*100)}%"></i></span><small>${new Date(d.day).toLocaleDateString('ja-JP',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric'})}</small></div>`).join('')||'<p class="who">記録後に表示します</p>'}</div>
     ${s.storageError?'<p role="alert">端末への記録保存に失敗しています。診断ファイルに書き出してください。</p>':''}
-    <details><summary>Firestoreのその他の上限（未計測）</summary><div class="quota-limit-list">
-    <p><b>インデックス</b>：複合インデックス200個・単一フィールド設定200個（課金設定なし）。1文書あたり40,000エントリ・合計8 MiB。1エントリ7.5 KiB、索引対象の値1,500 B、複合インデックス100フィールド。実際の構成・使用量は未計測です。</p>
-    <p><b>ルール内の文書参照</b>：単一取得・クエリは10回／要求。複数取得・トランザクション・バッチは20回／要求で各操作にも10回の制限。評価式1,000個／要求。使用量は未計測です。</p>
-    <p><b>トランザクション・変換</b>：270秒、アイドル60秒。1文書のフィールド変換500個／コミット・トランザクション。SDK内部の処理は未計測です。</p>
-    <p><b>名前・階層</b>：コレクションID・文書ID・フィールド名・フィールドパス1,500 B、文書名6 KiB、サブコレクション100階層。長さと構文制約の全検査は未実装です。</p>
-    <p><b>構成・管理操作</b>：データベース100個／プロジェクト。ルールのソース256 KB・コンパイル後250 KB。インポート／エクスポートは20要求／分・同時50件・フィルタ100個。未計測・このアプリの通常操作の診断対象外です。</p>
-    <p class="who">未計測項目を0や正常とは表示しません。日次無料枠は太平洋時間でリセット。転送量と保存容量の全体実数・残量は端末から確定できません。</p>
-    </div><a href="https://firebase.google.com/docs/firestore/quotas" target="_blank" rel="noopener">Firestoreの全上限・詳細条件（2026年10月7日確認）</a></details>
+    <details><summary>その他の上限・計測できない項目</summary><div class="quota-limit-list">
+    <p><b>写真1枚</b>：保存時900 KiB以下に縮小。写真枚数は${photo?n(photo.files)+'枚':'不明'} / アプリの目安5,000枚。</p>
+    <p><b>送信本文の最大</b>：${bytes(cap.maxRequest)}。API要求上限10 MiBに対して、プロトコルの付加分は計測外。</p>
+    <p><b>最大フィールド</b>：確認済み推定 ${bytes(cap.maxField)} / 1 MiB − 89 B。<b>入れ子</b>：確認済み ${n(cap.maxDepth)} / 20階層。</p>
+    <p><b>Firestore全体・インデックス・ルール評価・接続/処理時間制限</b>：端末から正確な使用量は取得できません。0件や正常とは扱いません。</p>
+    <p><b>AI・Apps Script・認証・ホスティングの利用枠</b>：アカウントやサーバー側の使用量・残量は不明です。監視APIなしでは全サービスの枠を網羅して実測できません。</p>
+    </div><a href="https://firebase.google.com/docs/firestore/quotas" target="_blank" rel="noopener">Firestoreの公式上限一覧</a></details>
     <details><summary>版ごとの比較・計測方法</summary><p class="who">利用量や期間が異なるため、件数差だけで改善効果とは判定しません。v290以前は書込・削除・サイズ未計測です。</p>${s.versions.map(v=>`<p class="who"><b>v${esc(v.version)}</b>：読取 ${n(v.reads)}件 / 書込 ${Number(v.version)>=291?n(v.writes):'未計測'} / 削除 ${Number(v.version)>=291?n(v.deletes):'未計測'} / 初回1接続あたり ${v.attaches?(v.initial/v.attaches).toFixed(1):'—'}件</p>`).join('')}<p class="who">${s.notes.map(esc).join('<br>')}</p><p class="who">キャッシュ・端末内編集・変化のない通知は読取推定に加算しません。書込・削除はSDK成功応答時に計上し、再試行や未同期は成功と区別します。成功前にアプリを閉じた操作は記録できない場合があります。請求件数ではありません。</p></details>
     <div class="opts"><button class="opt" data-act="firestoreReadsExport">改善用の診断を書き出す</button></div><p class="who">処理別・日別・版別の数値と確認済み容量を出力。入力内容・写真・文書IDは含めません。</p></div>`;
 }
@@ -7615,7 +7605,7 @@ const aiProfOf=r=>r===myRole()?aiProfMe():Object.fromEntries(Object.entries((((s
 function aiProfSave(k,v){ const o={...aiProfMe(),[k]:String(v||"").trim().slice(0,160)}; if(!o[k]) delete o[k]; prefs.aiProf=JSON.stringify(o); savePrefs(true); aiProfSync(); }
 /* v198: 共有の meta/kakei は「上書き」せず、変えた欄だけ合わせる（読み込み前の空データで音楽の好み・ごみ設定などが消える問題の対策） */
 function kakeiPut(o){ if(!kakeiDoc) return Promise.resolve(); if(!state.kakeiLoaded){ kakeiPut.q={...(kakeiPut.q||{}),...o}; return Promise.resolve(); } return kakeiDoc.update(o); }
-function aiProfSync(){ if(!state.kakeiLoaded) return; const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}, me=prefs.aiProfShare==="off"?{}:aiProfMe(); P[r]=Object.fromEntries([...new Set([...AIP_FIELDS.map(([k])=>k),...Object.keys(me)])].map(k=>[k,me[k]||null])); if(stableJSON(P[r])===stableJSON((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut({aiProf:{[r]:P[r]},updatedAt:state.kakei.updatedAt}).catch(err); }
+function aiProfSync(){ if(!state.kakeiLoaded) return; const r=myRole(), P={...(((state.kakei||{}).aiProf)||{})}, me=prefs.aiProfShare==="off"?{}:aiProfMe(); P[r]=Object.fromEntries([...new Set([...AIP_FIELDS.map(([k])=>k),...Object.keys(me)])].map(k=>[k,me[k]||null])); if(JSON.stringify(P[r])===JSON.stringify((((state.kakei||{}).aiProf)||{})[r]||{})) return; state.kakei={...(state.kakei||{}),aiProf:P,updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); }
 function aiProfCardHTML(){ const P=aiProfMe(), ot=otherRole(), op=aiProfOf(ot), on=Object.keys(op).length;
   return `<section class="card" id="aiProfCard"><h2>AIに伝える基本情報</h2><p class="who">AI相談・今日を組む・今日の1曲などで使います。書いた分だけ提案が正確になります（空欄でもOK）</p>
     <div class="aip">${AIP_FIELDS.map(([k,l,ph])=>`<label><span>${l}</span><input type="text" id="aipf_${k}" data-aip="${k}" maxlength="160" placeholder="${esc(ph)}" value="${esc(P[k]||"")}"></label>`).join("")}</div>
@@ -8132,7 +8122,6 @@ $("form").addEventListener("submit",e=>{
 
 /* ================= prefs sync ================= */
 let prefTimer=null;
-let prefWriteKey=null;
 /* v171: オフライン（災害時など）。この端末に保存したデータで動き、変更は端末にためておき、つながったら自動で送る（送った内容で上書き） */
 state.netOff=navigator.onLine===false;
 function netMark(){ if(state.netOff||navigator.onLine===false){ state.netOff=true; state.pendW=(state.pendW||0)+1; netChip(); } }
@@ -8142,8 +8131,7 @@ addEventListener("online",async()=>{ const n=state.pendW||0; state.netOff=false;
   state.pendW=0; netChip(); toast(n?`オンラインに戻りました。オフライン中の変更 ${n}件を送りました`:"オンラインに戻りました"); requestRender(); });
 function savePrefs(silent){ try{ if(typeof aiProfSync==="function"&&state.kakei&&kakeiDoc) setTimeout(aiProfSync,0); }catch(e){}
   store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs();
-  const writeKey=stableJSON(prefs);
-  if(prefsDoc&&writeKey!==prefWriteKey){ prefWriteKey=writeKey; prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(prefWriteKey===writeKey)prefWriteKey=null; if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } }); }
+  if(prefsDoc) prefsDoc.set({...prefs,updatedAt:Date.now()}).then(()=>{ if(state.diag) state.diag.writeErr=""; }).catch(e=>{ if(state.diag) state.diag.writeErr=(e&&e.code)||"error"; if(!state.prefWarned){ state.prefWarned=true; toast("設定を保存できませんでした（書き込み権限がありません）。設定 › 接続状態 を確認してください"); } });
   if(!silent&&state.view==="settings"){ const y=window.scrollY; $("main").innerHTML=viewSettings(); setGroups(); window.scrollTo(0,y); setAnchorApply(); requestAnimationFrame(setAnchorApply); }
   placeRail(false);
 }
@@ -8980,10 +8968,10 @@ const WXI={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M
 const wxSvg=k=>`<svg class="wxs ${k}" viewBox="0 0 24 24" aria-hidden="true">${WXI[k]||WXI.cloud}</svg>`;
 async function wxLoad(force){
   if(prefs.wx==="off") return; const L=wxLoc(), key=`futari.wx2.${L.lat.toFixed(2)},${L.lon.toFixed(2)}`;
-  try{ const c=JSON.parse(localStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
+  try{ const c=JSON.parse(previewStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
   if(state.wxBusy) return; state.wxBusy=true;
   try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms&timezone=Asia%2FTokyo&forecast_days=16`;
-    let r=await fetch(u); if(!r.ok) r=await fetch(u.replace(/,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms/,"")); /* v218: 追加の項目が使えないときは従来の内容で */ if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
+    let r=await fetch(u); if(!r.ok) r=await fetch(u.replace(/,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms/,"")); /* v218: 追加の項目が使えないときは従来の内容で */ if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ previewStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
   catch(e){ state.wxErr=true; }
   state.wxBusy=false; }
 function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=today(), i=W.daily.time.indexOf(t); if(i<0) return null;
@@ -9375,13 +9363,13 @@ const _jhn={}; function jpHolName(d){ const y=Number(d.slice(0,4)); if(!_jhn[y])
     _jhn[y]=M; } return _jhn[y][d]||""; }
 /* v254: 今日は何の日（Wikipediaの日付ページ「記念日・年中行事」から日本のものを中心に3件まで。端末に保存して毎回は取りにいかない） */
 const NNH={}; function nanohi(d){ const k=d.slice(5); if(NNH[k]) return NNH[k].v||[];
-  try{ const c=JSON.parse(localStorage.getItem("futari.nnh."+k)||"null"); if(c&&Date.now()-c.at<90*864e5){ NNH[k]=c; return c.v; } }catch(e){}
+  try{ const c=JSON.parse(previewStorage.getItem("futari.nnh."+k)||"null"); if(c&&Date.now()-c.at<90*864e5){ NNH[k]=c; return c.v; } }catch(e){}
   NNH[k]={v:[],at:Date.now()}; const [m,dd]=k.split("-").map(Number);
   fetch(`https://ja.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(m+"月"+dd+"日")}&prop=wikitext&format=json&origin=*&formatversion=2`).then(r=>r.ok?r.json():null).then(j=>{ const w=j&&j.parse&&j.parse.wikitext; if(!w) return;
     const i=w.search(/==\s*記念日[^=\n]*==/); if(i<0) return; const rest=w.slice(i).split("\n").slice(1); const L=[];
     for(const ln of rest){ if(/^==[^=]/.test(ln)) break; if(!/^\*[^*:]/.test(ln)) continue; const t=ln.replace(/^\*\s*/,""), jp=/JPN|日本/.test(t);
       const lk=t.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/); let n=lk?(lk[2]||lk[1]):t.replace(/\{\{[^}]*\}\}/g,"").split(/[（(]/)[0]; n=n.replace(/<[^>]+>|'{2,}/g,"").trim(); if(n&&n.length<=20&&!/^\d/.test(n)) L.push({n,jp}); }
-    const v=[...L.filter(x=>x.jp),...L.filter(x=>!x.jp)].map(x=>x.n).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3); NNH[k]={v,at:Date.now()}; try{ localStorage.setItem("futari.nnh."+k,JSON.stringify(NNH[k])); }catch(e){} if(v.length) requestRender(); }).catch(()=>{}); return []; }
+    const v=[...L.filter(x=>x.jp),...L.filter(x=>!x.jp)].map(x=>x.n).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3); NNH[k]={v,at:Date.now()}; try{ previewStorage.setItem("futari.nnh."+k,JSON.stringify(NNH[k])); }catch(e){} if(v.length) requestRender(); }).catch(()=>{}); return []; }
 function dayInfoHTML(d,withNnh){ const h=jpHolName(d), n=withNnh?nanohi(d):[]; if(!h&&!n.length) return ""; return `<span class="dinfo">${h?`<b class="dhol">🎌 ${esc(h)}</b>`:""}${n.length?`<span class="dnnh">${h?"・":""}${d===today()?"今日は ":""}${esc(n.join("・"))}</span>`:""}</span>`; }
 
 function wcCfg(r){ const W=((state.kakei||{}).workCal||{})[r]||{}; return {on:!!W.on,wk:W.wk!=null?String(W.wk):"06",hol:W.hol||"work",off:W.off||[],work:W.work||[],auto:W.auto||{},src:W.src||"",pre:W.pre||"",dcal:W.dcal||{},dchk:W.dchk||0,derr:W.derr||""}; }
@@ -9398,7 +9386,7 @@ function wcRun(r,force){
   for(let d=start; d<=end; d=addDays(d,1)){ const want=wcWant(C,d), cur=shiftOf(r,d);
     if(!cur||(auto[d]&&cur===auto[d])){ if(cur!==want) ch[d]=want; auto[d]=want; } else if(auto[d]&&cur!==auto[d]) delete auto[d]; }
   const n=Object.keys(ch).length; if(n) writeShifts(r,ch);
-  if(n||stableJSON(auto)!==stableJSON(C.auto)) wcSave(r,{auto});
+  if(n||JSON.stringify(auto)!==JSON.stringify(C.auto)) wcSave(r,{auto});
   return n; }
 let wcT=null; function wcKick(){ clearTimeout(wcT); wcT=setTimeout(()=>{ const r=myRole(); if(r&&wcCfg(r).on&&wcRun(r)) requestRender(); dcalCheck(false); },db?4000:300); }
 const dcalCan=()=>!!(window.__FUTARI_PWA&&state.mcp&&aiOn());
@@ -9682,8 +9670,8 @@ async function usageSaveReport(auto){ const days=auto?7:Number(state.usagePer)||
 function usgTopViews(n,days){ const {A}=usgAgg(days||14), V={...(A[myRole()]||{views:{}}).views}; for(const k of Object.keys(V)) if(k.startsWith("🔒")){ const b=k.slice(2); if(TITLES[b]) V[b]=(V[b]||0)+V[k]; delete V[k]; }
   return Object.entries(V).filter(([k])=>AUTO_SV.includes(k)||k==="habit"||k==="reflect"||k==="trouble").sort((a,b)=>b[1]-a[1]).slice(0,n); }
 function usgAutoStart(){ const L=usgTopViews(12), hm=(L.find(([k])=>k==="home")||[0,0])[1], top=L.find(([k])=>AUTO_SV.includes(k)&&k!=="home"); const v=top&&top[1]>=Math.max(600,hm*1.2)?top[0]:"home"; if(prefs.autoStartV!==v){ prefs.autoStartV=v; savePrefs(true); } }
-function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded||!state.usageReportsLoaded) return; state.usgAutoDone=true; setTimeout(usgAutoStart,3000); setTimeout(usgPrune,8000);
-  const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>{const latest=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0);if(Date.now()-latest>7*864e5)usageSaveReport(true);},10000); }
+function usageAutoReport(){ if(state.usgAutoDone||!state.usageLoaded) return; state.usgAutoDone=true; setTimeout(usgAutoStart,3000); setTimeout(usgPrune,8000);
+  const last=state.usageReports.filter(x=>x.auto).reduce((m,x)=>Math.max(m,x.at||0),0); if(Date.now()-last>7*864e5&&state.usage.length) setTimeout(()=>usageSaveReport(true),10000); }
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast("コピーしました。改修を頼むときに貼り付けてください"); }catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("コピーしました"); }catch(_){ toast("コピーできませんでした。ファイルで保存してください"); } ta.remove(); } }
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-act^=ug],#main [data-ugcopy]"); if(!b||state.view!=="usage") return; e.stopPropagation(); const a=b.dataset.act;
   usageFlush(true);
@@ -9709,67 +9697,94 @@ function maybeOnb(){ if(prefs.onboarded!=="1"&&!state.onbShown){ state.onbShown=
 render(); requestAnimationFrame(()=>{placeRail(false); if(prefs.onboarded==="1") showTip();});
 setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
 
-/* ================= connect ================= */
-(async()=>{
-  const off=(why)=>{ $("syncText").textContent="オフライン"; state.connIssue=why||""; $("offline").textContent=why||$("offline").textContent; $("offline").hidden=false; };
-  if(!window.claude||!claude.use){ if(cacheLoad()){ render(); off("オフライン：この端末に残っている控えを表示しています（変更は保存されません）"); return; } off("claude.aiのアプリか、ログインしたブラウザで開いていないため保存できません。"); return; }
-  const [d,u,dl]=await Promise.all([claude.use("db"),claude.use("user"),claude.use("downloads")]); db=d; user=u; downloads=dl;
-  state.diag={user:!!user,db:!!d,mcp:null,id:false,owner:null,canWrite:null,name:"",writeErr:""};
-  if(user){ try{ state.me=await user.id(); }catch(e){} try{ state.owner=await user.isOwner(); }catch(e){ state.owner=false; }
-    try{ const v=await user.me(); state.diag.name=(v&&v.name)||""; if(v&&v.email){ state.acctRole=ROLE_HASH[await sha256hex(v.email.trim().toLowerCase())]||null; state.emailRole=state.acctRole; } }catch(e){}
-    try{ state.diag.canWrite=await user.can("data.write"); }catch(e){}
-  } else state.owner=false; /* no viewer identity at all: never the owner (the owner always has one) */
-  state.diag.id=!!state.me; state.diag.owner=state.owner;
-  /* the page owner is rikurussel14@gmail.com (夫); any other signed-in account is 妻 */
-  resolveRole(); render();
-  if(!db){ const at=cacheLoad(); if(at){ render(); off(`オフライン：${new Date(at).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})} 時点の控えを表示しています（変更は保存されません）`); return; } off("共有データに接続できません。claude.aiに招待されたアカウントでログインしているか確認してください（招待は「編集可」）。"); return; }
-  claude.use("assets").then(a=>{ state.assets=a||null; requestRender(); }).catch(()=>{});
-  claude.use("sample").then(async sm=>{ if(sm){ state.sampleTxt=sm; requestRender(); } if(!sm){ state.sampleWhy="この表示環境ではClaudeへの問い合わせ機能そのものが提供されていません"; state.sampleNote="この画面ではClaudeの自動読み取りが使えません。写真を見ながら入力してください"; requestRender(); return; } try{ const L=await sm.limits(); if(!L||!L.images){ state.sampleWhy="Claudeへの問い合わせはできますが、この表示環境は写真の送信に対応していません"; state.sampleNote="この画面では写真の自動読み取りに対応していません。写真を見ながら入力してください"; requestRender(); } if(L&&L.images){ state.sample=sm; state.sampleImg=L.images; const inp=$("rcptIn"); if(inp&&L.images.mediaTypes) inp.accept=L.images.mediaTypes.join(","); requestRender(); } }catch(e){} }).catch(()=>{});
-  claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="cal") requestRender(); if(m) gAutoKick(8000); }).catch(()=>{});
-  histDoc=db.doc("meta/history");bindShopChips();
-  if(state.me){ try{ prefsDoc=db.doc(`data/users/${state.me}/prefs`); privBase=db.doc(`data/users/${state.me}/private`); privCol=privBase.collection("diary"); }catch(e){ prefsDoc=null; privCol=null; privBase=null; } }
-  famDoc=db.doc("meta/family");
-  rolesDoc=db.doc("meta/roles");
-  if(!state.me&&state.owner===false&&!prefsDoc){ /* no account id: keep this person's settings in the shared store (appearance only — not secret) */
-    prefsDoc=db.doc("meta/prefs_w"); }
-  if(!state.me){ /* invited from outside the organization: no account id → encrypted private vault */
-    vaultCol=db.collection("vault_w"); state.vaultRaw={};
-    vaultCol.onSnapshot(async s=>{ for(const d of s.docs){ const v=d.data(); if(d.id==="meta") state.vaultMeta=v; else state.vaultRaw[d.id]=v; }
-      if(!state.vaultKey&&state.vaultMeta&&store.get("futari.vpin")) await vaultUnlock(store.get("futari.vpin"),true);
-      else if(state.vaultKey) await vaultDecryptAll();
-      requestRender(); },()=>{});
-  }
-  rolesDoc.onSnapshot(s=>{ state.roles=s.exists?s.data():{}; state.rolesLoaded=true; resolveRole(); requestRender(); if(!$("onb").hidden) renderOnb(); },()=>{ state.rolesLoaded=true; });
-  famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
-  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(pushEnabled()){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} if(c!=="gsync") gAutoKick(4000); if(c==="blocks"||c==="pitems") autoCook(); requestRender(); },()=>{});
-  const live=()=>{ $("sync").classList.add("live"); netChip(); };
-  const lost=e=>{ $("sync").classList.remove("live");if(aiStoreLimited(e)){off("保存先の読み取りが利用上限に達したため、最新の変更を受信できません。繰り返し再読み込みせず、利用枠が回復してから確認してください。");$("syncText").textContent="読み取り上限";return;} $("syncText").textContent="再読み込みしてください"; };
-  const GK=new Set(["items","events","plans","shifts"]);
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(s); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
-  sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
-  sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
-  { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log"||state.view==="daylog"||state.view==="talk") requestRender(); else renderChrome(); },()=>{}); }
-  if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
-  histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
-  if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
-    for(const k of Object.keys(DEFAULT_PREFS)) if(typeof p[k]===typeof DEFAULT_PREFS[k]) next[k]=p[k];
-    /* 古い版が未対応のキーを落として同期しても、お気に入りは消さない。 */
-    if(state.favoritesLoaded||p.itemFavorites===undefined) next.itemFavorites=JSON.stringify(itemFavorites());
-    if(next.autoRules!==prefs.autoRules) AR=null;
-    prefWriteKey=stableJSON(next);
-    const first=firstPrefs; firstPrefs=false;
-    if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
-    if(!s.fromCache&&next.voiceMig!=="196"){ next.voiceMig="196"; if(next.voiceAI==="on") next.voiceAI="fix"; setTimeout(()=>savePrefs(true),500); } /* v196: 録音方式で「？」になる問題のため、端末の聞き取り＋AI補正を標準に */
-    if(!s.fromCache&&next.svMig!=="238"){ next.svMig="238"; if((next.startView||"home")==="home") next.startView="auto"; setTimeout(()=>savePrefs(true),600); } /* v238: 使用履歴でホームをすぐ離れることが多かったので、よく使う画面で開く（設定で戻せる） */
-    if(!s.fromCache&&next.navMig!=="194"){ next.navMig="194"; if(next.nav!=="tab"){ next.navPrev=next.nav; next.nav="tab"; } setTimeout(()=>savePrefs(true),500); } /* v194: 一度だけ下のタブメニューへ（設定で戻せる） */
-    if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
-      if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="auto"?(AUTO_SV.includes(prefs.autoStartV)?prefs.autoStartV:"home"):prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
-      render(); placeRail(false); }
-    if(first){bindFavorites();if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
-})();
+/* Included only in the generated preview. No production APIs or credentials. */
+{
+  const docs = new Map(), listeners = new Map();
+  const copy = x => JSON.parse(JSON.stringify(x));
+  const merge = (a,b) => { const o={...a};for(const [k,v] of Object.entries(b))o[k]=v&&typeof v==='object'&&!Array.isArray(v)?merge(a?.[k]||{},v):v;return o; };
+  const snapshot = p => ({id:p.split('/').pop(),exists:docs.has(p),fromCache:false,data:()=>copy(docs.get(p)||{})});
+  const collectionSnapshot = p => ({metadata:{fromCache:false},docs:[...docs.keys()].filter(k=>k.startsWith(p+'/')&&!k.slice(p.length+1).includes('/')).map(snapshot)});
+  const notify = p => { for(const k of [p,p.slice(0,p.lastIndexOf('/'))])for(const [cb,coll] of listeners.get(k)||[])queueMicrotask(()=>cb(coll?collectionSnapshot(k):snapshot(k))); };
+  function listen(p,cb,coll){ const l=listeners.get(p)||[];l.push([cb,coll]);listeners.set(p,l);queueMicrotask(()=>cb(coll?collectionSnapshot(p):snapshot(p)));return()=>{}; }
+  function doc(p){return {get:async()=>snapshot(p),set:async d=>{docs.set(p,copy(d));notify(p);},update:async d=>{docs.set(p,merge(docs.get(p)||{},copy(d)));notify(p);},delete:async()=>{docs.delete(p);notify(p);},collection:c=>collection(p+'/'+c),onSnapshot:cb=>listen(p,cb,false)};}
+  function collection(p){return {doc:id=>doc(p+'/'+id),get:async()=>collectionSnapshot(p),onSnapshot:cb=>listen(p,cb,true)};}
+  const d=today(), tomorrow=addDays(d,1), now=Date.now(), put=(c,id,x)=>docs.set(c+'/'+id,x);
+  Object.assign(state,{me:'preview-h',owner:true,acctRole:'h',emailRole:'h',fam:{h:'テストA',w:'テストB'},roles:{h:'preview-h',w:'preview-w'},rolesLoaded:true});
+  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0',mode:new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light'});
+  db={doc,collection};privBase=doc('private');prefsDoc=doc('meta/prefs');histDoc=doc('meta/history');kakeiDoc=doc('meta/kakei');famDoc=doc('meta/family');
+  put('meta','prefs',prefs);put('meta','family',state.fam);put('meta','history',{names:['牛乳','卵']});
+  put('meta','kakei',{fridge:{items:['卵','豆腐','にんじん'],at:now},music:{h:'スピッツ',w:'宇多田ヒカル'}});
+  const item=(text,extra={})=>({text,list:'task',done:false,who:'both',createdAt:now,updatedAt:now,...extra});
+  put('items','shared-task',item('共有タスク（ふたり）',{due:d,time:'10:00',dur:30}));
+  put('items','partner-task',item('テストB担当の共有タスク',{due:d,who:'w',time_w:'12:00'}));
+  put('items','completed-task',item('完了した共有タスク',{due:d,done:true}));
+  put('items','shop-today',item('今日の牛乳',{list:'shop',due:d}));
+  put('items','shop-future',item('明日のパン',{list:'shop',due:tomorrow}));
+  put('items','shop-undated',item('日付なしの洗剤',{list:'shop'}));
+  put('items','partner-shop',item('テストB担当の買い物',{list:'shop',due:d,who:'w'}));
+  put('private/pitems','private-shop',item('非公開の買い物テスト',{list:'shop',due:d,who:'h'}));
+  put('items','weekly',item('共有の毎週タスク',{list:'rtask',target:'wd',wd:[parse(d).getDay()],log:{},time:'11:00',dur:30}));
+  put('private/pitems','private-task',item('自分だけのタスク',{due:d,time:'13:00',dur:30,who:'h'}));
+  put('private/habits','daily-habit',{text:'毎日ストレッチ',target:7,time:'07:00',dur:15,log:{},createdAt:now});
+  put('private/habits','weekly-habit',{text:'週1回の習慣',target:'wd',wd:[parse(d).getDay()],log:{},createdAt:now});
+  put('private/habits','hidden-habit',{text:'時間割に出さない習慣',entryKind:'habit',showInTimetable:false,target:7,time:'08:00',dur:30,log:{[addDays(d,-1)]:1},createdAt:now-86400000});
+  put('private/habits','private-recurring-task',{text:'自分だけの繰り返しタスク',entryKind:'task',target:'wd',wd:[parse(d).getDay()],time:'09:00',dur:30,log:{},createdAt:now});
+  put('private/blocks','daily-block',{text:'毎日の読書',date:d,rep:'daily',start:'21:00',end:'21:30',createdAt:now});
+  put('private/blocks','all-day-block',{text:'自分だけの終日予定',date:d,rep:'none',allDay:true,memo:'共有されない非公開メモ',createdAt:now});
+  put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:30',who:'both',createdAt:now});
+  put('events','partner-event',{text:'相手だけの予定',date:d,start:'17:00',end:'18:00',who:'w',createdAt:now});
+  put('plans','shared-plan',{text:'共有の将来計画',cat:'future',date:d,who:'both',createdAt:now});
+  put('cautions','shared-caution',{text:'共有の注意事項',date:d,who:'both',createdAt:now});
+  put('chores','shared-chore',{text:'共有の掃除',who:'w',target:'wd',wd:[parse(d).getDay()],since:d,log:{},createdAt:now});
+  put('recur','shared-payment',{text:'共有の定期支払い',day:parse(d).getDate(),amount:1200,from:d.slice(0,7),who:'both'});
+  put('talks',d,{date:d,status:'done',held:true,heldAt:now,notes:'話し合いのテスト記録',at:now});
+  put('dinner',d,{date:d,text:'旧形式のカレー',at:now,role:'h'});
+  put('bugs','active-request',{text:'検証用の未対応要望',status:'new',role:'h',at:now});
+  put('bugs','closed-request',{text:'検証用の過去要望',status:'fixed',role:'h',at:now,fixNote:'テスト用の対応内容',fixedAt:now,fixedVersion:'179'});
+  put('bugs','approved-request',{text:'検証用の承認済み要望',status:'approved',role:'h',at:now});
+  put('bugs','rejected-request',{text:'検証用の見送り要望',status:'rejected',role:'h',at:now});
+  for(const [i,[text]] of AI_RELEASE.fixes.entries())put('bugs','ai-fixed-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
+  for(const [i,[text]] of AI_RELEASE.pending.entries())put('bugs','ai-pending-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
+  for(const [id,text] of AI_RELEASE_184.fixes)put('bugs',id,{text,status:'working',role:'h',at:now,ver:'183'});
+  put('events','received-notice',{text:'帰宅は19時です',date:tomorrow,start:'19:00',end:'19:30',who:'both',notice:{from:'w',to:'h',at:now,seenAt:0}});
+  put('events','seen-notice',{text:'先週共有した予定',date:addDays(d,-7),who:'both',notice:{from:'w',to:'h',at:now-604800000,seenAt:now-600000000}});
+  const dayAt=t=>Date.parse(d+'T'+t+':00+09:00');
+  put('items','daily-done',item('住民票の申請と必要書類の確認',{done:true,doneAt:dayAt('10:20'),doneBy:'h',due:addDays(d,2),memo:'印鑑・身分証を用意する',who:'h'}));
+  put('items','daily-shop',item('牛乳・卵・洗剤を買った',{list:'shop',done:true,doneAt:dayAt('17:35'),doneBy:'w',who:'both'}));
+  put('items','daily-habit',item('朝のストレッチ',{list:'rtask',entryKind:'habit',log:{[d]:1},logMeta:{[d]:{by:'h',at:dayAt('06:15')}},who:'both'}));
+  put('chores','daily-chore',{text:'キッチンを掃除',log:{[d]:'w'},logMeta:{[d]:{by:'w',at:dayAt('07:40')}},who:'both',every:1});
+  put('chores','unknown-time',{text:'洗濯物を畳んだ',log:{[d]:'h'},who:'both',every:1});
+  put('activity','record',{c:'diary',id:'today-diary',text:'今日の出来事を書いた',kind:'日記',role:'w',at:dayAt('18:40'),op:'add',visibility:'shared'});
+  window.SpeechRecognition=class {start(){this.timer=setTimeout(()=>{const r=[{0:{transcript:'明日の19時に自分だけの予定で買い物'},isFinal:true}];this.onresult?.({results:r,resultIndex:0});},400);}stop(){clearTimeout(this.timer);this.onend?.();}abort(){clearTimeout(this.timer);this.onend?.();}};
+  bindFavorites();
+  bindShopChips();
+  state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
+  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','cautions','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
+  for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
+  kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
+  histDoc.onSnapshot(s=>state.history=s.data().names||[]);
+  /* Deterministic fake response tests the UI/action path, not language understanding. */
+  let previewAiMode="normal";
+  const mockAI={resetConnection:()=>{},limits:async()=>({images:{mediaTypes:['image/png','image/jpeg']}}),json:async(p,o)=>{
+    const mode=previewAiMode;
+    if(mode==='access')throw Object.assign(new Error('Apps Scriptがログイン画面を返しました（検証用）'),{code:'gas_access'});
+    if(mode==='hang')return new Promise(()=>{});
+    if(mode==='slow'){await new Promise(resolve=>setTimeout(resolve,12000));return {reply:'【遅延応答】リフレッシュ前の古い回答',acts:[],next:[]};}
+    if(o?.images)return {items:['卵','豆腐','にんじん']};
+    if(String(p).includes('改善依頼を開発者向けに整理')){await new Promise(resolve=>setTimeout(resolve,1200));return {summary:'【検証用】要望を既存の画面に合わせて実装する',changes:['対象画面の操作を確認して必要な変更を絞る','既存の保存データと公開範囲を保って追加する'],tests:['スマホ幅で入力・保存・再表示できる','保存失敗時に入力を残して再試行できる'],questions:[]};}
+    const q=String(p).match(/【今回の質問】([^\n]*)/)?.[1]||String(p);
+    const acts=/繰り返し|毎週/.test(q)?[{type:'add_recurring',text:'AIからの毎週ストレッチ',target:'wd',wd:[parse(d).getDay()],date:d,time:'19:00',end:'19:30',who:'priv'}]:/設定/.test(q)?[{type:'set_pref',key:'fs',value:'l'}]:/画面|カレンダー/.test(q)?[{type:'open_view',view:'cal',date:d}]:/要望|不具合/.test(q)?[{type:'report_bug',text:'AIから登録した検証用要望'}]:/防災/.test(q)?[{type:'add_plan',cat:'bousai',text:'検証用の備蓄チェック'}]:/献立|夕飯/.test(q)?[{type:'add_dinner',date:d,main:'卵焼き',side:'にんじんサラダ',soup:'豆腐のみそ汁'}]:[{type:'add_task',text:'AIからの検証タスク',date:tomorrow,time:'09:30',end:'10:15',who:'priv'}];
+    return {reply:'【模擬AI】これは検証専用の固定応答です。下の操作ボタンで動作を確認できます。',acts,next:['カレンダー画面へ','夕飯の献立を記録','改善要望を登録']};
+  }};
+  state.sample=mockAI;state.sampleTxt=mockAI;state.sampleNote='検証用の模擬AI（外部送信なし）';
+  const banner=document.createElement('div');banner.textContent='検証専用：架空データ・本番接続なし・AIは固定応答';banner.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#173b31;color:white;text-align:center;padding:5px;font-size:11px;pointer-events:none';document.body.appendChild(banner);
+  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(['normal','slow','access','hang'].includes(e.data.aiMode))previewAiMode=e.data.aiMode;if(e.data.fontSize&&['m','l','xl'].includes(e.data.fontSize)){prefs.fs=e.data.fontSize;applyPrefs();render();}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
+  if(new URLSearchParams(location.search).get('view')==='requests'){ state.view='settings';prefs.view='settings';state.setOpen={data:1}; }
+  state.view='daylog';prefs.view='daylog';state.dayDate=dayNow();prefs.nav='tab';$('syncText').textContent='検証データ';$('offline').hidden=true;applyPrefs();render();
+  if(new URLSearchParams(location.search).get('view')==='requests') requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));
+}
+
 </script>
 
-<script>if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+
 </body></html>
