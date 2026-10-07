@@ -2226,7 +2226,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="297";
+const APP_VERSION="298";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4680,13 +4680,14 @@ document.addEventListener("click",e=>{ if(state.view!=="settings") return; const
   const at=["data-pref","data-val","data-act","data-v","data-sv","data-pal","data-preset","data-logo"].filter(k=>b.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(b.getAttribute(k))}"]`).join("");
   if(at) setAnchor={sel:at,top:b.getBoundingClientRect().top,t:Date.now()}; },true);
 function setAnchorApply(){ if(!setAnchor||Date.now()-setAnchor.t>2500) return; const el=document.querySelector("#main "+setAnchor.sel); if(!el) return; const d=el.getBoundingClientRect().top-setAnchor.top; if(Math.abs(d)>2) window.scrollBy(0,d); }
-function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"); const box={};
+function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"&&!x.classList.contains("pointer-settings")); const box={};
   for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
   for(const sc of secs){ const h=(sc.querySelector("h2")||{}).textContent||""; const g=SET_GROUPS.find(([k,l,hs])=>hs.some(x=>h.startsWith(x))); box[g?g[0]:"data"].appendChild(sc); } }
 function viewSettings(){
   const sw=Object.entries(PALETTES).map(([k,p])=>`<button class="sw" data-pal="${k}" aria-pressed="${prefs.pal===k}"><span class="cs">${["task","shop","cal","trouble","diary"].map(c=>`<i style="background:${p.light[c]}"></i>`).join("")}</span>${p.name}</button>`).join("");
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+  <section class="card pointer-settings"><h2>画面共有</h2><div class="pointer-setting-row"><span>操作位置のポインタ</span><button type="button" class="opt" data-screen-pointer="toggle" aria-pressed="${!!window.futariPointer?.enabled}">ポインタ ${window.futariPointer?.enabled?"ON":"OFF"}</button></div><p>LINEなどで画面を共有するとき、触れた位置を赤い丸で表示します。タップ・スクロールは普段どおり使えます。</p><p class="who">この端末のふたりすと内だけに表示します。</p></section>
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
   ${window.__FUTARI_PWA?`<section class="card" id="firestoreCard">${firestoreCardHTML()}</section>`:""}
   <section class="card" id="repCard"><h2>くり返し・自動</h2>${repAllHTML()}</section>
@@ -9872,5 +9873,61 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
 })();
 </script>
 
+<style>
+.pointer-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:16px}.pointer-setting-row button{min-height:44px;font-size:14px}
+#screenPointer{position:fixed;left:0;top:0;width:44px;height:44px;box-sizing:border-box;border:3px solid #ec2449;border-radius:50%;background:rgba(236,36,73,.12);box-shadow:0 0 0 3px #fff,0 2px 9px #0009;pointer-events:none!important;z-index:2147483647;margin:0;padding:0}
+#screenPointer::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:#ec2449;box-shadow:0 0 0 1px #fff;transform:translate(-50%,-50%)}
+#screenPointerOff{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(94px + env(safe-area-inset-bottom,0px));z-index:2147483646;min-height:44px;max-width:calc(100vw - 24px);box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:10px 14px;border:1px solid #fecdd3;border-radius:99px;background:#fff;color:#881337;font:700 14px/1.4 system-ui,sans-serif;box-shadow:0 3px 14px #0003;cursor:pointer}
+#screenPointerOff i{width:12px;height:12px;box-sizing:border-box;border:2px solid #ec2449;border-radius:50%;flex:none}#screenPointerOff strong{padding-left:8px;border-left:1px solid #fecdd3}
+#screenPointer[hidden],#screenPointerOff[hidden]{display:none!important}#screenPointerOff:focus-visible{outline:3px solid #ec2449;outline-offset:3px}body.screen-pointer-on #toTop{bottom:calc(148px + env(safe-area-inset-bottom,0px))}
+body.hdr-bottom #screenPointerOff{bottom:calc(var(--hdrH,120px) + 94px + env(safe-area-inset-bottom,0px))}
+</style>
+<div id="screenPointer" hidden aria-hidden="true"></div>
+<button id="screenPointerOff" type="button" data-screen-pointer="off" hidden aria-label="ポインタをOFFにする"><i aria-hidden="true"></i><span>ポインタ ON</span><strong>OFF ×</strong></button>
+<script>
+/* v298: device-local screen-sharing pointer. Passive listeners never consume app gestures. */
+(()=>{
+  const dot=document.getElementById('screenPointer'),off=document.getElementById('screenPointerOff'),key='futari.screenPointer';
+  let enabled=false,controller=null,frame=0,timer=0,touchId=null,x=0,y=0;
+  const hide=()=>{clearTimeout(timer);cancelAnimationFrame(frame);frame=0;dot.hidden=true;touchId=null;};
+  const paint=(point,target)=>{
+    if(!enabled)return;
+    if(target?.closest?.('[data-screen-pointer]')){hide();return;}
+    // Native modal dialogs are above body overlays; keep the marker in their top layer.
+    const host=target?.closest?.('dialog[open]')||document.body;
+    if(dot.parentNode!==host)host.appendChild(dot);
+    x=point.clientX;y=point.clientY;clearTimeout(timer);
+    if(!frame)frame=requestAnimationFrame(()=>{frame=0;if(!enabled)return;dot.style.transform=`translate3d(${x-22}px,${y-22}px,0)`;dot.hidden=false;});
+  };
+  const fade=()=>{clearTimeout(timer);timer=setTimeout(hide,900);};
+  const sync=()=>{
+    off.hidden=!enabled;document.body.classList.toggle('screen-pointer-on',enabled);
+    document.querySelectorAll('[data-screen-pointer="toggle"]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.textContent='ポインタ '+(enabled?'ON':'OFF');});
+  };
+  const set=on=>{
+    enabled=!!on;controller?.abort();controller=null;hide();
+    if(enabled){
+      controller=new AbortController();const options={capture:true,passive:true,signal:controller.signal};
+      const listen=(el,type,fn)=>el.addEventListener(type,fn,options);
+      const pointer=e=>{if(e.pointerType!=='touch'&&e.isPrimary!==false)paint(e,e.target);};
+      listen(document,'pointerdown',pointer);listen(document,'pointermove',pointer);
+      listen(document,'pointerup',e=>{if(e.pointerType!=='touch')fade();});
+      listen(document,'pointercancel',e=>{if(e.pointerType!=='touch')hide();});
+      listen(document,'pointerout',e=>{if(e.pointerType!=='touch'&&!e.relatedTarget)hide();});
+      // Touch events continue during native iPhone scrolling after pointercancel.
+      listen(document,'touchstart',e=>{if(e.touches.length!==1){hide();return;}touchId=e.touches[0].identifier;paint(e.touches[0],e.target);});
+      listen(document,'touchmove',e=>{if(e.touches.length!==1){hide();return;}const p=Array.from(e.touches).find(t=>t.identifier===touchId);if(p)paint(p,e.target);});
+      listen(document,'touchend',e=>{if(Array.from(e.changedTouches).some(t=>t.identifier===touchId)){touchId=null;fade();}});
+      listen(document,'touchcancel',hide);listen(window,'blur',hide);listen(window,'pagehide',hide);listen(window,'resize',hide);
+      listen(document,'visibilitychange',()=>{if(document.hidden)hide();});
+      listen(document,'keydown',e=>{if(e.key==='Escape')set(false);});
+    }
+    sync();try{localStorage.setItem(key,enabled?'1':'0');}catch(_){}
+  };
+  window.futariPointer={get enabled(){return enabled;},set};
+  document.addEventListener('click',e=>{const b=e.target.closest?.('[data-screen-pointer]');if(b)set(b.dataset.screenPointer==='off'?false:!enabled);});
+  let saved=false;try{saved=localStorage.getItem(key)==='1';}catch(_){}set(saved);
+})();
+</script>
 <script>if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body></html>
