@@ -973,10 +973,19 @@ test('quota listener errors explain the limit instead of encouraging a reload lo
  const labels={sync:{classList:{remove(){}}},syncText:{}},c=env(['aiStoreLimited'],{$:id=>labels[id],off:message=>c.reason=message});vm.runInContext(source.match(/^  const lost=.*$/m)[0].trim(),c);
  run(c,'lost({code:"resource-exhausted"})');assert.equal(labels.syncText.textContent,'読み取り上限');assert.match(c.reason,/繰り返し再読み込みせず/);
 });
-test('Firestore settings label unknown metrics and never present previous-day counts as today',()=>{const s={report:{checkedAt:1,metrics:{reads:{count:54227},writes:{count:null},deletes:{count:0}}},current:false,stale:true,day:{end:1000}},c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');assert.match(h,/54,227/);assert.match(h,/今日の使用量は未取得/);assert.match(h,/書き込み<\/b>　未取得/);assert.match(h,/5分ごと/);});
+test('Firestore settings use local diagnostics without API setup or stale project totals',()=>{const s={report:{checkedAt:1,metrics:{reads:{count:54227}}},day:{end:1000}},c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');assert.match(h,/API接続不要/);assert.match(h,/端末内で計測/);assert.match(h,/正確な無料枠残量/);assert.doesNotMatch(h,/54,227|setupFirestoreMonitoring|firestoreRefresh|5分ごと|monitoring.googleapis/);});
 test('Firestore settings distinguish local changes from synchronization and provide export',()=>{const c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>null,firestoreOffline:()=>({paused:true,pending:3,until:Date.now()})});const h=run(c,'firestoreCardHTML()');assert.match(h,/未同期の変更：<b>3件/);assert.match(h,/相手の最新変更はまだ受信できません/);assert.match(h,/firestoreExport/);});
 test('process diagnostics distinguish device scope, estimates, ranking and unknown requests',()=>{
  const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'test',user:'test',version:'290',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
  api.record('listen:activity',{reads:150,initial:150,attaches:1});api.record('get:blobs',{reads:2,gets:2,cacheDocs:4});api.remoteAttempt();
- const c=env(['firestoreReadsDays','firestoreReadsHTML'],{window:{__futariReads:api}}),h=run(c,'firestoreReadsHTML()');assert.match(h,/このブラウザ・このアカウント/);assert.match(h,/読取推定 152件/);assert.match(h,/請求件数ではありません/);assert.match(h,/初回取得が多い/);assert.match(h,/件数不明 1回/);assert.ok(h.indexOf('操作履歴 / 自動同期')<h.indexOf('写真本体 / 個別取得'));assert.match(h,/firestoreReadsExport/);
+ const c=env(['firestoreReadsDays','firestoreReadsHTML'],{window:{__futariReads:api}}),h=run(c,'firestoreReadsHTML()');assert.match(h,/このブラウザ・このアカウント/);assert.match(h.replace(/<[^>]+>/g," "),/読取推定\s+152件/);assert.match(h,/請求件数ではありません/);assert.match(h,/初回取得が多い/);assert.match(h,/件数不明 1回/);assert.ok(h.indexOf('操作履歴 / 自動同期')<h.indexOf('写真本体 / 個別取得'));assert.match(h,/firestoreReadsExport/);
+});
+
+test('quota dashboard separates operation filters, storage unknowns and graphical trends',async()=>{
+ const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'t',user:'u',version:'291',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
+ await api.write('diary/secret','set',{text:'private'},async()=>{});await api.write('items/secret','delete',null,async()=>{});
+ const c=env(['firestoreReadsDays','firestoreReadsHTML'],{window:{__futariReads:api}});
+ for(const metric of ['reads','writes','deletes','receivedBytes','storage']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
+ run(c,'firestoreMetric="writes"');assert.match(run(c,'firestoreReadsHTML()'),/日記 \/ 書き込み/);
+ run(c,'firestoreMetric="deletes"');assert.match(run(c,'firestoreReadsHTML()'),/やること・買い物 \/ 削除/);
 });

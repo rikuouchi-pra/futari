@@ -1,4 +1,4 @@
-/* Firestore monitoring uses Cloud Monitoring, never Firestore reads or writes. */
+/* Local-only mode tracks quota errors without API calls; legacy adapter retained for compatibility. */
 (function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;else root.FutariFirestoreMonitor=api;})(typeof window!=="undefined"?window:globalThis,function(){
   "use strict";
   const LIMITS={reads:50000,writes:20000,deletes:20000}, PERIOD=300000;
@@ -18,7 +18,7 @@
   function create(o){
     const clock=o.clock||Date.now,key="futari.firestore.monitor:"+o.project+":"+o.user;
     let report=null,issue=null,error="",setupUrl="",loading=false,job=null,lastAttempt=0,started=false,timer=null,stoppedForSetup=false;
-    try{const saved=JSON.parse(o.storage.getItem(key)||"null");if(saved&&validReport(saved.report,o.project))report=saved.report;if(saved&&saved.issue&&Number.isFinite(saved.issue.at)&&["read","write","ai"].includes(saved.issue.operation))issue=saved.issue;}catch(_){}
+    try{const saved=JSON.parse(o.storage.getItem(key)||"null");if(!o.localOnly&&saved&&validReport(saved.report,o.project))report=saved.report;if(saved&&saved.issue&&Number.isFinite(saved.issue.at)&&["read","write","ai"].includes(saved.issue.operation))issue=saved.issue;}catch(_){}
     const persist=()=>{try{o.storage.setItem(key,JSON.stringify({report,issue}));}catch(_){}};
     const notify=()=>{if(o.onChange)o.onChange(snapshot());};
     function snapshot(){
@@ -30,6 +30,7 @@
     function observeError(e,operation){if(!limited(e))return;const now=clock();if(issue&&now-issue.at<60000&&issue.operation===operation)return;issue={at:now,operation};persist();notify();}
     function dailyReadLimited(){const s=snapshot();return !!s.issue&&s.current&&s.report.metrics.reads.count!==null&&s.report.metrics.reads.count>=LIMITS.reads;}
     function refresh(manual){
+      if(o.localOnly)return Promise.resolve(snapshot());
       if(job)return job;
       if((stoppedForSetup&&!manual)||(lastAttempt&&clock()-lastAttempt<(manual?30000:PERIOD)))return Promise.resolve(snapshot());
       lastAttempt=clock();loading=true;notify();
@@ -44,7 +45,7 @@
       return job;
     }
     function tick(){if(!o.isVisible||o.isVisible()){notify();refresh(false);}}
-    function start(){if(started)return;started=true;tick();timer=(o.setInterval||setInterval)(tick,PERIOD);}
+    function start(){if(o.localOnly){notify();return;}if(started)return;started=true;tick();timer=(o.setInterval||setInterval)(tick,PERIOD);}
     function stop(){if(timer)(o.clearInterval||clearInterval)(timer);timer=null;started=false;}
     function clearIssue(){issue=null;persist();notify();}
     return {snapshot,refresh,observeError,clearIssue,dailyReadLimited,start,stop};

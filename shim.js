@@ -93,20 +93,20 @@
       window.addEventListener("pagehide",function(){fbReads.flush();});
       document.addEventListener("visibilitychange",function(){if(document.hidden)fbReads.flush();});
     }
-    fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,isVisible:function(){return !document.hidden&&navigator.onLine!==false;},onChange:fbNotify_,fetchUsage:async function(){
-      var G=(window.FUTARI_GAS_URLS||{})[OWNER]||gasUrl();if(!G)throw Error("利用状況を確認する接続先がありません");
-      var tok=await me.getIdToken(),r=await gasCall_(G,{idToken:tok,tool:"firestoreUsage",args:{}},25000);if(r.error)throw gasError_(r.error.code,r.error.message);return r.payload;
-    }});
+    window.__futariStorageEstimate=function(){if(!fbReads)return Promise.resolve();return navigator.storage&&navigator.storage.estimate?navigator.storage.estimate().then(function(v){fbReads.browserEstimate(v);},function(){fbReads.browserEstimate(null);}):Promise.resolve(fbReads.browserEstimate(null));};
+    window.__futariStorageEstimate();
+    fbMonitor=F.create({project:CFG.projectId,user:me.uid,storage:local,localOnly:true,onChange:fbNotify_});
     fbOffline=O.create({project:CFG.projectId,store:O.storage(window.indexedDB,CFG.projectId+":"+me.uid),id:rid,dayWindow:F.dayWindow,limited:F.limited,onChange:fbNotify_,onError:function(e){fbMonitor.observeError(e,"read");},
       pauseNetwork:function(){return M.disableNetwork(fs);},resumeNetwork:function(){return M.enableNetwork(fs);},probe:async function(){await fbDeadline_(fbReadRaw_("meta/family",false,function(){return M.getDocFromServer(M.doc(fs,"meta","family"));},"get:recovery"));fbMonitor.clearIssue();},
-      send:function(path,kind,value){var ref=M.doc.apply(null,[fs].concat(segs(path)));return fbDeadline_(kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{}));},emit:fbEmit_,unbind:fbUnbind_,rebind:fbRebind_
+      send:function(path,kind,value){return fbDeadline_(fbSend_(path,kind,value));},emit:fbEmit_,unbind:fbUnbind_,rebind:fbRebind_
     });
     window.__futariFirestore=fbMonitor;window.__futariOffline=fbOffline;await fbOffline.loaded;if(fbOffline.snapshot().paused)await M.disableNetwork(fs);
     fbMonitor.start();
     setInterval(function(){if(!document.hidden&&navigator.onLine!==false)fbOffline.resume(false).catch(function(){fbNotify_();});},60000);
-    document.addEventListener("visibilitychange",function(){if(!document.hidden){fbMonitor.refresh(false);fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
+    document.addEventListener("visibilitychange",function(){if(!document.hidden){fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
   }
-  function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});}
+  function fbSend_(path,kind,value){var send=function(){var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});};return fbReads?fbReads.write(path,kind,value,send):send();}
+  function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);return fbSend_(path,kind,value);}
   function fbReadRaw_(path,collection,fn,tag){return fbReads?fbReads.get(path,collection,fn,tag):fn();}
   function fbReadShared_(path,collection,cache,fn){return fbSharedReads((collection?"list:":"get:")+path+":"+(cache?"cache":"default"),function(){return fbReadRaw_(path,collection,fn);},function(){if(fbReads)fbReads.reused(path,collection);});}
   async function fbGet_(ref,collection){
@@ -184,8 +184,8 @@
   async function putBlob(id, blob, type){
     if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の追加は同期が復旧してからできます。文章の変更は端末に保存できます。");
     blob = await shrinkTo(blob); var buf = new Uint8Array(await blob.arrayBuffer());
-    await M.setDoc(M.doc(fs, "blobs", id), { data: M.Bytes.fromUint8Array(buf), type: type || blob.type || "image/jpeg", size: buf.length, at: Date.now(), by: me.uid });
-    await M.setDoc(M.doc(fs, "blobmeta", id), { size: buf.length, type: type || blob.type || "image/jpeg", at: Date.now(), by: me.uid });
+    await fbSend_("blobs/"+id,"set", { data: M.Bytes.fromUint8Array(buf), type: type || blob.type || "image/jpeg", size: buf.length, at: Date.now(), by: me.uid });
+    await fbSend_("blobmeta/"+id,"set", { size: buf.length, type: type || blob.type || "image/jpeg", at: Date.now(), by: me.uid });
     var u = URL.createObjectURL(new Blob([buf], { type: type || "image/jpeg" })); urlCache.set(id, u); fill(id, u);
     return { id: id, url: u };
   }
@@ -201,7 +201,7 @@
     putWithId: function(id, blob){ return putBlob(id, blob, blob.type || "image/jpeg"); },
     list: async function(){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真一覧の取得は同期が復旧してからできます。");var qs = await fbReadShared_("blobmeta",true,false,function(){return M.getDocs(M.collection(fs,"blobmeta"));}); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
       return { assets: as, usage: { files: as.length, bytes: as.reduce(function(a, x){ return a + x.size; }, 0), maxFiles: MAX_FILES, maxBytes: MAX_BYTES } }; },
-    delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await M.deleteDoc(M.doc(fs, "blobs", id)); await M.deleteDoc(M.doc(fs, "blobmeta", id)); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
+    delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await fbSend_("blobs/"+id,"delete"); await fbSend_("blobmeta/"+id,"delete"); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
   };
 
   /* ---------- sample（レシート文字の読み取り：端末内のかんたん解析） ---------- */
@@ -287,7 +287,7 @@
       if(o.audio){if(o.audio.size>MAX_ONE){var ea=new Error("録音が長すぎます");ea.code="too_large";throw ea;}doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(o.audio.arrayBuffer(),ctl.signal)));doc.mime=o.audio.type||"audio/wav";} /* v193: 音声の文字起こし */
       else if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0]),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
       if(ctl.signal.aborted)throw aiAbortError_();
-      written=M.setDoc(ref,doc);await waitAbort_(written,ctl.signal);
+      written=fbSend_(ref.path,"set",doc);await waitAbort_(written,ctl.signal);
       var tok=await waitAbort_(me.getIdToken(),ctl.signal);
       phase("AIに問い合わせています");
       /* A read-limit response occurs before the model runs. Retry the same uploaded document only, never re-upload or switch models for a storage quota. */
@@ -315,7 +315,7 @@
       throw e;
     }finally{
       clearTimeout(timer);if(signal)signal.removeEventListener("abort",cancel);
-      if(written)Promise.resolve(written).then(function(){return M.deleteDoc(ref);}).catch(function(){});
+      if(written)Promise.resolve(written).then(function(){return fbSend_(ref.path,"delete");}).catch(function(){});
     }
   }
   async function aiAskDirect_(prompt,o){
