@@ -1,3 +1,19 @@
+# Firestore quota-based diagnostics (v295)
+
+The goal is attributing unnecessary work to application processes, without billing setup or Monitoring API calls. The dashboard uses Firestore Standard free quotas (50k reads/day, 20k writes/day, 20k deletes/day, 1 GiB storage, 10 GiB outbound/month) and hard limits (1 MiB document, 1 MiB−89 B field, 10 MiB request, 20 nesting levels). Free quotas and per-operation hard limits are not interchangeable.
+
+Per-process rankings now include observed maximum document/field/body sizes and nesting as well as operation counts and capacity. Maxima are compared as maxima, never added as usage shares. Scalar timestamp/bytes/geopoint/reference values do not add map/array nesting. A failed send still contributes to attempted request-body size, not stored capacity. SDK batching/protocol bytes remain unmeasured. Received document size remains a transfer proxy, not actual network usage. No path or document content is exported.
+
+Indexes, rules evaluation, transactions, names/paths and administrative limits have explicit unmeasured/reference entries with official thresholds. Unobserved data is not presented as zero or safe. Browser storage and the application's photo targets remain accessible in a separate reference panel and are not Firestore quotas. Size/structure trends are unrecorded and no longer replaced by a read-count chart. Initial reads per listener attachment are shown beside the operation breakdown; load alone does not establish waste or improvement.
+
+Official reference checked 2026-10-07: https://firebase.google.com/docs/firestore/quotas
+
+# Current policy (v294): no billing setup
+
+The user requested proceeding without billing. The unshipped v293 Google API activation is withdrawn; its code remains in git history only. The frontend uses local-only diagnostics, never polls Monitoring (including manual refresh/startup/foreground), ignores old project reports, and has no billing activation link. No Google login, billing, IAM, Apps Script deployment, or OAuth scope change is needed for this release.
+
+The screen explicitly labels two-person project totals as unavailable; local counts are never presented as global actuals. The v292 full-history preserving optimizations remain included. Existing display inputs, synchronization, notifications, local diagnostics and offline recovery remain intact.
+
 # Firestore process diagnostics (v291)
 
 Settings → Firestoreの利用状況 → 処理別の読み取り.
@@ -25,3 +41,18 @@ Future optimization: collect representative use on each device, export diagnosti
 - Received document size is a proxy, not measured network traffic: protocol overhead, index traffic, SDK reconnection, cache promotion and other devices cannot be reconciled without server metrics. Forty-day local retention supports the current calendar month; pre-upgrade usage is unknown.
 - Browser storage estimate is a local browser call, not a monitoring network API. Browser quota can change and is not localStorage-specific. Photo 700 MiB/5,000 are existing app targets, not enforced Firestore service quotas. No monitoring-initiated photo listing.
 - Per-document 1 MiB, field 1 MiB-89 B, nesting 20 and request 10 MiB are shown with their observation limits. Index/rule limits and AI/GAS/Auth/hosting account quotas are explicitly unmeasured; no claims to measure all service quotas without APIs.
+
+
+## v292: preserve full history and reduce redundant operations
+
+The earlier 100-row limit and manual history pagination have been withdrawn. The existing history view (300 rows after applying the person filter), all unread/update counts, the last-36-hour agenda, automatic synchronization, and 60-day cleanup retain their original inputs and behavior. No history migration, truncation, new manual loading step, or new retention policy is introduced.
+
+- Identical active subscriptions share one SDK listener, including its full snapshot, updates, deletions and offline overlays. Releasing one consumer does not stop another. Failed subscriptions can be rebound; recovery rebinds each shared listener once. This reuses Firebase's existing persistent, multi-tab cache without treating a cached snapshot as an authoritative replacement for a server resynchronization.
+- Shared AI-profile and work-calendar comparisons ignore object-key order. Profile writes update only the current role's profile and timestamp. Identical account preferences are not rewritten; failed writes remain retryable. Genuine edits are saved immediately.
+- Unchanged automatic notification registration is skipped for ten minutes after a successful acknowledgement. Changed schedules/settings, new queued notifications, explicit test/refresh and the existing periodic refresh still send. Failed requests retain queued notifications.
+- Weekly usage reports wait for the report collection's server snapshot and recheck before writing, preventing startup ordering from creating duplicate reports.
+- Diagnostics identify new shared/private notification writes as `push` instead of `other`. Monitoring remains local-only.
+
+Validation: `node --test --test-force-exit tests/regression.cjs tests/firestore-reads.cjs tests/firestore.cjs tests/ai-transport.cjs tests/gas/*.cjs`. A 3,508-row synthetic history reaches both consumers intact through one SDK listener; modifications, deletions, unsubscribe, error recovery, local overlays, full unread counts and the original person-filtered 300-row view are tested. All inline scripts parse successfully. Browser/iPhone visual QA is unavailable in this environment.
+
+The previous 97.1% initial-history reduction no longer applies. A required full history synchronization still reads all matching documents; sharing only saves when otherwise duplicated subscriptions overlap, and suppressing unchanged writes reduces resulting update reads. Existing diagnostic counters do not establish that its past seven attaches overlapped. Project-wide savings and actual billed counts must not be inferred from these synthetic tests.

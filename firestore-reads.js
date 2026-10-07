@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.FutariFirestoreReads=api;})(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
   const FIELDS=['reads','initial','updates','gets','attaches','cacheDocs','cacheEvents','localEvents','errors','unknown','reused','empty','removed','writes','deletes','writeAttempts','deleteAttempts','writeErrors','deleteErrors','sentBytes','receivedBytes'];
-  const NAMES={items:'やること・買い物',events:'ふたりの予定',shifts:'シフト',diary:'日記',comments:'日記コメント',activity:'操作履歴',usage:'利用履歴',usageReports:'利用レポート',photos:'写真情報',blobs:'写真本体',blobmeta:'写真一覧',profiles:'プロフィール',aitmp:'AI一時データ',chores:'家事',plans:'長期計画',topics:'話すこと',talks:'話し合い記録',bugs:'改善要望',troubles:'困りごと',cautions:'注意事項',qa:'今日の質問',music:'今日の曲',spend:'支出',recur:'定期支払い',goals:'目標',thanks:'ありがとう',dinner:'夕食',pitems:'自分のタスク',blocks:'自分の予定',gsync:'カレンダー同期',habits:'習慣',reflect:'行動実施',pwish:'自分の希望',vault_w:'個人保管庫'};
+  const NAMES={items:'やること・買い物',events:'ふたりの予定',shifts:'シフト',diary:'日記',comments:'日記コメント',activity:'操作履歴',push:'通知予定',usage:'利用履歴',usageReports:'利用レポート',photos:'写真情報',blobs:'写真本体',blobmeta:'写真一覧',profiles:'プロフィール',aitmp:'AI一時データ',chores:'家事',plans:'長期計画',topics:'話すこと',talks:'話し合い記録',bugs:'改善要望',troubles:'困りごと',cautions:'注意事項',qa:'今日の質問',music:'今日の曲',spend:'支出',recur:'定期支払い',goals:'目標',thanks:'ありがとう',dinner:'夕食',pitems:'自分のタスク',blocks:'自分の予定',gsync:'カレンダー同期',habits:'習慣',reflect:'行動実施',pwish:'自分の希望',vault_w:'個人保管庫'};
   const META={family:'家族名',roles:'家族の担当',history:'買い物履歴',shopSuggestions:'買い物候補',kakei:'家計設定',favorites:'お気に入り',prefs_w:'個人設定'};
   function pathKey(path){const p=String(path||'').split('/').filter(Boolean);if(p[0]==='data'&&p[1]==='users')return p[3]==='private'?'private/'+(NAMES[p[4]]?p[4]:'other'):'private/'+(['prefs','favorites'].includes(p[3])?p[3]:'other');if(p[0]==='meta')return 'meta/'+(META[p[1]]?p[1]:'other');return NAMES[p[0]]?p[0]:'other';}
   function label(key){const p=key.split(':'),kind=p[0],path=p.slice(1).join(':'),parts=path.split('/'),base=path==='recovery'?'復旧確認':path==='legacyAI'?'AI接続サーバー':parts[0]==='private'?'自分：'+(parts[1]==='prefs'?'設定':parts[1]==='favorites'?'お気に入り':NAMES[parts[1]]||'その他'):parts[0]==='meta'?(META[parts[1]]||'共通設定'):NAMES[path]||'その他';return base+' / '+({listen:'自動同期',get:'個別取得',list:'一覧取得',remote:'推定・未確認',write:'書き込み',delete:'削除'}[kind]||kind);}
@@ -24,11 +24,14 @@
   }
   function nameSize(path){return String(path).split('/').reduce((n,x)=>n+utf8(x)+1,16);}
   function docSize(path,v){return nameSize(path)+valueSize(v);}
-  function shape(v,depth=0){let maxField=0,maxDepth=depth;if(v&&typeof v==='object'&&!v.toMillis&&!v.toUint8Array&&!v.firestore){for(const x of Object.values(v)){maxField=Math.max(maxField,valueSize(x));if(x&&typeof x==='object'&&!x.toMillis&&!x.toUint8Array&&!x.firestore){const sub=shape(x,depth+1);maxDepth=Math.max(maxDepth,sub.maxDepth);maxField=Math.max(maxField,sub.maxField);}}}return {maxField,maxDepth};}
+  function shape(v,depth=0){
+    const container=x=>x&&typeof x==='object'&&!(x instanceof Date)&&!(x instanceof Uint8Array)&&!x.toMillis&&!x.toUint8Array&&!x.firestore&&!(typeof x.latitude==='number'&&typeof x.longitude==='number');
+    let maxField=0,maxDepth=depth;if(container(v))for(const x of Object.values(v)){maxField=Math.max(maxField,valueSize(x));if(container(x)){const sub=shape(x,depth+1);maxDepth=Math.max(maxDepth,sub.maxDepth);maxField=Math.max(maxField,sub.maxField);}}return {maxField,maxDepth};
+  }
   function create(o){
     const clock=o.clock||Date.now,storage=o.storage,dayWindow=o.dayWindow,prefix='futari.reads.v1:'+o.project+':'+o.user+':',session=o.session||clock().toString(36)+'-'+Math.random().toString(36).slice(2),key=prefix+session;
     let data={schema:1,startedAt:clock(),updatedAt:clock(),buckets:{}},timer=null,dirty=false,storageError=false;
-    const active=new Map(),known=new Map();let maxRequest=0,browserStorage={status:"unavailable"};
+    const active=new Map(),known=new Map(),requestMaxima=new Map();let maxRequest=0,browserStorage={status:"unavailable"};
     function schedule(){if(timer===null)timer=(o.setTimeout||setTimeout)(()=>{timer=null;flush();if(o.onChange)o.onChange();},1500);}
     function record(process,values){
       const now=clock(),day=dayWindow(now).start,version=String(typeof o.version==='function'?o.version():o.version||'unknown'),id=day+'|'+version;
@@ -64,12 +67,12 @@
       if(!col&&!a.length)known.delete(path);
       return a.reduce((n,d)=>n+observe(col?path+'/'+d.id:path,d.data()),0);
     }
-    function capacity(){const rows=Object.create(null);let bytes=0,maxDoc=0,maxField=0,maxDepth=0;for(const x of known.values()){bytes+=x.bytes;maxDoc=Math.max(maxDoc,x.bytes);maxField=Math.max(maxField,x.maxField);maxDepth=Math.max(maxDepth,x.maxDepth);if(!rows[x.group])rows[x.group]={group:x.group,label:label('get:'+x.group).replace(' / 個別取得',''),bytes:0,docs:0};rows[x.group].bytes+=x.bytes;rows[x.group].docs++;}return {bytes,docs:known.size,maxDoc,maxField,maxDepth,maxRequest,rows:Object.values(rows).sort((a,b)=>b.bytes-a.bytes),scope:'このタブで確認できた文書のみ。未取得文書・インデックスを含まない推定値'};}
+    function capacity(){const rows=Object.create(null);let bytes=0,maxDoc=0,maxField=0,maxDepth=0;for(const x of known.values()){bytes+=x.bytes;maxDoc=Math.max(maxDoc,x.bytes);maxField=Math.max(maxField,x.maxField);maxDepth=Math.max(maxDepth,x.maxDepth);if(!rows[x.group])rows[x.group]={group:x.group,label:label('get:'+x.group).replace(' / 個別取得',''),bytes:0,docs:0,maxDoc:0,maxField:0,maxDepth:0,maxRequest:0};rows[x.group].bytes+=x.bytes;rows[x.group].docs++;rows[x.group].maxDoc=Math.max(rows[x.group].maxDoc,x.bytes);rows[x.group].maxField=Math.max(rows[x.group].maxField,x.maxField);rows[x.group].maxDepth=Math.max(rows[x.group].maxDepth,x.maxDepth);}for(const [group,size] of requestMaxima){if(!rows[group])rows[group]={group,label:label('write:'+group).replace(' / 書き込み',''),bytes:0,docs:0,maxDoc:0,maxField:0,maxDepth:0,maxRequest:0};rows[group].maxRequest=size;}return {bytes,docs:known.size,maxDoc,maxField,maxDepth,maxRequest,rows:Object.values(rows).sort((a,b)=>b.bytes-a.bytes),scope:'このタブで確認できた文書のみ。未取得文書・インデックスを含まない推定値'};}
     function monthUsage(){const f=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit'}),month=f.format(new Date(clock()));let bytes=0;for(const d of load())for(const b of Object.values(d.buckets)){if(b.day<=clock()&&f.format(new Date(b.day))===month)for(const r of Object.values(b.rows))bytes+=Number(r.receivedBytes)||0;}return {label:month,receivedBytes:bytes};}
     function browserEstimate(v){browserStorage=v&&Number.isFinite(v.usage)&&Number.isFinite(v.quota)&&v.quota>0?{status:'available',usage:v.usage,quota:v.quota,at:clock()}:{status:'unavailable'};if(o.onChange)o.onChange();}
     async function write(path,kind,value,fn){
       const p=(kind==='delete'?'delete:':'write:')+pathKey(path),del=kind==='delete',prior=known.get(path);let bytes=0;
-      try{bytes=del?nameSize(path):docSize(path,value);maxRequest=Math.max(maxRequest,bytes);record(p,{[del?'deleteAttempts':'writeAttempts']:1,sentBytes:bytes});}catch(_){}
+      try{bytes=del?nameSize(path):docSize(path,value);maxRequest=Math.max(maxRequest,bytes);requestMaxima.set(pathKey(path),Math.max(requestMaxima.get(pathKey(path))||0,bytes));record(p,{[del?'deleteAttempts':'writeAttempts']:1,sentBytes:bytes});}catch(_){}
       let result;try{result=await fn();}catch(e){try{record(p,{errors:1,[del?'deleteErrors':'writeErrors']:1});}catch(_){}throw e;}
       try{record(p,{[del?'deletes':'writes']:1});if(del)known.delete(path);else if(known.get(path)===prior){if(kind==='set')observe(path,value);else known.delete(path);}}catch(_){}
       return result;

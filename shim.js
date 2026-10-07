@@ -9,7 +9,7 @@
 
   var M = {};            // firebase modules
   var app, auth, fs, me = null, fbMonitor=null, fbOffline=null;
-  var fbWatches=new Set(), fbReads=null;
+  var fbWatches=new Set(), fbWatchGroups=new Map(), fbReads=null;
   var fbSharedReads=window.FutariFirestoreReads?window.FutariFirestoreReads.singleFlight():function(key,fn){return fn();};
   var readyResolve, readyReject;
   var ready = new Promise(function(ok, ng){ readyResolve = ok; readyReject = ng; });
@@ -115,19 +115,30 @@
     var base=collection?colSnap(s):docSnap(s);return fbOffline?fbOffline.overlay(ref.path,base,collection):base;
   }
   function fbListen_(ref,collection,cb,err){
-    var w={path:ref.path,collection:collection,cb:cb,raw:null,un:null,bind:function(){
-      if(w.un)w.un();
-      var meter=fbReads?fbReads.listener(ref.path,collection):null,first=true;
-      var stop=M.onSnapshot(ref.ref,{includeMetadataChanges:true},function(s){
-        var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
-        var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
-        try{if(meter)meter.snapshot(s);}catch(e){/* Diagnostics must never interrupt synchronization. */}
-        if(!first&&!changed&&!confirmed)return;first=false;
-        w.raw=collection?colSnap(s):docSnap(s);cb(fbOffline?fbOffline.overlay(ref.path,w.raw,collection):w.raw);
-      },function(e){if(meter){meter.error();meter.close();}fbError_(e,"read");if(err)err(e);});
-      w.un=function(){stop();if(meter)meter.close();};
-    }};
-    fbWatches.add(w);w.bind();return function(){if(w.un)w.un();fbWatches.delete(w);};
+    // Identical active subscriptions share one SDK listener; every consumer still receives all rows.
+    var key=(collection?"list:":"doc:")+ref.path,subscriber={cb:cb,err:err},w=fbWatchGroups.get(key);
+    if(!w){
+      w={path:ref.path,collection:collection,subscribers:new Set(),raw:null,un:null,
+        cb:function(s){Array.from(w.subscribers).forEach(function(x){try{if(w.subscribers.has(x))x.cb(s);}catch(e){setTimeout(function(){throw e;},0);}});},
+        bind:function(){
+          if(w.un)w.un();w.failed=false;
+          var meter=fbReads?fbReads.listener(ref.path,collection):null,first=true;
+          var stop=M.onSnapshot(ref.ref,{includeMetadataChanges:true},function(s){
+            var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
+            var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
+            try{if(meter)meter.snapshot(s);}catch(e){}
+            if(!first&&!changed&&!confirmed)return;first=false;
+            w.raw=collection?colSnap(s):docSnap(s);w.cb(fbOffline?fbOffline.overlay(w.path,w.raw,collection):w.raw);
+          },function(e){w.failed=true;if(meter){meter.error();meter.close();}fbError_(e,"read");Array.from(w.subscribers).forEach(function(x){if(x.err)try{x.err(e);}catch(error){setTimeout(function(){throw error;},0);}});});
+          w.un=function(){stop();if(meter)meter.close();};
+        }
+      };
+      w.subscribers.add(subscriber);fbWatchGroups.set(key,w);fbWatches.add(w);w.bind();
+    }else{
+      w.subscribers.add(subscriber);
+      if(w.failed)w.bind();else if(w.raw)cb(fbOffline?fbOffline.overlay(w.path,w.raw,collection):w.raw);
+    }
+    var closed=false;return function(){if(closed)return;closed=true;w.subscribers.delete(subscriber);if(!w.subscribers.size){if(w.un)w.un();fbWatches.delete(w);fbWatchGroups.delete(key);}};
   }
 
   /* ---------- db（Claude の db 互換） ---------- */

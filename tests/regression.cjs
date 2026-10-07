@@ -31,7 +31,7 @@ function env(names, overrides = {}) {
     TITLES: { home:'ホーム', cal:'カレンダー', talk:'話す', future:'将来', settings:'設定' }, PCATS: { bousai:{}, wish:{} },
     go: v => { state.view=v; }, document:{querySelector:()=>null,querySelectorAll:()=>[]}, CSS:{escape:String},
     bugAIPanel:()=>'',pushEnabled:()=>false,...overrides });
-  if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
+  if(names.some(n=>['pushPlan','pushSyncRun','pushCardHTML','pushDetailsHTML'].includes(n)))names=['stableJSON','pushSettings',...(names.includes('pushCardHTML')?['pushDetailsHTML']:[]),...names];
   if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
@@ -973,7 +973,7 @@ test('quota listener errors explain the limit instead of encouraging a reload lo
  const labels={sync:{classList:{remove(){}}},syncText:{}},c=env(['aiStoreLimited'],{$:id=>labels[id],off:message=>c.reason=message});vm.runInContext(source.match(/^  const lost=.*$/m)[0].trim(),c);
  run(c,'lost({code:"resource-exhausted"})');assert.equal(labels.syncText.textContent,'読み取り上限');assert.match(c.reason,/繰り返し再読み込みせず/);
 });
-test('Firestore settings use local diagnostics without API setup or stale project totals',()=>{const s={report:{checkedAt:1,metrics:{reads:{count:54227}}},day:{end:1000}},c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');assert.match(h,/API接続不要/);assert.match(h,/端末内で計測/);assert.match(h,/正確な無料枠残量/);assert.doesNotMatch(h,/54,227|setupFirestoreMonitoring|firestoreRefresh|5分ごと|monitoring.googleapis/);});
+test('Firestore settings use local diagnostics without API setup or stale project totals',()=>{const s={report:{checkedAt:1,metrics:{reads:{count:54227}}},day:{end:1000}},c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>s,firestoreOffline:()=>null});const h=run(c,'firestoreCardHTML()');assert.match(h,/API接続不要/);assert.match(h,/端末内で計測/);assert.match(h,/二人全体の実数：未取得/);assert.match(h,/監視APIは停止中/);assert.match(h,/正確な無料枠残量/);assert.doesNotMatch(h,/54,227|setupFirestoreMonitoring|firestoreRefresh|5分ごと|monitoring.googleapis/);});
 test('Firestore settings distinguish local changes from synchronization and provide export',()=>{const c=env(['firestoreCardHTML'],{window:{__FUTARI_PWA:true},firestoreStatus:()=>null,firestoreOffline:()=>({paused:true,pending:3,until:Date.now()})});const h=run(c,'firestoreCardHTML()');assert.match(h,/未同期の変更：<b>3件/);assert.match(h,/相手の最新変更はまだ受信できません/);assert.match(h,/firestoreExport/);});
 test('process diagnostics distinguish device scope, estimates, ranking and unknown requests',()=>{
  const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'test',user:'test',version:'290',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
@@ -985,7 +985,52 @@ test('quota dashboard separates operation filters, storage unknowns and graphica
  const R=require('../firestore-reads.js'),M=require('../firestore-monitor.js'),api=R.create({project:'t',user:'u',version:'291',storage:{getItem(){},setItem(){},length:0},dayWindow:M.dayWindow,setTimeout:()=>1});
  await api.write('diary/secret','set',{text:'private'},async()=>{});await api.write('items/secret','delete',null,async()=>{});
  const c=env(['firestoreReadsDays','firestoreReadsHTML'],{window:{__futariReads:api}});
- for(const metric of ['reads','writes','deletes','receivedBytes','storage']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
+ for(const metric of ['reads','writes','deletes','receivedBytes','storage','maxDoc','maxField','maxDepth','maxRequest']){run(c,`firestoreMetric="${metric}"`);const h=run(c,'firestoreReadsHTML()');assert.match(h,/quota-grid/);assert.match(h,/quota-trend/);assert.match(h,/全体の余裕を保証しません/);assert.match(h,/ブラウザが使用量を提供していません/);assert.match(h,/Firestoreの上限対象外/);assert.match(h,/Firestoreのその他の上限（未計測）/);assert.match(h,/1 MiB − 89 B/);assert.match(h,/20階層/);assert.doesNotMatch(h,/NaN|Infinity|secret/);}
  run(c,'firestoreMetric="writes"');assert.match(run(c,'firestoreReadsHTML()'),/日記 \/ 書き込み/);
  run(c,'firestoreMetric="deletes"');assert.match(run(c,'firestoreReadsHTML()'),/やること・買い物 \/ 削除/);
+});
+
+// v292: preserve full history while avoiding no-op writes and duplicate report generation.
+test('reordered shared AI profile fields never trigger writes and real edits update only the own profile',async()=>{
+ const updates=[],c=env(['stableJSON','AIP_FIELDS','aiProfMe','aiProfSync','kakeiPut'],{kakeiDoc:{update:async d=>updates.push(d)},err(){}});
+ c.state.kakeiLoaded=true;c.prefs.aiProf=JSON.stringify({commute:'30分'});
+ const own=Object.fromEntries(plain(run(c,'AIP_FIELDS')).map(([k])=>[k,k==='commute'?'30分':null]).sort((a,b)=>a[0].localeCompare(b[0])));
+ c.state.kakei={aiProf:{h:own,w:{commute:'10分'}},limit:999};
+ for(let i=0;i<40;i++)run(c,'aiProfSync()');assert.equal(updates.length,0);
+ c.prefs.aiProf=JSON.stringify({commute:'40分'});run(c,'aiProfSync()');await Promise.resolve();
+ assert.equal(updates.length,1);assert.deepEqual(Object.keys(updates[0]).sort(),['aiProf','updatedAt']);assert.deepEqual(Object.keys(updates[0].aiProf),['h']);assert.equal(updates[0].aiProf.h.commute,'40分');assert.equal(c.state.kakei.aiProf.w.commute,'10分');
+});
+test('identical preference saves are skipped, real changes persist and failed saves can retry',async()=>{
+ const writes=[],c=env(['stableJSON','prefWriteKey','savePrefs'],{kakeiDoc:null,prefsDoc:{set:async d=>writes.push(d)},store:{set(){}},applyPrefs(){},placeRail(){}});
+ c.prefs={mode:'dark',pal:'forest'};run(c,'savePrefs(true);savePrefs(true)');assert.equal(writes.length,1);
+ c.prefs={pal:'forest',mode:'dark'};run(c,'savePrefs(true)');assert.equal(writes.length,1);
+ c.prefs.mode='light';run(c,'savePrefs(true)');assert.equal(writes.length,2);
+ let fail=true;c.prefsDoc.set=async d=>{writes.push(d);if(fail)throw Error('offline');};c.prefs.mode='dark';run(c,'savePrefs(true)');await Promise.resolve();await Promise.resolve();fail=false;run(c,'savePrefs(true)');await Promise.resolve();assert.equal(writes.length,4);
+});
+test('unchanged automatic notification sync is skipped but changes, tests and ten-minute refresh send',async()=>{
+ let now=Date.now();const c=pushSyncEnv({pushQ:[],Date:class extends Date{static now(){return now;}}});
+ await run(c,'pushSyncRun()');await run(c,'pushSyncRun()');assert.equal(c.pushWrites.length,2);assert.equal(c.pushCalls.length,1);
+ c.prefs.pushLead='15';await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,2);
+ await run(c,'pushSyncRun("test")');assert.equal(c.pushCalls.length,3);
+ now+=600001;await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,4);
+ c.pushQ.push({id:'new'});await run(c,'pushSyncRun()');assert.equal(c.pushCalls.length,5);assert.equal(c.pushQ.length,0);
+});
+test('failed notification sync is retried even when its payload is unchanged',async()=>{
+ let calls=0;const c=pushSyncEnv({pushQ:[],claude:{use:async()=>({call:async()=>{if(++calls===1)throw Error('offline');return {ok:true};}})}});
+ assert.equal(await run(c,'pushSyncRun()'),null);assert.equal(c.state.pushSyncKey,undefined);await run(c,'pushSyncRun()');assert.equal(calls,2);assert.ok(c.state.pushLast);
+});
+test('automatic report waits for reports to load and rechecks before its delayed save',()=>{
+ const jobs=[],c=env(['usageAutoReport'],{setTimeout:(fn,ms)=>{jobs.push({fn,ms});},usgAutoStart(){},usgPrune(){},usageSaveReport:()=>{c.saved=(c.saved||0)+1;}});c.state.usage=[{}];c.state.usageLoaded=true;c.state.usageReports=[];
+ run(c,'usageAutoReport()');assert.equal(jobs.length,0);c.state.usageReportsLoaded=true;run(c,'usageAutoReport()');assert.equal(jobs.length,3);
+ c.state.usageReports=[{auto:true,at:Date.now()}];jobs.find(x=>x.ms===10000).fn();assert.equal(c.saved,undefined);
+});
+
+test('full history retains unread totals and 300-row per-person history beyond the first 100 entries',()=>{
+ const now=Date.now(),c=env(['actNewCount','actCardHTML','viewLog'],{homeCard:(title,body)=>title+body,actLine:x=>x.text,ago:()=>'',seg:()=>'',dayLabel:String,hint:String});c.prefs.actSeen=now-86400000;c.state.activity=Array.from({length:3508},(_,i)=>({id:String(i),at:now-i*1000,role:i<150?'h':'w',text:'history-'+i,view:'task'}));
+ assert.equal(run(c,'actNewCount()'),3358);assert.match(run(c,'actCardHTML()'),/3358/);c.state.logF='ot';const html=run(c,'viewLog()');assert.equal((html.match(/class="arow/g)||[]).length,300);assert.match(html,/history-449/);assert.doesNotMatch(html,/activityMore|最新100件/);
+});
+test('36-hour agenda includes partner updates beyond entry 100 and excludes older history',()=>{
+ const now=Date.now(),c=env(['agendaHTML'],{mondayOf:t=>t,contribEvents:()=>[],choreInfo:()=>({diff:0}),shiftOf:()=>'',offState:()=>'',moneyEntries:()=>[],short:String,talkState:()=> 'off',qaCardHTML:()=>'',ic:()=>'',ICP:{plus:''}});
+ c.state.activity=Array.from({length:200},(_,i)=>({id:String(i),at:now-i*1000,role:'h',kind:'予定'}));c.state.activity.push({id:'partner-new',at:now-35*3600000,role:'w',kind:'買い物'},{id:'partner-old',at:now-37*3600000,role:'w',kind:'予定'});
+ const html=run(c,'agendaHTML()');assert.match(html,/wの更新（1日半） 1件/);assert.match(html,/買い物/);
 });
