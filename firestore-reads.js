@@ -104,5 +104,19 @@
     return {get,write,listener,reused,remoteAttempt,record,snapshot,flush,browserEstimate,export:exportData};
   }
   function singleFlight(){const jobs=new Map();return function(key,fn,reuse){if(jobs.has(key)){if(reuse)reuse();return jobs.get(key);}const p=Promise.resolve().then(fn).finally(()=>jobs.delete(key));jobs.set(key,p);return p;};}
-  return {create,pathKey,label,singleFlight,docSize,valueSize};
+  // Only settings use this projection. A null/array/empty map remains an explicit replacement.
+  const plain=v=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.getPrototypeOf(v)===Object.prototype;
+  function canonical(v){return JSON.stringify(v,function(k,x){return plain(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x;});}
+  function mergeSettings(base,patch){const out={...base};for(const [k,v] of Object.entries(patch))out[k]=plain(v)&&Object.keys(v).length?mergeSettings(plain(out[k])?out[k]:{},v):v;return out;}
+  function canMergeSettings(first,second){
+    for(const [k,v] of Object.entries(second))if(k in first&&plain(v)&&Object.keys(v).length){
+      if(!plain(first[k])||!Object.keys(first[k]).length||!canMergeSettings(first[k],v))return false;
+    }return true;
+  }
+  function settingsPatch(base,value){
+    function diff(a,b){const out={};for(const [k,v] of Object.entries(b)){if(canonical(a&&a[k])===canonical(v))continue;if(plain(v)&&Object.keys(v).length){const child=diff(plain(a&&a[k])?a[k]:{},v);if(Object.keys(child).length)out[k]=child;}else out[k]=v;}return out;}
+    const data={...value};delete data.updatedAt;const patch=diff(base,data);
+    if(Object.keys(patch).length&&'updatedAt' in value)patch.updatedAt=value.updatedAt;return patch;
+  }
+  return {create,pathKey,label,singleFlight,docSize,valueSize,settingsPatch,mergeSettings,canMergeSettings};
 });

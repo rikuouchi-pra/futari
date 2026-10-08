@@ -9,7 +9,7 @@
 
   var M = {};            // firebase modules
   var app, auth, fs, me = null, fbMonitor=null, fbOffline=null;
-  var fbWatches=new Set(), fbWatchGroups=new Map(), fbReads=null;
+  var fbWatches=new Set(), fbWatchGroups=new Map(), fbReads=null, fbSettingsPending=new Map();
   var fbSharedReads=window.FutariFirestoreReads?window.FutariFirestoreReads.singleFlight():function(key,fn){return fn();};
   var readyResolve, readyReject;
   var ready = new Promise(function(ok, ng){ readyResolve = ok; readyReject = ng; });
@@ -65,7 +65,7 @@
     Object.assign(M, mods[0], mods[1], mods[2]);
     app = M.initializeApp(CFG);
     auth = M.getAuth(app);
-    try{ fs = M.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: M.persistentLocalCache({ tabManager: M.persistentMultipleTabManager() }) }); }
+    try{ fs = M.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: M.persistentLocalCache({ cacheSizeBytes: 100 * 1024 * 1024, tabManager: M.persistentMultipleTabManager() }) }); }
     catch(e){ fs = M.getFirestore(app); }
     window.__futariWaitWrites = function(){ return M.waitForPendingWrites(fs); }; /* v171: オンライン復帰時に、オフライン中の変更の送信完了を待つ */
     me = await new Promise(function(ok){ var un = M.onAuthStateChanged(auth, function(u){ if(u && ALLOWED.length && ALLOWED.indexOf((u.email || "").toLowerCase()) < 0){ gate("denied", u.email); return; }
@@ -81,7 +81,7 @@
   function fbNotify_(){window.dispatchEvent(new Event("futari-storage-status"));}
   function fbEmit_(path){fbWatches.forEach(function(w){if(w.raw&&(!path||w.path===path||(w.collection&&path.slice(0,path.lastIndexOf("/"))===w.path)))w.cb(fbOffline.overlay(w.path,w.raw,w.collection));});}
   function fbUnbind_(){fbWatches.forEach(function(w){if(w.un){w.un();w.un=null;}});}
-  function fbRebind_(){fbWatches.forEach(function(w){w.bind();});}
+  function fbRebind_(){fbWatches.forEach(function(w){if(w.failed||!w.un)w.bind();});}
   function fbError_(e,op){if(fbMonitor)fbMonitor.observeError(e,op||"read");if(fbOffline&&window.FutariFirestoreMonitor.limited(e))fbOffline.pause(e).catch(function(){fbNotify_();});}
   function fbDeadline_(p){var timer;return Promise.race([p,new Promise(function(_,ng){timer=setTimeout(function(){ng(gasError_("store_timeout","保存先の応答を確認できませんでした"));},20000);})]).finally(function(){clearTimeout(timer);});}
   async function initFirestoreStatus_(){
@@ -106,7 +106,24 @@
     document.addEventListener("visibilitychange",function(){if(!document.hidden){fbOffline.reload().then(function(){if(fbOffline.snapshot().paused)return M.disableNetwork(fs);}).then(function(){return fbOffline.resume(false);}).catch(function(){});}});
   }
   function fbSend_(path,kind,value){var send=function(){var ref=M.doc.apply(null,[fs].concat(segs(path)));return kind==="delete"?M.deleteDoc(ref):M.setDoc(ref,value,kind==="update"?{merge:true}:{});};return fbReads?fbReads.write(path,kind,value,send):send();}
-  function fbWrite_(path,kind,value){if(fbOffline)return fbOffline.write(path,kind,value);return fbSend_(path,kind,value);}
+  function fbWrite_(path,kind,value){
+    var settings=path==="meta/kakei"&&kind==="update"||/^data\/users\/[^/]+\/prefs$/.test(path)&&kind==="set";
+    if(!settings||!window.FutariFirestoreReads||!window.FutariFirestoreReads.settingsPatch)return fbOffline?fbOffline.write(path,kind,value):fbSend_(path,kind,value);
+    var pending=fbSettingsPending.get(path),watch=fbWatchGroups.get("doc:"+path),raw=watch&&watch.raw;
+    // Once an earlier write has started, preserve the original operation so a failed
+    // predecessor cannot make a later full preference save omit unsaved fields.
+    if(pending&&pending.started)return fbOffline?fbOffline.write(path,kind,value):fbSend_(path,kind,value);
+    var base=pending?pending.value:raw&&raw.exists&&!raw.fromCache&&!raw.hasPendingWrites?raw.data():null;
+    var patch=base?window.FutariFirestoreReads.settingsPatch(base,value):value;
+    if(base&&!Object.keys(patch).length)return pending?pending.promise:Promise.resolve({unchanged:true});
+    if(pending&&!pending.started&&pending.kind!=="set"&&!window.FutariFirestoreReads.canMergeSettings(pending.patch,patch)){
+      pending.started=true;return Promise.resolve().then(function(){return fbOffline?fbOffline.write(path,kind,value):fbSend_(path,kind,value);});
+    }
+    if(pending&&!pending.started){pending.patch=window.FutariFirestoreReads.mergeSettings(pending.patch,patch);pending.value=window.FutariFirestoreReads.mergeSettings(pending.value,patch);return pending.promise;}
+    var entry={value:base?window.FutariFirestoreReads.mergeSettings(base,patch):value,patch:patch,kind:base?"update":kind,started:false,promise:null};
+    entry.promise=Promise.resolve().then(function(){entry.started=true;return fbOffline?fbOffline.write(path,entry.kind,entry.patch):fbSend_(path,entry.kind,entry.patch);}).finally(function(){if(fbSettingsPending.get(path)===entry)fbSettingsPending.delete(path);});
+    fbSettingsPending.set(path,entry);return entry.promise;
+  }
   function fbReadRaw_(path,collection,fn,tag){return fbReads?fbReads.get(path,collection,fn,tag):fn();}
   function fbReadShared_(path,collection,cache,fn){return fbSharedReads((collection?"list:":"get:")+path+":"+(cache?"cache":"default"),function(){return fbReadRaw_(path,collection,fn);},function(){if(fbReads)fbReads.reused(path,collection);});}
   async function fbGet_(ref,collection){
@@ -127,7 +144,7 @@
             var meta=s.metadata||{},confirmed=w.raw&&(collection?w.raw.metadata.fromCache:w.raw.fromCache)&&!meta.fromCache;
             var changed=collection?s.docChanges().length>0:!w.raw||JSON.stringify(w.raw.data())!==JSON.stringify(s.exists()?s.data():undefined);
             try{if(meter)meter.snapshot(s);}catch(e){}
-            if(!first&&!changed&&!confirmed)return;first=false;
+            if(!first&&!changed&&!confirmed){if(!collection)w.raw=docSnap(s);return;}first=false;
             w.raw=collection?colSnap(s):docSnap(s);w.cb(fbOffline?fbOffline.overlay(w.path,w.raw,collection):w.raw);
           },function(e){w.failed=true;if(meter){meter.error();meter.close();}fbError_(e,"read");Array.from(w.subscribers).forEach(function(x){if(x.err)try{x.err(e);}catch(error){setTimeout(function(){throw error;},0);}});});
           w.un=function(){stop();if(meter)meter.close();};
@@ -144,7 +161,7 @@
   /* ---------- db（Claude の db 互換） ---------- */
   function segs(path){ return String(path).split("/").filter(Boolean); }
   function colSnap(qs){ return { docs: qs.docs.map(function(d){ return { id: d.id, data: function(){ return d.data(); } }; }), size: qs.size, empty: qs.empty, metadata: { fromCache: !!(qs.metadata && qs.metadata.fromCache) } }; }
-  function docSnap(s){ return { id: s.id, exists: s.exists(), fromCache: !!(s.metadata && s.metadata.fromCache), data: function(){ return s.data(); } }; }
+  function docSnap(s){ return { id: s.id, exists: s.exists(), fromCache: !!(s.metadata && s.metadata.fromCache), hasPendingWrites: !!(s.metadata && s.metadata.hasPendingWrites), data: function(){ return s.data(); } }; }
   function DocRef(path){ this.path = path; this.ref = M.doc.apply(null, [fs].concat(segs(path))); }
   DocRef.prototype.set = function(d){ return fbWrite_(this.path,"set",clean(d)); };
   DocRef.prototype.update = function(ch){ return fbWrite_(this.path,"update",clean(ch)); };   // 1段目のオブジェクトは中身をマージ（Claude 版と同じ）
@@ -180,7 +197,7 @@
 
   /* ---------- assets（写真は Firestore に保存：1枚 900KB 以下に縮小） ---------- */
   var MAX_ONE = 900 * 1024, MAX_BYTES = 700 * 1024 * 1024, MAX_FILES = 5000;
-  var urlCache = new Map(), loading = new Map();
+  var urlCache = new Map(), loading = new Map(), blobValues = new Map();
   var PIX = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
   function rid(){ var a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, function(b){ return b.toString(16).padStart(2, "0"); }).join(""); }
   async function shrinkTo(blob){
@@ -197,22 +214,35 @@
     blob = await shrinkTo(blob); var buf = new Uint8Array(await blob.arrayBuffer());
     await fbSend_("blobs/"+id,"set", { data: M.Bytes.fromUint8Array(buf), type: type || blob.type || "image/jpeg", size: buf.length, at: Date.now(), by: me.uid });
     await fbSend_("blobmeta/"+id,"set", { size: buf.length, type: type || blob.type || "image/jpeg", at: Date.now(), by: me.uid });
-    var u = URL.createObjectURL(new Blob([buf], { type: type || "image/jpeg" })); urlCache.set(id, u); fill(id, u);
+    var u = URL.createObjectURL(new Blob([buf], { type: type || "image/jpeg" })); var old=urlCache.get(id); urlCache.set(id, u); fill(id, u, old); if(old)URL.revokeObjectURL(old);
     return { id: id, url: u };
   }
-  function fill(id, u){ document.querySelectorAll('img[src$="#fb=' + id + '"]').forEach(function(im){ im.src = u; }); }
+  function fill(id, u, old){
+    document.querySelectorAll('img').forEach(function(im){var src=im.getAttribute("src")||"";if(src.endsWith("#fb="+id)||old&&src===old)im.src=u;});
+    var bg=document.getElementById("bgPhoto");if(bg){var current=bg.style.getPropertyValue("--bgimg");if(current.includes("#fb="+id+'"')||old&&current.includes(old))bg.style.setProperty("--bgimg",'url("'+u+'")');}
+  }
+  function blobSnapshot_(id,s){
+    var old=urlCache.get(id);
+    if(!s.exists){if(s.fromCache)return;blobValues.delete(id);urlCache.delete(id);fill(id,PIX+"#fb="+id,old);if(old)URL.revokeObjectURL(old);return;}
+    var d=s.data(),previous=blobValues.get(id);
+    // A server confirmation of the same cached image must not rebuild its object URL.
+    if(previous&&previous.type===d.type&&previous.data.isEqual(d.data))return;
+    var u=URL.createObjectURL(new Blob([d.data.toUint8Array()],{type:d.type||"image/jpeg"}));
+    blobValues.set(id,{data:d.data,type:d.type});urlCache.set(id,u);fill(id,u,old);if(old)URL.revokeObjectURL(old);
+  }
   window.__blobUrl = function(id){
-    if(urlCache.has(id)) return urlCache.get(id);
-    if(!loading.has(id)) loading.set(id, ready.then(function(){ return fbReadShared_("blobs/"+id,false,!!(fbOffline&&fbOffline.snapshot().paused),function(){return fbOffline&&fbOffline.snapshot().paused?M.getDocFromCache(M.doc(fs,"blobs",id)):M.getDoc(M.doc(fs,"blobs",id));}); }).then(function(s){
-      if(!s.exists()) return; var d = s.data(), u = URL.createObjectURL(new Blob([d.data.toUint8Array()], { type: d.type || "image/jpeg" })); urlCache.set(id, u); fill(id, u); }).catch(function(){}).finally(function(){ setTimeout(function(){ loading.delete(id); }, 30000); }));
-    return PIX + "#fb=" + id;
+    if(!loading.has(id)){
+      var watch={stop:null,failed:false};loading.set(id,watch);
+      ready.then(function(){watch.stop=new DocRef("blobs/"+id).onSnapshot(function(s){watch.failed=false;blobSnapshot_(id,s);},function(){watch.failed=true;setTimeout(function(){if(watch.failed&&loading.get(id)===watch){if(watch.stop)watch.stop();loading.delete(id);}},30000);});}).catch(function(){if(loading.get(id)===watch)loading.delete(id);});
+    }
+    return urlCache.get(id)||PIX+"#fb="+id;
   };
   var ASSETS = {
     upload: function(blob, o){ return putBlob(rid(), blob, (o && o.type) || blob.type); },
     putWithId: function(id, blob){ return putBlob(id, blob, blob.type || "image/jpeg"); },
     list: async function(){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真一覧の取得は同期が復旧してからできます。");var qs = await fbReadShared_("blobmeta",true,false,function(){return M.getDocs(M.collection(fs,"blobmeta"));}); var as = qs.docs.map(function(d){ var x = d.data(); return { id: d.id, size: x.size || 0, by: x.by || null, at: x.at || 0, mine: !!(x.by && me && x.by === me.uid) }; });
       return { assets: as, usage: { files: as.length, bytes: as.reduce(function(a, x){ return a + x.size; }, 0), maxFiles: MAX_FILES, maxBytes: MAX_BYTES } }; },
-    delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await fbSend_("blobs/"+id,"delete"); await fbSend_("blobmeta/"+id,"delete"); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); } return { deleted: true }; }
+    delete: async function(id){ if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("local_mode","写真の削除は同期が復旧してからできます。");await fbSend_("blobs/"+id,"delete"); await fbSend_("blobmeta/"+id,"delete"); var u = urlCache.get(id); if(u){ URL.revokeObjectURL(u); urlCache.delete(id); fill(id,PIX+"#fb="+id,u); } blobValues.delete(id); return { deleted: true }; }
   };
 
   /* ---------- sample（レシート文字の読み取り：端末内のかんたん解析） ---------- */
