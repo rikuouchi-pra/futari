@@ -843,6 +843,29 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tg-sheet .tg-l .tg-n b{white-space:normal;overflow-wrap:anywhere;line-height:1.45;text-overflow:clip;overflow:visible}
 .tg-sheet .tg-l .tg-n small{font-size:12px;line-height:1.5}
 
+/* v305: 使用上限のひと目表示 */
+.ug-tabs{margin-bottom:4px}
+.qhero{display:flex;flex-direction:column;gap:8px}
+.qh-top{display:flex;align-items:center;gap:8px}.qh-t{font-size:15px}.qh-go{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent)}
+.qlv{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px}
+.qlv.ok{background:color-mix(in srgb,var(--habit) 18%,transparent);color:var(--habit)}.qlv.warn{background:color-mix(in srgb,var(--caution,#d9822b) 20%,transparent);color:var(--caution,#d9822b)}.qlv.bad{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
+.qh-msg{margin:0;font-size:13px;color:var(--muted)}
+.qrings{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px}
+.qring{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px}
+.qring svg{width:64px;height:64px}.qring circle{fill:none;stroke-width:7}.qring .bg{stroke:color-mix(in srgb,var(--ink) 9%,transparent)}.qring .fg{stroke:var(--habit);stroke-linecap:round;transition:stroke-dasharray .5s ease}
+.qring.warn .fg{stroke:var(--caution,#d9822b)}.qring.bad .fg{stroke:var(--danger)}
+.qr-p{position:absolute;top:21px;left:0;right:0;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.qring b{font-size:12px}.qring small{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}.qring .qr-s{font-size:10px;opacity:.8}
+.qh-sec{display:flex;align-items:baseline;gap:8px;margin-top:4px}.qh-sec b{font-size:13px}.qh-sec small{font-size:11px;color:var(--muted)}
+.qbars{display:flex;gap:6px;align-items:flex-end;height:96px}.qb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%}
+.qb-st{flex:1;width:100%;max-width:26px;display:flex;flex-direction:column-reverse;border-radius:6px;overflow:hidden;background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.qb-st i{display:block;width:100%}.qb-st i.r{background:var(--accent)}.qb-st i.w{background:color-mix(in srgb,var(--habit) 75%,transparent)}
+.qb span{font-size:10px;color:var(--muted)}
+.bsw.qr{background:var(--accent)}.bsw.qw{background:color-mix(in srgb,var(--habit) 75%,transparent)}
+.qh-note{font-size:11px}
+.qdet>summary{font-weight:700;cursor:pointer}
+#sheetHandle.save{background:var(--accent)!important;color:var(--on-accent,#fff)!important}
+.qmini{cursor:pointer}.qmini .qrings{grid-template-columns:repeat(3,1fr)}.qmini .qring svg{width:52px;height:52px}.qmini .qr-p{top:16px;font-size:12px}.qmini .qh-top{margin-bottom:6px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2242,7 +2265,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="304";
+const APP_VERSION="305";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4699,7 +4722,7 @@ document.addEventListener("click",e=>{ if(state.view!=="settings") return; const
   const at=["data-pref","data-val","data-act","data-v","data-sv","data-pal","data-preset","data-logo"].filter(k=>b.hasAttribute(k)).map(k=>`[${k}="${CSS.escape(b.getAttribute(k))}"]`).join("");
   if(at) setAnchor={sel:at,top:b.getBoundingClientRect().top,t:Date.now()}; },true);
 function setAnchorApply(){ if(!setAnchor||Date.now()-setAnchor.t>2500) return; const el=document.querySelector("#main "+setAnchor.sel); if(!el) return; const d=el.getBoundingClientRect().top-setAnchor.top; if(Math.abs(d)>2) window.scrollBy(0,d); }
-function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"&&!x.classList.contains("pointer-settings")); const box={};
+function setGroups(){ const root=document.querySelector("#main .setwrap"); if(!root) return; const secs=[...root.children].filter(x=>x.tagName==="SECTION"&&!x.classList.contains("pointer-settings")&&!x.classList.contains("qmini")); const box={};
   for(const [k,l] of SET_GROUPS){ const d=document.createElement("details"); d.className="setg"; d.dataset.g=k; if((state.setOpen||{})[k]) d.open=true; d.innerHTML=`<summary>${l}</summary><div class="setg-b"></div>`; d.addEventListener("toggle",()=>{ state.setOpen={...(state.setOpen||{}),[k]:d.open?1:0}; }); root.appendChild(d); box[k]=d.lastElementChild; }
   for(const sc of secs){ const h=(sc.querySelector("h2")||{}).textContent||""; const g=SET_GROUPS.find(([k,l,hs])=>hs.some(x=>h.startsWith(x))); box[g?g[0]:"data"].appendChild(sc); } }
 function screenPointerIcon(type){
@@ -4718,9 +4741,9 @@ function viewSettings(){
   const sw=Object.entries(PALETTES).map(([k,p])=>`<button class="sw" data-pal="${k}" aria-pressed="${prefs.pal===k}"><span class="cs">${["task","shop","cal","trouble","diary"].map(c=>`<i style="background:${p.light[c]}"></i>`).join("")}</span>${p.name}</button>`).join("");
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+  ${window.__FUTARI_PWA?`<section class="card qmini" data-go-quota="1" role="button" tabindex="0" aria-label="使用上限をくわしく見る">${quotaHeroHTML("mini")}</section>`:""}
   ${screenPointerSettingsHTML()}
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
-  ${window.__FUTARI_PWA?`<section class="card" id="firestoreCard">${firestoreCardHTML()}</section>`:""}
   <section class="card" id="repCard"><h2>くり返し・自動</h2>${repAllHTML()}</section>
   <section class="card"><h2>ふたりの名前</h2>
     <div class="onb-names"><label><span class="who">夫</span><input type="text" id="famH" value="${esc(state.fam.h)}" maxlength="12"></label><label><span class="who">妻</span><input type="text" id="famW" value="${esc(state.fam.w)}" maxlength="12"></label></div>
@@ -4970,6 +4993,7 @@ function render(anim){
     if(lastView!=="diary"||lastDiaryKey!==key){ $("main").innerHTML=viewDiary(); lastDiaryKey=key; updateCount(); }
     renderDiaryDynamic();
   } else {
+    if((v==="usage"||v==="settings")&&window.__usageSub) window.__usageSub();
     $("main").innerHTML= v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v);
     lastDiaryKey=null;
   }
@@ -8143,7 +8167,7 @@ function openSheet(kind){
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
   $("input").focus({preventScroll:true});
 }
-function closeSheet(){ if(!state.sheet.open) return; state.sheet.open=false; $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").hidden=true; $("input").blur(); }
+function closeSheet(){ setTimeout(()=>{ try{ shHandleLbl(); }catch(_){} },0); if(!state.sheet.open) return; state.sheet.open=false; $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").hidden=true; $("input").blur(); }
 function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
@@ -8228,7 +8252,10 @@ $("sheet").addEventListener("change",e=>{ const S=state.sheet;
   if(e.target.id==="sTime"){ S.time=e.target.value; if(S.time&&!S.date) S.date=state.view==="cal"?state.sel:today(); renderSheet(); } });
 /* v223: 追加画面は「追加」か「閉じる」を押したときだけ閉じる（時刻・日付の選択中に外側のタップやスワイプで勝手に閉じていた） */
 $("scrim").addEventListener("click",()=>{ if(state.sheet.open){ const h=$("sheetHandle"); if(h){ h.classList.remove("nudge"); void h.offsetWidth; h.classList.add("nudge"); } } });
-$("sheetHandle").addEventListener("click",closeSheet);
+/* v305: 文字を入れたまま「閉じる」を押して消えていた（追加画面を開いても保存されないことが多かった）ので、入力があるときは「追加して閉じる」に */
+function shHandleLbl(){ const h=$("sheetHandle"), v=($("input")||{}).value; if(!h) return; const on=!!(v&&v.trim()); h.classList.toggle("save",on); h.textContent=on?"追加して閉じる":"閉じる"; }
+$("sheetHandle").addEventListener("click",()=>{ const v=$("input").value.trim(); if(v){ $("form").requestSubmit(); setTimeout(()=>{ if(!$("input").value.trim()) closeSheet(); shHandleLbl(); },80); } else closeSheet(); });
+$("input").addEventListener("input",shHandleLbl); $("input").addEventListener("focus",shHandleLbl); $("form").addEventListener("submit",()=>setTimeout(shHandleLbl,50));
 $("sheet").addEventListener("input",e=>{ const S=state.sheet; if(e.target.id==="sMoN") S.hmoN=e.target.value; if(e.target.id==="sMoS") S.hmoS=e.target.value; }); /* v141 */
 /* v140: 入力をやめたら閉じる（キーボードを閉じた・Esc）。シート内の操作中は閉じない */
 let sheetTouchT=0;
@@ -9305,7 +9332,7 @@ function usToday(){ state.dayDate=dayNow(); const t=today(); state.talkDate=t; s
 function tbarRender(){ if(prefs.hubs!=="off"&&prefs.nav==="tab"){ state.hubLast=state.hubLast||{}; const h=hubOf(state.view); state.hubLast[h.k]=state.view; }
   let bar=$("tbar"); if(prefs.nav!=="tab"){ if(bar) bar.hidden=true; const m=$("tmore"); if(m) m.hidden=true; return; }
   if(!bar){ bar=document.createElement("nav"); bar.id="tbar"; bar.className="tabbar"; bar.setAttribute("aria-label","メニュー"); document.body.appendChild(bar);
-    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k.startsWith("hub:")){ const H=HUBS.find(h=>"hub:"+h.k===k); tmoreToggle(false); if(H.k==="us") usToday(); const last=(state.hubLast||{})[H.k]; const dest=hubOf(state.view)===H?H.v[0][0]:(last||H.v[0][0]); if(dest===state.view&&scrollY>40){ window.scrollTo({top:0,behavior:"smooth"}); if(H.k==="us") render(); return; } /* v241: 今いるタブをもう一度押すと一番上へ */ go(dest); return; } if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); if(k==="home") go("home"); else go(k); }); }
+    bar.addEventListener("click",e=>{ const b=e.target.closest("[data-tb]"); if(!b) return; haptic("tick"); const k=b.dataset.tb; if(k.startsWith("hub:")){ const H=HUBS.find(h=>"hub:"+h.k===k); tmoreToggle(false); if(H.k==="us") usToday(); const last=(state.hubLast||{})[H.k]; const dest=hubOf(state.view)===H?H.v[0][0]:(last||H.v[0][0]); if(dest===state.view&&scrollY>40){ window.scrollTo({top:0,behavior:"smooth"}); if(H.k==="us") render(); return; } /* v241: 今いるタブをもう一度押すと一番上へ */ tbGo(b,()=>go(dest)); return; } if(k==="more"){ tmoreToggle(); return; } tmoreToggle(false); tbGo(b,()=>go(k==="home"?"home":k)); }); }
   bar.hidden=false;
   if(prefs.hubs!=="off"){ const cur=hubOf(state.view).k;
     bar.innerHTML=HUBS.map(h=>{ const b=hubBadge(h); return `<button data-tb="hub:${h.k}" class="${cur===h.k?"on":""}" aria-current="${cur===h.k?"page":"false"}"><span class="tb-i">${h.ic}${b?`<i class="tb-b">${b}</i>`:""}</span><span class="tb-l">${h.l}</span></button>`; }).join(""); return; }
@@ -9729,7 +9756,7 @@ function usageFlush(force){ const u=UG; if(!u||!u.dirty) return; u.dirty=false; 
   const open=()=>{ const u=usgTouch(); u.opens++; if(!hidAt||Date.now()-hidAt>=60e3){ u.sess=(u.sess||0)+1; sessAt=Date.now(); usgSessT0=Date.now(); usgFirstDone=false; } };
   setTimeout(open,5000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ usgLastAct=Date.now(); open(); } else { hidAt=Date.now(); usageFlush(true); } });
   setInterval(()=>{ if(document.visibilityState!=="visible"||Date.now()-usgLastAct>60e3) return; const u=usgTouch(), v=PRIV_VIEWS.has(state.view)?"🔒"+state.view:state.view, h=String(new Date().getHours()); u.sec+=15; u.sessSec=(u.sessSec||0)+15; u.views[v]=(u.views[v]||0)+15; u.hours[h]=(u.hours[h]||0)+15; },15e3);
-  setInterval(()=>usageFlush(),60e3); addEventListener("pagehide",()=>usageFlush(true)); }
+  setInterval(()=>usageFlush(),300e3); /* v305: 1分→5分ごと（画面を離れるときは今まで通りすぐ保存） */ addEventListener("pagehide",()=>usageFlush(true)); }
 /* 操作と機能の記録（関数の外側から包んで数える） */
 { const W=(name,fn)=>{ const o=window[name]; if(typeof o!=="function") return; window[name]=function(){ try{ fn.apply(this,arguments); }catch(e){} return o.apply(this,arguments); }; };
   W("dset",(c,id)=>usageAct(c,(state[c]||[]).some(x=>x.id===id)?"edit":"add")); W("dupd",(c,id,ch)=>usageAct(c,actOpOf(ch||{}))); W("ddel",c=>usageAct(c,"del"));
@@ -9777,8 +9804,38 @@ function usgInsights(A,days){ const R=["h","w"], out=[], tot=A.h.sec+A.w.sec, pc
   const er=A.h.errs+A.w.errs; if(er) out.push(`エラー${er}回：${[...A.h.errMsg,...A.w.errMsg].slice(0,3).join(" ／ ")}`);
   for(const r of R){ const a=A[r]; if(a.sess) out.push(`${nameOf(r)}：1回あたり平均${Math.max(1,Math.round(a.sessSec/a.sess/60))}分・${days}日で${a.sess}回利用`); }
   return out; }
-function viewUsage(){ const days=Number(state.usagePer)||7, {A,from,t}=usgAgg(days), R=["h","w"], mx=o=>Math.max(1,...Object.values(o));
-  let h=`<div class="tools">${seg("ugper",String(days),[["7","7日"],["30","30日"],["90","90日"]])}<button class="link" data-go2="settings">‹ 設定へ</button></div>`;
+/* v305: 使用上限をひと目で。端末内の記録から「読み取り・書き込み・保存容量」をリングで、7日の推移を棒で、多い処理を上位3つで出す（全端末の合計ではないことを明記） */
+function quotaHeroHTML(mode){
+  const api=window.__futariReads, mini=mode==="mini";
+  if(!window.__FUTARI_PWA||!api) return mini?"":`<div class="chart qhero" id="qHero"><div class="qh-top"><b class="qh-t">使用上限</b></div><p class="who">使用量の計測は、ホーム画面に追加した「ふたりすと」アプリ（単独アプリ版）で行います。この画面では計測していません。</p></div>`;
+  let T, W; try{ T=api.snapshot(1); W=api.snapshot(7); }catch(e){ return ""; }
+  const n=x=>Number(x||0).toLocaleString("ja-JP"), by=x=>x>=1073741824?(x/1073741824).toFixed(2)+"GB":x>=1048576?(x/1048576).toFixed(1)+"MB":x>=1024?Math.round(x/1024)+"KB":n(x)+"B";
+  const tt=T.total||{}, rd=Number(tt.reads||0), wr=Number(tt.writes||0), dl=Number(tt.deletes||0), cap=T.capacity||{}, cb=Number(cap.bytes||0);
+  const P=(v,l)=>l?Math.min(100,v/l*100):0, pr=P(rd,50000), pw=P(wr,20000), pd=P(dl,20000), pc=P(cb,1073741824), worst=Math.max(pr,pw,pd);
+  const lv=worst>=80?["bad","上限に近い","今日はこれ以上の大量操作を控えると安全です"]:worst>=50?["warn","やや多い","いつもより多めです。様子を見てください"]:["ok","余裕あり","今日の使用量は無料枠の範囲で十分余裕があります"];
+  const ring=(lb,v,p,val,sub,unknown)=>{ const C=2*Math.PI*26, st=unknown?"none":p>=80?"bad":p>=50?"warn":"ok";
+    return `<div class="qring ${st}"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" class="bg"/><circle cx="32" cy="32" r="26" class="fg" stroke-dasharray="${(unknown?0:Math.max(p,p>0?2:0))/100*C} ${C}" transform="rotate(-90 32 32)"/></svg><span class="qr-p">${unknown?"—":p<1&&p>0?"<1%":Math.round(p)+"%"}</span><b>${lb}</b><small>${unknown?"未確認":val}</small>${mini?"":`<small class="qr-s">${sub}</small>`}</div>`; };
+  let h=`<div class="${mini?"qmini-in":"chart qhero"}" id="${mini?"qMini":"qHero"}"><div class="qh-top"><b class="qh-t">${mini?"使用上限（今日）":"今日の使用量"}</b><span class="qlv ${lv[0]}">${lv[1]}</span>${mini?`<span class="qh-go">くわしく ›</span>`:""}</div>
+    ${mini?"":`<p class="qh-msg">${lv[2]}</p>`}
+    <div class="qrings">${ring("読み取り",rd,pr,n(rd)+"件","上限 5万件/日")}${ring("書き込み",wr,pw,n(wr)+"件","上限 2万件/日")}${mini?"":ring("削除",dl,pd,n(dl)+"件","上限 2万件/日")}${ring("保存容量",cb,pc,by(cb),"無料枠 1GB",!cap.docs)}</div>`;
+  if(!mini){ const tr=(W.trend||[]).slice(-7), mx=Math.max(1,...tr.map(d=>Number(d.reads||0)+Number(d.writes||0)));
+    h+=`<div class="qh-sec"><b>7日間の推移</b><small>読み取り＋書き込み</small></div>${tr.length?`<div class="qbars">${tr.map(d=>{ const r=Number(d.reads||0), w=Number(d.writes||0), dt=new Date(d.day); return `<div class="qb" data-tip="${dt.getMonth()+1}/${dt.getDate()}：読み取り ${n(r)}・書き込み ${n(w)}"><div class="qb-st"><i class="w" style="height:${w/mx*100}%"></i><i class="r" style="height:${r/mx*100}%"></i></div><span>${dt.getMonth()+1}/${dt.getDate()}</span></div>`; }).join("")}</div><div class="cr-leg"><span><i class="bsw qr"></i>読み取り</span><span><i class="bsw qw"></i>書き込み</span><span>棒をタップで数値</span></div>`:`<p class="who">まだ記録がありません。普段どおり使うと集まります。</p>`}`;
+    const top=(T.rows||[]).filter(r=>Number(r.reads||0)+Number(r.writes||0)>0).slice(0,3);
+    if(top.length){ const tm=Math.max(1,...top.map(r=>Number(r.reads||0)+Number(r.writes||0))); h+=`<div class="qh-sec"><b>多く使っている処理</b><small>今日・上位3つ</small></div><div class="ug-rows">${top.map(r=>{ const v=Number(r.reads||0)+Number(r.writes||0); return `<div class="ug-r"><span class="ug-n">${esc(String(r.label||r.process).replace(/ \/ .*/,""))}</span><span class="ug-b"><span style="width:${v/tm*100}%"><i class="h" style="flex:1"></i></span></span><b>${n(v)}</b></div>`; }).join("")}</div>`; }
+    h+=`<p class="who qh-note">この端末で記録した分の目安です（相手の端末・ほかの端末は含みません）。日付の区切りは無料枠と同じ太平洋時間（日本時間の16時または17時）です。</p>`; }
+  return h+`</div>`; }
+addEventListener("futari-read-status",()=>{ try{ if(state.view==="usage"&&state.ugTab==="quota"){ const el=$("qHero"); if(el) el.outerHTML=quotaHeroHTML("full"); } }catch(_){} });
+document.addEventListener("click",e=>{ const q=e.target.closest("#main [data-go-quota]"); if(!q) return; e.stopPropagation(); state.ugTab="quota"; go("usage"); },true);
+document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg="ugtab"] [data-sv]'); if(!b) return; e.stopPropagation(); state.ugTab=b.dataset.sv; haptic("tick"); render(); },true);
+/* v305: 下のタブは押した瞬間に色を変え、描き直しはその後に（重い画面で反応がないように見えて連打されていた） */
+let tbPend=0;
+function tbGo(b,f){ if(tbPend) return; try{ const bar=b.parentElement; bar.querySelectorAll("[data-tb]").forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-current",x===b?"page":"false"); }); }catch(_){} tbPend=1; const run=()=>{ if(!tbPend) return; tbPend=0; f(); }; requestAnimationFrame(()=>setTimeout(run,0)); setTimeout(run,120); }
+/* v305: ホームのAIカードは、カードのどこを押しても入力欄へ */
+document.addEventListener("click",e=>{ const c=e.target.closest("#main .aicard"); if(!c||e.target.closest("button,a,input,textarea,select,label,summary,[data-act],[role=button],.chip,details")) return; const t=c.querySelector("#aiIn"); if(t){ t.focus(); } });
+function viewUsage(){ const ugT=`<div class="tools ug-tabs">${seg("ugtab",state.ugTab==="quota"?"quota":"hist",[["hist","📊 利用履歴"],["quota","🔋 使用上限"]])}</div>`;
+  if(state.ugTab==="quota") return ugT+quotaHeroHTML("full")+(window.__FUTARI_PWA?`<details class="card qdet"><summary>詳しい診断・上限の一覧</summary><div id="firestoreCard">${firestoreCardHTML()}</div></details>`:"")+hint("記録するのは、読み取り・書き込みの件数と大きさだけです（書いた内容は記録しません）");
+  const days=Number(state.usagePer)||7, {A,from,t}=usgAgg(days), R=["h","w"], mx=o=>Math.max(1,...Object.values(o));
+  let h=ugT+`<div class="tools">${seg("ugper",String(days),[["7","7日"],["30","30日"],["90","90日"]])}<button class="link" data-go2="settings">‹ 設定へ</button></div>`;
   /* KPI */
   const K=[["利用した日",r=>A[r].days.size+"日",r=>A[r].days.size],["開いた回数",r=>A[r].opens+"回",r=>A[r].opens],["使った時間",r=>mins(A[r].sec),r=>A[r].sec],["操作した数",r=>Object.values(A[r].acts).reduce((q,v)=>q+v,0)+"回",r=>Object.values(A[r].acts).reduce((q,v)=>q+v,0)]];
   h+=`<div class="ug-kpi">${K.map(([l,f,n])=>{ const a=n("h"), b=n("w"), s2=a+b; return `<div class="ug-k"><span class="ug-kl">${l}</span><div class="ug-kv">${R.map(r=>`<span class="${r}"><small>${esc(nameOf(r))}</small><b>${f(r)}</b></span>`).join("")}</div><div class="ug-sp">${s2?`<i class="h" style="flex:${a||0.0001}"></i><i class="w" style="flex:${b||0.0001}"></i>`:`<i class="none"></i>`}</div></div>`; }).join("")}</div>`;
@@ -9910,7 +9967,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(s); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ /* v305: 利用状況の記録（二人×120日分）は開くたびに全件読み直していたので、利用状況・設定を開いたときと1日1回だけ読む */ window.__usageSub=()=>{ if(window.__usageOn) return; window.__usageOn=1; sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); }; if(state.view==="usage"||state.view==="settings") window.__usageSub(); else setTimeout(()=>{ try{ const k="futari.usgSubDay"; if(localStorage.getItem(k)!==today()){ localStorage.setItem(k,today()); window.__usageSub(); } }catch(_){ window.__usageSub(); } },45000); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log"||state.view==="daylog"||state.view==="talk") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
