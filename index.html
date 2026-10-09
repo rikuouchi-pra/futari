@@ -1908,6 +1908,10 @@ html.has-bgphoto header :is(h1,#appTitle,.gw){text-shadow:0 1px 8px color-mix(in
 .song-top{display:flex;align-items:center;gap:12px}.song-top>div{flex:1;min-width:0}.song-art{width:56px;height:56px;border-radius:10px;flex:none;object-fit:cover}
 .song-pl,.song-nx{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);font-size:16px;cursor:pointer}.song-nx{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-size:20px}.song-pl.wait{opacity:.5}
 .song-l .btn{text-decoration:none;display:inline-flex;align-items:center}
+/* v308: いいね（押した人の好みとして覚える） */
+.song-lk{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}.song-lk.on{color:#e0245e;border-color:#e0245e}
+.song-who{font-size:12px;color:var(--muted);font-weight:700;margin:6px 0 0}
+.song-likes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;padding:0;list-style:none}.song-likes li{display:inline-flex;align-items:center;gap:4px;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px}.song-likes button{border:0;background:transparent;color:var(--muted);font:inherit;cursor:pointer;padding:0 6px}
 .song-f{display:flex;gap:14px;margin-top:10px}
 
 /* v99: 定期のもの（次の1回） */
@@ -2295,7 +2299,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="307";
+const APP_VERSION="308";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4843,9 +4847,9 @@ function viewSettings(){
     <h2>表示</h2><div class="opts">${opt("mini","on","すっきり（説明を減らす）")}${opt("mini","off","くわしく")}</div>
     <h2>各タブの説明文</h2><div class="opts">${opt("hintsAlways","0","初回だけ")}${opt("hintsAlways","1","いつも表示")}</div></section>
   <section class="card"><h2>今日の1曲</h2><div class="opts">${opt("music","on","表示する")}${opt("music","off","表示しない")}</div>
-    <p>登録したアーティストの曲だけから、時間帯・季節・天気に合わせてAIが選びます（ふたりとも同じ曲）。タップで音楽アプリを開けます。</p>
-    <label class="sho-f"><span class="who">${esc(nameOf(myRole()))}の好きなアーティスト（名前を読点か改行で区切る）</span><textarea id="musicIn" rows="2" maxlength="200" placeholder="例：あいみょん、King Gnu、スピッツ">${esc(musicTaste(myRole()))}</textarea></label><p class="who">以前ジャンルや文章で登録した場合は、アーティスト名だけに直してください。未登録のアーティストは選びません。</p>
-    <p class="who">${esc(nameOf(otherRole()))}の好み：${esc(musicTaste(otherRole())||"まだ入っていません")}</p>
+    <p>ふたりそれぞれの好きなアーティストと「♥ いいね」した曲から、ふたりの好みを合わせてAIが選びます（ふたりとも同じ曲）。一度流れた曲は二度と選びません。</p>
+    ${[myRole(),otherRole()].map((r,i)=>`<label class="sho-f"><span class="who">${esc(nameOf(r))}の好きなアーティスト（名前を読点か改行で区切る）</span><textarea id="${i?"musicIn2":"musicIn"}" data-mr="${r}" rows="2" maxlength="200" placeholder="例：あいみょん、King Gnu、スピッツ">${esc(musicTaste(r))}</textarea></label>${songLikes(r).length?`<p class="who">${esc(nameOf(r))}の♥ ${songLikes(r).length}曲（選曲に反映中）</p><ul class="song-likes">${songLikes(r).slice(0,10).map(o=>`<li>${esc(o.title)}／${esc(o.artist)}<button data-songunlike="${r}" data-sid="${esc(songId(o))}" aria-label="いいねを外す">✕</button></li>`).join("")}</ul>`:`<p class="who">${esc(nameOf(r))}の♥：まだありません（今日の1曲で♥を押すと覚えます）</p>`}`).join("")}
+    <p class="who">未登録のアーティストは選びません。ジャンルや文章で登録した場合は、アーティスト名だけに直してください。</p>
     <h2>アプリを開いたら試聴を流す</h2><p class="who">iPhoneでは画面に触れる前は音を出せないため、開いて最初に画面に触れたときに今日の1曲の試聴（30秒）を流します</p><div class="opts">${opt("songAuto","on","流す")}${opt("songAuto","off","流さない")}</div>
     ${aiText()?"":'<p class="who">曲を選ぶにはAI機能を「使う」にしてください。</p>'}</section>
   <section class="card"><h2>天気</h2><div class="opts">${opt("wx","on","表示する")}${opt("wx","off","表示しない")}</div>
@@ -5665,7 +5669,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="signOut"){ if(confirm("ログアウトしますか？")) window.__futariSignOut&&window.__futariSignOut(); }
   else if(a==="csv") exportCSV();
 });
-$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.ramtp){ const v=String(e.target.value).trim(); rampLast={k:`${e.target.dataset.ramtp}|${e.target.dataset.ym}|${e.target.dataset.role}`,t:Date.now()}; setRecurPaidBy(e.target.dataset.ramtp,e.target.dataset.ym,e.target.dataset.role,v===""?null:money(v)); return; } if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); autoCook(); return; } if(e.target.id==="musicIn"){ const v=e.target.value.trim().slice(0,200), r=myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&(e.target.dataset.arct||e.target.dataset.arcn)){ const D=e.target.dataset, g=((arRules()[Number(D.ri)]||{}).groups||[])[Number(D.gi)], c=g&&(g.conds||[])[Number(D.ci)]; if(c){ if(D.arct){ const [t,r]=e.target.value.split(":"); g.conds[Number(D.ci)]={t,...(r?{r}:{}),v:[],not:false}; } else c.n=e.target.value.trim(); state.autoOpen=true; arSave(); const y=window.scrollY; render(); window.scrollTo(0,y); } return; }
+$("main").addEventListener("change",e=>{ if(e.target.dataset&&e.target.dataset.ramtp){ const v=String(e.target.value).trim(); rampLast={k:`${e.target.dataset.ramtp}|${e.target.dataset.ym}|${e.target.dataset.role}`,t:Date.now()}; setRecurPaidBy(e.target.dataset.ramtp,e.target.dataset.ym,e.target.dataset.role,v===""?null:money(v)); return; } if(e.target.dataset&&e.target.dataset.aip){ aiProfSave(e.target.dataset.aip,e.target.value); toast("AIに伝える基本情報を保存しました"); return; } if(e.target.id==="gomiIn"){ const v=e.target.value.trim(); gomiSave(v===GOMI_EX?"":v); toast("ごみ出しの曜日を保存しました"); render(); autoCook(); return; } if(e.target.id==="musicIn"||e.target.id==="musicIn2"){ const v=e.target.value.trim().slice(0,200), r=e.target.dataset.mr==="w"?"w":e.target.dataset.mr==="h"?"h":myRole(), m={...((state.kakei||{}).music||{}),[r]:v}; state.kakei={...(state.kakei||{}),music:m}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; toast("好きな音楽を保存しました"); return; } if(e.target.dataset&&e.target.dataset.cgin&&e.target.classList.contains("cgin")){ const k=e.target.dataset.cgin; setCatGoal(k,money(e.target.value)); toast(`${MCATS[k].l}：毎月 ${money(e.target.value)?yen(money(e.target.value)):"目標なし"}`); return; } if(e.target.dataset&&(e.target.dataset.arct||e.target.dataset.arcn)){ const D=e.target.dataset, g=((arRules()[Number(D.ri)]||{}).groups||[])[Number(D.gi)], c=g&&(g.conds||[])[Number(D.ci)]; if(c){ if(D.arct){ const [t,r]=e.target.value.split(":"); g.conds[Number(D.ci)]={t,...(r?{r}:{}),v:[],not:false}; } else c.n=e.target.value.trim(); state.autoOpen=true; arSave(); const y=window.scrollY; render(); window.scrollTo(0,y); } return; }
   if(e.target.dataset&&e.target.dataset.arf){ const r=arRules()[Number(e.target.dataset.ri)]; if(r){ const f=e.target.dataset.arf, v=e.target.value.trim(); if(f==="name") r.name=v||"予定"; else if(f==="off") r.off=Number(v)||0; else if(v||f==="s"||f==="e") r[f]=v; state.autoOpen=true; arSave(); toast("自動で入る予定を更新しました"); } return; } if(e.target.dataset&&e.target.dataset.ramt){ const r=state.recur.find(x=>x.id===e.target.dataset.ramt), ym=e.target.dataset.ym, v=money(e.target.value); if(!r) return; if(v) toggleRecurPaid(r.id,ym,v); else if(rPaid(r,ym)) toggleRecurPaid(r.id,ym,null); return; } if(e.target.id==="thxIn"||e.target.id==="dinIn"){ flushExtras(); return; } if(e.target.id==="bkFile"){ const f=e.target.files&&e.target.files[0]; if(f) restoreBackup(f); e.target.value=""; return; } if(e.target.id==="nickIn"){ prefs.nick=e.target.value.trim(); savePrefs(true); renderChrome(); return; } if(e.target.id==="appNameIn"){ prefs.appName=e.target.value.trim(); savePrefs(true); renderChrome(); toast("アプリの名前を変えました"); return; } if(e.target.id==="famH"||e.target.id==="famW"){ const f={h:($("famH").value.trim()||"陸功"),w:($("famW").value.trim()||"紀香")}; state.fam=f; if(famDoc) famDoc.set(f).catch(()=>{}); toast("名前を保存しました"); renderChrome(); } });
 $("main").addEventListener("input",e=>{
   if(e.target.id==="aiIn"){state.ai.q=e.target.value.slice(0,2000);return;}
@@ -8939,14 +8943,15 @@ const songAllowed=o=>{ if(!o) return false; const a=musicKey(o.artist), p=musicK
 const songContext=d=>{ const w=wxToday(); return `${d}:${Math.floor(new Date().getHours()/6)}:${w?wxKind(w.code,1):"unknown"}:${musicArtists().sort().join("|")}`; };
 const SVC={apple:["Apple Music",q=>`https://music.apple.com/jp/search?term=${encodeURIComponent(q)}`],spotify:["Spotify",q=>`https://open.spotify.com/search/${encodeURIComponent(q)}`],youtube:["YouTube Music",q=>`https://music.youtube.com/search?q=${encodeURIComponent(q)}`]};
 /* v162: 候補をまとめて選び、Apple Musicの試聴も先に取っておく（押したらすぐ鳴る・別の曲もすぐ） */
-function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), T=typeof wxToday==="function"?wxToday():null, off=offState(d)==="both";
+function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), T=typeof wxToday==="function"?wxToday():null, off=offState(d)==="both", turn=songTurn(), lh=songLikeSummary("h"), lw=songLikeSummary("w");
   return `夫婦のアプリで「今日の1曲」の候補を${n}曲選んでください。いちばん大事なのは、ふたりの好みに合っていること。
-- ${nameOf("h")}の好み：${th||"（未登録）"}
-- ${nameOf("w")}の好み：${tw||"（未登録）"}
+- ${nameOf("h")}の好み：${th||"（未登録）"}${lh?`\n  - ${nameOf("h")}が♥いいねした曲（＝本当に好きな曲。曲調・時代・雰囲気の近い曲を優先し、いいねの多いアーティストを多めに）：${lh}`:""}
+- ${nameOf("w")}の好み：${tw||"（未登録）"}${lw?`\n  - ${nameOf("w")}が♥いいねした曲（＝本当に好きな曲。曲調・時代・雰囲気の近い曲を優先し、いいねの多いアーティストを多めに）：${lw}`:""}
+- 最近は${turn==="both"?"ふたりの好みが同じくらい":`${nameOf(turn==="h"?"w":"h")}寄りの曲が多め`}。今回は${turn==="both"?"ふたりとも好きそうな曲を中心に":`${nameOf(turn)}の好みに合う曲を多めに（ふたりとも好きそうな曲がいちばん良い）`}
 ルール：
 - 好みに書かれたアーティスト本人の曲を選ぶ（略称・愛称・ひらがな表記でも、そのアーティストのこと。同系統の別アーティストやカバーは選ばない）
 - 日付${d}・現在${new Date().getHours()}時・季節${["冬","春","夏","秋"][Math.floor((Number(d.slice(5,7))%12)/3)]}・天気${T?WXN[wxKind(T.code,1)]||"不明":"不明"}・${off?"ふたり休み":"平常日"}に合う雰囲気を、登録アーティストの曲の中から選ぶ
-- ふたりとも好みが登録されていれば、交互に（${nameOf("h")}寄り・${nameOf("w")}寄り・両方寄り）
+- ふたりとも好みが登録されていれば、片方に偏らないように（${nameOf("h")}寄り・${nameOf("w")}寄り・両方寄りを混ぜる）
 - 実在が確かな曲だけ（曲名とアーティスト名は正式な表記で。架空の曲は不可）
 - 同じアーティストは2曲まで。次の曲は過去にかけた曲なので絶対に選ばない（別バージョン・ライブ版も不可。有名曲に偏らず、アルバム曲・カップリングも含めて幅広く）：${exclude.join(" / ")||"なし"}
 - reason は「〇〇好きの${nameOf("h")}に」「△△が好きな${nameOf("w")}と」のように、どちらの好みに合うかが分かる一言（40文字以内）
@@ -8954,7 +8959,28 @@ function songPrompt(d,n,exclude){ const th=musicTaste("h"), tw=musicTaste("w"), 
 - 好みが曲名やジャンル（例：「90年代J-POP」）の場合は、それに合う実在の曲を選び、pref にその言葉を入れる
 JSONだけを返す：{"songs":[{"title":"曲名","artist":"アーティスト名（正式表記）","pref":"当たる好みの言葉","reason":"理由"},…]}`; }
 /* v231: 一度かかった曲（各日の曲・「別の曲」で流した曲）は、日をまたいでも選ばない */
-function songPlayed(){ return state.music.filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).flatMap(m=>[m,...(m.alts||[]).filter(a=>a.seen)]); }
+function songPlayed(){ return (state.music||[]).filter(m=>m.title).sort((a,b)=>a.id<b.id?1:-1).flatMap(m=>[m,...(m.played||[]).slice().reverse(),...(m.alts||[]).filter(a=>a.seen)]); }
+/* v308: その日に一度出た曲は、選び直し（時間帯・天気が変わったとき）や候補の入れ替えで消えても、playedに残して二度と選ばない */
+function songPlayedAdd(m,...L){ const out=[...(m&&m.played||[])], seen=new Set(out.map(songId)); for(const o of L){ if(!o||!o.title) continue; const id=songId(o); if(seen.has(id)) continue; seen.add(id); out.push({title:String(o.title).slice(0,60),artist:String(o.artist||"").slice(0,60)}); } return out.slice(-120); }
+/* v308: いいね。押した人（りく／のり）ごとに覚え、次の選曲で好みとして効かせる */
+const songLikes=r=>{ const L=((state.kakei||{})["musicLike_"+r]); return Array.isArray(L)?L.filter(o=>o&&o.title):[]; };
+const songLiked=(o,r)=>!!(o&&o.title)&&songLikes(r).some(x=>songId(x)===songId(o));
+function songLikeSet(r,next){ state.kakei={...(state.kakei||{}),["musicLike_"+r]:next}; if(typeof kakeiPut==="function") kakeiPut({["musicLike_"+r]:next,updatedAt:Date.now()}).catch(()=>{}); state.songTried={}; }
+function songLike(){ const x=songOf(today()); if(!x||!x.title) return; const r=myRole(), on=songLiked(x,r), L=songLikes(r);
+  songLikeSet(r,on?L.filter(o=>songId(o)!==songId(x)):[{title:x.title,artist:x.artist,pref:x.pref||"",at:Date.now()},...L.filter(o=>songId(o)!==songId(x))].slice(0,200));
+  haptic("tick"); toast(on?"いいねを外しました":`${nameOf(r)}の好みとして覚えました`); songRender(); }
+function songLikeSummary(r){ const L=songLikes(r); if(!L.length) return ""; const cnt=new Map(); for(const o of L) cnt.set(o.artist,(cnt.get(o.artist)||0)+1);
+  return `${L.slice(0,15).map(o=>`${o.title}／${o.artist}`).join("、")}（いいねの多いアーティスト：${[...cnt].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([a,n])=>`${a}×${n}`).join("、")}）`; }
+/* v308: その曲がどちらの好みか（登録アーティスト or いいねしたアーティスト）。両方なら both */
+const songTasteKeys=r=>musicTaste(r).split(/[、,，\n\/／]+/).map(musicKey).filter(Boolean);
+function songFor(o){ if(!o) return ""; const a=musicKey(o.artist), p=musicKey(o.pref), hit=r=>songTasteKeys(r).some(k=>k===a||k===p)||songLikes(r).some(x=>musicKey(x.artist)===a), h=hit("h"), w=hit("w"); return h&&w?"both":h?"h":w?"w":""; }
+/* 最近流れた曲がどちらに寄っているかを見て、次はどちら寄りにするか（ふたりの好みを合わせる） */
+function songTurn(){ if(!musicTaste("w")&&!songLikes("w").length) return "h"; if(!musicTaste("h")&&!songLikes("h").length) return "w";
+  const n={h:0,w:0}; for(const o of songPlayed().slice(0,12)){ const f=songFor(o); if(f==="h"||f==="both") n.h++; if(f==="w"||f==="both") n.w++; } return n.h===n.w?"both":n.h<n.w?"h":"w"; }
+/* 候補の並び：ふたりとも好き → 今回の番の人の好み → いいねの多いアーティスト */
+function songOrder(L){ const t=songTurn(), lk=r=>new Map(songLikes(r).reduce((m,o)=>{ const k=musicKey(o.artist); m.push([k,((m.find(z=>z[0]===k)||[])[1]||0)+1]); return m; },[])), LH=lk("h"), LW=lk("w");
+  const sc=o=>{ const f=songFor(o), k=musicKey(o.artist); return (f==="both"?3:0)+(t!=="both"&&f===t?2:0)+Math.min(1,((LH.get(k)||0)+(LW.get(k)||0))*.2); };
+  return L.map((o,i)=>({o,i,s:sc(o)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(z=>z.o); }
 function songPast(){ const seen=new Set(), out=[]; for(const o of songPlayed()){ const k=songTKey(o); if(!k||seen.has(k)) continue; seen.add(k); out.push(`${o.title}／${o.artist}`); if(out.length>=150) break; } return out; }
 const songNorm=L=>(Array.isArray(L)?L:[]).map(o=>({title:String(o&&o.title||"").trim().slice(0,60),artist:String(o&&o.artist||"").trim().slice(0,60),pref:String(o&&o.pref||"").trim().slice(0,60),reason:String(o&&o.reason||"").slice(0,80)})).filter(o=>o.title&&songAllowed(o));
 const songId=o=>`${musicKey(o&&o.artist)}:${String(o&&o.title||"").normalize("NFKC").toLowerCase().replace(/[\s・\-‐（）()「」'’!！?？.,、。]/g,"")}`;
@@ -8977,12 +9003,12 @@ async function songEnsure(d,force){
   try{ const r=await ai.json(songPrompt(d,5,songPast()),{modelTier:"quick"}); L=songFresh(await songCheck(songFresh(songNorm(r&&r.songs||[r]),used)),used); }
   catch(e){ state.songErr=String((e&&(e.detail||e.code||e.message))||"選曲に失敗しました").slice(0,80); }
   if(!L.length){ const fallback=await songCatalogAlternative(used); if(fallback){ L=[fallback]; state.songErr=""; } } /* v225: AIで選べなくても、好みのアーティストの曲一覧（Apple Music）から必ず1曲 */
-  if(L.length){ const doc={url:null,preview:null,art:null,...L[0],alts:L.slice(1),context,by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur) Object.assign(cur,doc); else state.music.push({id:d,...doc}); dset("music",d,doc); songPreload(); state.songErr=""; }
+  if(L.length){ L=songOrder(L); const prev=songOf(d), doc={url:null,preview:null,art:null,...L[0],alts:L.slice(1),played:songPlayedAdd(prev,prev,...((prev&&prev.alts)||[]).filter(a=>a.seen)),heard_h:false,heard_w:false,context,by:myRole(),at:Date.now()}; const cur=songOf(d); if(cur) Object.assign(cur,doc); else state.music.push({id:d,...doc}); dset("music",d,doc); songPreload(); state.songErr=""; }
   else state.songErr=state.songErr||"別の曲が見つかりませんでした";
   state.songBusy=false; songRender(); }
 /* 候補がなくなりそうなら裏で追加（待たせない） */
 async function songRefill(d){ const x=songOf(d), ai=aiText(); if(!x||!ai||state.songRefilling||(x.alts||[]).filter(a=>!a.seen).length>1) return; state.songRefilling=true;
-  try{ const r=await ai.json(songPrompt(d,4,[...songPast(),`${x.title}／${x.artist}`]),{modelTier:"quick"}); const L=songFresh(await songCheck(songNorm(r&&r.songs)),songPlayed());
+  try{ const r=await ai.json(songPrompt(d,4,[...songPast(),`${x.title}／${x.artist}`]),{modelTier:"quick"}); const L=songOrder(songFresh(await songCheck(songNorm(r&&r.songs)),songPlayed()));
     const cur=songOf(d); if(cur&&L.length){ const A=cur.alts||[]; cur.alts=[...songFresh([...A.filter(a=>!a.seen),...L],[cur,...songPlayed()]),...A.filter(a=>a.seen)].slice(0,14); dupd("music",d,{alts:cur.alts}); } }catch(e){}
   state.songRefilling=false; }
 /* Apple Musicで実在を確かめ、ページ・試聴・ジャケットを付ける（見つからない曲＝作り話の可能性があるので外す。検索できない環境ではそのまま） */
@@ -9003,15 +9029,16 @@ function songPreload(){if(state.aiListening||state.aiVoiceTranscribing)return; c
 function songStop(){ if(songAudio){ try{ songAudio.pause(); }catch(e){} } state.songPlaying=false; }
 function songToggle(){if(state.aiListening||state.aiVoiceTranscribing){toast("音声入力が終わってから再生できます");return;} const x=songOf(today()); if(!songAllowed(x)||!x.preview){ songStop(); return; } const a=songEl(); if(state.songPlaying){ songStop(); songRender(); return; }
   if(a.src!==x.preview) a.src=x.preview; a.volume=0.8; state.songPlaying=true; songRender();
-  a.play().catch(()=>{ state.songPlaying=false; songRender(); }); }
+  a.play().then(()=>{ const k="heard_"+myRole(); if(!x[k]){ x[k]=true; dupd("music",today(),{[k]:true}); } }).catch(()=>{ state.songPlaying=false; songRender(); }); }
 function songNext(){ const d=today(), x=songOf(d); if(!x||state.songBusy) return; songStop();
-  const available=songFresh((x.alts||[]).filter(a=>songAllowed(a)&&!a.seen),[x,...songPlayed()]);
-  if(available.length){ const [n,...rest]=available, doc={title:n.title,artist:n.artist,reason:n.reason||"",url:n.url||null,preview:n.preview||null,art:n.art||null,alts:[...rest,{title:x.title,artist:x.artist,reason:x.reason||"",url:x.url||null,preview:x.preview||null,art:x.art||null,seen:true}].slice(0,12),context:x.context,by:myRole(),at:Date.now()};
+  const available=songOrder(songFresh((x.alts||[]).filter(a=>songAllowed(a)&&!a.seen),[x,...songPlayed()]));
+  if(available.length){ const [n,...rest]=available, doc={title:n.title,artist:n.artist,pref:n.pref||"",reason:n.reason||"",url:n.url||null,preview:n.preview||null,art:n.art||null,alts:[...rest,{title:x.title,artist:x.artist,reason:x.reason||"",url:x.url||null,preview:x.preview||null,art:x.art||null,seen:true}].slice(0,12),played:songPlayedAdd(x,x),heard_h:false,heard_w:false,context:x.context,by:myRole(),at:Date.now()};
     Object.assign(x,doc); dset("music",d,doc); haptic("tick"); if(!x.url) songLookup(d); songPreload(); if(x.preview) songToggle(); else { state.songPlayNext=true; songRender(); } /* v163: 別の曲にしたらすぐ再生 */
     if(rest.filter(a=>!a.seen).length<=1) songRefill(d); }
   else { state.songTried={}; songEnsure(d,true); } }
 /* アプリを開いて最初に画面に触れたとき、今日の1曲の試聴を流す（iPhoneは触れる前の自動再生ができないため） */
-document.addEventListener("pointerdown",function sa(){ if(state.songAutoDone) return; const x=songOf(today()); if(prefs.songAuto!=="on"||!x||!x.preview) return; state.songAutoDone=true; document.removeEventListener("pointerdown",sa,true); songToggle(); },true);
+/* v308: もう聞いた曲は自動では流さず、まだ流れていない次の曲へ進めてから流す（同じ曲が流れない） */
+document.addEventListener("pointerdown",function sa(){ if(state.songAutoDone) return; const x=songOf(today()); if(prefs.songAuto!=="on"||!x||!x.preview) return; state.songAutoDone=true; document.removeEventListener("pointerdown",sa,true); if(x["heard_"+myRole()]) songNext(); else songToggle(); },true);
 function songRender(){
   const el=$("song"); if(!el) return; const t=today(), cached=songOf(t), x=songAllowed(cached)?cached:null, ai=aiText(), taste=musicTaste(myRole())||musicTaste(otherRole());
   if(prefs.music==="off"||(!x&&!ai)){ el.hidden=true; return; }
@@ -9023,10 +9050,10 @@ function songRender(){
   if(!pn){ pn=document.createElement("div"); pn.id="songp"; pn.className="wxp songp"; document.body.appendChild(pn); }
   const q=x?`${x.title} ${x.artist}`:"", svc=prefs.musicSvc||"apple";
   pn.innerHTML=x?`<div class="wxp-h"><b>今日の1曲</b><span class="who">${short(t)}・ふたりの好みから</span></div>
-      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}
+      <div class="song-top">${x.art?`<img class="song-art" src="${esc(x.art)}" alt="">`:""}<div><div class="song-t">${esc(x.title)}</div><div class="song-a">${esc(x.artist)}</div></div><button class="song-lk ${songLiked(x,myRole())?"on":""}" data-act="songLike" aria-pressed="${songLiked(x,myRole())}" aria-label="${esc(nameOf(myRole()))}のいいね">${songLiked(x,myRole())?"♥":"♡"}</button><button class="song-pl ${x.preview?"":"wait"}" data-act="songPlay" ${x.preview?"":"disabled"} aria-label="${state.songPlaying?"止める":"試聴する"}">${x.preview?(state.songPlaying?"❚❚":"▶"):"…"}</button></div>${x.reason?`<p class="song-r">${esc(x.reason)}</p>`:""}${(()=>{ const f=songFor(x), lb=["h","w"].filter(r=>songLiked(x,r)).map(nameOf); return `<p class="song-who">${f==="both"?"ふたりの好み":f?`${esc(nameOf(f))}の好み`:""}${lb.length?`${f?"・":""}♥ ${esc(lb.join("・"))}`:""}</p>`; })()}
       <div class="song-l"><a class="btn primary" data-act="songOpen" href="${esc(x.url||SVC.apple[1](q))}" target="_blank" rel="noopener">Apple Musicで${x.url?"開く":"探す"}</a>
       ${state.songBusy?`<p class="song-r" role="status">別の曲を探しています…</p>`:state.songErr?`<p class="song-r" role="status">${esc(state.songErr)}</p>`:""}
-      <div class="song-sg" role="group">${ai?`<button data-act="songRe" ${state.songBusy?"disabled":""}>${state.songBusy?"選曲中…":"⟳ 別の曲"}</button>`:""}<button data-act="songPref">♡ 好みを変える</button></div></div>`
+      <div class="song-sg" role="group">${ai?`<button data-act="songRe" ${state.songBusy?"disabled":""}>${state.songBusy?"選曲中…":"⟳ 別の曲"}</button>`:""}<button data-act="songPref">好みを変える</button></div></div>`
     :`<div class="wxp-h"><b>今日の1曲</b></div><p class="song-r">${taste?(state.songBusy?"ふたりの好みから選んでいます…":`選べませんでした${state.songErr?`（${esc(state.songErr)}）`:""}`):"設定 ›「今日の1曲」に、ふたりそれぞれの好きな音楽を入れると、毎日1曲選びます。"}</p><div class="song-f"><button class="link" data-act="songPref">好みを入れる</button>${taste&&!state.songBusy?`<button class="link" data-act="songRe">もう一度選ぶ</button>`:""}</div>`;
   const r=el.getBoundingClientRect(), pw=Math.min(340,innerWidth-24); pn.style.width=pw+"px"; pn.style.left=Math.round(Math.min(Math.max(12,r.right-pw),innerWidth-12-pw))+"px"; pn.style.top=Math.round(r.bottom+8)+"px";
   if(r.bottom+pn.offsetHeight+16>innerHeight) pn.style.top=Math.max(12,Math.round(r.top-pn.offsetHeight-8))+"px"; }
@@ -9041,7 +9068,10 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#songp [data-ac
     const app=web.replace(/^https:\/\//,"music://"), t0=Date.now(); let left=false; const vis=()=>{ if(document.visibilityState==="hidden") left=true; }; document.addEventListener("visibilitychange",vis);
     location.href=app; setTimeout(()=>{ document.removeEventListener("visibilitychange",vis); if(!left&&Date.now()-t0<3000) window.open(web,"_blank"); },1500); }
   else if(a==="songPlay"){ songToggle(); }
+  else if(a==="songLike"){ songLike(); }
   else if(a==="songPref"){ state.songOpen=false; songRender(); go("settings"); setTimeout(()=>{ const el=$("musicIn"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus({preventScroll:true}); } },200); } });
+
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-songunlike]"); if(!b) return; const r=b.dataset.songunlike==="w"?"w":"h"; songLikeSet(r,songLikes(r).filter(o=>songId(o)!==b.dataset.sid)); toast("いいねを外しました"); render(); });
 
 /* ================= 定期のもの（記念日・毎月の支払い・家事・定期の習慣）：期日の1週間前から、次の1回だけ出す ================= */
 const REC_LEAD=7;

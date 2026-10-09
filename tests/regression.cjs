@@ -185,10 +185,10 @@ test('music lookup rejects similarly named cover artists and accepts exact norma
   const c=env(['musicKey','songFind'],{itunesJsonp:async()=>({results:[{trackName:'テスト曲',artistName:'スピッツ tribute',trackViewUrl:'wrong'},{trackName:'テスト曲',artistName:'スピッツ',trackViewUrl:'correct'}]})});assert.equal((await run(c,"songFind('テスト曲','スピッツ')")).url,'correct');c.itunesJsonp=async()=>({results:[{trackName:'テスト曲',artistName:'スピ',trackViewUrl:'wrong'}]});assert.equal(await run(c,"songFind('テスト曲','スピッツ')"),null);
 });
 test('music context changes when favorites change, and prompts include season/weather/time',()=>{
-  const c=env(['musicKey','musicArtists','songContext','songPrompt'],{musicTaste:()=> 'スピッツ',wxToday:()=>({code:61}),wxKind:()=> 'rain',WXN:{rain:'雨'},offState:()=> 'both'});const key=run(c,"songContext('2026-09-28')");c.musicTaste=()=> '宇多田ヒカル';assert.notEqual(run(c,"songContext('2026-09-28')"),key);const prompt=run(c,"songPrompt('2026-09-28',3,[])");assert.match(prompt,/季節秋/);assert.match(prompt,/天気雨/);assert.match(prompt,/現在\d+時/);
+  const c=env(['musicKey','songId','songTKey','songPlayed','songLikes','songTasteKeys','songFor','songTurn','songLikeSummary','songOrder','songPlayedAdd','musicArtists','songContext','songPrompt'],{musicTaste:()=> 'スピッツ',wxToday:()=>({code:61}),wxKind:()=> 'rain',WXN:{rain:'雨'},offState:()=> 'both'});const key=run(c,"songContext('2026-09-28')");c.musicTaste=()=> '宇多田ヒカル';assert.notEqual(run(c,"songContext('2026-09-28')"),key);const prompt=run(c,"songPrompt('2026-09-28',3,[])");assert.match(prompt,/季節秋/);assert.match(prompt,/天気雨/);assert.match(prompt,/現在\d+時/);
 });
 test('another song skips repeated and already seen candidates',()=>{
-  const c=env(['musicKey','songId','songTKey','songSeed','songPlayed','songFresh','songNext'],{songOf:d=>c.state.music[0],songAllowed:()=>true,songStop(){},songLookup(){},songPreload(){},songToggle(){},songRender(){},songRefill(){}});
+  const c=env(['musicKey','songId','songTKey','songPlayed','songLikes','songTasteKeys','songFor','songTurn','songLikeSummary','songOrder','songPlayedAdd','songSeed','songFresh','songNext'],{musicTaste:()=>'',songOf:d=>c.state.music[0],songAllowed:()=>true,songStop(){},songLookup(){},songPreload(){},songToggle(){},songRender(){},songRefill(){}});
   c.state.music=[{id:'2026-09-28',title:'夜の東側',artist:'サカナクション',context:'today',alts:[{title:'夜の東側',artist:'サカナクション'},{title:'既聴',artist:'サカナクション',seen:true},{title:'新曲',artist:'サカナクション'},{title:'新曲',artist:'サカナクション'}]}];
   run(c,'songNext()');assert.equal(c.state.music[0].title,'新曲');assert.equal(c.writes.at(-1).data.title,'新曲');assert.equal(c.state.music[0].context,'today');
 });
@@ -1036,4 +1036,23 @@ test('36-hour agenda includes partner updates beyond entry 100 and excludes olde
  const now=Date.now(),c=env(['agendaHTML'],{mondayOf:t=>t,contribEvents:()=>[],choreInfo:()=>({diff:0}),shiftOf:()=>'',offState:()=>'',moneyEntries:()=>[],short:String,talkState:()=> 'off',qaCardHTML:()=>'',ic:()=>'',ICP:{plus:''}});
  c.state.activity=Array.from({length:200},(_,i)=>({id:String(i),at:now-i*1000,role:'h',kind:'予定'}));c.state.activity.push({id:'partner-new',at:now-35*3600000,role:'w',kind:'買い物'},{id:'partner-old',at:now-37*3600000,role:'w',kind:'予定'});
  const html=run(c,'agendaHTML()');assert.match(html,/wの更新（1日半） 1件/);assert.match(html,/買い物/);
+});
+
+test('v308 likes are per person, steer the prompt, and the turn balances both tastes',()=>{
+  const c=env(['musicKey','songId','songTKey','songPlayed','songLikes','songTasteKeys','songFor','songTurn','songLikeSummary','songOrder','songPlayedAdd','musicArtists','songContext','songPrompt'],{musicTaste:r=>r==='h'?'サカナクション':'あいみょん、スピッツ',wxToday:()=>null,wxKind:()=>'',WXN:{},offState:()=>'none'});
+  c.state.music=[{id:'2026-10-08',title:'マリーゴールド',artist:'あいみょん',played:[{title:'チェリー',artist:'スピッツ'}]}];
+  c.state.kakei={musicLike_w:[{title:'マリーゴールド',artist:'あいみょん'}]};
+  assert.equal(run(c,"songLikes('h').length"),0);assert.equal(run(c,"songLikes('w').length"),1);
+  assert.equal(run(c,"songTurn()"),'h');
+  const prompt=run(c,"songPrompt('2026-10-09',3,[])");assert.match(prompt,/wが♥いいねした曲.*マリーゴールド／あいみょん/);assert.match(prompt,/今回はhの好みに合う曲を多めに/);
+  c.state.kakei.musicTaste=null;c.musicTaste=r=>r==='h'?'サカナクション、スピッツ':'あいみょん、スピッツ';
+  assert.equal(run(c,"songFor({title:'x',artist:'スピッツ'})"),'both');
+  const order=run(c,"songOrder([{title:'a',artist:'あいみょん'},{title:'b',artist:'サカナクション'},{title:'c',artist:'スピッツ'}]).map(o=>o.title).join()");assert.equal(order,'c,b,a');
+});
+test('v308 songs replaced by a re-pick stay in history and are never chosen again',()=>{
+  const c=env(['musicKey','songId','songTKey','songPlayed','songLikes','songTasteKeys','songFor','songTurn','songLikeSummary','songOrder','songPlayedAdd','songFresh']);
+  const m={id:'2026-10-09',title:'今の曲',artist:'A',alts:[{title:'候補',artist:'A'}]};m.played=run(c,'songPlayedAdd')(m,{title:'朝の曲',artist:'A'},{title:'朝の曲',artist:'A'});
+  c.state.music=[m];assert.equal(m.played.length,1);
+  c.L=[{title:'朝の曲',artist:'A'},{title:'今の曲',artist:'A'},{title:'新しい曲',artist:'A'}];
+  assert.deepEqual(plain(run(c,'songFresh(L,songPlayed()).map(o=>o.title)')),['新しい曲']);
 });
