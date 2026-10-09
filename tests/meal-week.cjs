@@ -1,71 +1,25 @@
-// Run: node --test tests/meal-week.cjs. Shipped functions, isolated data, no network.
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const {test}=require('node:test');
+// Shipped declarations, isolated shared-data mock. Run: node --test tests/meal-week.cjs
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{test}=require('node:test');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8'),lines=source.split('\n');
-function declaration(name){
-  const start=lines.findIndex(l=>new RegExp('^(?:(?:async )?function|const|let) '+name+'(?:[=( ;])').test(l));
-  assert.ok(start>=0,name);
-  for(let i=start;i<lines.length;i++){const s=lines.slice(start,i+1).join('\n');try{new vm.Script(s);return s;}catch{}}
-  throw Error(name);
-}
-const fns=['dinnerOf','dinnerText','fridgeItems','mondayOf','mealDate','mealValues','mealWeekDays','mealWeekValues','mealWeekDirty','mealModeHTML','mealWeekHTML','mealWeekStatus','mealWeekPaint','mealWeekInput','saveMealWeek','mealWeekMove','flushMeal','mealTimer','viewMeal','saveMeal','dset','ddel'];
-function env(){
-  const writes=[],notices=[],errors=[],store=new Map(),elements={};
-  const c=vm.createContext({state:{view:'meal',dinner:[],kakei:{},me:'test-h'},writes,notices,errors,store,elements,Date,console,
-    today:()=> '2026-10-07',parse:d=>new Date(d+'T00:00:00'),ymd:d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
-    addDays:(s,n)=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);},WD:['日','月','火','水','木','金','土'],
-    esc:s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),jpDate:String,short:String,
-    $:id=>elements[id]||null,document:{querySelector:()=>null},myRole:()=> 'h',toast:m=>notices.push(m),render(){},requestRender(){},guestBlock:()=>false,netMark(){},actTracked:()=>false,vaultSave(){},pushNotifyAdded(){},err:e=>errors.push(e.message),clearTimeout,
-    colRef:()=>({doc:id=>({set:async data=>{writes.push({op:'set',id,data});store.set(id,data);},delete:async()=>{writes.push({op:'delete',id});store.delete(id);}})})
-  });
-  for(const f of fns)vm.runInContext(declaration(f),c);return c;
-}
+function declaration(name){const start=lines.findIndex(l=>new RegExp('^(?:(?:async )?function|const|let) '+name+'(?:[=( ;])').test(l));assert.ok(start>=0,name);for(let i=start;i<lines.length;i++){const s=lines.slice(start,i+1).join('\n');try{new vm.Script(s);return s;}catch{}}throw Error(name);}
+const fns=['dinnerOf','dinnerText','fridgeItems','mondayOf','mealDate','mealValues','mealWeekDays','MEAL_CATEGORIES','mealWeekRows','mealWeekDirty','mealModeHTML','mealWeekSummary','mealWeekHTML','mealWeekStatus','mealWeekPaint','mealWeekInput','mealWeekWrite','saveMealWeek','mealWeekCook','mealWeekMove','flushMeal','mealTimer','viewMeal','saveMeal','dset','ddel'];
+function env(){const writes=[],notices=[],errors=[],store=new Map(),elements={};let seq=0;
+ const c=vm.createContext({state:{view:'meal',dinner:[],kakei:{},me:'test-h'},writes,notices,errors,store,elements,Date,console,newId:()=>`new${++seq}`,
+ today:()=> '2026-10-07',parse:d=>new Date(d+'T00:00:00'),ymd:d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+ addDays:(s,n)=>{const d=new Date(s+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);},WD:['日','月','火','水','木','金','土'],
+ esc:s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),jpDate:String,short:String,
+ $:id=>elements[id]||null,document:{querySelector:()=>null},myRole:()=> 'h',toast:m=>notices.push(m),render(){},requestRender(){},guestBlock:()=>false,netMark(){},actTracked:()=>false,vaultSave(){},pushNotifyAdded(){},err:e=>errors.push(e.message),clearTimeout,
+ colRef:()=>({doc:id=>({set:async data=>{writes.push({op:'set',id,data});store.set(id,{...data});},update:async data=>{writes.push({op:'update',id,data});store.set(id,{...store.get(id),...data});},delete:async()=>{writes.push({op:'delete',id});store.delete(id);}})})});
+ for(const f of fns)vm.runInContext(declaration(f),c);return c;}
 const run=(c,s)=>vm.runInContext(s,c),plain=x=>JSON.parse(JSON.stringify(x));
-test('Monday-based week spans year boundary and leap day; previous/next/this week',()=>{
-  const c=env();c.state.mealDate='2027-01-03';assert.deepEqual(plain(run(c,'mealWeekDays()')),['2026-12-28','2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03']);
-  assert.match(run(c,'mealWeekHTML()'),/2026\/12\/28 〜 2027\/1\/3/);
-  run(c,'mealWeekMove("next")');assert.equal(c.state.mealDate,'2027-01-10');run(c,'mealWeekMove("prev")');assert.equal(c.state.mealDate,'2027-01-03');run(c,'mealWeekMove("today")');assert.equal(c.state.mealDate,'2026-10-07');
-  c.state.mealDate='2024-02-29';assert.equal(run(c,'mealWeekDays()[6]'),'2024-03-03');
-});
-test('week is default, all 21 fields escape content and daily/fridge views remain available',()=>{
-  const c=env();c.state.dinner=[{id:'2026-10-07',text:'<旧献立>"'}];
-  const html=run(c,'viewMeal()');assert.equal((html.match(/data-mealweek-field=/g)||[]).length,21);assert.match(html,/&lt;旧献立&gt;&quot;/);assert.match(html,/冷蔵庫/);assert.match(html,/1 \/ 7日/);assert.doesNotMatch(html,/id="mealMain"/);
-  c.state.mealMode='day';const day=run(c,'viewMeal()');assert.match(day,/id="mealMain"/);assert.match(day,/&lt;旧献立&gt;&quot;/);assert.doesNotMatch(day,/data-mealweek-field=/);
-});
-test('weekly save writes only changed dates, retains old text and partner fields, then writes nothing on repeat',async()=>{
-  const c=env();c.state.dinner=[{id:'2026-10-07',text:'旧カレー',at:1,custom:'keep'},{id:'2026-10-08',main:'魚',side:'サラダ',soup:'味噌汁'}];
-  run(c,'mealWeekInput("2026-10-07","side","温野菜");mealWeekInput("2026-10-08","main","鶏肉");');
-  // A partner edits an untouched field while our draft is open.
-  c.state.dinner[1].soup='わかめスープ';assert.equal(await run(c,'saveMealWeek()'),true);assert.equal(c.writes.length,2);
-  assert.equal(c.store.get('2026-10-07').main,'旧カレー');assert.equal(c.store.get('2026-10-07').custom,'keep');assert.equal(c.store.get('2026-10-08').soup,'わかめスープ');assert.equal(c.store.get('2026-10-08').text,'鶏肉、サラダ、わかめスープ');
-  assert.equal(await run(c,'saveMealWeek()'),true);assert.equal(c.writes.length,2);assert.equal(run(c,'mealWeekDirty().length'),0);
-  c.state.dinner=[...c.store].map(([id,data])=>({id,...data}));assert.match(run(c,'viewMeal()'),/温野菜/);
-});
-test('drafts survive renders and week changes; reverting a field removes its pending write',()=>{
-  const c=env();run(c,'mealWeekInput("2026-10-07","main","カレー");mealWeekMove("next")');assert.match(run(c,'mealWeekStatus()'),/ほかの週に未保存 1日/);
-  run(c,'mealWeekMove("prev")');assert.equal(run(c,'mealWeekValues("2026-10-07").main'),'カレー');assert.match(run(c,'viewMeal()'),/value="カレー"/);
-  run(c,'mealWeekInput("2026-10-07","main","")');assert.equal(run(c,'mealWeekDirty().length'),0);
-});
-test('seven new days share the existing dinner collection and daily editor reads the same saved data',async()=>{
-  const c=env();run(c,'mealWeekDays().forEach((d,i)=>mealWeekInput(d,"main","献立"+i))');await run(c,'saveMealWeek()');assert.equal(c.writes.length,7);assert.equal(c.state.dinner.length,7);
-  c.state.mealMode='day';assert.match(run(c,'viewMeal()'),/value="献立2"/);
-  c.elements.mealMain={value:'日表示で変更'};c.elements.mealSide={value:''};c.elements.mealSoup={value:''};run(c,'saveMeal()');
-  c.state.dinner=[...c.store].map(([id,data])=>({id,...data}));assert.equal(run(c,'mealWeekValues("2026-10-07").main'),'日表示で変更');
-});
-test('clearing an existing day deletes only that day and empty untouched days are not written',async()=>{
-  const c=env();c.state.dinner=[{id:'2026-10-07',main:'魚',side:'野菜',soup:''},{id:'2026-10-08',text:'保持'}];
-  run(c,'mealWeekInput("2026-10-07","main","");mealWeekInput("2026-10-07","side","")');await run(c,'saveMealWeek()');
-  assert.deepEqual(plain(c.writes),[{op:'delete',id:'2026-10-07'}]);assert.equal(c.state.dinner[0].id,'2026-10-08');
-});
-test('partial failure retains just failed drafts for retry and shows the failure; guests cannot save',async()=>{
-  const c=env(),normal=c.colRef;c.colRef=()=>({doc:id=>id==='2026-10-08'?{set:async()=>{throw Error('offline failure');}}:normal().doc(id)});
-  run(c,'mealWeekInput("2026-10-07","main","カレー");mealWeekInput("2026-10-08","main","魚")');assert.equal(await run(c,'saveMealWeek()'),false);
-  assert.equal(c.writes.length,1);assert.equal(run(c,'mealWeekDirty().length'),1);assert.equal(run(c,'mealWeekValues("2026-10-08").main'),'魚');assert.match(run(c,'mealWeekStatus()'),/保存できません/);assert.equal(c.state.mealWeekSaving,false);
-  c.colRef=normal;assert.equal(await run(c,'saveMealWeek()'),true);assert.equal(c.writes.length,2);
-  run(c,'mealWeekInput("2026-10-09","main","卵")');c.guestBlock=()=>true;assert.equal(await run(c,'saveMealWeek()'),false);assert.equal(c.writes.length,2);
-});
-test('double-save is ignored while a save is pending and failed deletes return false',async()=>{
-  const c=env();let resolve;c.colRef=()=>({doc:()=>({set:()=>new Promise(r=>resolve=r),delete:async()=>{throw Error('failed');}})});
-  run(c,'mealWeekInput("2026-10-07","main","カレー")');const save=run(c,'saveMealWeek()');assert.equal(await run(c,'saveMealWeek()'),false);resolve();await save;
-  assert.equal(await run(c,'ddel("dinner","2026-10-07")'),false);assert.equal(c.errors.length,1);
-});
+function seed(c,rows){c.state.dinner=structuredClone(rows);for(const {id,...x}of rows)c.store.set(id,structuredClone(x));}
+function add(c,name,category='main'){run(c,'mealWeekMove("add")');const key=run(c,'mealWeekDirty().at(-1).key');c.key=key;c.inputName=name;c.category=category;run(c,'mealWeekInput(key,"name",inputName);mealWeekInput(key,"category",category)');return key;}
+test('week boundaries and navigation work across year/leap boundaries',()=>{const c=env();c.state.mealDate='2027-01-03';assert.deepEqual(plain(run(c,'mealWeekDays()')),['2026-12-28','2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03']);assert.match(run(c,'mealWeekHTML()'),/2026\/12\/28 〜 2027\/1\/3/);run(c,'mealWeekMove("next")');assert.equal(c.state.mealDate,'2027-01-10');run(c,'mealWeekMove("today")');assert.equal(c.state.mealDate,'2026-10-07');c.state.mealDate='2024-02-29';assert.equal(run(c,'mealWeekDays()[6]'),'2024-03-03');});
+test('legacy meals become individual dishes without day sections or day history; daily view and fridge remain',()=>{const c=env();seed(c,[{id:'2026-10-07',text:'<旧献立>"'},{id:'2026-10-08',main:'魚',side:'サラダ',soup:'汁'}]);const html=run(c,'viewMeal()');assert.equal((html.match(/role="listitem"/g)||[]).length,4);assert.match(html,/&lt;旧献立&gt;&quot;/);assert.match(html,/未調理 4品 · 調理済み 0品/);assert.doesNotMatch(html,/meal-week-day|最近の献立|7日 入力済み/);assert.match(html,/冷蔵庫/);c.state.mealMode='day';assert.match(run(c,'viewMeal()'),/id="mealMain"/);assert.match(run(c,'viewMeal()'),/最近の献立/);});
+test('date-free dishes save once, survive reloading in either partner view, and stay scoped to their week',async()=>{const c=env();add(c,'カレー');add(c,'スープ','soup');assert.equal(await run(c,'saveMealWeek()'),true);assert.equal(c.writes.length,2);assert.equal(run(c,'mealWeekDirty().length'),0);assert.equal(await run(c,'saveMealWeek()'),true);assert.equal(c.writes.length,2);const other=env();seed(other,[...c.store].map(([id,x])=>({id,...x})));assert.equal(run(other,'mealWeekRows().length'),2);assert.equal(run(other,'dinnerText(state.dinner[0])'),'');run(other,'mealWeekMove("next")');assert.equal(run(other,'mealWeekRows().length'),0);});
+test('cooked status persists and can be reversed with one partial write, without rewriting dish content',async()=>{const c=env();const key=add(c,'カレー');await run(c,'saveMealWeek()');c.key=key;assert.equal(await run(c,'mealWeekCook(key)'),true);assert.equal(c.writes.length,2);assert.deepEqual(Object.keys(c.writes[1].data),['mealCooked']);assert.equal(c.store.get(key).mealCooked.done,true);assert.equal(c.store.get(key).mealCooked.by,'h');const other=env();seed(other,[...c.store].map(([id,x])=>({id,...x})));assert.match(run(other,'mealWeekSummary()'),/調理済み 1品/);other.key=key;await run(other,'mealWeekCook(key)');assert.equal(other.store.get(key).mealCooked.done,false);assert.equal(other.store.get(key).mealCooked.at,null);});
+test('legacy per-dish status preserves partner changes and does not mark sibling dishes cooked',async()=>{const c=env();seed(c,[{id:'2026-10-07',main:'魚',side:'野菜',soup:'汁',custom:'keep'}]);c.store.get('2026-10-07').soup='夫婦で同時編集';await run(c,'mealWeekCook("2026-10-07_main")');assert.equal(c.store.get('2026-10-07').soup,'夫婦で同時編集');assert.equal(c.store.get('2026-10-07').custom,'keep');assert.equal(run(c,'mealWeekRows().filter(x=>x.done).length'),1);assert.deepEqual(Object.keys(c.writes[0].data),['mealCooked_main']);c.state.dinner[0].main='別の料理';assert.equal(run(c,'mealWeekRows()[0].done'),false);});
+test('edits retain untouched daily fields and text-only legacy content; rename resets cooking status',async()=>{const c=env();seed(c,[{id:'2026-10-07',text:'旧献立',custom:'keep'}]);run(c,'mealWeekInput("2026-10-07_main","name","新献立")');c.state.dinner[0].soup='パートナーの汁物';c.store.get('2026-10-07').soup='パートナーの汁物';await run(c,'saveMealWeek()');assert.equal(c.store.get('2026-10-07').main,'新献立');assert.equal(c.store.get('2026-10-07').soup,'パートナーの汁物');assert.equal(c.store.get('2026-10-07').custom,'keep');assert.equal(run(c,'dinnerText(dinnerOf("2026-10-07"))'),'新献立、パートナーの汁物');});
+test('failed saves retain only failed drafts; failed statuses stay unchanged and can be retried',async()=>{const c=env();const a=add(c,'カレー'),b=add(c,'魚');const original=c.colRef;c.colRef=()=>({doc:id=>id===b?{set:async()=>{throw Error('offline');}}:original().doc(id)});assert.equal(await run(c,'saveMealWeek()'),false);assert.equal(run(c,'mealWeekDirty().length'),1);assert.match(run(c,'mealWeekStatus()'),/保存できません/);c.colRef=original;await run(c,'saveMealWeek()');c.key=a;c.colRef=()=>({doc:()=>({update:async()=>{throw Error('offline');}})});assert.equal(await run(c,'mealWeekCook(key)'),false);assert.equal(run(c,'mealWeekRows().find(x=>x.key===key).done'),false);assert.match(run(c,'mealWeekStatus()'),/調理状態を保存できません/);c.colRef=original;assert.equal(await run(c,'mealWeekCook(key)'),true);});
+test('drafts survive navigation, blank names cannot save, deleting a new draft does not write',async()=>{const c=env();run(c,'mealWeekMove("add")');assert.equal(await run(c,'saveMealWeek()'),false);const key=run(c,'mealWeekDirty()[0].key');c.key=key;run(c,'mealWeekMove("next")');assert.match(run(c,'mealWeekStatus()'),/ほかの週に未保存 1品/);run(c,'mealWeekMove("prev");mealWeekMove("remove",key)');assert.equal(run(c,'mealWeekDirty().length'),0);assert.equal(c.writes.length,0);});
+test('removal keeps other daily dishes; no duplicate save or guest writes',async()=>{const c=env();seed(c,[{id:'2026-10-07',main:'魚',side:'野菜'}]);run(c,'mealWeekMove("remove","2026-10-07_main")');await run(c,'saveMealWeek()');assert.equal(c.store.get('2026-10-07').side,'野菜');assert.equal(c.store.get('2026-10-07').main,'');add(c,'卵');c.guestBlock=()=>true;assert.equal(await run(c,'saveMealWeek()'),false);c.guestBlock=()=>false;let resolve;c.colRef=()=>({doc:()=>({set:()=>new Promise(r=>resolve=r)})});const pending=run(c,'saveMealWeek()');assert.equal(await run(c,'saveMealWeek()'),false);resolve();await pending;});
