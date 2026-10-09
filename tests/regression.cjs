@@ -35,7 +35,6 @@ function env(names, overrides = {}) {
   if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
-  if(names.some(n=>['timetable','ttY2m','ttY2mF'].includes(n)))names=['TTM','ttY','ttM','TT_ROW','ttStackPlan',...names];
   if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('aiComposerHTML'))names=['aiRecM','aiVoiceAIOk',...names];
   if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiStoreLimited','aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceStartTimer','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
@@ -794,17 +793,18 @@ test('timetable keeps dense overlaps independent and connected overlap lanes dis
   for(const a of out)for(const b of out)if(a!==b&&a.s<b.e&&a.e>b.s){assert.equal(a.lanes,b.lanes);assert.notEqual(a.lane,b.lane);}
   assert.equal(out.at(-1).lane,0);assert.equal(out.at(-1).lanes,1);
 });
-test('crowded timetable stretches only the busy time and shows every item on its own full-width row in time order',()=>{
+test('crowded timetable keeps names in separate scrollable cards at the exact original time',()=>{
   const entries=Array.from({length:7},(_,i)=>({kind:'i',c:'pitems',x:{id:'crowded-'+i},s:1140+(i===6?15:0),e:1170+(i===6?15:0),t:'予定名'+i,col:'task'}));
   const c=env(['TT_H','timetable','hhmm','ttLayout'],{dayEntries:()=>entries,jpDate:String,ttNewHTML:()=>'',ttGrpSheetHTML:()=>'',ttMeta:()=>'',ttBadges:()=>'',CHECK:'✓'});c.prefs.ttStart='4';
-  const html=run(c,'timetable("2026-10-06")'),rows=html.match(/<button[^>]*data-stk="1"[^>]*>/g)||[];assert.equal(rows.length,7);
-  const tops=rows.map(r=>Number(r.match(/top:(\d+)px/)[1]));assert.deepEqual(tops,[...tops].sort((a,b)=>a-b));assert.ok(tops.every((t,k)=>!k||t-tops[k-1]>=28));assert.ok(rows.every(r=>/left:52px;width:calc\(100% - 56px\)/.test(r)));
-  assert.equal(tops[0],962);assert.match(html,/tt-zone" style="top:960px/);assert.doesNotMatch(html,/data-ttscroll/);assert.match(html,/data-tid="crowded-6"[^>]*><b>予定名6<\/b><span>19:15–19:45/);
-  assert.equal(run(c,'Math.round(ttM(ttY(19*60+45)))'),1185);assert.equal(run(c,'Math.round(ttY(18*60))'),(18-4)*64);assert.ok(run(c,'ttY(20*60)-ttY(19*60)')>64);
+  const html=run(c,'timetable("2026-10-06")');assert.equal((html.match(/data-tid="crowded-/g)||[]).length,7);assert.match(html,/data-ttscroll="1140"/);assert.match(html,/--tt-lanes:7/);assert.match(html,/top:960px;height:48px/);assert.match(html,/data-tid="crowded-6"[^>]*><b>予定名6<\/b><span>19:15–19:45/);assert.doesNotMatch(html,/class="tt-grp/);
+  c.state.ttSel='pitems|crowded-6';const selected=run(c,'timetable("2026-10-06")');assert.match(selected,/top:934px;height:100px/);assert.match(selected,/data-ttbase="934" style="top:42px;height:30px/);assert.match(selected,/tt-rs top/);
 });
-test('crowded scrolling is restored after redraw without moving the time axis',()=>{
-  const toggles=[],el={dataset:{ttscroll:'1140'},scrollLeft:0,scrollWidth:1456,clientWidth:300,parentElement:{classList:{toggle:(...a)=>toggles.push(a)}}};const tt={dataset:{ttdate:'2026-10-06'},querySelectorAll:()=>[el]};
-  const c=env(['ttScrollRestore'],{$:()=>tt});c.state.ttScroll={date:'2026-10-06',positions:{1140:420}};run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,420);assert.equal(toggles.at(-1)[1],false);c.state.ttScroll.date='2026-10-07';run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,0);
+test('crowded scrolling is restored after redraw without moving the time axis and shows how many cards remain',()=>{
+  const toggles=[],sh={dataset:{},classList:{toggle:(...a)=>toggles.push(a)}},el={dataset:{ttscroll:'1140'},scrollLeft:0,scrollWidth:1176,clientWidth:300,parentElement:sh,firstElementChild:{style:{getPropertyValue:()=>'7'}}};const tt={dataset:{ttdate:'2026-10-06'},querySelectorAll:()=>[el]};
+  const c=env(['ttScrollMark','ttScrollRestore'],{$:()=>tt});c.el=el;c.state.ttScroll={date:'2026-10-06',positions:{1140:420}};run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,420);
+  assert.deepEqual(toggles.find(a=>a[0]==='at-end'),['at-end',false]);assert.deepEqual(toggles.find(a=>a[0]==='scrolled'),['scrolled',true]);assert.equal(sh.dataset.more,'あと3 ›');
+  c.state.ttScroll.date='2026-10-07';toggles.length=0;run(c,'ttScrollRestore()');assert.equal(el.scrollLeft,0);assert.equal(sh.dataset.more,'あと5 ›');assert.deepEqual(toggles.find(a=>a[0]==='scrolled'),['scrolled',false]);
+  el.scrollLeft=876;toggles.length=0;run(c,'ttScrollMark(el)');assert.equal(sh.dataset.more,'');assert.deepEqual(toggles.find(a=>a[0]==='at-end'),['at-end',true]);
 });
 
 function pushEnv(names,overrides={}){const memory=new Map([['futari.pushDev','device-1'],['futari.pushSec','secret'],['futari.pushEnabled','1'],['futari.pushOwner','test-user']]);const c=env(['pushDev','pushEnabled','pushSetEnabled','pushResultMessage',...names],{localStorage:{getItem:k=>memory.get(k)??null,setItem:(k,v)=>memory.set(k,String(v))},pushCardRefresh(){},...overrides});c.memory=memory;return c;}
