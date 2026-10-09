@@ -866,6 +866,21 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .qdet>summary{font-weight:700;cursor:pointer}
 #sheetHandle.save{background:var(--accent)!important;color:var(--on-accent,#fff)!important}
 .qmini{cursor:pointer}.qmini .qrings{grid-template-columns:repeat(3,1fr)}.qmini .qring svg{width:52px;height:52px}.qmini .qr-p{top:16px;font-size:12px}.qmini .qh-top{margin-bottom:6px}
+/* v306: デザインの統一（モダン系スタイル共通：角丸・影・見出し・ボタン） */
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .empty{border-radius:20px;box-shadow:var(--elev)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) :is(.banner,.notice,.rcpt,.qdet,.tg-l li,.gdet){border-radius:16px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) :is(.btn,.rcbtn.sm,.addbtn){border-radius:999px}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) :is(.chart h3,.hc-head h3){font-size:14px;font-weight:800;letter-spacing:.01em;font-family:var(--font-display)}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .card h2{font-size:15px;font-weight:800}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .subttl{font-size:13.5px;font-weight:800}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .section-label{font-size:12px;color:color-mix(in srgb,var(--ink) 55%,var(--muted))}
+:root:is([data-style="modern"],[data-style="glass"],[data-style="dynamic"]) .banner{box-shadow:var(--elev)}
+.tools{gap:8px}
+#main :is(.card,.hcard,.chart,ul.list,.empty,.banner){transition:box-shadow .2s ease,transform .12s ease}
+#main :is(.item,.hcard[data-go2],.qmini,.crow,.rcbtn):active{transform:scale(.985)}
+.rcbtn.sm{display:inline-flex;align-items:center;gap:6px;width:auto;margin:0;padding:8px 14px;min-height:38px;font-size:13px;font-weight:800;background:var(--accent);color:var(--on-accent,#fff);border:0;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 30%,transparent)}
+.rcbtn.sm svg{width:18px;height:18px;stroke:currentColor}
+.mtop{justify-content:flex-start}.mtop .seg{margin-left:auto}.mtop .rcpaste{font-size:12px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2265,7 +2280,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="305";
+const APP_VERSION="306";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6048,14 +6063,14 @@ function viewMoneySum(){
   const prevRef=state.moneyP==="week"?addDays(P.s,-7):state.moneyP==="year"?ymd(new Date(parse(P.s).getFullYear()-1,0,1)):ymd(new Date(parse(P.s).getFullYear(),parse(P.s).getMonth()-1,1));
   const PP=moneyPeriod(state.moneyP,prevRef), prevA=all.filter(e=>e.actual&&!e.save&&inP(e.aDate,PP)).reduce((s,e)=>s+e.actual,0);
   const unit=state.moneyP==="week"?"週":state.moneyP==="year"?"年":"月";
-  let h=`${true?`<button class="rcbtn" data-act="rcpt"><svg viewBox="0 0 24 24" class="lic sm2"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span><b>レシートで実績登録</b><small>${state.sample?"写真を選ぶと1枚ずつ自動で読み取って確認できます（複数可）":state.sampleTxt?"写真を選ぶ→文字を貼り付けると自動入力できます":`写真を選んで、見ながら金額を入力できます（自動読み取り不可：${esc(state.sampleWhy||"確認中")}）`}</small></span></button>`:""}${!state.sample&&state.sampleTxt?`<button class="link rcpaste" data-act="rcpaste">写真なしで、レシートの文字を貼り付けて登録 ›</button>`:""}${rcptHTML()}
-    <div class="tools">${seg("mper",state.moneyP,[["week","週"],["month","月"],["year","年"]])}</div>
+  /* v306: 上の操作を1段に（レシートは小さなボタン、週・月・年は同じ行）。支出の実績を先に、払った人はその下 */
+  let h=`<div class="tools mtop"><button class="rcbtn sm" data-act="rcpt" title="${esc(state.sample?"写真を選ぶと1枚ずつ自動で読み取って確認できます（複数可）":state.sampleTxt?"写真を選ぶ→文字を貼り付けると自動入力できます":`写真を選んで、見ながら金額を入力できます（自動読み取り不可：${state.sampleWhy||"確認中"}）`)}"><svg viewBox="0 0 24 24" class="lic sm2"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><b>レシートで登録</b></button>${!state.sample&&state.sampleTxt?`<button class="link rcpaste" data-act="rcpaste">文字から ›</button>`:""}${seg("mper",state.moneyP,[["week","週"],["month","月"],["year","年"]])}</div>${rcptHTML()}
     <div class="dstrip" data-strip="money"><button class="icon-btn" data-act="mprev" aria-label="前へ">‹</button><div class="ttl">${P.label}</div><button class="icon-btn" data-act="mnext" aria-label="次へ">›</button></div>
-    ${payCardHTML(actsAll)}<div class="chart"><div class="mkpi"><div class="k"><span class="kl">支出の実績</span><span class="kv">${yen(A)}</span></div><div class="k"><span class="kl">予算</span><span class="kv sub">${yen(B)}</span></div>${SV||SVB?`<div class="k"><span class="kl">貯金</span><span class="kv sub" style="color:var(--habit)">${yen(SV)}</span></div>`:""}</div>
+    <div class="chart"><div class="mkpi"><div class="k"><span class="kl">支出の実績</span><span class="kv">${yen(A)}</span></div><div class="k"><span class="kl">予算</span><span class="kv sub">${yen(B)}</span></div>${SV||SVB?`<div class="k"><span class="kl">貯金</span><span class="kv sub" style="color:var(--habit)">${yen(SV)}</span></div>`:""}</div>
       <div class="mbar" aria-label="予算に対する実績 ${B?Math.round(A/B*100):0}%"><i style="width:${B?Math.min(100,Math.round(A/B*100)):A?100:0}%" class="${B&&A>B?"over":""}"></i></div>
       <div class="who">${B?(A>B?`予算を ${yen(A-B)} 超えています`:`予算の残り ${yen(B-A)}（${Math.round(A/B*100)}%使用）`):"この期間の予算はまだありません"}・前の${unit}の実績より ${A-prevA>=0?"+":"−"}${yen(Math.abs(A-prevA))}</div>
       ${state.moneyP==="month"&&Number((state.kakei||{}).limit)?(()=>{ const L=Number(state.kakei.limit); return `<div class="who" style="margin-top:4px">毎月の上限 ${yen(L)}：${A>L?`<b style="color:var(--danger)">${yen(A-L)} 超過</b>`:`あと ${yen(L-A)}`}</div>`; })():""}
-    </div>`;
+    </div>${payCardHTML(actsAll)}`;
   { const GT=Object.keys(MCATS).filter(k=>k!=="save").reduce((q,k)=>q+goalFor(k,state.moneyP),0);
     h+=`<div class="chart"><div class="hc-head"><h3>分類ごと　実績・予算・目標</h3><button class="link" data-act="gocg">目標を編集 ›</button></div>
       ${GT?`<div class="who" style="margin-bottom:6px">目標の合計 ${yen(GT)}・実績 ${yen(A)}（${Math.round(A/GT*100)}%）</div>`:""}
