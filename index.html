@@ -480,6 +480,16 @@ body:has(.sheet.open) .ai-fab,body:has(.tt-bar) .ai-fab,body:has(.tabmore:not([h
 .meal-new{font-size:13px;font-weight:700;color:var(--accent)}.meal-chips{display:flex;flex-wrap:wrap;gap:6px}
 .meal-l .item{padding:10px 14px;display:block}.meal-r{width:100%;border:0;background:transparent;text-align:left;font:inherit;color:inherit;display:flex;gap:10px;align-items:baseline;cursor:pointer}.meal-r small{color:var(--muted);width:40px;flex:none}
 .meal-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--surface);margin-bottom:12px}.meal-mode button{flex:1;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:700;padding:10px;cursor:pointer}.meal-mode button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+/* Weekly dishes: one list with explicit cooking state, no daily sections. */
+.meal-week-dish{margin:0!important;padding:14px!important;min-width:0;background:var(--surface)!important;border:1px solid var(--line);border-radius:16px}
+.meal-week-dish.is-cooked{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))!important}
+.meal-dish-top,.meal-dish-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.meal-cook-status{font-size:14px;font-weight:700}.is-cooked .meal-cook-status{color:var(--accent)}.meal-draft-note{font-size:14px;color:var(--muted)}
+.meal-dish-fields{display:grid;grid-template-columns:90px minmax(0,1fr);gap:10px;margin:10px 0 12px;min-width:0}.meal-dish-fields label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:14px}.meal-dish-fields input,.meal-dish-fields select{box-sizing:border-box;min-width:0;width:100%;max-width:100%;font-size:16px;min-height:44px}.meal-dish-fields select:disabled{opacity:1;color:var(--ink);-webkit-text-fill-color:var(--ink)}
+.meal-dish-actions .btn{min-height:44px;font-size:14px}.meal-dish-actions [data-mealweek="cooked"]{min-width:132px}.meal-week-add{width:100%;min-height:44px}.meal-week-summary{padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-weight:700;line-height:1.6}
+@media(max-width:350px){.meal-dish-fields{grid-template-columns:minmax(0,1fr)}.meal-dish-kind select{max-width:150px}}
+
 .meal-week-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}.meal-week-nav label{display:flex;align-items:center;gap:8px;font-size:14px}.meal-week-nav input{min-width:0;width:155px;font-size:16px}.meal-week-range{font-size:16px!important;line-height:1.5;overflow-wrap:anywhere}
 .meal-week{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-bottom:12px}.meal-week-day{min-width:0;margin:0!important;padding:14px!important;background:color-mix(in srgb,var(--surface) 96%,transparent)!important;border:1px solid var(--line);border-radius:16px}.meal-week-day.is-today{border:2px solid var(--accent)}.meal-week-day h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:16px}.meal-week-day h3 small{font-size:13px;color:var(--accent)}
 /* Include input padding/borders in the grid width, including on narrow iPhones. */
@@ -2227,7 +2237,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="301";
+const APP_VERSION="302";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5686,7 +5696,7 @@ function saveThanks(){
 function saveDinner(){
   const el=$("dinIn"), si=$("dinSide"), so=$("dinSoup"); if(!el) return; const d=state.diaryDate, main=el.value.trim(), side=(si&&si.value.trim())||"", soup=(so&&so.value.trim())||"", t=[main,side,soup].filter(Boolean).join("、"), ex=dinnerOf(d);
   if(!t){ if(ex) ddel("dinner",d); }
-  else if(!ex||ex.main!==main||ex.side!==side||ex.soup!==soup) dset("dinner",d,{date:d,role:myRole(),by:state.me||null,text:t,main,side,soup,at:Date.now()});
+  else if(!ex||ex.main!==main||ex.side!==side||ex.soup!==soup) dset("dinner",d,{...ex,date:d,role:myRole(),by:state.me||null,text:t,main,side,soup,at:Date.now()});
   if($("xSave")) $("xSave").textContent="保存済み";
 }
 function flushExtras(){ if(xTimer){ clearTimeout(xTimer); xTimer=null; saveThanks(); saveDinner(); } }
@@ -5713,81 +5723,102 @@ function fridgeNames(d){ const out=[], pick=v=>{ if(typeof v==="string") out.pus
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-rhym]"); if(!b||e.target.closest("input")) return; state.moneyRef=b.dataset.rhym+"-01"; render(); setTimeout(()=>{ const l=document.querySelector("#main .ramt"); if(l) l.closest(".list").scrollIntoView({block:"start",behavior:"smooth"}); },80); });
 /* v200: 料理タブ（献立の記録・冷蔵庫・AIの献立提案）。日記から分けた */
 function mealDate(){ return state.mealDate||today(); }
-/* v297: weekly planning uses the same date-keyed dinner records as the daily editor. */
+/* v302: one weekly dish list; legacy daily dishes remain linked to their original records. */
 function mealValues(x){ return {main:x?(x.main||(!x.side&&!x.soup?x.text:"")||""):"",side:x?x.side||"":"",soup:x?x.soup||"":""}; }
 function mealWeekDays(){ const start=mondayOf(mealDate()); return Array.from({length:7},(_,i)=>addDays(start,i)); }
-function mealWeekValues(d){ return {...mealValues(dinnerOf(d)),...((state.mealWeekDrafts||{})[d]||{})}; }
-function mealWeekDirty(){ return mealWeekDays().filter(d=>Object.keys((state.mealWeekDrafts||{})[d]||{}).length); }
+const MEAL_CATEGORIES={main:"主菜",side:"副菜",soup:"汁物",other:"その他"};
+function mealWeekRows(){
+  const days=mealWeekDays(), weekStart=days[0], rows=[];
+  for(const d of days){ const old=dinnerOf(d); for(const [field,name] of Object.entries(mealValues(old))) if(name) rows.push({key:d+"_"+field,id:d,field,name,category:field,weekStart,cooked:old["mealCooked_"+field]}); }
+  for(const x of state.dinner) if(x.mealKind==="weekly"&&x.weekStart===weekStart) rows.push({key:x.id,id:x.id,name:x.mealName||"",category:x.mealCategory||"main",weekStart,cooked:x.mealCooked});
+  const drafts=state.mealWeekDrafts||{};
+  for(const x of Object.values(drafts)) if(x.weekStart===weekStart&&!rows.some(r=>r.key===x.key)) rows.push(x);
+  return rows.map(x=>({...x,...drafts[x.key]})).map(x=>({...x,done:!!(x.cooked?.done&&x.cooked.name===x.name.trim())}));
+}
+function mealWeekDirty(){ const weekStart=mealWeekDays()[0]; return Object.values(state.mealWeekDrafts||{}).filter(x=>x.weekStart===weekStart); }
 function mealModeHTML(){ const week=state.mealMode!=="day"; return `<div class="meal-mode" role="group" aria-label="献立の表示"><button type="button" data-mealmode="week" aria-pressed="${week}">週で計画</button><button type="button" data-mealmode="day" aria-pressed="${!week}">1日ずつ</button></div>`; }
+function mealWeekSummary(){ const rows=mealWeekRows().filter(x=>!x.remove&&x.name.trim()), done=rows.filter(x=>x.done).length; return `未調理 ${rows.length-done}品 · 調理済み ${done}品 / 全${rows.length}品`; }
 function mealWeekHTML(){
-  const days=mealWeekDays(), start=parse(days[0]), end=parse(days[6]), count=days.filter(d=>Object.values(mealWeekValues(d)).some(v=>v.trim())).length;
+  const days=mealWeekDays(), start=parse(days[0]), end=parse(days[6]), rows=mealWeekRows().filter(x=>!x.remove), busy=state.mealWeekSaving;
   const range=`${start.getFullYear()}/${start.getMonth()+1}/${start.getDate()} 〜 ${start.getFullYear()!==end.getFullYear()?end.getFullYear()+"/":""}${end.getMonth()+1}/${end.getDate()}`;
   return `<div class="dstrip"><button type="button" class="icon-btn" data-mealweek="prev" aria-label="前の週">‹</button><div class="ttl meal-week-range">${range}</div><button type="button" class="icon-btn" data-mealweek="next" aria-label="次の週">›</button></div>
     <div class="meal-week-nav"><label>週を選ぶ<input type="date" data-mealweek-date value="${esc(mealDate())}" aria-label="計画する週の日付"></label><button type="button" class="btn" data-mealweek="today">今週</button></div>
-    <div class="meal-week-summary" id="mealWeekCount">夕飯の計画 · ${count} / 7日 入力済み</div>
-    <p class="meal-week-help">月曜〜日曜をまとめて入力。変更後は「この週を保存」を押してください。</p>
-    <div class="meal-week">${days.map(d=>{const x=mealWeekValues(d), date=parse(d);return `<section class="card meal-week-day${d===today()?" is-today":""}" aria-label="${esc(d)}の献立"><h3>${date.getMonth()+1}/${date.getDate()}（${WD[date.getDay()]}）${d===today()?"<small>今日</small>":""}</h3><div class="meal-week-fields">${[["main","主菜"],["side","副菜"],["soup","汁物"]].map(([k,label])=>`<label class="meal-f"><span>${label}</span><input type="text" data-mealweek-day="${d}" data-mealweek-field="${k}" aria-label="${d} ${label}" maxlength="80" placeholder="${label}を入力" value="${esc(x[k])}" ${state.mealWeekSaving?"disabled":""}></label>`).join("")}</div></section>`;}).join("")}</div>
-    <div class="meal-week-save"><p id="mealWeekStatus" role="status">${esc(mealWeekStatus())}</p><button type="button" class="btn primary" data-mealweek="save" ${state.mealWeekSaving||!mealWeekDirty().length?"disabled":""}>${state.mealWeekSaving?"保存中…":"この週を保存"}</button></div>`;
+    <div class="meal-week-summary" id="mealWeekCount" aria-live="polite">${mealWeekSummary()}</div>
+    <p class="meal-week-help">この週に作る料理を追加。作ったら「作った」を押してください。</p>
+    <div class="meal-week" role="list" aria-label="この週に作る料理">${rows.length?rows.map(x=>{const dirty=!!state.mealWeekDrafts?.[x.key];return `<section role="listitem" class="card meal-week-dish${x.done?" is-cooked":""}" data-meal-row="${esc(x.key)}">
+      <div class="meal-dish-top"><span class="meal-cook-status" data-meal-status>${x.done?"✓ 調理済み":"○ 未調理"}</span><span class="meal-draft-note" data-meal-draft>${dirty?"未保存":""}</span></div>
+      <div class="meal-dish-fields"><label class="meal-dish-kind"><span>種類</span><select data-mealweek-key="${esc(x.key)}" data-mealweek-field="category" aria-label="料理の種類" ${busy||x.field?"disabled":""}>${Object.entries(MEAL_CATEGORIES).map(([k,v])=>`<option value="${k}" ${x.category===k?"selected":""}>${v}</option>`).join("")}</select></label><label class="meal-dish-name"><span>料理名</span><input type="text" data-mealweek-key="${esc(x.key)}" data-mealweek-field="name" aria-label="料理名" maxlength="80" placeholder="例：豚の生姜焼き" value="${esc(x.name)}" ${busy?"disabled":""}></label></div>
+      <div class="meal-dish-actions"><button type="button" class="btn" data-mealweek="remove" data-key="${esc(x.key)}" ${busy?"disabled":""}>削除</button><button type="button" class="btn ${x.done?"":"primary"}" data-mealweek="cooked" data-key="${esc(x.key)}" aria-label="${esc(x.name)}を${x.done?"未調理に戻す":"調理済みにする"}" ${busy||dirty||!x.name.trim()?"disabled":""}>${x.done?"未調理に戻す":"作った"}</button></div></section>`;}).join(""):`<div class="empty">この週の料理はまだありません</div>`}</div>
+    <button type="button" class="btn meal-week-add" data-mealweek="add" ${busy?"disabled":""}>＋ 料理を追加</button>
+    <div class="meal-week-save"><p id="mealWeekStatus" role="status">${esc(mealWeekStatus())}</p><button type="button" class="btn primary" data-mealweek="save" ${busy||!mealWeekDirty().length?"disabled":""}>${busy?"保存中…":"この週を保存"}</button></div>`;
 }
 function mealWeekStatus(){
   if(state.mealWeekSaving) return "保存中…";
   const n=mealWeekDirty().length, all=Object.keys(state.mealWeekDrafts||{}).length;
-  return (state.mealWeekMessage||(n?`${n}日分の変更が未保存`:"保存した献立はふたりで共有されます"))+(all>n?` · ほかの週に未保存 ${all-n}日`:"");
+  return (state.mealWeekMessage||(n?`${n}品の変更が未保存。「この週を保存」で確定`:"調理状態は変更すると自動保存・ふたりで共有"))+(all>n?` · ほかの週に未保存 ${all-n}品`:"");
 }
 function mealWeekPaint(){
   const s=$("mealWeekStatus"), count=$("mealWeekCount"), btn=document.querySelector('[data-mealweek="save"]');
-  if(s) s.textContent=mealWeekStatus();
-  if(count) count.textContent=`夕飯の計画 · ${mealWeekDays().filter(d=>Object.values(mealWeekValues(d)).some(v=>v.trim())).length} / 7日 入力済み`;
-  if(btn) btn.disabled=!!state.mealWeekSaving||!mealWeekDirty().length;
+  if(s) s.textContent=mealWeekStatus(); if(count) count.textContent=mealWeekSummary(); if(btn) btn.disabled=!!state.mealWeekSaving||!mealWeekDirty().length;
+  for(const x of mealWeekRows()){ const el=document.querySelector('[data-meal-row="'+x.key+'"]'); if(!el) continue; const dirty=!!state.mealWeekDrafts?.[x.key];
+    el.classList.toggle("is-cooked",x.done); el.querySelector('[data-meal-status]').textContent=x.done?"✓ 調理済み":"○ 未調理";
+    el.querySelector('[data-meal-draft]').textContent=dirty?"未保存":""; const b=el.querySelector('[data-mealweek="cooked"]'); b.disabled=!!state.mealWeekSaving||dirty||!x.name.trim(); b.textContent=x.done?"未調理に戻す":"作った"; b.classList.toggle("primary",!x.done); b.setAttribute("aria-label",x.name+"を"+(x.done?"未調理に戻す":"調理済みにする"));
+  }
 }
-function mealWeekInput(d,k,value){
-  if(!mealWeekDays().includes(d)||!["main","side","soup"].includes(k)||state.mealWeekSaving) return;
-  const drafts=state.mealWeekDrafts||(state.mealWeekDrafts={}), patch=drafts[d]||(drafts[d]={});
-  if(value.trim()===mealValues(dinnerOf(d))[k]) delete patch[k]; else patch[k]=value.slice(0,80);
-  if(!Object.keys(patch).length) delete drafts[d];
+function mealWeekInput(key,k,value){
+  if(state.mealWeekSaving||!["name","category"].includes(k)) return;
+  const row=mealWeekRows().find(x=>x.key===key); if(!row||k==="category"&&(row.field||!MEAL_CATEGORIES[value])) return;
+  const drafts=state.mealWeekDrafts||(state.mealWeekDrafts={}), next={...row,[k]:value.slice(0,80)}, old=dinnerOf(row.id);
+  if(!row.isNew&&next.name.trim()===(row.field?mealValues(old)[row.field]:old?.mealName)&&next.category===(row.field||old?.mealCategory||"main")) delete drafts[key]; else drafts[key]=next;
   state.mealWeekMessage=""; mealWeekPaint();
+}
+async function mealWeekWrite(id,patch,create=false){
+  if(guestBlock("dinner")) return false;
+  try{ const r=colRef("dinner"); netMark(); if(r) await r.doc(id)[create?"set":"update"](patch);
+    const old=dinnerOf(id), saved={...old,...patch}; if(old) Object.assign(old,patch); else state.dinner.push({id,...patch}); if(!r) vaultSave("dinner");
+    if(actTracked("dinner")) logAct(create?"add":"edit","dinner",id,{...saved,text:saved.mealName||dinnerText(saved)},patch); return true;
+  }catch(e){err(e);return false;}
 }
 async function saveMealWeek(){
   if(state.mealWeekSaving||guestBlock("dinner")) return false;
-  const days=mealWeekDirty(); if(!days.length) return true;
-  state.mealWeekSaving=true; state.mealWeekMessage=""; render();
-  let saved=0, failed=0;
-  try{
-    for(const d of days){
-      const patch={...(state.mealWeekDrafts||{})[d]}, old=dinnerOf(d), values={...mealValues(old)};
-      for(const [k,v] of Object.entries(patch)) values[k]=v.trim();
-      const text=[values.main,values.side,values.soup].filter(Boolean).join("、");
-      // Only edited dates are written; untouched fields use the latest shared record.
-      const {id:ignored,...rest}=old||{}, data={...rest,...values,date:d,text,role:myRole(),by:state.me||null,at:Date.now()};
-      let ok=false;
-      try{ ok=text?await dset("dinner",d,data):old?await ddel("dinner",d):true; }catch(e){ok=false;}
-      if(!ok){failed++;continue;}
-      // Keep the saved values visible even before the subscription callback arrives.
-      const current=dinnerOf(d); state.dinner=state.dinner.filter(x=>x.id!==d); if(text) state.dinner.push({...current,id:d,...data});
-      const pending=(state.mealWeekDrafts||{})[d];
-      for(const [k,v] of Object.entries(patch)) if(pending&&pending[k]===v) delete pending[k];
-      if(pending&&!Object.keys(pending).length) delete state.mealWeekDrafts[d];
-      saved++;
-    }
-  }finally{
-    state.mealWeekSaving=false;
-    state.mealWeekMessage=failed?`${failed}日分を保存できませんでした。入力は残っています`:`${saved}日分を保存しました`;
-    toast(state.mealWeekMessage); if(state.view==="meal") render();
-  }
+  const rows=mealWeekDirty(); if(!rows.length) return true;
+  if(rows.some(x=>!x.remove&&!x.name.trim())){toast("料理名を入力してください");return false;}
+  state.mealWeekSaving=true; state.mealWeekMessage=""; render(); let saved=0, failed=0;
+  try{ for(const row of rows){ const name=row.name.trim(), old=dinnerOf(row.id); let ok=false;
+    if(row.field){
+      if(!old){ failed++;continue; } // Never recreate a daily record removed by the partner.
+      const values=mealValues(old); values[row.field]=row.remove?"":name;
+      const text=Object.values(values).filter(Boolean).join("、"), patch={[row.field]:values[row.field],text,at:Date.now(),role:myRole(),by:state.me||null,["mealCooked_"+row.field]:{name:values[row.field],done:false,at:null,by:null}};
+      if(row.field!=="main"&&!old.main&&values.main) patch.main=values.main; // Preserve old text-only dinners.
+      if(text) ok=await mealWeekWrite(row.id,patch); else {ok=await ddel("dinner",row.id);if(ok)state.dinner=state.dinner.filter(x=>x.id!==row.id);}
+    }else if(row.remove){ok=!old||await ddel("dinner",row.id);if(ok)state.dinner=state.dinner.filter(x=>x.id!==row.id);}
+    else if(old||row.isNew){const patch={mealKind:"weekly",weekStart:row.weekStart,mealName:name,mealCategory:row.category,at:Date.now(),by:state.me||null,role:myRole()}; if(!old||old.mealName!==name)patch.mealCooked={name,done:false,at:null,by:null};ok=await mealWeekWrite(row.id,patch,!old);}
+    if(ok){delete state.mealWeekDrafts[row.key];saved++;}else failed++;
+  }}finally{state.mealWeekSaving=false;state.mealWeekMessage=failed?`${failed}品を保存できませんでした。変更は残っています`:`${saved}品を保存しました`;toast(state.mealWeekMessage);if(state.view==="meal")render();}
   return !failed;
 }
-function flushMeal(){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } }
-function mealWeekMove(action){
-  if(action==="save"){saveMealWeek();return;}
-  flushMeal(); state.mealWeekMessage="";
-  state.mealDate=action==="today"?today():addDays(mealDate(),action==="prev"?-7:7); render();
+async function mealWeekCook(key){
+  if(state.mealWeekSaving||guestBlock("dinner")) return false;
+  const row=mealWeekRows().find(x=>x.key===key),old=row&&dinnerOf(row.id);if(!row||!old||state.mealWeekDrafts?.[key]||!row.name.trim())return false;
+  const status={name:row.name.trim(),done:!row.done,at:!row.done?Date.now():null,by:!row.done?myRole():null};
+  state.mealWeekSaving=true;state.mealWeekMessage="";render();let ok=false;
+  try{ok=await mealWeekWrite(row.id,{[row.field?"mealCooked_"+row.field:"mealCooked"]:status});}
+  finally{state.mealWeekSaving=false;state.mealWeekMessage=ok?(status.done?"調理済みにしました":"未調理に戻しました"):"調理状態を保存できませんでした。もう一度お試しください";toast(state.mealWeekMessage);if(state.view==="meal")render();}return ok;
 }
-document.addEventListener("input",e=>{ const D=e.target.dataset||{}; if(D.mealweekDay) mealWeekInput(D.mealweekDay,D.mealweekField,e.target.value); });
-document.addEventListener("change",e=>{ if(!e.target.matches("[data-mealweek-date]")) return; const d=e.target.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||ymd(parse(d))!==d) return; flushMeal();state.mealDate=d;state.mealWeekMessage="";render(); });
-document.addEventListener("click",e=>{
-  const b=e.target.closest("#main [data-mealmode],#main [data-mealweek]"); if(!b) return;
-  if(b.dataset.mealmode){flushMeal();state.mealMode=b.dataset.mealmode;render();}else mealWeekMove(b.dataset.mealweek);
-});
+function flushMeal(){ if(mealTimer){ clearTimeout(mealTimer); mealTimer=null; saveMeal(); } }
+function mealWeekMove(action,key){
+  if(action==="save"){saveMealWeek();return;} if(action==="cooked"){mealWeekCook(key);return;}
+  if(action==="add"||action==="remove"){
+    if(state.mealWeekSaving||guestBlock("dinner"))return;const drafts=state.mealWeekDrafts||(state.mealWeekDrafts={});
+    if(action==="add"){const id="meal_"+newId();drafts[id]={key:id,id,name:"",category:"main",weekStart:mealWeekDays()[0],isNew:true};}
+    else {const row=mealWeekRows().find(x=>x.key===key);if(!row)return;if(row.isNew)delete drafts[key];else drafts[key]={...row,remove:true};}
+    state.mealWeekMessage="";render();return;
+  }
+  flushMeal();state.mealWeekMessage="";state.mealDate=action==="today"?today():addDays(mealDate(),action==="prev"?-7:7);render();
+}
+document.addEventListener("input",e=>{ const D=e.target.dataset||{}; if(D.mealweekKey&&D.mealweekField==="name")mealWeekInput(D.mealweekKey,D.mealweekField,e.target.value); });
+document.addEventListener("change",e=>{const D=e.target.dataset||{};if(D.mealweekKey&&D.mealweekField==="category"){mealWeekInput(D.mealweekKey,D.mealweekField,e.target.value);return;}if(!e.target.matches("[data-mealweek-date]"))return;const d=e.target.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||ymd(parse(d))!==d)return;flushMeal();state.mealDate=d;state.mealWeekMessage="";render();});
+document.addEventListener("click",e=>{const b=e.target.closest("#main [data-mealmode],#main [data-mealweek]");if(!b||b.disabled)return;if(b.dataset.mealmode){flushMeal();state.mealMode=b.dataset.mealmode;render();}else mealWeekMove(b.dataset.mealweek,b.dataset.key);});
 function viewMeal(){ const d=mealDate(), dn=dinnerOf(d), F=fridgeItems(), fr=(state.kakei||{}).fridge||{};
   const recent=state.dinner.filter(x=>dinnerText(x)).sort((a,b)=>a.id<b.id?1:-1).slice(0,10);
   let h=mealModeHTML();
@@ -5805,11 +5836,11 @@ function viewMeal(){ const d=mealDate(), dn=dinnerOf(d), F=fridgeItems(), fr=(st
     <textarea id="fridgeEdit" rows="3" maxlength="2000" placeholder="卵、にんじん、豆腐（読点か改行で区切る）">${esc(state.fridgeDraft??F.join("、"))}</textarea>
     <div class="meal-btns"><button class="btn ${state.fridgeDraft!=null?"primary":""}" data-act="fridgeSave">保存</button>${state.fridgeDraft!=null?'<button class="btn" data-act="fridgeUndo">やめる</button>':""}</div>
     ${F.length&&state.fridgeDraft==null?`<div class="chips meal-chips">${F.map(x=>`<span class="chip mini">${esc(x)}</span>`).join("")}</div>`:""}</section>`;
-  if(recent.length) h+=`<div class="section-label">最近の献立</div><ul class="list meal-l">${recent.map(x=>`<li class="item"><button class="meal-r" data-mealday="${esc(x.id)}"><small>${esc(short(x.id))}</small><span>${esc(dinnerText(x))}</span></button></li>`).join("")}</ul>`;
+  if(state.mealMode==="day"&&recent.length) h+=`<div class="section-label">最近の献立</div><ul class="list meal-l">${recent.map(x=>`<li class="item"><button class="meal-r" data-mealday="${esc(x.id)}"><small>${esc(short(x.id))}</small><span>${esc(dinnerText(x))}</span></button></li>`).join("")}</ul>`;
   return h; }
 function saveMeal(){ const el=$("mealMain"); if(!el) return; const d=mealDate(), main=el.value.trim(), side=($("mealSide").value||"").trim(), soup=($("mealSoup").value||"").trim(), t=[main,side,soup].filter(Boolean).join("、"), ex=dinnerOf(d);
   if(!t){ if(ex) ddel("dinner",d); }
-  else if(!ex||ex.main!==main||ex.side!==side||ex.soup!==soup) dset("dinner",d,{date:d,role:myRole(),by:state.me||null,text:t,main,side,soup,at:Date.now()});
+  else if(!ex||ex.main!==main||ex.side!==side||ex.soup!==soup) dset("dinner",d,{...ex,date:d,role:myRole(),by:state.me||null,text:t,main,side,soup,at:Date.now()});
   const s2=$("mealSave"); if(s2) s2.textContent="保存しました（ふたりで共有）"; }
 let mealTimer=null;
 document.addEventListener("input",e=>{ const id=e.target&&e.target.id; if(id==="mealMain"||id==="mealSide"||id==="mealSoup"){ const s2=$("mealSave"); if(s2) s2.textContent="入力中…"; clearTimeout(mealTimer); mealTimer=setTimeout(()=>{ mealTimer=null; saveMeal(); },800); } });
@@ -7398,7 +7429,7 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
     else if(x.type==="remember"){ const m=aiMemAdd(x.text,x.scope==="me"?"me":"both"); if(!m){ toast("覚える内容がありません"); return; } undo=()=>aiMemDel(m.id); }
     else if(x.type==="add_plan"){ const cat=PCATS[x.cat]?x.cat:"wish"; if(cat==="anniv"&&!d){ toast("記念日は日付が必要です"); return; } const before=new Set(state.plans.map(q=>q.id)); newPlan(cat,cut2(x.text),{date:d,budget:money(x.budget),horizon:["soon","year","someday"].includes(x.horizon)?x.horizon:undefined,who:"both"}); const np=state.plans.find(q=>!before.has(q.id)); if(np) undo=()=>ddel("plans",np.id); }
     else if(x.type==="add_topic"){ dset("topics",id,{text:cut2(x.text),who:"both",status:"open",note:"",ref:null,...(d?{on:d}:{}),by:state.me||null,createdAt:now,updatedAt:now}); undo=()=>ddel("topics",id); }
-    else if(x.type==="add_dinner"){ const dd=d||t, ex=dinnerOf(dd), old=ex?{...ex}:null, main=String(x.main||x.text||"").slice(0,80), side=String(x.side||"").slice(0,80), soup=String(x.soup||"").slice(0,80); if(!main&&!side&&!soup){toast("献立がありません");return;} dset("dinner",dd,{date:dd,role:me,by:state.me||null,text:[main,side,soup].filter(Boolean).join("、"),main,side,soup,at:now}); undo=()=>{ if(old) dset("dinner",dd,old); else ddel("dinner",dd); }; }
+    else if(x.type==="add_dinner"){ const dd=d||t, ex=dinnerOf(dd), old=ex?{...ex}:null, main=String(x.main||x.text||"").slice(0,80), side=String(x.side||"").slice(0,80), soup=String(x.soup||"").slice(0,80); if(!main&&!side&&!soup){toast("献立がありません");return;} dset("dinner",dd,{...ex,date:dd,role:me,by:state.me||null,text:[main,side,soup].filter(Boolean).join("、"),main,side,soup,at:now}); undo=()=>{ if(old) dset("dinner",dd,old); else ddel("dinner",dd); }; }
     else if(x.type==="edit_money"){ const L=aiMoneyTargets(x); if(!L.length){ toast("対象の支払いが見つかりませんでした"); return; }
       const day=x.day!=null?Math.round(Number(x.day)):null; if(day!=null&&!(day>=1&&day<=31)){ toast("指定日は1〜31日で指定してください"); return; }
       const ym=/^\d{4}-\d{2}$/.test(x.ym||"")?x.ym:ymOf(t), olds=L.map(r=>({id:r.id,day:r.day,amount:r.amount,split:r.split||null,bank:r.bank||"",paid:{...(r.paid||{})}}));
