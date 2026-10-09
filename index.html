@@ -881,6 +881,21 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .rcbtn.sm{display:inline-flex;align-items:center;gap:6px;width:auto;margin:0;padding:8px 14px;min-height:38px;font-size:13px;font-weight:800;background:var(--accent);color:var(--on-accent,#fff);border:0;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 30%,transparent)}
 .rcbtn.sm svg{width:18px;height:18px;stroke:currentColor}
 .mtop{justify-content:flex-start}.mtop .seg{margin-left:auto}.mtop .rcpaste{font-size:12px}
+/* v307: ミニマルなAIカード */
+.aicard.mini{padding:10px 12px!important;gap:8px}
+.aicard.mini .ai-h{display:flex;align-items:center;gap:8px;margin:0}.aicard.mini .ai-h b{font-size:13px;color:var(--accent)}
+.aicard.mini .ai-open{margin-left:auto;padding:2px 4px}
+.aicard.mini .ai-odm{border:0;background:color-mix(in srgb,var(--caution,#d9822b) 18%,transparent);color:var(--ink);font-size:11.5px;font-weight:700;border-radius:999px;padding:4px 10px;cursor:pointer}
+.aicard.mini .ai-last{background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:3px}
+.aicard.mini .ai-q1{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aicard.mini .ai-a1{font-size:13px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.aicard.mini .ai-a1.err{color:var(--danger)}
+.aicard.mini .ai-more1{align-self:flex-start;padding:2px 0;font-size:11.5px}
+.aicard.mini .ai-pend{align-self:flex-start;border:0;background:var(--accent);color:var(--on-accent,#fff);font-weight:800;font-size:12px;border-radius:999px;padding:6px 12px;cursor:pointer}
+.aicard.mini .ai-wait{font-size:12.5px;color:var(--muted)}
+.aicard.mini:not(.vs) #aiVoiceStatus{display:none}.aicard.mini #aiVoiceStatus{font-size:11px}
+.aicard.mini .ai-compose textarea{min-height:40px}
+.aicard.mini .ai-chips{margin:0}.aicard.mini .ai-chips .chip{font-size:12px;min-height:30px;padding:4px 10px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2280,7 +2295,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="306";
+const APP_VERSION="307";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5637,6 +5652,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="updCheck"){ updCheck(true); }
   else if(a==="updNow"){ updNow(); }
   else if(a==="aiClear"||a==="aiRefresh"){ aiRefresh(); }
+  else if(a==="aiOpen"){ aiDockToggle(true); }
   else if(a==="aiReplan"){ aiAsk(AI_REPLAN_Q,{brief:true}); }
   else if(a==="aiMemAdd"){ const i=$("aiMemIn"); if(aiMemAdd(i&&i.value,state.aiMemSc==="me"?"me":"both")){ state.aiMemOpen=true; haptic("done"); render(); } }
   else if(a==="shUndo"||a==="shRedo"){ shiftUndo(a==="shRedo"); }
@@ -7718,7 +7734,7 @@ function aiFailure(e,q){try{usageFeat("aiFail");}catch(_){}const code=String(e?.
   return {reply:aiStoreLimited(e)?"質問の保存先が利用制限（429）に達しています。質問は入力欄に残しています。1分ほど待ってから再送してください。続く場合は保存先の利用枠の確認が必要です。":code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
 }
 async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); if(q==="☀ 今日を組む"){ q=AI_BRIEF_Q; opt.brief=true; } const A=state.ai; if(!q||A.busy||state.aiListening||state.aiVoiceTranscribing) return;aiVoiceInvalidate();state.aiVoiceStatus=""; if(!aiCan()){ toast("この画面ではAIに相談できません（設定 › AI機能）"); return; }
-  const runId=A.runId=(A.runId||0)+1,ctl=A.ctl=new AbortController(),entry={q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief};
+  const runId=A.runId=(A.runId||0)+1,ctl=A.ctl=new AbortController(),entry={q:opt.brief?"☀ 今日を組む":q,a:null,brief:!!opt.brief,at:Date.now()};
   if(A.log.at(-1)?.a?.err&&A.log.at(-1).q===entry.q)A.log.pop();
   A.busy=true;A.q="";A.lastQ=q;A.startedAt=Date.now();A.phase="送信を準備しています";A.log.push(entry);if(A.log.length>6)A.log.shift();render();A.waitTimer=setInterval(aiWaitPaint,1000);
   try{
@@ -7857,6 +7873,12 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
   const od=!talk&&!A.busy?aiOverdue():[], mb=aiMemB(), mp=aiMemP();
   const qa=(x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(x.a.reply).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`;
   const L=A.log, older=L.slice(0,-1);
+  /* v307: ホームのAIカードはミニマルに（1行の入力＋最近の返事だけ。前の会話・設定は「ひらく」で） */
+  if(where==="home"&&!state.aiOpen){ const pend=last&&last.a?(last.a.acts||[]).filter(c=>!c.ok).length:0, fresh=last&&(A.busy||pend||(last.at&&Date.now()-last.at<30*60e3));
+    return `<section class="aicard mini ${state.aiVoiceStatus||state.aiListening||aiRecM||state.aiVoiceTranscribing||state.aiVoiceStarting?"vs":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ AI</b>${od.length?`<button class="ai-odm" data-act="aiReplan">⏰ 過ぎた予定 ${od.length}件・組み直す</button>`:""}<button class="link ai-open" data-act="aiOpen">${L.length?`会話 ${L.length} ›`:"ひらく ›"}</button></div>
+      ${fresh?`<div class="ai-last ${A.busy&&!last.a?"busy":""}">${A.busy&&!last.a?`<span class="ai-wait">考え中…</span>`:`<div class="ai-q1">${esc(last.q)}</div><div class="ai-a1 ${last.a&&last.a.err?"err":""}">${esc(last.a?last.a.reply:"")}</div>${pend?`<button class="ai-pend" data-act="aiOpen">提案 ${pend}件を確認して実行 ›</button>`:`<button class="link ai-more1" data-act="aiOpen">続きを見る</button>`}`}</div>`:""}
+      ${aiComposerHTML(false)}
+      ${A.busy||fresh?"":`<div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}">${retry?"↻ "+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>`}</section>`; }
   return `<section class="aicard ${dock?"ai-dock":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ ${talk?"AIと話し合いの準備":"AI"}</b><span class="who mx">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="icon-btn sm ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話をリフレッシュ（入力は残ります）">↻</button>${dock?`<button class="icon-btn sm" data-act="aiDockClose" aria-label="AIを閉じる">✕</button>`:""}</div>
     ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 過ぎた予定 ${od.length}件</span><b>組み直す</b></button>`:""}
     ${older.length?`<details class="ai-old"><summary>前の会話（${older.length}）</summary>${older.map((x,li)=>qa(x,li)).join("")}</details>`:""}${last?qa(last,L.length-1):""}
