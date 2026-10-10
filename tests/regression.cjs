@@ -35,7 +35,8 @@ function env(names, overrides = {}) {
   if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
-  if(names.includes('aiAsk'))names=['AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
+  if(names.includes('aiCardHTML')&&!names.includes('aiAsk'))names=['aiReplyText',...names];
+  if(names.includes('aiAsk'))names=['aiReplyText','AI_CONSULT_RE','AI_REF_TYPES','AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('aiComposerHTML'))names=['aiRecM','aiVoiceAIOk',...names];
   if(names.some(n=>['aiMic','aiVoiceCancel','aiAsk','aiRefresh','aiVoiceFix','aiVoiceRec'].includes(n)))names=['aiStoreLimited','aiRec','aiRecM','aiSRS','aiVoiceRun','aiVoiceCtl','aiVoiceStartTimer','aiVoiceTracks','aiVoiceReleaseRecorder','aiVoiceInvalidate',...names];
   if(names.includes('bugCard')&&!names.includes('bugDisplay'))names=['AI_RELEASE','bugTextKey','bugDisplay',...names];
@@ -1055,4 +1056,19 @@ test('v308 songs replaced by a re-pick stay in history and are never chosen agai
   c.state.music=[m];assert.equal(m.played.length,1);
   c.L=[{title:'朝の曲',artist:'A'},{title:'今の曲',artist:'A'},{title:'新しい曲',artist:'A'}];
   assert.deepEqual(plain(run(c,'songFresh(L,songPlayed()).map(o=>o.title)')),['新しい曲']);
+});
+
+test('v309 AI replies hide [rN] references, consultations use Pro, unknown refs are dropped', async () => {
+  const c = env(['AI_PREFS','AI_ACT_L','aiAsk'],{aiCan:()=>true,aiCtx:()=>{c.state.ai.refs={r12:{c:'items',id:'toilet'}};return '状況';},aiMemB:()=>[],aiMemP:()=>[]});
+  assert.equal(run(c,"aiReplyText('10:00のトイレ掃除[r12]や掃除機[r13]、レシート登録［r15］と（r17）、[r18, r19]')"),'10:00のトイレ掃除や掃除機、レシート登録と、');
+  assert.equal(run(c,"aiReplyText('・服畳む [r15]\\n・次')"),'・服畳む\n・次');
+  let prompt='', opts=null;
+  c.state._smt={json:async (p,o)=>{prompt=p;opts=o;return {reply:'・トイレ掃除[r12]を先に',acts:[{type:'edit',ref:'r12',time:'10:00'},{type:'done',ref:'r99'}],next:['次は？[r12]']};}};
+  await run(c,"aiAsk('今からやること提案して')");
+  assert.equal(opts.modelTier,'pro');
+  assert.match(prompt,/reply・next に絶対に書かない/); assert.match(prompt,/今から何をするか/);
+  const a=c.state.ai.log.at(-1).a;
+  assert.equal(a.reply,'・トイレ掃除を先に'); assert.deepEqual(a.next,['次は？']);
+  assert.equal(a.acts.length,1); assert.equal(a.acts[0]._r.id,'toilet');
+  await run(c,"aiAsk('来週の金曜に歯医者を追加して')"); assert.equal(opts.modelTier,'quick');
 });
