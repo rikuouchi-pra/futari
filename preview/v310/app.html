@@ -1,24 +1,25 @@
 <!doctype html>
 <html lang="ja"><head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<script>const previewMemory=new Map([['futari.prefs',JSON.stringify({onboarded:'1',tipDone:'1',music:'off',wx:'off',haptic:'off',qaPop:'off',aiBrief:'off'})]]);const previewStorage={getItem:k=>previewMemory.get(k)||null,setItem:(k,v)=>previewMemory.set(k,String(v))};</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#EEF2EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111816" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="icon-192.png">
-<script src="config.js"></script>
-<script src="firestore-monitor.js?v=295"></script>
-<script src="firestore-reads.js?v=295"></script>
-<script src="firestore-offline.js?v=295"></script>
-<script src="shim.js?v=295"></script>
+
+
+
+
+
+
+
+
 </head><body>
 <title>ふたりのリスト</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+
+
 <meta name="apple-mobile-web-app-title" content="ふたりのリスト">
 <style>
 :root{
@@ -2336,7 +2337,7 @@ const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d);};
 const jpDate=s=>{const d=parse(s);return `${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;};
 const short=s=>{const d=parse(s);return `${d.getMonth()+1}/${d.getDate()}`;};
 const ago=t=>{ if(!t) return ""; const m=Math.floor((Date.now()-t)/6e4); if(m<1) return "たった今"; if(m<60) return `${m}分前`; const h=Math.floor(m/60); if(h<24) return `${h}時間前`; return `${Math.floor(h/24)}日前`; };
-const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const store={get:k=>{try{return previewStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{previewStorage.setItem(k,v)}catch(e){}}};
 
 /* ================= theme palettes ================= */
 const PALETTES={
@@ -4031,7 +4032,7 @@ function duoRow(i){ const P=state.duoPick&&state.duoPick.id===i.id, w=getWho(i);
   return `<li class="item duo-tr ${P?"pick":""}"><button class="duo-tb" data-duo-pick="${esc(i.id)}"><span class="tag" style="--tc:var(${i.list==="shop"?"--shop":"--task"})">${i.list==="shop"?"買い物":"やること"}</span><b>${esc(i.text)}</b><small>${w==="both"?"ふたり":esc(nameOf(w))}${i.due&&i.due<today()?"・期限切れ":""}</small><span class="duo-go">${P?"時間をタップ":"⏱"}</span></button><span class="duo-grip" data-duo-grip="${esc(i.id)}" role="button" aria-label="つかんでタイムテーブルへ">⋮⋮</span></li>`; }
 /* ================= v225: スマホへの通知（Web Push）。予定の前・朝のまとめ・夜の質問・相手が追加したとき ================= */
 const PUSH_K=[["ev","予定・タスク・習慣・家事の開始前"],["am","朝のまとめ（予定・ごみ・天気・やること）"],["pm","夜：今日の質問が未回答のとき"],["add","相手が予定・やることを追加したとき"]];
-const pushDev=()=>{ try{ return localStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
+const pushDev=()=>{ try{ return previewStorage.getItem("futari.pushDev")||""; }catch(e){ return ""; } };
 const pushStandaloneIOS=()=>/iPhone|iPad/.test(navigator.userAgent)&&!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
 function pushCardRefresh(){ const c=$("pushCard"); if(c) c.innerHTML=pushCardHTML(); }
 const b64uToU8=s=>{ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)); return Uint8Array.from(b,c=>c.charCodeAt(0)); };
@@ -4059,8 +4060,8 @@ function pushPlan(){ const now=Date.now(), t=today(), days=[t,addDays(t,1)], lea
 let pushT=null, pushQ=[];
 function pushQueue(m){ if(!pushEnabled()) return; pushQ.push(m); clearTimeout(pushT); pushT=setTimeout(()=>pushSync(),4000); }
 /* v276: 端末ごとの通知登録と、成功・未確認・失敗の区別 */
-function pushEnabled(){ try{ const v=localStorage.getItem("futari.pushEnabled"), owner=localStorage.getItem("futari.pushOwner"); return !!pushDev()&&(!owner||owner===state.me)&&(v===null?prefs.pushOn==="1":v==="1"); }catch(e){return false;} }
-function pushSetEnabled(on){ localStorage.setItem("futari.pushEnabled",on?"1":"0"); if(on) localStorage.setItem("futari.pushOwner",state.me); }
+function pushEnabled(){ try{ const v=previewStorage.getItem("futari.pushEnabled"), owner=previewStorage.getItem("futari.pushOwner"); return !!pushDev()&&(!owner||owner===state.me)&&(v===null?prefs.pushOn==="1":v==="1"); }catch(e){return false;} }
+function pushSetEnabled(on){ previewStorage.setItem("futari.pushEnabled",on?"1":"0"); if(on) previewStorage.setItem("futari.pushOwner",state.me); }
 function pushWait(p,ms=12000){ return new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error("通知の準備が時間切れになりました。再読み込みして試してください")),ms);Promise.resolve(p).then(v=>{clearTimeout(t);resolve(v);},e=>{clearTimeout(t);reject(e);});}); }
 function pushResultMessage(r){ return r&&Number(r.sent)>0?"送信サーバーがテスト通知を送信しました。端末に届いたか確認してください。":"通知の登録は保存しました。テスト通知の送信は確認できていません。"; }
 function pushCardHTML(){ const ok="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window, perm=ok?Notification.permission:"", on=pushEnabled()&&perm==="granted", off=new Set((prefs.pushOff||"").split(",").filter(Boolean));
@@ -4086,10 +4087,10 @@ async function pushPrepare(){ if(state.pushBusy)return;state.pushBusy=true;state
 }catch(e){state.pushPrepared=null;const msg=String(e.detail||e.message||e);state.pushBackendMissing=/未対応の操作.*push|unknown.*push|unsupported.*push/i.test(msg);state.pushMsg=state.pushBackendMissing?"送信サーバーに通知機能がありません。端末の設定では解消できません。送信側の更新が必要です。":"準備できませんでした："+msg.slice(0,140);}finally{state.pushBusy=false;pushCardRefresh();} }
 async function pushOn(){ if(state.pushBusy)return; const ready=state.pushPrepared;if(!ready||ready.owner!==state.me){await pushPrepare();return;}state.pushBusy=true;try{
   const perm=await Notification.requestPermission();if(perm!=="granted")throw Error("通知が許可されませんでした");
-  const {P,key,reg}=ready;const previousOwner=localStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
+  const {P,key,reg}=ready;const previousOwner=previewStorage.getItem("futari.pushOwner"),ownerChanged=!!previousOwner&&previousOwner!==state.me;let sub=await reg.pushManager.getSubscription();if(sub){const cur=new Uint8Array(sub.options.applicationServerKey||[]);if(ownerChanged||cur.length!==key.length||cur.some((v,i)=>v!==key[i])){if(!await sub.unsubscribe())throw Error("以前の通知登録を解除できませんでした");sub=null;}}
   if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-  let dev=ownerChanged?"":pushDev(),sec=ownerChanged?"":localStorage.getItem("futari.pushSec")||"";if(!dev)dev="d"+crypto.randomUUID();if(!sec)sec=crypto.randomUUID()+crypto.randomUUID();
-  localStorage.setItem("futari.pushDev",dev);localStorage.setItem("futari.pushSec",sec);pushSetEnabled(true);state.pushSub=sub.toJSON();
+  let dev=ownerChanged?"":pushDev(),sec=ownerChanged?"":previewStorage.getItem("futari.pushSec")||"";if(!dev)dev="d"+crypto.randomUUID();if(!sec)sec=crypto.randomUUID()+crypto.randomUUID();
+  previewStorage.setItem("futari.pushDev",dev);previewStorage.setItem("futari.pushSec",sec);pushSetEnabled(true);state.pushSub=sub.toJSON();
   const r=await pushSync("test");if(!r)throw Error(state.pushMsg||"送信サーバーへの登録を確認できませんでした");
   prefs.pushOn="1";savePrefs(true);state.pushPrepared=null;state.pushStopRetry=false;state.pushMsg=pushResultMessage(r);
 }catch(e){state.pushMsg="通知の設定を完了できませんでした："+String(e.detail||e.message||e).slice(0,160);}finally{state.pushBusy=false;pushCardRefresh();} }
@@ -4105,7 +4106,7 @@ function pushSync(op){ if(pushFlight){if(op)return pushFlight.then(()=>pushSync(
 async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)return null;try{
   if(!db||!privBase||!state.me)throw Error("ログインとデータの読み込みが完了していません");
   const reg=await pushWait(navigator.serviceWorker.ready),subscription=await reg.pushManager.getSubscription(),sub=subscription&&subscription.toJSON();if(!sub||!sub.endpoint)throw Error("この端末の通知登録がありません。通知を準備し直してください");
-  const sec=localStorage.getItem("futari.pushSec");if(!sec)throw Error("通知登録の情報がありません。通知を準備し直してください");
+  const sec=previewStorage.getItem("futari.pushSec");if(!sec)throw Error("通知登録の情報がありません。通知を準備し直してください");
   const P=await claude.use("push");if(!P)throw Error("通知の送信サーバーが未設定です");
   (reg.active||navigator.serviceWorker.controller)?.postMessage({type:"pushcfg",cfg:{url:P.url,dev,sec}});
   const plan=pushPlan(),queued=pushQ.slice(),off=(prefs.pushOff||"").split(",").filter(Boolean);
@@ -4114,7 +4115,7 @@ async function pushSyncRun(op){const dev=pushDev();if(!pushEnabled()||!dev)retur
   await db.collection("push").doc(dev).set({json:JSON.stringify({sub,role:myRole(),on:true,off,policy:pushSettings(),at:Date.now(),shared:plan.shared,now:queued})});
   await privBase.collection("push").doc(dev).set({json:JSON.stringify({sec,priv:plan.priv})});
   const r=await P.call({op:op||"sync",dev,ppath:`data/users/${state.me}/private/push/${dev}`});if(!r||r.error||r.ok===false)throw Error("送信サーバーが通知の保存を確認できませんでした");
-  state.pushSyncKey=syncKey;pushQ=pushQ.filter(m=>!queued.includes(m));localStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
+  state.pushSyncKey=syncKey;pushQ=pushQ.filter(m=>!queued.includes(m));previewStorage.setItem("futari.pushOwner",state.me);state.pushLast=Date.now();state.pushMsg=op==="test"?pushResultMessage(r):"通知予定を更新しました。";pushCardRefresh();return r;
 }catch(e){state.pushMsg="通知の同期に失敗："+String(e.detail||e.message||e).slice(0,140);pushCardRefresh();return null;} }
 function pushNotifyAdded(c,id,data,existed){if(existed||!data||data.auto||!["events","items","topics"].includes(c))return;const me=myRole(),ot=otherRole(),w=data.who||"both";if(w!==ot&&w!=="both")return;pushQueue({id:`add:${c}:${id}`,roles:[ot],kind:"add",t:`${nameOf(me)}が${c==="events"?"予定":c==="topics"?"話したいこと":data.list==="shop"?"買い物":"やること"}を追加`,b:String(data.text||"")}); }
 
@@ -5015,9 +5016,9 @@ function renderChrome(){ applyTabOrder();
   renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); songRender(); logoApply();
 }
 const hintSess=new Set();
-function hintsApply(v){ let hs={}; try{ hs=JSON.parse(localStorage.getItem("fl_hints")||"{}"); }catch(_){}
+function hintsApply(v){ let hs={}; try{ hs=JSON.parse(previewStorage.getItem("fl_hints")||"{}"); }catch(_){}
   const off=prefs.hintsAlways!=="1"&&hs[v]&&!hintSess.has(v); document.body.classList.toggle("hints-off",!!off);
-  if(!off&&!hs[v]){ hintSess.add(v); hs[v]=1; try{ localStorage.setItem("fl_hints",JSON.stringify(hs)); }catch(_){} } }
+  if(!off&&!hs[v]){ hintSess.add(v); hs[v]=1; try{ previewStorage.setItem("fl_hints",JSON.stringify(hs)); }catch(_){} } }
 function render(anim){
   state.dirty=false;
   if(VIEW_ALIAS[state.view]) state.view=VIEW_ALIAS[state.view]; if(state.view==="future"&&FAM_CATS.includes(state.fut)){ state.babyTab=state.fut; state.fut=null; state.view="baby"; } /* v247 */ if(state.view==="pwish"){ state.view="future"; state.fut="_mine"; }
@@ -5131,7 +5132,7 @@ function firestoreReadsHTML(){
     <details><summary>端末・写真の参考情報（Firestoreの上限対象外）</summary><div class="quota-grid">
     ${gauge('端末の保存領域',bs.usage||0,bs.quota||0,'bytes',bs.status==='available'?'ブラウザ推定 / 割当 '+bytes(bs.quota)+'・他の保存も含む':'ブラウザが使用量を提供していません',bs.status!=='available')}
     ${gauge('写真の保存量',photo?.bytes||0,734003200,'bytes',photoNote+' / アプリの目安 700 MiB',!photo)}
-    </div><p class="who">容量はこのタブで確認した文書の概算です。再起動で確認範囲が変わります。ブラウザの割当容量は変動し、localStorage単独の残量ではありません。</p><button class="opt" data-act="firestoreStorageRefresh">端末の保存領域を再確認</button><p class="who">写真900 KiB・700 MiB・5,000枚はアプリ独自の目安です。Firestoreの上限とは区別します。</p></details>
+    </div><p class="who">容量はこのタブで確認した文書の概算です。再起動で確認範囲が変わります。ブラウザの割当容量は変動し、previewStorage単独の残量ではありません。</p><button class="opt" data-act="firestoreStorageRefresh">端末の保存領域を再確認</button><p class="who">写真900 KiB・700 MiB・5,000枚はアプリ独自の目安です。Firestoreの上限とは区別します。</p></details>
     <div class="quota-heading">どの処理の記録・推定値が多いか</div><p class="who">読み書き・転送量は処理別件数と割合、文書・フィールド・要求サイズは処理別の最大値を比較します。負荷が大きいだけで無駄とは断定しません。改善候補を開いて原因を確認してください。</p><div class="opts"><button class="opt ${firestoreReadsDays===1?'on':''}" data-act="firestoreReadsToday" aria-pressed="${firestoreReadsDays===1}">現在の集計日</button><button class="opt ${firestoreReadsDays===7?'on':''}" data-act="firestoreReadsWeek" aria-pressed="${firestoreReadsDays===7}">直近7日</button></div><div class="opts quota-tabs">${Object.entries(metrics).map(([k,[v]])=>`<button class="opt ${metric===k?'on':''}" data-act="firestoreMetric" data-value="${k}" aria-pressed="${metric===k}">${v}</button>`).join('')}</div>
     <p class="who">${metric==='storage'?'このタブの確認済み容量。期間ボタンの対象外です。':s.first?`記録：${when(s.first)}〜${when(s.last)}（日本時間）`:'まだ記録がありません。普段どおり使うと集計されます。'}</p>
     ${ranked.slice(0,5).map(row).join('')||'<p class="who">この指標の記録はまだありません。</p>'}${ranked.length>5?`<details><summary>残り${ranked.length-5}処理を見る</summary>${ranked.slice(5).map(row).join('')}</details>`:''}
@@ -9262,10 +9263,10 @@ const WXI={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M
 const wxSvg=k=>`<svg class="wxs ${k}" viewBox="0 0 24 24" aria-hidden="true">${WXI[k]||WXI.cloud}</svg>`;
 async function wxLoad(force){
   if(prefs.wx==="off") return; const L=wxLoc(), key=`futari.wx2.${L.lat.toFixed(2)},${L.lon.toFixed(2)}`;
-  try{ const c=JSON.parse(localStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
+  try{ const c=JSON.parse(previewStorage.getItem(key)||"null"); if(c&&!force&&Date.now()-c.at<30*60e3){ state.wx=c.d; return; } if(c) state.wx=c.d; }catch(e){}
   if(state.wxBusy) return; state.wxBusy=true;
   try{ const u=`https://api.open-meteo.com/v1/forecast?latitude=${L.lat}&longitude=${L.lon}&current=temperature_2m,weather_code,is_day,precipitation&hourly=temperature_2m,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms&timezone=Asia%2FTokyo&forecast_days=16`;
-    let r=await fetch(u); if(!r.ok) r=await fetch(u.replace(/,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms/,"")); /* v218: 追加の項目が使えないときは従来の内容で */ if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ localStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
+    let r=await fetch(u); if(!r.ok) r=await fetch(u.replace(/,precipitation_sum,sunshine_duration,wind_speed_10m_max,relative_humidity_2m_mean&wind_speed_unit=ms/,"")); /* v218: 追加の項目が使えないときは従来の内容で */ if(!r.ok) throw 0; const d=await r.json(); state.wx=d; try{ previewStorage.setItem(key,JSON.stringify({at:Date.now(),d})); }catch(e){} requestRender(); if(typeof autoCook==="function") autoCook(); }
   catch(e){ state.wxErr=true; }
   state.wxBusy=false; }
 function wxToday(){ const W=state.wx; if(!W||!W.daily) return null; const t=today(), i=W.daily.time.indexOf(t); if(i<0) return null;
@@ -9657,13 +9658,13 @@ const _jhn={}; function jpHolName(d){ const y=Number(d.slice(0,4)); if(!_jhn[y])
     _jhn[y]=M; } return _jhn[y][d]||""; }
 /* v254: 今日は何の日（Wikipediaの日付ページ「記念日・年中行事」から日本のものを中心に3件まで。端末に保存して毎回は取りにいかない） */
 const NNH={}; function nanohi(d){ const k=d.slice(5); if(NNH[k]) return NNH[k].v||[];
-  try{ const c=JSON.parse(localStorage.getItem("futari.nnh."+k)||"null"); if(c&&Date.now()-c.at<90*864e5){ NNH[k]=c; return c.v; } }catch(e){}
+  try{ const c=JSON.parse(previewStorage.getItem("futari.nnh."+k)||"null"); if(c&&Date.now()-c.at<90*864e5){ NNH[k]=c; return c.v; } }catch(e){}
   NNH[k]={v:[],at:Date.now()}; const [m,dd]=k.split("-").map(Number);
   fetch(`https://ja.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(m+"月"+dd+"日")}&prop=wikitext&format=json&origin=*&formatversion=2`).then(r=>r.ok?r.json():null).then(j=>{ const w=j&&j.parse&&j.parse.wikitext; if(!w) return;
     const i=w.search(/==\s*記念日[^=\n]*==/); if(i<0) return; const rest=w.slice(i).split("\n").slice(1); const L=[];
     for(const ln of rest){ if(/^==[^=]/.test(ln)) break; if(!/^\*[^*:]/.test(ln)) continue; const t=ln.replace(/^\*\s*/,""), jp=/JPN|日本/.test(t);
       const lk=t.match(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/); let n=lk?(lk[2]||lk[1]):t.replace(/\{\{[^}]*\}\}/g,"").split(/[（(]/)[0]; n=n.replace(/<[^>]+>|'{2,}/g,"").trim(); if(n&&n.length<=20&&!/^\d/.test(n)) L.push({n,jp}); }
-    const v=[...L.filter(x=>x.jp),...L.filter(x=>!x.jp)].map(x=>x.n).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3); NNH[k]={v,at:Date.now()}; try{ localStorage.setItem("futari.nnh."+k,JSON.stringify(NNH[k])); }catch(e){} if(v.length) requestRender(); }).catch(()=>{}); return []; }
+    const v=[...L.filter(x=>x.jp),...L.filter(x=>!x.jp)].map(x=>x.n).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3); NNH[k]={v,at:Date.now()}; try{ previewStorage.setItem("futari.nnh."+k,JSON.stringify(NNH[k])); }catch(e){} if(v.length) requestRender(); }).catch(()=>{}); return []; }
 function dayInfoHTML(d,withNnh){ const h=jpHolName(d), n=withNnh?nanohi(d):[]; if(!h&&!n.length) return ""; return `<span class="dinfo">${h?`<b class="dhol">🎌 ${esc(h)}</b>`:""}${n.length?`<span class="dnnh">${h?"・":""}${d===today()?"今日は ":""}${esc(n.join("・"))}</span>`:""}</span>`; }
 
 function wcCfg(r){ const W=((state.kakei||{}).workCal||{})[r]||{}; return {on:!!W.on,wk:W.wk!=null?String(W.wk):"06",hol:W.hol||"work",off:W.off||[],work:W.work||[],auto:W.auto||{},src:W.src||"",pre:W.pre||"",dcal:W.dcal||{},dchk:W.dchk||0,derr:W.derr||""}; }
@@ -10021,66 +10022,86 @@ function maybeOnb(){ if(prefs.onboarded!=="1"&&!state.onbShown){ state.onbShown=
 render(); requestAnimationFrame(()=>{placeRail(false); if(prefs.onboarded==="1") showTip();});
 setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
 
-/* ================= connect ================= */
-(async()=>{
-  const off=(why)=>{ $("syncText").textContent="オフライン"; state.connIssue=why||""; $("offline").textContent=why||$("offline").textContent; $("offline").hidden=false; };
-  if(!window.claude||!claude.use){ if(cacheLoad()){ render(); off("オフライン：この端末に残っている控えを表示しています（変更は保存されません）"); return; } off("claude.aiのアプリか、ログインしたブラウザで開いていないため保存できません。"); return; }
-  const [d,u,dl]=await Promise.all([claude.use("db"),claude.use("user"),claude.use("downloads")]); db=d; user=u; downloads=dl;
-  state.diag={user:!!user,db:!!d,mcp:null,id:false,owner:null,canWrite:null,name:"",writeErr:""};
-  if(user){ try{ state.me=await user.id(); }catch(e){} try{ state.owner=await user.isOwner(); }catch(e){ state.owner=false; }
-    try{ const v=await user.me(); state.diag.name=(v&&v.name)||""; if(v&&v.email){ state.acctRole=ROLE_HASH[await sha256hex(v.email.trim().toLowerCase())]||null; state.emailRole=state.acctRole; } }catch(e){}
-    try{ state.diag.canWrite=await user.can("data.write"); }catch(e){}
-  } else state.owner=false; /* no viewer identity at all: never the owner (the owner always has one) */
-  state.diag.id=!!state.me; state.diag.owner=state.owner;
-  /* the page owner is rikurussel14@gmail.com (夫); any other signed-in account is 妻 */
-  resolveRole(); render();
-  if(!db){ const at=cacheLoad(); if(at){ render(); off(`オフライン：${new Date(at).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})} 時点の控えを表示しています（変更は保存されません）`); return; } off("共有データに接続できません。claude.aiに招待されたアカウントでログインしているか確認してください（招待は「編集可」）。"); return; }
-  claude.use("assets").then(a=>{ state.assets=a||null; requestRender(); }).catch(()=>{});
-  claude.use("sample").then(async sm=>{ if(sm){ state.sampleTxt=sm; requestRender(); } if(!sm){ state.sampleWhy="この表示環境ではClaudeへの問い合わせ機能そのものが提供されていません"; state.sampleNote="この画面ではClaudeの自動読み取りが使えません。写真を見ながら入力してください"; requestRender(); return; } try{ const L=await sm.limits(); if(!L||!L.images){ state.sampleWhy="Claudeへの問い合わせはできますが、この表示環境は写真の送信に対応していません"; state.sampleNote="この画面では写真の自動読み取りに対応していません。写真を見ながら入力してください"; requestRender(); } if(L&&L.images){ state.sample=sm; state.sampleImg=L.images; const inp=$("rcptIn"); if(inp&&L.images.mediaTypes) inp.accept=L.images.mediaTypes.join(","); requestRender(); } }catch(e){} }).catch(()=>{});
-  claude.use("mcp").then(m=>{ state.mcp=m; if(state.view==="cal") requestRender(); if(m) gAutoKick(8000); }).catch(()=>{});
-  histDoc=db.doc("meta/history");bindShopChips();
-  if(state.me){ try{ prefsDoc=db.doc(`data/users/${state.me}/prefs`); privBase=db.doc(`data/users/${state.me}/private`); privCol=privBase.collection("diary"); }catch(e){ prefsDoc=null; privCol=null; privBase=null; } }
-  famDoc=db.doc("meta/family");
-  rolesDoc=db.doc("meta/roles");
-  if(!state.me&&state.owner===false&&!prefsDoc){ /* no account id: keep this person's settings in the shared store (appearance only — not secret) */
-    prefsDoc=db.doc("meta/prefs_w"); }
-  if(!state.me){ /* invited from outside the organization: no account id → encrypted private vault */
-    vaultCol=db.collection("vault_w"); state.vaultRaw={};
-    vaultCol.onSnapshot(async s=>{ for(const d of s.docs){ const v=d.data(); if(d.id==="meta") state.vaultMeta=v; else state.vaultRaw[d.id]=v; }
-      if(!state.vaultKey&&state.vaultMeta&&store.get("futari.vpin")) await vaultUnlock(store.get("futari.vpin"),true);
-      else if(state.vaultKey) await vaultDecryptAll();
-      requestRender(); },()=>{});
-  }
-  rolesDoc.onSnapshot(s=>{ state.roles=s.exists?s.data():{}; state.rolesLoaded=true; resolveRole(); requestRender(); if(!$("onb").hidden) renderOnb(); },()=>{ state.rolesLoaded=true; });
-  famDoc.onSnapshot(s=>{ if(s.exists){ const f=s.data(); state.fam={h:f.h||"陸功",w:f.w||"紀香"}; requestRender(); } },()=>{});
-  if(privBase) for(const c of PRIVATE) privBase.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state[c+"Loaded"]=true; if(pushEnabled()){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} if(c!=="gsync") gAutoKick(4000); if(c==="blocks"||c==="pitems") autoCook(); requestRender(); },()=>{});
-  const live=()=>{ $("sync").classList.add("live"); netChip(); };
-  const lost=e=>{ $("sync").classList.remove("live");if(aiStoreLimited(e)){off("保存先の読み取りが利用上限に達したため、最新の変更を受信できません。繰り返し再読み込みせず、利用枠が回復してから確認してください。");$("syncText").textContent="読み取り上限";return;} $("syncText").textContent="再読み込みしてください"; };
-  const GK=new Set(["items","events","plans","shifts"]);
-  const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(s); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
-  sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
-  sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ /* v305: 利用状況の記録（二人×120日分）は開くたびに全件読み直していたので、利用状況・設定を開いたときと1日1回だけ読む */ window.__usageSub=()=>{ if(window.__usageOn) return; window.__usageOn=1; sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); }; if(state.view==="usage"||state.view==="settings") window.__usageSub(); else setTimeout(()=>{ try{ const k="futari.usgSubDay"; if(localStorage.getItem(k)!==today()){ localStorage.setItem(k,today()); window.__usageSub(); } }catch(_){ window.__usageSub(); } },45000); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
-  sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
-  { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log"||state.view==="daylog"||state.view==="talk") requestRender(); else renderChrome(); },()=>{}); }
-  if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
-  histDoc.onSnapshot(s=>{ const n=s.exists&&s.data().names; state.history=Array.isArray(n)?n:[]; requestRender(); },()=>{});
-  if(prefsDoc) prefsDoc.onSnapshot(s=>{ if(!s.exists){ if(s.fromCache) return; savePrefs(true); maybeOnb(); return; } const p=s.data(); const next={...DEFAULT_PREFS};
-    for(const k of Object.keys(DEFAULT_PREFS)) if(typeof p[k]===typeof DEFAULT_PREFS[k]) next[k]=p[k];
-    /* 古い版が未対応のキーを落として同期しても、お気に入りは消さない。 */
-    if(state.favoritesLoaded||p.itemFavorites===undefined) next.itemFavorites=JSON.stringify(itemFavorites());
-    if(next.autoRules!==prefs.autoRules) AR=null;
-    prefWriteKey=stableJSON(next);
-    const first=firstPrefs; firstPrefs=false;
-    if(next.gShowV!=="1"){ next.gShow="1"; next.gShowV="1"; setTimeout(()=>savePrefs(true),500); }
-    if(!s.fromCache&&next.voiceMig!=="196"){ next.voiceMig="196"; if(next.voiceAI==="on") next.voiceAI="fix"; setTimeout(()=>savePrefs(true),500); } /* v196: 録音方式で「？」になる問題のため、端末の聞き取り＋AI補正を標準に */
-    if(!s.fromCache&&next.svMig!=="238"){ next.svMig="238"; if((next.startView||"home")==="home") next.startView="auto"; setTimeout(()=>savePrefs(true),600); } /* v238: 使用履歴でホームをすぐ離れることが多かったので、よく使う画面で開く（設定で戻せる） */
-    if(!s.fromCache&&next.navMig!=="194"){ next.navMig="194"; if(next.nav!=="tab"){ next.navPrev=next.nav; next.nav="tab"; } setTimeout(()=>savePrefs(true),500); } /* v194: 一度だけ下のタブメニューへ（設定で戻せる） */
-    if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
-      if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="auto"?(AUTO_SV.includes(prefs.autoStartV)?prefs.autoStartV:"home"):prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
-      render(); placeRail(false); }
-    if(first){bindFavorites();if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
-})();
+/* Included only in the generated preview. No production APIs or credentials. */
+{
+  const docs = new Map(), listeners = new Map();
+  const copy = x => JSON.parse(JSON.stringify(x));
+  const merge = (a,b) => { const o={...a};for(const [k,v] of Object.entries(b))o[k]=v&&typeof v==='object'&&!Array.isArray(v)?merge(a?.[k]||{},v):v;return o; };
+  const snapshot = p => ({id:p.split('/').pop(),exists:docs.has(p),fromCache:false,data:()=>copy(docs.get(p)||{})});
+  const collectionSnapshot = p => ({metadata:{fromCache:false},docs:[...docs.keys()].filter(k=>k.startsWith(p+'/')&&!k.slice(p.length+1).includes('/')).map(snapshot)});
+  const notify = p => { for(const k of [p,p.slice(0,p.lastIndexOf('/'))])for(const [cb,coll] of listeners.get(k)||[])queueMicrotask(()=>cb(coll?collectionSnapshot(k):snapshot(k))); };
+  function listen(p,cb,coll){ const l=listeners.get(p)||[];l.push([cb,coll]);listeners.set(p,l);queueMicrotask(()=>cb(coll?collectionSnapshot(p):snapshot(p)));return()=>{}; }
+  function doc(p){return {get:async()=>snapshot(p),set:async d=>{docs.set(p,copy(d));notify(p);},update:async d=>{docs.set(p,merge(docs.get(p)||{},copy(d)));notify(p);},delete:async()=>{docs.delete(p);notify(p);},collection:c=>collection(p+'/'+c),onSnapshot:cb=>listen(p,cb,false)};}
+  function collection(p){return {doc:id=>doc(p+'/'+id),get:async()=>collectionSnapshot(p),onSnapshot:cb=>listen(p,cb,true)};}
+  const d=today(), tomorrow=addDays(d,1), now=Date.now(), put=(c,id,x)=>docs.set(c+'/'+id,x);
+  Object.assign(state,{me:'preview-h',owner:true,acctRole:'h',emailRole:'h',fam:{h:'テストA',w:'テストB'},roles:{h:'preview-h',w:'preview-w'},rolesLoaded:true});
+  Object.assign(prefs,{onboarded:'1',tipDone:'1',qaPop:'off',aiBrief:'off',music:'off',wx:'off',haptic:'off',gAuto:'0',mode:new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light'});
+  db={doc,collection};privBase=doc('private');prefsDoc=doc('meta/prefs');histDoc=doc('meta/history');kakeiDoc=doc('meta/kakei');famDoc=doc('meta/family');
+  put('meta','prefs',prefs);put('meta','family',state.fam);put('meta','history',{names:['牛乳','卵']});
+  put('meta','kakei',{fridge:{items:['卵','豆腐','にんじん'],at:now},music:{h:'スピッツ',w:'宇多田ヒカル'}});
+  const item=(text,extra={})=>({text,list:'task',done:false,who:'both',createdAt:now,updatedAt:now,...extra});
+  put('items','shared-task',item('共有タスク（ふたり）',{due:d,time:'10:00',dur:30}));
+  put('items','partner-task',item('テストB担当の共有タスク',{due:d,who:'w',time_w:'12:00'}));
+  put('items','completed-task',item('完了した共有タスク',{due:d,done:true}));
+  put('items','shop-today',item('今日の牛乳',{list:'shop',due:d}));
+  put('items','shop-future',item('明日のパン',{list:'shop',due:tomorrow}));
+  put('items','shop-undated',item('日付なしの洗剤',{list:'shop'}));
+  put('items','partner-shop',item('テストB担当の買い物',{list:'shop',due:d,who:'w'}));
+  put('private/pitems','private-shop',item('非公開の買い物テスト',{list:'shop',due:d,who:'h'}));
+  put('items','weekly',item('共有の毎週タスク',{list:'rtask',target:'wd',wd:[parse(d).getDay()],log:{},time:'11:00',dur:30}));
+  put('private/pitems','private-task',item('自分だけのタスク',{due:d,time:'13:00',dur:30,who:'h'}));
+  put('private/habits','daily-habit',{text:'毎日ストレッチ',target:7,time:'07:00',dur:15,log:{},createdAt:now});
+  put('private/habits','weekly-habit',{text:'週1回の習慣',target:'wd',wd:[parse(d).getDay()],log:{},createdAt:now});
+  put('private/habits','hidden-habit',{text:'時間割に出さない習慣',entryKind:'habit',showInTimetable:false,target:7,time:'08:00',dur:30,log:{[addDays(d,-1)]:1},createdAt:now-86400000});
+  put('private/habits','private-recurring-task',{text:'自分だけの繰り返しタスク',entryKind:'task',target:'wd',wd:[parse(d).getDay()],time:'09:00',dur:30,log:{},createdAt:now});
+  put('private/blocks','daily-block',{text:'毎日の読書',date:d,rep:'daily',start:'21:00',end:'21:30',createdAt:now});
+  put('private/blocks','all-day-block',{text:'自分だけの終日予定',date:d,rep:'none',allDay:true,memo:'共有されない非公開メモ',createdAt:now});
+  put('events','both-event',{text:'ふたりの共有予定',date:d,start:'15:00',end:'16:30',who:'both',createdAt:now});
+  put('events','partner-event',{text:'相手だけの予定',date:d,start:'17:00',end:'18:00',who:'w',createdAt:now});
+  put('plans','shared-plan',{text:'共有の将来計画',cat:'future',date:d,who:'both',createdAt:now});
+  put('cautions','shared-caution',{text:'共有の注意事項',date:d,who:'both',createdAt:now});
+  put('chores','shared-chore',{text:'共有の掃除',who:'w',target:'wd',wd:[parse(d).getDay()],since:d,log:{},createdAt:now});
+  put('recur','shared-payment',{text:'共有の定期支払い',day:parse(d).getDate(),amount:1200,from:d.slice(0,7),who:'both'});
+  put('talks',d,{date:d,status:'done',held:true,heldAt:now,notes:'話し合いのテスト記録',at:now});
+  put('dinner',d,{date:d,text:'旧形式のカレー',at:now,role:'h'});
+  put('bugs','active-request',{text:'検証用の未対応要望',status:'new',role:'h',at:now});
+  put('bugs','closed-request',{text:'検証用の過去要望',status:'fixed',role:'h',at:now,fixNote:'テスト用の対応内容',fixedAt:now,fixedVersion:'179'});
+  put('bugs','approved-request',{text:'検証用の承認済み要望',status:'approved',role:'h',at:now});
+  put('bugs','rejected-request',{text:'検証用の見送り要望',status:'rejected',role:'h',at:now});
+  for(const [i,[text]] of AI_RELEASE.fixes.entries())put('bugs','ai-fixed-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
+  for(const [i,[text]] of AI_RELEASE.pending.entries())put('bugs','ai-pending-'+i,{text,status:'new',role:'h',at:now,ver:'180'});
+  for(const [id,text] of AI_RELEASE_184.fixes)put('bugs',id,{text,status:'working',role:'h',at:now,ver:'183'});
+  put('events','received-notice',{text:'帰宅は19時です',date:tomorrow,start:'19:00',end:'19:30',who:'both',notice:{from:'w',to:'h',at:now,seenAt:0}});
+  put('events','seen-notice',{text:'先週共有した予定',date:addDays(d,-7),who:'both',notice:{from:'w',to:'h',at:now-604800000,seenAt:now-600000000}});
+  window.SpeechRecognition=class {start(){this.timer=setTimeout(()=>{const r=[{0:{transcript:'明日の19時に自分だけの予定で買い物'},isFinal:true}];this.onresult?.({results:r,resultIndex:0});},400);}stop(){clearTimeout(this.timer);this.onend?.();}abort(){clearTimeout(this.timer);this.onend?.();}};
+  bindFavorites();
+  bindShopChips();
+  state.diag={user:true,db:true,canWrite:true,name:'検証用・本番接続なし',writeErr:''};
+  for(const c of ['items','events','topics','talks','bugs','dinner','thanks','plans','cautions','chores','reflect','shifts','activity','comments','diary','photos','spend','recur','goals','music','qa','usage','usageReports'])collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;if(c==='events')shareArrived();if(c==='bugs'&&state.view==='settings'&&!state.bugSaving)refreshBugCard();else requestRender();});
+  for(const c of PRIVATE)privBase.collection(c).onSnapshot(s=>{state[c]=s.docs.map(x=>({id:x.id,...x.data()}));state[c+'Loaded']=true;requestRender();});
+  kakeiDoc.onSnapshot(s=>{state.kakei=s.data();state.kakeiLoaded=true;requestRender();});
+  histDoc.onSnapshot(s=>state.history=s.data().names||[]);
+  /* Deterministic fake response tests the UI/action path, not language understanding. */
+  let previewAiMode="normal";
+  const mockAI={resetConnection:()=>{},limits:async()=>({images:{mediaTypes:['image/png','image/jpeg']}}),json:async(p,o)=>{
+    const mode=previewAiMode;
+    if(mode==='access')throw Object.assign(new Error('Apps Scriptがログイン画面を返しました（検証用）'),{code:'gas_access'});
+    if(mode==='hang')return new Promise(()=>{});
+    if(mode==='slow'){await new Promise(resolve=>setTimeout(resolve,12000));return {reply:'【遅延応答】リフレッシュ前の古い回答',acts:[],next:[]};}
+    if(o?.images)return {items:['卵','豆腐','にんじん']};
+    if(String(p).includes('改善依頼を開発者向けに整理')){await new Promise(resolve=>setTimeout(resolve,1200));return {summary:'【検証用】要望を既存の画面に合わせて実装する',changes:['対象画面の操作を確認して必要な変更を絞る','既存の保存データと公開範囲を保って追加する'],tests:['スマホ幅で入力・保存・再表示できる','保存失敗時に入力を残して再試行できる'],questions:[]};}
+    const q=String(p).match(/【今回の質問】([^\n]*)/)?.[1]||String(p);
+    const acts=/繰り返し|毎週/.test(q)?[{type:'add_recurring',text:'AIからの毎週ストレッチ',target:'wd',wd:[parse(d).getDay()],date:d,time:'19:00',end:'19:30',who:'priv'}]:/設定/.test(q)?[{type:'set_pref',key:'fs',value:'l'}]:/画面|カレンダー/.test(q)?[{type:'open_view',view:'cal',date:d}]:/要望|不具合/.test(q)?[{type:'report_bug',text:'AIから登録した検証用要望'}]:/防災/.test(q)?[{type:'add_plan',cat:'bousai',text:'検証用の備蓄チェック'}]:/献立|夕飯/.test(q)?[{type:'add_dinner',date:d,main:'卵焼き',side:'にんじんサラダ',soup:'豆腐のみそ汁'}]:[{type:'add_task',text:'AIからの検証タスク',date:tomorrow,time:'09:30',end:'10:15',who:'priv'}];
+    return {reply:'【模擬AI】これは検証専用の固定応答です。下の操作ボタンで動作を確認できます。',acts,next:['カレンダー画面へ','夕飯の献立を記録','改善要望を登録']};
+  }};
+  state.sample=mockAI;state.sampleTxt=mockAI;state.sampleNote='検証用の模擬AI（外部送信なし）';
+  const banner=document.createElement('div');banner.textContent='検証専用：架空データ・本番接続なし・AIは固定応答';banner.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#173b31;color:white;text-align:center;padding:5px;font-size:11px;pointer-events:none';document.body.appendChild(banner);
+  addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.preview!==Number(APP_VERSION))return;if(e.data.view){go(e.data.view);if(e.data.view==='settings'){state.setOpen={data:1};render();requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));}}if(e.data.role){state.acctRole=e.data.role;state.emailRole=e.data.role;go('home');}if(['normal','slow','access','hang'].includes(e.data.aiMode))previewAiMode=e.data.aiMode;if(e.data.fontSize&&['m','l','xl'].includes(e.data.fontSize)){prefs.fs=e.data.fontSize;applyPrefs();render();}if(e.data.resetPrefs){prefs.itemFavorites='[]';render();toast('検証：旧設定の空リストを受信しました');}});
+  if(new URLSearchParams(location.search).get('view')==='requests'){ state.view='settings';prefs.view='settings';state.setOpen={data:1}; }
+  $('syncText').textContent='検証データ';$('offline').hidden=true;applyPrefs();render();
+  if(new URLSearchParams(location.search).get('view')==='requests') requestAnimationFrame(()=>$('bugCard')?.scrollIntoView({block:'start'}));
+}
+
 </script>
 
 <style>
@@ -10117,7 +10138,7 @@ body.hdr-bottom #screenPointerOff{bottom:calc(var(--hdrH,120px) + 94px + env(saf
     document.querySelectorAll('[data-screen-pointer="toggle"]').forEach(b=>{b.setAttribute('aria-pressed',String(enabled));b.textContent='ポインタ '+(enabled?'ON':'OFF');});
     document.querySelectorAll('[data-screen-pointer-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.screenPointerType===type)));
   };
-  const setType=value=>{if(!Object.prototype.hasOwnProperty.call(types,value))return;type=value;hide();sync();try{localStorage.setItem(typeKey,type);}catch(_){};};
+  const setType=value=>{if(!Object.prototype.hasOwnProperty.call(types,value))return;type=value;hide();sync();try{previewStorage.setItem(typeKey,type);}catch(_){};};
   const set=on=>{
     enabled=!!on;controller?.abort();controller=null;hide();
     if(enabled){
@@ -10136,12 +10157,12 @@ body.hdr-bottom #screenPointerOff{bottom:calc(var(--hdrH,120px) + 94px + env(saf
       listen(document,'visibilitychange',()=>{if(document.hidden)hide();});
       listen(document,'keydown',e=>{if(e.key==='Escape')set(false);});
     }
-    sync();try{localStorage.setItem(key,enabled?'1':'0');}catch(_){}
+    sync();try{previewStorage.setItem(key,enabled?'1':'0');}catch(_){}
   };
   window.futariPointer={get enabled(){return enabled;},get type(){return type;},set,setType};
   document.addEventListener('click',e=>{const choice=e.target.closest?.('[data-screen-pointer-type]');if(choice){setType(choice.dataset.screenPointerType);return;}const b=e.target.closest?.('[data-screen-pointer]');if(b)set(b.dataset.screenPointer==='off'?false:!enabled);});
-  let saved=false;try{saved=localStorage.getItem(key)==='1';const value=localStorage.getItem(typeKey);if(Object.prototype.hasOwnProperty.call(types,value))type=value;}catch(_){}set(saved);
+  let saved=false;try{saved=previewStorage.getItem(key)==='1';const value=previewStorage.getItem(typeKey);if(Object.prototype.hasOwnProperty.call(types,value))type=value;}catch(_){}set(saved);
 })();
 </script>
-<script>if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+
 </body></html>

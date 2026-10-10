@@ -35,6 +35,7 @@ function env(names, overrides = {}) {
   if(names.includes('firestoreCardHTML'))names=['firestoreReadsDays','firestoreReadsHTML',...names];
   if(names.includes('aiDoAct')||names.includes('aiActText'))names=['AI_PREFS','aiPrefValue','aiPrefLabel',...names];
   if(names.includes('choreInfo'))names=['choreMovedDue',...names];
+  if(names.includes('choreRow')||names.includes('contribEvents')||names.includes('choreInfo'))names=['chRoles','chWhoName',...names];
   if(names.includes('aiCardHTML')&&!names.includes('aiAsk'))names=['aiReplyText',...names];
   if(names.includes('aiAsk'))names=['aiReplyText','AI_CONSULT_RE','AI_REF_TYPES','AI_PROMPT_MAX','aiDateTable','aiRequest','aiFailure','aiWaitText','aiWaitPaint',...names];
   if(names.includes('aiComposerHTML'))names=['aiRecM','aiVoiceAIOk',...names];
@@ -1071,4 +1072,24 @@ test('v309 AI replies hide [rN] references, consultations use Pro, unknown refs 
   assert.equal(a.reply,'・トイレ掃除を先に'); assert.deepEqual(a.next,['次は？']);
   assert.equal(a.acts.length,1); assert.equal(a.acts[0]._r.id,'toilet');
   await run(c,"aiAsk('来週の金曜に歯医者を追加して')"); assert.equal(opts.modelTier,'quick');
+});
+
+test('v310 chores done together give both people points and alternate correctly', () => {
+  const c = env(['choreLast','chSch','chSkip','choreInfo','contribEvents'],{hNextOn:()=>null,tgtLabel:()=>'',hOn:()=>false,movedIn:()=>false,movedAway:()=>false});
+  c.state.chores=[{id:'wash',text:'洗濯',every:1,pts:2,who:'alt',log:{'2026-09-26':'h','2026-09-27':'b'},ptsLog:{'2026-09-27~w':3}}];
+  const ev=run(c,'contribEvents()').filter(e=>e.src==='chores');
+  assert.equal(ev.length,3);
+  const both=ev.filter(e=>e.d==='2026-09-27');
+  assert.equal(both.map(e=>e.r).sort().join(),'h,w');
+  assert.equal(both.find(e=>e.r==='h').p,2); assert.equal(both.find(e=>e.r==='w').p,3);
+  assert.equal(run(c,"choreInfo(state.chores[0]).who"),'w');
+  assert.equal(run(c,"chWhoName('b')"),'ふたり');
+});
+
+test('v310 suggestion prompt asks the AI to generate new tasks from all app data', async () => {
+  let prompt=''; const c=env(['AI_PREFS','AI_ACT_L','aiAsk'],{aiCan:()=>true,aiCtx:()=>'状況',aiMemB:()=>[],aiMemP:()=>[]});
+  c.state._smt={json:async p=>{prompt=p;return {reply:'ok',acts:[{type:'add_task',text:'記念日のお店を候補出しする',date:'2026-09-28',time:'11:00',end:'11:30',who:'both'}]};}};
+  await run(c,"aiAsk('今日やること提案して')");
+  assert.match(prompt,/新しいやることの生成/); assert.match(prompt,/まだリストにない具体的なやること/);
+  assert.equal(c.state.ai.log.at(-1).a.acts.length,1);
 });
