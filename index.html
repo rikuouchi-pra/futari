@@ -947,6 +947,13 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .rv-chips{display:flex;flex-wrap:wrap;gap:6px}.rv-chips span{font-size:11.5px;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--ink) 5%,transparent)}.rv-chips b{font-variant-numeric:tabular-nums}
 .rv-top{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:var(--muted)}.rv-top b{color:var(--ink);margin-left:3px}
 .rv-note{font-size:11px;margin:8px 4px}
+/* v315 */
+#main .htd .tx,#main .tk-heat .tk[data-tkd],#main .off2 .lbl{cursor:pointer}
+#main .tk-heat .tk[data-tkd]:active{transform:scale(.9)}
+.setidx{position:sticky;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:5;display:flex;flex-direction:column;gap:6px;padding:6px 4px;margin:-4px 0 0;background:var(--surface);box-shadow:0 4px 14px rgba(0,0,0,.08);border-radius:16px}
+.setidx input{width:100%;border-radius:12px}.setidx-c{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.setidx-c::-webkit-scrollbar{display:none}.setidx .chip{flex:none;white-space:nowrap;font-size:12px}
+.setwrap details.setg{scroll-margin-top:110px}
+@keyframes flashc{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}.flashc{animation:flashc 1.2s ease-out}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2350,7 +2357,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="314";
+const APP_VERSION="315";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3158,7 +3165,7 @@ function talkCard(d){
   const req=days.filter(q=>q>=talkSince()&&q<=t&&!["off","skip","before"].includes(talkState(q))), done=req.filter(q=>talkState(q)==="done").length;
   let streak=0; for(let q=talkState(t)==="done"?t:addDays(t,-1), n=0; n<400; q=addDays(q,-1), n++){ const s2=talkState(q); if(s2==="done") streak++; else if(s2==="off"||s2==="skip") continue; else break; }
   const LBL={done:"話した",skip:"見送り",off:"お休みの日",todo:"未記録",future:"",before:""};
-  const cell=q=>{ const s2=talkState(q); return `<i class="tk ${s2} ${q===d?"sel":""}" title="${short(q)} ${LBL[s2]}">${s2==="off"?"☾":parse(q).getDate()}</i>`; };
+  const cell=q=>{ const s2=talkState(q); return `<i class="tk ${s2} ${q===d?"sel":""}" ${q<=t?`data-tkd="${q}"`:""} title="${short(q)} ${LBL[s2]}">${s2==="off"?"☾":parse(q).getDate()}</i>`; };
   const heldTime=x.heldAt?new Date(x.heldAt).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",hour12:false}):"";
   const heldEdit=st==="done"?`<details class="tk-set"><summary>話した記録を編集</summary><div class="edit-row"><span class="who">話した時刻</span><input type="time" id="talkHeldTime" data-talkdate="${d}" value="${esc(heldTime)}"><button class="btn" data-act="talkedit">メモを編集</button></div><div class="who">下の「決まったこと・メモ」はいつでも書き直せます</div></details>`:"";
   return `<div class="chart talkcard">${top}
@@ -4855,7 +4862,8 @@ function screenPointerSettingsHTML(){
 function viewSettings(){
   const sw=Object.entries(PALETTES).map(([k,p])=>`<button class="sw" data-pal="${k}" aria-pressed="${prefs.pal===k}"><span class="cs">${["task","shop","cal","trouble","diary"].map(c=>`<i style="background:${p.light[c]}"></i>`).join("")}</span>${p.name}</button>`).join("");
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
-  return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+  setTimeout(()=>{ if(typeof setIdxFill==="function") setIdxFill(); },0);
+  return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"><nav class="setidx" id="setIdx" aria-label="設定の目次"></nav>
   ${window.__FUTARI_PWA?`<section class="card qmini" data-go-quota="1" role="button" tabindex="0" aria-label="使用上限をくわしく見る">${quotaHeroHTML("mini")}</section>`:""}
   ${screenPointerSettingsHTML()}
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
@@ -6395,6 +6403,23 @@ function reviewHTML(){ const P=state.rvPer||"week", span=P==="week"?7:P==="month
 document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg="dayview"] [data-sv]'); if(b){ e.stopPropagation(); state.dayView=b.dataset.sv; haptic("tick"); render(); return; }
   const p=e.target.closest('#main [data-seg="rvper"] [data-sv]'); if(p){ e.stopPropagation(); state.rvPer=p.dataset.sv; state.rvEnd=null; haptic("tick"); render(); return; }
   const m=e.target.closest("#main [data-rvmove]"); if(m){ e.stopPropagation(); const P=state.rvPer||"week", span=P==="week"?7:P==="month"?30:90, cur=state.rvEnd||dayNow(); let nx=addDays(cur,Number(m.dataset.rvmove)*span); if(nx>dayNow()) nx=dayNow(); state.rvEnd=nx; haptic("tick"); render(); } },true);
+/* v315: 利用状況から見つけた改善。①押せそうで押せない所（習慣の行・話す4週カレンダーのマス・次のふたり休み）を押せるように ②追加画面を保存せず閉じたら書きかけを残す ③設定に目次 */
+document.addEventListener("click",e=>{ if(e.target.closest("button,a,input,textarea,select,label,summary,[data-act]")) return;
+  const r=e.target.closest("#main .htd"); if(r){ const b=r.querySelector("[data-htc]"); if(b) b.click(); return; }
+  const k=e.target.closest("#main .tk-heat .tk[data-tkd]"); if(k){ const d=k.dataset.tkd; if(d<=today()){ state.talkDate=d; haptic("tick"); render(); } return; }
+  const o=e.target.closest("#main .off2"); if(o){ const b=o.querySelector("button"); if(b) b.click(); } });
+function shDraftKeep(){ try{ const S=state.sheet, v=($("input")&&$("input").value||"").trim(); if(S&&S.open&&v) state.shDraft={kind:S.kind,text:v,date:S.date||"",time:S.time||"",end:S.end||"",at:Date.now()}; }catch(_){} }
+function shDraftRestore(){ try{ const D=state.shDraft, S=state.sheet, inp=$("input"); if(!D||!inp||inp.value.trim()||D.kind!==S.kind||Date.now()-D.at>3*3600e3) return; state.shDraft=null; inp.value=D.text; if(D.date&&!S.date) S.date=D.date; if(D.time&&!S.time){ S.time=D.time; S.end=D.end; }
+  toast(`書きかけ「${D.text.slice(0,16)}」を戻しました`,()=>{ inp.value=""; },"tick"); }catch(_){} }
+function setIdxFill(){ const n=$("setIdx"); if(!n||n.dataset.ok) return; const G=[...document.querySelectorAll("#main .setwrap details.setg")]; if(!G.length) return; n.dataset.ok=1;
+  n.innerHTML=`<input type="search" id="setQ" placeholder="🔍 設定をさがす（例：文字の大きさ・通知）" aria-label="設定をさがす" enterkeyhint="search"><div class="setidx-c">${G.map((g,i)=>{ g.dataset.sidx=i; const s=g.querySelector("summary"); return `<button type="button" class="chip" data-setjump="${i}">${esc((s?s.textContent:"").trim().slice(0,10))}</button>`; }).join("")}</div>`; }
+function setFilter(q){ q=String(q||"").trim().toLowerCase(); const G=[...document.querySelectorAll("#main .setwrap details.setg")]; let hit=0;
+  for(const g of G){ let gh=0; for(const c of g.querySelectorAll(".setg-b > section.card")){ const m=!q||c.textContent.toLowerCase().includes(q); c.hidden=!m; if(m) gh++; } g.hidden=!!q&&!gh; if(q&&gh) g.open=true; hit+=gh; }
+  for(const c of document.querySelectorAll("#main .setwrap > section.card")) c.hidden=!!q&&!c.textContent.toLowerCase().includes(q);
+  let z=$("setQz"); if(q&&!hit){ if(!z){ z=document.createElement("p"); z.id="setQz"; z.className="who"; $("setIdx").after(z); } z.textContent=`「${q}」に当てはまる設定はありません`; } else if(z) z.remove(); }
+document.addEventListener("input",e=>{ if(e.target&&e.target.id==="setQ") setFilter(e.target.value); });
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-setjump]"); if(!b) return; e.stopPropagation(); const c=document.querySelector(`#main details.setg[data-sidx="${b.dataset.setjump}"]`); if(c){ c.open=true; c.scrollIntoView({behavior:"smooth",block:"start"}); c.classList.remove("flashc"); void c.offsetWidth; c.classList.add("flashc"); } },true);
+
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -8361,9 +8386,10 @@ function openSheet(kind){
   S.hTimetable=false; S.hwd=null; S.hnth=null; if(S.kind==="rtask"){ S.kind="task"; S.trep=S.htarget&&!["7","none"].includes(String(S.htarget))?String(S.htarget):"wd"; S.htarget=S.trep; } else if(!kind||kind!=="task"||!S.trepKeep) S.trep="none"; S.trepKeep=false; /* v164: やること＋くり返しを1つの画面に */
   S.open=true; renderSheet();
   $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden","false"); $("scrim").hidden=false;
+  if(typeof shDraftRestore==="function") shDraftRestore();
   $("input").focus({preventScroll:true});
 }
-function closeSheet(){ setTimeout(()=>{ try{ shHandleLbl(); }catch(_){} },0); if(!state.sheet.open) return; state.sheet.open=false; $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").hidden=true; $("input").blur(); }
+function closeSheet(){ if(typeof shDraftKeep==="function") shDraftKeep(); setTimeout(()=>{ try{ shHandleLbl(); }catch(_){} },0); if(!state.sheet.open) return; state.sheet.open=false; $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden","true"); $("scrim").hidden=true; $("input").blur(); }
 function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
@@ -9961,7 +9987,7 @@ let usgSheet=null;
 let usgSessT0=Date.now(), usgFirstDone=false;
 function usgFirst(u){ if(usgFirstDone) return; usgFirstDone=true; const sec=Math.round((Date.now()-usgSessT0)/1000); if(sec>0&&sec<600){ u.ttfa=(u.ttfa||0)+sec; u.ttfaN=(u.ttfaN||0)+1; } }
 /* v241: 反応しない場所のタップ（押せそうに見えて押せない所）・連打（反応が遅い／分かりにくい所）・画面をどこまで下まで見たか。書いた内容は記録しない */
-{ const INTER="button,a,input,textarea,select,label,summary,[role=button],[data-act],[data-hgo],[data-go2],[data-tb],[data-hub],[data-c],[data-id],.item,.chip,.pill,.tt,.duo-col,.duo-b,#grid,.day,.tt-b,[contenteditable]";
+{ const INTER=".htd,.tk[data-tkd],.off2,button,a,input,textarea,select,label,summary,[role=button],[data-act],[data-hgo],[data-go2],[data-tb],[data-hub],[data-c],[data-id],.item,.chip,.pill,.tt,.duo-col,.duo-b,#grid,.day,.tt-b,[contenteditable]";
   const where=t=>{ let el=t; for(let i=0;i<4&&el&&el.id!=="main";i++){ const c=[...(el.classList||[])].filter(x=>!/^(on|sel|open|done|active|vfade|hold|empty)$/.test(x))[0]; if(c) return `${state.view}:${c}`.slice(0,40); el=el.parentElement; } return `${state.view}:${t.tagName.toLowerCase()}`; };
   let taps=[];
   document.addEventListener("pointerup",e=>{ try{ if(e.pointerType==="mouse"&&e.button!==0) return; const t=e.target; if(!t||!t.closest) return; const u=usgTouch();
@@ -10141,7 +10167,10 @@ function devSyncKick(){ clearTimeout(devSyncKick.t); devSyncKick.t=setTimeout(()
 async function devSync(manual){ if(!window.__FUTARI_PWA||state.acctRole!=="h"||!state.mcp){ if(manual) toast("同期は単独アプリ版の"+nameOf("h")+"の画面で行います"); return; }
   const B=state.bugs.map(b0=>bugDisplay(b0)).map(b=>({id:b.id,at:b.at||0,status:b.status||"new",role:b.role||"",view:TITLES[b.view]||b.view||"",ver:b.ver||"",text:String(b.text||"").slice(0,1500),proposal:b.proposal||"",fixNote:b.fixNote||b.releaseNote||"",err:b.err||""})).sort((x,y)=>y.at-x.at);
   const key=JSON.stringify(B).length+":"+B.map(b=>b.id+b.status).join(","); if(!manual&&store.get("futari.devsync")===key&&state.devSync) return;
-  try{ const r=await state.mcp.callTool("gas","devsync",{bugs:B,usage:typeof usageReport==="function"?usgPack(usageReport(30)):""}); const p=(r&&r.payload)||{}; state.devSync={at:Date.now(),n:p.n||B.length,url:p.url||""}; state.devSyncErr=""; store.set("futari.devsync",key); if(manual) toast("Googleドライブに同期しました"); }
+  /* v315: 利用状況の記録を読み込む前に送ると「今日のこの端末の分だけ」のレポートでシートを上書きしていた（v305で読み込みを遅らせてから）。読み込みを待ってから送る */
+  if(!state.usageFull){ if(window.__usageSub) window.__usageSub(); devSync.w=(devSync.w||0)+1; if(devSync.w<=6){ setTimeout(()=>devSync(manual),5000); return; } }
+  devSync.w=0;
+  try{ const r=await state.mcp.callTool("gas","devsync",{bugs:B,usage:state.usageFull&&typeof usageReport==="function"?usgPack(usageReport(30)):""}); const p=(r&&r.payload)||{}; state.devSync={at:Date.now(),n:p.n||B.length,url:p.url||""}; state.devSyncErr=""; store.set("futari.devsync",key); if(manual) toast("Googleドライブに同期しました"); }
   catch(e){ state.devSyncErr=/devsync|不明|unknown/i.test(String(e&&(e.detail||e.message)))?"Apps Script を v6 に更新すると使えます":String((e&&(e.detail||e.code||e.message))||"失敗").slice(0,80); if(manual) toast("同期できませんでした："+state.devSyncErr); }
   if(state.view==="settings"){ const c=$("bugCard"); if(c&&!typingInMain()) c.outerHTML=bugCard(); } }
 
@@ -10189,7 +10218,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
   const sub=(c,onChange)=>db.collection(c).onSnapshot(s=>{ state[c]=s.docs.map(x=>({id:x.id,...x.data()})); state.readOnlyCache=false; live(); onChange(s); if(pushEnabled()&&["items","events","chores","qa"].includes(c)){clearTimeout(pushT);pushT=setTimeout(()=>pushSync(),4000);} cacheSave(); if(GK.has(c)&&!s.metadata?.fromCache) gAutoKick(4000); },lost);
   sub("items",()=>{ state.itemsLoaded=true; requestRender(); shiftTaskKick(); autoCook(); }); sub("troubles",requestRender); sub("cautions",requestRender); sub("shifts",()=>{ state.shiftsLoaded=true; requestRender(); autoCook(); wcKick(); shiftTaskKick(); }); sub("events",()=>{ state.eventsLoaded=true; shareArrived(); autoCook(); }); sub("plans",requestRender); sub("topics",()=>{ state.topicsLoaded=true; requestRender(); autoCook(); }); sub("talks",requestRender); sub("bugs",()=>{ devSyncKick(); if(state.bugSaving) return; if(state.view==="settings"){ if(!typingInMain()) refreshBugCard(); } else requestRender(); });
   sub("comments",()=>{ if(state.view==="diary"){ renderDiaryDynamic(); markCommentsSeen(); renderChrome(); } else requestRender(); });
-  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ /* v305: 利用状況の記録（二人×120日分）は開くたびに全件読み直していたので、利用状況・設定を開いたときと1日1回だけ読む */ window.__usageSub=()=>{ if(window.__usageOn) return; window.__usageOn=1; sub("usage",()=>{ state.usageLoaded=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); }; if(state.view==="usage"||state.view==="settings") window.__usageSub(); else setTimeout(()=>{ try{ const k="futari.usgSubDay"; if(localStorage.getItem(k)!==today()){ localStorage.setItem(k,today()); window.__usageSub(); } }catch(_){ window.__usageSub(); } },45000); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
+  sub("chores",()=>{ state.choresLoaded=true; requestRender(); autoCook(); }); /* v226: 家事の読み込み完了を知らせる（条件の家事が作られていなかった） */ /* v305: 利用状況の記録（二人×120日分）は開くたびに全件読み直していたので、利用状況・設定を開いたときと1日1回だけ読む */ window.__usageSub=()=>{ if(window.__usageOn) return; window.__usageOn=1; sub("usage",s=>{ state.usageLoaded=true; if(!s||!s.metadata||!s.metadata.fromCache) state.usageFull=true; if(state.view==="usage"||state.view==="settings") requestRender(); usageAutoReport(); }); }; if(state.view==="usage"||state.view==="settings") window.__usageSub(); else setTimeout(()=>{ try{ const k="futari.usgSubDay"; if(localStorage.getItem(k)!==today()){ localStorage.setItem(k,today()); window.__usageSub(); } }catch(_){ window.__usageSub(); } },45000); sub("usageReports",s=>{ state.usageReportsLoaded=!s.metadata?.fromCache; usageAutoReport(); if(state.view==="usage") requestRender(); }); sub("qa",()=>{ state.qaLoaded=true; requestRender(); if(state.view==="home") setTimeout(qaPopMaybe,800); }); sub("music",()=>songRender()); sub("spend",requestRender); sub("photos",()=>{}); sub("recur",requestRender); sub("goals",requestRender); kakeiDoc=db.doc("meta/kakei"); kakeiDoc.onSnapshot(s=>{ state.kakei=s.exists?s.data():{}; const first=!state.kakeiLoaded; state.kakeiLoaded=true; if(first&&kakeiPut.q){ const q=kakeiPut.q; kakeiPut.q=null; state.kakei={...state.kakei,...q}; kakeiDoc.update(q).catch(()=>{}); } requestRender(); wcKick(); },()=>{}); sub("thanks",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); }); sub("dinner",()=>{ if(state.view==="diary") refreshExtras(); else requestRender(); });
   sub("diary",()=>{ if(state.view==="diary") renderDiaryDynamic(); else requestRender(); });
   { let pr=false; db.collection("activity").onSnapshot(s=>{ state.activity=s.docs.map(x=>({id:x.id,...x.data()})); if(!pr){ pr=true; setTimeout(actPrune,5000); } if(state.view==="home"||state.view==="log"||state.view==="daylog"||state.view==="talk") requestRender(); else renderChrome(); },()=>{}); }
   if(privCol) privCol.onSnapshot(s=>{ state.priv=s.docs.map(x=>({id:x.id,...x.data()})); if(state.view==="diary") renderDiaryDynamic(); else requestRender(); },()=>{});
