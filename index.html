@@ -954,6 +954,24 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .setidx input{width:100%;border-radius:12px}.setidx-c{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.setidx-c::-webkit-scrollbar{display:none}.setidx .chip{flex:none;white-space:nowrap;font-size:12px}
 .setwrap details.setg{scroll-margin-top:110px}
 @keyframes flashc{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}.flashc{animation:flashc 1.2s ease-out}
+/* v316 ふりかえりの一覧 */
+.rv-kb{all:unset;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 4px;border-radius:8px}.rv-kb:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}.rv-kb i{width:9px;height:9px;border-radius:3px;flex:none}.rv-kb b{margin-left:auto;font-variant-numeric:tabular-nums}
+.rv-top small{width:100%;font-weight:700}
+.rv-b{cursor:pointer}.rv-b.sel .rv-bs{outline:2px solid var(--accent);outline-offset:1px}.rv-b.sel span{color:var(--accent);font-weight:800}.rv-hm i[data-rvday]{cursor:pointer}
+.rv-kf{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px}.rv-kf::-webkit-scrollbar{display:none}.rv-kf .chip{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px}.rv-kf .chip i{width:8px;height:8px;border-radius:3px}.rv-kf .chip b{font-variant-numeric:tabular-nums}
+.rv-days{display:flex;flex-direction:column;gap:8px}
+.rv-day{background:var(--surface);border-radius:16px;box-shadow:var(--elev,none);overflow:hidden}.rv-day.sel{box-shadow:0 0 0 2px var(--accent)}
+.rv-day>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px}.rv-day>summary::-webkit-details-marker{display:none}
+.rv-dd{display:flex;flex-direction:column;align-items:center;min-width:40px}.rv-dd b{font-size:14px;font-variant-numeric:tabular-nums}.rv-dd small{font-size:10.5px;color:var(--muted)}
+.rv-ds{flex:1;min-width:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rv-day[open] .rv-ds{visibility:hidden}
+.rv-dn{display:flex;gap:4px}.rv-dn i{font-style:normal;font-size:11px;font-weight:800;min-width:22px;text-align:center;padding:1px 6px;border-radius:999px;color:#fff}.rv-dn i.h{background:var(--who-h)}.rv-dn i.w{background:var(--who-w)}
+.rv-ul{list-style:none;margin:0;padding:0 10px 8px;display:flex;flex-direction:column}
+.rv-it{display:flex;align-items:center;gap:10px;padding:7px 2px;border-top:1px solid color-mix(in srgb,var(--ink) 6%,transparent)}
+.rv-ic{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+.rv-tx{flex:1;min-width:0;display:flex;flex-direction:column}.rv-tx b{font-size:13.5px;font-weight:700;overflow-wrap:anywhere}.rv-tx small{font-size:11px;color:var(--muted)}
+.rv-who{flex:none;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}.rv-who.h{color:var(--who-h);background:color-mix(in srgb,var(--who-h) 14%,transparent)}.rv-who.w{color:var(--who-w);background:color-mix(in srgb,var(--who-w) 14%,transparent)}
+.rv-empty{margin:6px 4px}
+.rv-n{font-style:normal;font-size:11.5px;font-weight:800;margin-left:6px;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2357,7 +2375,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="315";
+const APP_VERSION="316";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6373,10 +6391,10 @@ function daySummaryHTML(d,compact=false,entries){
 /* v314: ふりかえり。週・月・3か月で、ふたりそれぞれがやってきたことをグラフで（自分の🔒じぶんだけも含める。相手の🔒は相手の画面だけ） */
 function dayModeSeg(){ if(typeof seg!=="function") return ""; return `<div class="tools rv-mode">${seg("dayview",state.dayView==="review"?"review":"day",[["day","📅 1日ずつ"],["review","📈 ふりかえり"]])}</div>`; }
 function rvPrivEntries(d){ const me=myRole(), out=[];
-  for(const x of state.pitems||[]) if(x.done&&x.doneAt&&dayJST(x.doneAt)===d) out.push({role:me,kind:x.list==="shop"?"shop":"task",title:x.text||"",priv:true});
-  for(const x of state.habits||[]){ const v=(typeof hRaw==="function"?hRaw(x):x.log||{})[d]; if(v&&v!=="x") out.push({role:me,kind:"habit",title:x.text||"",priv:true}); }
-  const r=(state.reflect||[]).find(q=>q.id===d); if(r&&(r.mood||r.good||r.learn)) out.push({role:me,kind:"record",title:"内省",priv:true});
-  for(const c of state.chores||[]) for(const rr of ((c.extra||{})[d]||[])) if(rr==="h"||rr==="w") out.push({role:rr,kind:"chore",title:c.text||""});
+  for(const x of state.pitems||[]) if(x.done&&x.doneAt&&dayJST(x.doneAt)===d) out.push({role:me,kind:x.list==="shop"?"shop":"task",title:x.text||"",priv:true,at:x.doneAt,label:"完了"});
+  for(const x of state.habits||[]){ const v=(typeof hRaw==="function"?hRaw(x):x.log||{})[d]; if(v&&v!=="x") out.push({role:me,kind:"habit",title:x.text||"",priv:true,label:"できた"}); }
+  const r=(state.reflect||[]).find(q=>q.id===d); if(r&&(r.mood||r.good||r.learn)) out.push({role:me,kind:"record",title:"内省",priv:true,label:"書いた"});
+  for(const c of state.chores||[]) for(const rr of ((c.extra||{})[d]||[])) if(rr==="h"||rr==="w") out.push({role:rr,kind:"chore",title:c.text||"",label:"実施（追加の回）"});
   return out; }
 function reviewHTML(){ const P=state.rvPer||"week", span=P==="week"?7:P==="month"?30:90, end=state.rvEnd&&state.rvEnd<=dayNow()?state.rvEnd:dayNow(), days=[...Array(span)].map((_,i)=>addDays(end,i-span+1)), me=myRole(), ot=otherRole();
   const E=[]; for(const d of days){ try{ for(const e of duoActivityEntries(d)) E.push({...e,d}); }catch(_){} for(const e of rvPrivEntries(d)) E.push({...e,d}); }
@@ -6384,25 +6402,26 @@ function reviewHTML(){ const P=state.rvPer||"week", span=P==="week"?7:P==="month
   const person=r=>{ const L=of(r), by={}; for(const e of L) by[e.kind]=(by[e.kind]||0)+1; const act=new Set(L.map(e=>e.d)).size, pv=L.filter(e=>e.priv).length, both=L.filter(e=>e.role==="both").length;
     const ks=K.filter(k=>by[k]).sort((a,b)=>by[b]-by[a]), tot=L.length||1; let acc=0; const R=34, C=2*Math.PI*R;
     const arcs=ks.map(k=>{ const len=by[k]/tot*C, s=`<circle cx="44" cy="44" r="${R}" fill="none" stroke="${col(k)}" stroke-width="12" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-acc).toFixed(1)}" transform="rotate(-90 44 44)"/>`; acc+=len; return s; }).join("");
-    const tops={}; for(const e of L) if(e.title) tops[e.title]=(tops[e.title]||0)+1; const tl=Object.entries(tops).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const tops={}; for(const e of L) if(e.title) tops[e.title]=(tops[e.title]||0)+1; const tl=Object.entries(tops).sort((a,b)=>b[1]-a[1]).slice(0,6);
     return `<div class="rv-p ${r}"><div class="rv-ph"><b>${esc(nameOf(r))}</b>${r===me?`<span class="rv-me">あなた</span>`:""}</div>
       <div class="rv-pt"><svg class="rv-donut" viewBox="0 0 88 88" aria-label="${esc(nameOf(r))} ${L.length}件"><circle cx="44" cy="44" r="${R}" fill="none" stroke="color-mix(in srgb,var(--ink) 7%,transparent)" stroke-width="12"/>${arcs}<text x="44" y="42" text-anchor="middle" class="n">${L.length}</text><text x="44" y="56" text-anchor="middle" class="u">件</text></svg>
-      <div class="rv-kl">${ks.slice(0,6).map(k=>`<span><i style="background:${col(k)}"></i>${DAY_KINDS[k][1]}<b>${by[k]}</b></span>`).join("")||`<span class="who">記録なし</span>`}</div></div>
+      <div class="rv-kl">${ks.slice(0,6).map(k=>`<button type="button" class="rv-kb" data-rvkind="${k}" data-rvwho="${r}"><i style="background:${col(k)}"></i>${DAY_KINDS[k][1]}<b>${by[k]}</b></button>`).join("")||`<span class="who">記録なし</span>`}</div></div>
       <div class="rv-chips"><span>📅 動いた日 <b>${act}</b>/${span}</span>${both?`<span>👫 ふたりで <b>${both}</b></span>`:""}${r===me&&pv?`<span>🔒 じぶんだけ <b>${pv}</b></span>`:""}</div>
-      ${tl.length?`<div class="rv-top">${tl.map(([t,n])=>`<span>${esc(t.slice(0,16))}<b>×${n}</b></span>`).join("")}</div>`:""}</div>`; };
+      ${tl.length?`<div class="rv-top"><small>よくやったこと</small>${tl.map(([t,n])=>`<span>${esc(t.slice(0,18))}<b>×${n}</b></span>`).join("")}</div>`:""}</div>`; };
   const per=days.map(d=>({d,h:E.filter(e=>e.d===d&&(e.role==="h"||e.role==="both")).length,w:E.filter(e=>e.d===d&&(e.role==="w"||e.role==="both")).length})), mx=Math.max(1,...per.map(x=>x.h+x.w)), step=span>30?14:span>7?5:1;
-  const bars=`<div class="rv-bars">${per.map((x,i)=>`<div class="rv-b" data-tip="${short(x.d)}：${esc(nameOf("h"))} ${x.h}・${esc(nameOf("w"))} ${x.w}"><div class="rv-bs"><i class="w" style="height:${x.w/mx*100}%"></i><i class="h" style="height:${x.h/mx*100}%"></i></div><span>${i%step===0||i===span-1?`${parse(x.d).getMonth()+1}/${parse(x.d).getDate()}`:""}</span></div>`).join("")}</div>`;
-  const hm=`<div class="rv-hm">${["h","w"].map(r=>`<span class="rv-hn ${r}">${esc(nameOf(r).slice(0,2))}</span>${per.map(x=>{ const v=x[r]; return `<i class="${r}" style="opacity:${v?Math.min(1,.25+v/mx*.9):.08}" data-tip="${short(x.d)}：${esc(nameOf(r))} ${v}件"></i>`; }).join("")}`).join("")}</div>`;
+  const bars=`<div class="rv-bars">${per.map((x,i)=>`<div class="rv-b ${state.rvDay===x.d?"sel":""}" data-rvday="${x.d}" data-tip="${short(x.d)}：${esc(nameOf("h"))} ${x.h}・${esc(nameOf("w"))} ${x.w}"><div class="rv-bs"><i class="w" style="height:${x.w/mx*100}%"></i><i class="h" style="height:${x.h/mx*100}%"></i></div><span>${i%step===0||i===span-1?`${parse(x.d).getMonth()+1}/${parse(x.d).getDate()}`:""}</span></div>`).join("")}</div>`;
+  const hm=`<div class="rv-hm">${["h","w"].map(r=>`<span class="rv-hn ${r}">${esc(nameOf(r).slice(0,2))}</span>${per.map(x=>{ const v=x[r]; return `<i class="${r}" data-rvday="${x.d}" style="opacity:${v?Math.min(1,.25+v/mx*.9):.08}" data-tip="${short(x.d)}：${esc(nameOf(r))} ${v}件"></i>`; }).join("")}`).join("")}</div>`;
   const best=per.slice().sort((a,b)=>(b.h+b.w)-(a.h+a.w))[0], tk={}; for(const e of E) tk[e.kind]=(tk[e.kind]||0)+1; const topK=Object.entries(tk).sort((a,b)=>b[1]-a[1])[0];
   const lbl=P==="week"?"この1週間":P==="month"?"この30日":"この3か月";
   return `<div class="tools">${seg("rvper",P,[["week","週"],["month","月"],["q","3か月"]])}<div class="rv-nav"><button class="icon-btn" data-rvmove="-1" aria-label="前の期間">‹</button><span>${short(days[0])}〜${short(end)}</span><button class="icon-btn" data-rvmove="1" aria-label="次の期間" ${end>=dayNow()?"disabled":""}>›</button></div></div>
     <div class="chart rv-hero"><div class="rv-sum"><div><b>${E.length}</b><small>${lbl}にふたりでやったこと</small></div>${best&&best.h+best.w?`<div><b>${short(best.d)}</b><small>いちばん動いた日（${best.h+best.w}件）</small></div>`:""}${topK?`<div><b>${DAY_KINDS[topK[0]][1]}</b><small>いちばん多かった種類（${topK[1]}件）</small></div>`:""}</div>
-      <h3>日ごと</h3>${bars}<div class="cr-leg"><span><i class="bsw h"></i>${esc(nameOf("h"))}</span><span><i class="bsw w"></i>${esc(nameOf("w"))}</span><span>棒をタップで件数</span></div>${span>7?hm:""}</div>
+      <h3>日ごと</h3>${bars}<div class="cr-leg"><span><i class="bsw h"></i>${esc(nameOf("h"))}</span><span><i class="bsw w"></i>${esc(nameOf("w"))}</span><span>棒をタップでその日の中身</span></div>${span>7?hm:""}</div>
     <div class="rv-ps">${person(me)}${person(ot)}</div>
+    ${rvListHTML(E,days)}
     <p class="who rv-note">🔒じぶんだけの記録（自分のやること・習慣・内省など）は、あなたの画面でだけあなたの分に入ります。${esc(nameOf(ot))}の🔒は${esc(nameOf(ot))}の画面でだけ見えます。</p>`; }
 document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg="dayview"] [data-sv]'); if(b){ e.stopPropagation(); state.dayView=b.dataset.sv; haptic("tick"); render(); return; }
-  const p=e.target.closest('#main [data-seg="rvper"] [data-sv]'); if(p){ e.stopPropagation(); state.rvPer=p.dataset.sv; state.rvEnd=null; haptic("tick"); render(); return; }
-  const m=e.target.closest("#main [data-rvmove]"); if(m){ e.stopPropagation(); const P=state.rvPer||"week", span=P==="week"?7:P==="month"?30:90, cur=state.rvEnd||dayNow(); let nx=addDays(cur,Number(m.dataset.rvmove)*span); if(nx>dayNow()) nx=dayNow(); state.rvEnd=nx; haptic("tick"); render(); } },true);
+  const p=e.target.closest('#main [data-seg="rvper"] [data-sv]'); if(p){ e.stopPropagation(); state.rvPer=p.dataset.sv; state.rvEnd=null; state.rvDay=""; haptic("tick"); render(); return; }
+  const m=e.target.closest("#main [data-rvmove]"); if(m){ e.stopPropagation(); const P=state.rvPer||"week", span=P==="week"?7:P==="month"?30:90, cur=state.rvEnd||dayNow(); let nx=addDays(cur,Number(m.dataset.rvmove)*span); if(nx>dayNow()) nx=dayNow(); state.rvEnd=nx; state.rvDay=""; haptic("tick"); render(); } },true);
 /* v315: 利用状況から見つけた改善。①押せそうで押せない所（習慣の行・話す4週カレンダーのマス・次のふたり休み）を押せるように ②追加画面を保存せず閉じたら書きかけを残す ③設定に目次 */
 document.addEventListener("click",e=>{ if(e.target.closest("button,a,input,textarea,select,label,summary,[data-act]")) return;
   const r=e.target.closest("#main .htd"); if(r){ const b=r.querySelector("[data-htc]"); if(b) b.click(); return; }
@@ -6419,6 +6438,28 @@ function setFilter(q){ q=String(q||"").trim().toLowerCase(); const G=[...documen
   let z=$("setQz"); if(q&&!hit){ if(!z){ z=document.createElement("p"); z.id="setQz"; z.className="who"; $("setIdx").after(z); } z.textContent=`「${q}」に当てはまる設定はありません`; } else if(z) z.remove(); }
 document.addEventListener("input",e=>{ if(e.target&&e.target.id==="setQ") setFilter(e.target.value); });
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-setjump]"); if(!b) return; e.stopPropagation(); const c=document.querySelector(`#main details.setg[data-sidx="${b.dataset.setjump}"]`); if(c){ c.open=true; c.scrollIntoView({behavior:"smooth",block:"start"}); c.classList.remove("flashc"); void c.offsetWidth; c.classList.add("flashc"); } },true);
+
+/* v316: ふりかえりで「何をしたか」を具体的に。日ごとの一覧（だれ・種類・時刻・🔒）、人と種類で絞り込み、棒をタップでその日へ */
+function rvListHTML(E,days){ const W=state.rvWho||"all", K=state.rvKind||"", inW=e=>W==="all"||e.role===W||e.role==="both";
+  const base=E.filter(inW), F=base.filter(e=>!K||e.kind===K), kc={}; for(const e of base) kc[e.kind]=(kc[e.kind]||0)+1;
+  const kinds=[["","すべて",base.length],...Object.keys(DAY_KINDS).filter(k=>kc[k]).sort((a,b)=>kc[b]-kc[a]).map(k=>[k,DAY_KINDS[k][1],kc[k]])];
+  let h=`<div class="section-label" id="rvList"><span>やったことの一覧（${F.length}件）</span></div><div class="tools">${seg("rvwho",W,[["all","ふたり"],["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}</div>
+    <div class="rv-kf">${kinds.map(([k,l,n])=>`<button type="button" class="chip" data-rvkind="${k}" aria-pressed="${K===k}">${k?`<i style="background:var(--${DAY_KINDS[k][2]})"></i>`:""}${l} <b>${n}</b></button>`).join("")}</div>`;
+  const ds=days.slice().reverse().filter(d=>F.some(e=>e.d===d));
+  if(!ds.length) return h+`<p class="who rv-empty">この期間・条件の記録はありません</p>`;
+  const tm=a=>a?new Date(a).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",hour12:false}):"";
+  /* 同じ日の同じこと（食器洗い3回など）は1行にまとめて ×回数 */
+  const grp=L=>{ const m=new Map(); for(const e of L){ const key=[e.title,e.kind,e.role,!!e.priv].join("|"); const g=m.get(key); if(g){ g.n++; if(e.at) g.ts.push(e.at); } else m.set(key,{...e,n:1,ts:e.at?[e.at]:[]}); } return [...m.values()]; };
+  const row=e=>{ const k=DAY_KINDS[e.kind]||["・","記録","muted"], who=e.role==="both"?"ふたり":nameOf(e.role), ts=[...new Set(e.ts.sort((a,b)=>a-b).map(tm))];
+    return `<li class="rv-it"><span class="rv-ic" style="--c:var(--${k[2]})">${k[0]}</span><span class="rv-tx"><b>${esc(String(e.title||"").slice(0,48))}${e.n>1?`<em class="rv-n">×${e.n}</em>`:""}</b><small>${esc(k[1])}${e.label?"・"+esc(e.label):""}${ts.length?"・"+ts.slice(0,4).join("・")+(ts.length>4?"…":""):""}${e.priv?"・🔒じぶんだけ":""}</small></span><span class="rv-who ${e.role}">${esc(who)}</span></li>`; };
+  const sel=state.rvDay&&ds.includes(state.rvDay)?state.rvDay:"";
+  h+=`<div class="rv-days">${ds.map((d,i)=>{ const L=F.filter(e=>e.d===d).sort((a,b)=>(a.at||9e15)-(b.at||9e15)), nh=L.filter(e=>e.role==="h"||e.role==="both").length, nw=L.filter(e=>e.role==="w"||e.role==="both").length, open=sel?d===sel:i<(days.length>7?2:7);
+    return `<details class="rv-day ${d===sel?"sel":""}" data-rvd="${d}" ${open?"open":""}><summary><span class="rv-dd"><b>${short(d)}</b><small>${WDN[parse(d).getDay()]}</small></span><span class="rv-ds">${esc(L.slice(0,3).map(e=>e.title).join("・"))}</span><span class="rv-dn">${nh?`<i class="h">${nh}</i>`:""}${nw?`<i class="w">${nw}</i>`:""}</span></summary><ul class="rv-ul">${grp(L).map(row).join("")}</ul></details>`; }).join("")}</div>`;
+  return h; }
+document.addEventListener("click",e=>{ if(state.view!=="daylog"||state.dayView!=="review") return;
+  const w=e.target.closest('#main [data-seg="rvwho"] [data-sv]'); if(w){ e.stopPropagation(); state.rvWho=w.dataset.sv; haptic("tick"); render(); return; }
+  const k=e.target.closest("#main [data-rvkind]"); if(k){ e.stopPropagation(); state.rvKind=k.dataset.rvkind===state.rvKind&&k.dataset.rvkind?"":k.dataset.rvkind; if(k.dataset.rvwho) state.rvWho=k.dataset.rvwho; haptic("tick"); render(); if(k.dataset.rvwho) setTimeout(()=>{ const l=$("rvList"); if(l) l.scrollIntoView({behavior:"smooth",block:"start"}); },30); return; }
+  const b=e.target.closest("#main [data-rvday]"); if(b){ e.stopPropagation(); const d=b.dataset.rvday; state.rvDay=state.rvDay===d?"":d; haptic("tick"); render(); if(state.rvDay) setTimeout(()=>{ const x=document.querySelector(`#main .rv-day[data-rvd="${d}"]`); if(x) x.scrollIntoView({behavior:"smooth",block:"center"}); },30); } },true);
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
