@@ -899,6 +899,37 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 /* v311: 1日に何回もの家事 */
 .chmulti{align-items:center}.chmulti .chcnt{font-size:12px;color:var(--muted)}.chmulti .chcnt b{color:var(--ink);font-size:14px}
 .hmissb.chplus{background:var(--future);color:#fff;border-color:transparent;font-weight:800}
+/* v313: 実績のグラフィカル表示 */
+.chart svg.mring,svg.mring{width:44px;height:44px;flex:none;display:block}.hins-top svg.mring{width:76px;height:76px}
+.mring text{font-size:11px;font-weight:800;fill:var(--ink);font-variant-numeric:tabular-nums}
+.hins{display:flex;flex-direction:column;gap:12px}
+.hins-top{display:flex;gap:12px;align-items:center}.hins-top .mring text{font-size:15px}
+.hins-k{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.hins-k div{display:flex;flex-direction:column}.hins-k b{font-size:17px;font-variant-numeric:tabular-nums}.hins-k b i{font-style:normal;font-size:11px;color:var(--muted);margin-left:2px}.hins-k small{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hins-l{display:flex;flex-direction:column;gap:6px}
+.hi-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--ink) 3%,transparent);border:1px solid var(--line)}
+.hi-card:active{transform:scale(.985)}
+.hi-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hi-t{display:flex;align-items:center;gap:6px;min-width:0}.hi-t b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+.hi-lv{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;flex:none;background:color-mix(in srgb,var(--muted) 15%,transparent)}
+.hi-card.ok .hi-lv{background:color-mix(in srgb,var(--habit) 18%,transparent);color:var(--habit)}.hi-card.mid .hi-lv{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.hi-st{font-size:11px;font-weight:800;color:#d9822b;flex:none;margin-left:auto}
+.hi-strip{display:grid;grid-template-columns:repeat(28,1fr);gap:2px}
+.hi-strip i{display:block;height:9px;border-radius:2px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.hi-strip i.on{background:var(--habit)}.hi-strip i.miss{background:color-mix(in srgb,var(--danger) 35%,transparent)}.hi-strip i.sch{background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--habit) 55%,transparent)}
+.hi-strip i.td{outline:1.5px solid var(--ink);outline-offset:1px}
+.hi-goal{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted)}
+.hi-gb{flex:0 0 70px;height:5px;border-radius:3px;background:color-mix(in srgb,var(--ink) 8%,transparent);overflow:hidden}.hi-gb i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--habit))}
+.lg-sq{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:2px}.lg-sq.on{background:var(--habit)}.lg-sq.miss{background:color-mix(in srgb,var(--danger) 35%,transparent)}.lg-sq.sch{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--habit) 55%,transparent)}
+.cgw{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.cg-rows{display:flex;flex-wrap:wrap;gap:4px 10px}.cg-p{font-size:11.5px;color:var(--muted)}.cg-p b{color:var(--ink);margin-right:4px}.cg-p.h b{color:var(--who-h)}.cg-p.w b{color:var(--who-w)}
+.cg-goal{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.cg-goal .hi-gb{flex:0 0 90px}.cg-goal small{font-size:11px;color:var(--muted)}
+.cflow{display:flex;align-items:stretch;gap:2px;margin:8px 0 4px;overflow-x:auto;scrollbar-width:none}.cflow::-webkit-scrollbar{display:none}
+.cf-s{all:unset;cursor:pointer;flex:1 1 0;min-width:50px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 3px;border-radius:12px;background:var(--surface);box-shadow:var(--elev,none)}
+.cf-s b{font-size:17px;font-variant-numeric:tabular-nums}.cf-s small{font-size:10px;color:var(--muted);white-space:nowrap}
+.cf-s.open b{color:var(--trouble)}.cf-s.doing b{color:var(--accent)}.cf-s.keep b{color:var(--caution)}.cf-s.habit b{color:var(--habit)}.cf-s.done b{color:var(--muted)}
+.cf-s.z{opacity:.55}.cf-s.cur{outline:2px solid color-mix(in srgb,var(--accent) 40%,transparent)}
+.cf-ar{align-self:center;color:var(--muted);font-size:14px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2302,7 +2333,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="312";
+const APP_VERSION="313";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3401,9 +3432,38 @@ document.addEventListener("click",e=>{
   const x=e.target.closest("[data-htx]"); if(x){ e.preventDefault(); e.stopPropagation(); const h=state.habits.find(q=>q.id===x.dataset.htx); if(!h) return; const t=today(), nx=hMiss(h,t)?null:"x"; h.log={...hRaw(h),[t]:nx}; dupd("habits",h.id,{log:{[t]:nx}}); haptic("tick"); if(nx) toast(`「${h.text}」今日はできなかった、で記録しました`); render(); return; }
 },true);
 const HABIT_TPL=["早起き","運動30分","読書","ストレッチ","英語の勉強","資格の勉強","水を2L飲む","22時以降スマホを見ない"];
+/* v313: 習慣・注意の「実績」をひと目で。達成率リング・連続日数・4週間のマス・定着度 */
+function strkOf(L,t){ let d=L[t]?t:addDays(t,-1), n=0; while(L[d]){ n++; d=addDays(d,-1); } return n; }
+function miniRing(p,col,sz){ sz=sz||44; const R=sz/2-5, C=2*Math.PI*R; return `<svg class="mring" viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${R}" fill="none" stroke="color-mix(in srgb,var(--ink) 10%,transparent)" stroke-width="5"/><circle cx="${sz/2}" cy="${sz/2}" r="${R}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(Math.max(0,Math.min(100,p))/100*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${sz/2} ${sz/2})"/><text x="${sz/2}" y="${sz/2+4}" text-anchor="middle">${Math.round(p)}%</text></svg>`; }
+const HLV=r=>r>=80?["ok","🌱 定着"]:r>=50?["mid","🌿 育ち中"]:["low","🌰 これから"];
+function habitInsightHTML(hs){ if(!hs.length) return ""; const t=today(), days=[...Array(28)].map((_,i)=>addDays(t,i-27));
+  const S=hs.map(h=>({h,s:habitStats(h),L:habitLog(h),raw:(typeof hRaw==="function"?hRaw(h):{})||{}}));
+  const avg=Math.round(S.reduce((q,x)=>q+x.s.rate,0)/S.length), best=S.slice().sort((a,b)=>b.s.streak-a.s.streak)[0], fixed=S.filter(x=>x.s.rate>=80).length;
+  const TL=typeof hTodayList==="function"?hTodayList():[], tDone=TL.filter(h=>habitLog(h)[t]).length;
+  let h=`<div class="section-label"><span>実績（直近30日）</span></div><div class="chart hins"><div class="hins-top">${miniRing(avg,"var(--habit)",76)}<div class="hins-k">
+    <div><b>${avg}%</b><small>30日の達成率</small></div><div><b>🔥 ${best.s.streak}<i>日</i></b><small>最長の連続（${esc(String(best.h.text).slice(0,10))}）</small></div><div><b>${fixed}<i>/${S.length}</i></b><small>定着（80%以上）</small></div><div><b>${tDone}<i>/${TL.length}</i></b><small>今日できた</small></div></div></div>
+    <div class="hins-l">${S.map(({h:x,s,L,raw})=>{ const lv=HLV(s.rate), daily=tgtCode(x)==="7";
+      const strip=days.map(d=>{ const on=!!L[d], sch=typeof hOn==="function"?hOn(x,d):true, miss=raw[d]==="x"||(!on&&sch&&d<t&&d>=hSince(x)); return `<i class="${on?"on":miss?"miss":sch&&d>=hSince(x)?"sch":""} ${d===t?"td":""}" title="${short(d)}${on?"：できた":miss?"：できなかった":""}"></i>`; }).join("");
+      const goal=daily?`<span class="hi-goal"><span class="hi-gb"><i style="width:${Math.min(100,s.streak/21*100)}%"></i></span>${s.streak>=21?"21日連続を達成":`連続 ${s.streak}/21日`}</span>`:`<span class="hi-goal">${esc(tgtLabel(x))}・30日で ${s.count}回</span>`;
+      return `<button type="button" class="hi-card ${lv[0]}" data-hopen="${esc(recColl(x))}|${esc(x.id)}">${miniRing(s.rate,lv[0]==="ok"?"var(--habit)":lv[0]==="mid"?"var(--accent)":"var(--muted)")}<span class="hi-b"><span class="hi-t"><b>${esc(x.text)}</b><span class="hi-lv">${lv[1]}</span>${s.streak?`<span class="hi-st">🔥${s.streak}</span>`:""}</span><span class="hi-strip">${strip}</span>${goal}</span></button>`; }).join("")}</div>
+    <div class="cr-leg"><span><i class="lg-sq on"></i>できた</span><span><i class="lg-sq miss"></i>できなかった・未</span><span><i class="lg-sq sch"></i>予定日</span><span>カードをタップで詳しいグラフ・記録の修正</span></div></div>`;
+  return h; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-hopen]"); if(!b) return; e.stopPropagation(); const [c,id]=b.dataset.hopen.split("|"); state.hAllOpen=true; openEdit(c,id); },true);
+/* 注意（毎日気をつけること）：人ごとの連続・30日の実施率と「習慣化の目安（21日連続）」 */
+function cautionGrowHTML(c){ const t=today(), since=c.createdAt?ymd(new Date(c.createdAt)):t, R=cRoles(c);
+  const rows=R.map(r=>{ const L=cLog(c,r); let n=0,k=0; for(let i=0;i<30;i++){ const d=addDays(t,-i); if(d<since) break; n++; if(L[d]) k++; } return {r,st:strkOf(L,t),rate:n?Math.round(k/n*100):0}; });
+  const minSt=Math.min(...rows.map(x=>x.st)), ready=minSt>=21;
+  return `<div class="cgw"><div class="cg-rows">${rows.map(x=>`<span class="cg-p ${x.r}"><b>${esc(nameOf(x.r))}</b>🔥${x.st}日・30日 ${x.rate}%</span>`).join("")}</div>
+    <div class="cg-goal"><span class="hi-gb"><i style="width:${Math.min(100,minSt/21*100)}%"></i></span><small>${ready?"🌱 21日続きました。習慣にできそうです":`習慣化の目安：${R.length>1?"ふたりとも":""}21日連続 → あと${21-minSt}日`}</small>${ready?`<button type="button" class="hmissb chplus" data-chabit="${esc(c.id)}">🌱 習慣化済みにする</button>`:""}</div></div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-chabit]"); if(!b) return; e.stopPropagation(); const id=b.dataset.chabit, c=state.cautions.find(x=>x.id===id); if(!c) return; const u=snapUndo("cautions",id); applyLocal("cautions",id,{habit:true}); dupd("cautions",id,{habit:true}); haptic("done"); celebrate&&celebrate(); toast(`「${String(c.text).slice(0,20)}」を習慣化済みにしました 🌱`,u,"done"); render(); },true);
+/* 気になること → 対応中 → 毎日気をつける → 🌱習慣化 の流れをひと目で（各段の件数） */
+function careFlowHTML(cur){ const T=byWho(state.troubles), C=byWho(state.cautions);
+  const st=[["open","困りごと",T.filter(x=>x.status==="open").length,"trouble"],["doing","対応中",T.filter(x=>x.status==="doing").length,"trouble"],["keep","毎日気をつける",C.filter(c=>!c.date&&!c.habit).length,"caution"],["habit","🌱 習慣化",T.filter(x=>x.status==="habit").length+C.filter(c=>!c.date&&c.habit).length,"caution"],["done","解決",T.filter(x=>x.status==="done").length,"trouble"]];
+  return `<div class="cflow" role="list" aria-label="気になることの流れ">${st.map(([k,l,n,v],i)=>`${i?'<span class="cf-ar" aria-hidden="true">›</span>':""}<button type="button" role="listitem" class="cf-s ${k} ${n?"":"z"} ${v===cur?"cur":""}" data-go2="${v}"><b>${n}</b><small>${l}</small></button>`).join("")}</div>`; }
 function viewHabit(){
   const t=today(), hs=habitItems().slice().sort((a,b)=>(weekGoal(b)-weekGoal(a))||(habitStats(b).count-habitStats(a).count)||((a.createdAt||0)-(b.createdAt||0)));
   let h=hs.length?hTodayHTML(false):"";
+  h+=typeof habitInsightHTML==="function"?habitInsightHTML(hs):"";
   const have=new Set(hs.map(x=>x.text)), tpl=HABIT_TPL.filter(x=>!have.has(x));
   const hFold=hs.length&&hTodayList().length; /* v244: 上の「今日の習慣」と同じ項目が並ぶので、一覧（記録の修正用）は折りたたむ */
   h+=hFold?`<details class="tt-dup" data-hall="1" ${state.hAllOpen?"open":""}><summary>すべての習慣と記録の修正（${hs.length}件）</summary>`:`<div class="section-label"><span>習慣（すべての頻度）</span></div>`;
@@ -4566,7 +4626,7 @@ function careSeg(cur){ const n=counts(); return `<div class="care-seg">${seg("ca
 function viewTrouble(){
   const by=s=>byWho(state.troubles).filter(t=>t.status===s).sort((a,b)=>((TLEVEL[a.level]||TLEVEL.mid).o-(TLEVEL[b.level]||TLEVEL.mid).o)||(b.createdAt-a.createdAt));
   const open=by("open"),doing=by("doing"),done=by("done").sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
-  let h=careSeg("trouble")+whoBar();
+  let h=careSeg("trouble")+whoBar()+(typeof careFlowHTML==="function"?careFlowHTML("trouble"):"");
   if(!open.length&&!doing.length) h+=`<div class="section-label">未対応</div><div class="empty">いま困っていることはありません<br>下に引っぱって「困った」を共有</div>`;
   if(open.length) h+=`<div class="section-label">未対応（${open.length}）</div><ul class="list">${open.map(troubleRow).join("")}</ul>`;
   if(doing.length) h+=`<div class="section-label">対応中（${doing.length}）</div><ul class="list">${doing.map(troubleRow).join("")}</ul>`;
@@ -4577,7 +4637,7 @@ function viewTrouble(){
 function viewCaution(){
   const t=today(), ord=(a,b)=>((CLEVEL[a.level]||CLEVEL.warn).o-(CLEVEL[b.level]||CLEVEL.warn).o)||((a.date||"0")<(b.date||"0")?-1:1)||(b.createdAt-a.createdAt);
   const cs0=byWho(state.cautions), hab=cs0.filter(c=>!c.date&&c.habit), cs=cs0.filter(c=>!(!c.date&&c.habit)), active=cs.filter(c=>!c.date||c.date>=t).sort(ord), past=cs.filter(c=>c.date&&c.date<t).sort((a,b)=>a.date<b.date?1:-1);
-  let h=careSeg("caution")+whoBar();
+  let h=careSeg("caution")+whoBar()+(typeof careFlowHTML==="function"?careFlowHTML("caution"):"");
   if(prefs.cGuide!=="0") h+=`<div class="cguide"><div class="cg-t">○ の意味（下に小さく表示）</div><div><b><i></i>今日</b> 毎日の注意 → できたら押す</div><div><b><i></i>確認</b> 相手が書いた注意 → 読んだら押す</div><div><b><i class="d"></i>相手</b> 自分が相手に向けて書いた注意 → 確認待ち</div><div><b><i class="d"></i>名前</b> 書いた本人だけが対象 → 確認は不要（本人の今日の実施を表示）</div><button class="link cg-x" data-pref="cGuide" data-val="0">しまう</button></div>`;
   const ong=active.filter(cOngoing), dated=active.filter(c=>!cOngoing(c)), me=myRole();
   if(ong.length){ const mine=ong.filter(c=>cRoles(c).includes(me)), dn=mine.filter(c=>cLog(c,me)[t]).length;
@@ -5976,7 +6036,7 @@ function toggleCautionDay(id,date){
 function cautionPractice(c){
   const t=today(), days=[...Array(7)].map((_,i)=>addDays(t,i-6)), me=myRole();
   return `<div class="cprac">${cRoles(c).map(r=>{ const L=cLog(c,r), n=days.filter(d=>L[d]).length;
-    return `<div class="cp-row"><span class="cp-nm">${esc(nameOf(r))}</span><div class="hwk" style="margin:0">${days.map(d=>`<button class="hd ${L[d]?"on":""} ${d===t?"today":""}" ${r===me?`data-cday="${d}" data-cid="${esc(c.id)}"`:'disabled style="cursor:default"'} aria-label="${esc(nameOf(r))} ${short(d)} ${L[d]?"できた":"未"}">${parse(d).getDate()}</button>`).join("")}</div><span class="cp-n">${n}/7</span></div>`; }).join("")}</div>`;
+    return `<div class="cp-row"><span class="cp-nm">${esc(nameOf(r))}</span><div class="hwk" style="margin:0">${days.map(d=>`<button class="hd ${L[d]?"on":""} ${d===t?"today":""}" ${r===me?`data-cday="${d}" data-cid="${esc(c.id)}"`:'disabled style="cursor:default"'} aria-label="${esc(nameOf(r))} ${short(d)} ${L[d]?"できた":"未"}">${parse(d).getDate()}</button>`).join("")}</div><span class="cp-n">${n}/7</span></div>`; }).join("")}${typeof cautionGrowHTML==="function"?cautionGrowHTML(c):""}</div>`;
 }
 function cautionCharts(c){
   return cRoles(c).map(r=>`<div class="who" style="margin-top:6px">${esc(nameOf(r))}の実施状況</div>`+habitCharts({log:cLog(c,r),createdAt:c.createdAt,target:7})).join("");
