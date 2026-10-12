@@ -2405,7 +2405,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="320";
+const APP_VERSION="321";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6526,7 +6526,7 @@ function rbFix(ch){ if(!rbOn()||!ch||typeof ch!=="object") return ch; const now=
 /* v319→v320: 残りの時間。誕生日と「目安の年齢」から、大切にしたいことが「あと何回」できるかを見える化。v320：父・母など家族の年齢も入れて、帰省・誕生日・旅行などの回数に反映 */
 const LIFE_DEF=85, LIFE_U={y:["年",1],m:["月",12],w:["週",52.18]};
 const LIFE_PRESET=[["結婚記念日",1,"y"],["ふたりで旅行",1,"y"],["実家に帰省",2,"y"],["両親と旅行",1,"y"],["桜を見る",1,"y"],["花火大会",1,"y"],["クリスマス",1,"y"],["ふたりで外食",2,"m"],["ふたりの話し合い",1,"w"]];
-function lifeCfg(){ const L=(state.kakei&&state.kakei.life)||{}; return {h:L.h||{},w:L.w||{},ev:Array.isArray(L.ev)?L.ev:[],fam:Array.isArray(L.fam)?L.fam:[]}; }
+function lifeCfg(){ const L=(state.kakei&&state.kakei.life)||{}; return {h:L.h||{},w:L.w||{},ev:Array.isArray(L.ev)?L.ev:[],fam:Array.isArray(L.fam)?L.fam:[],links:L.links||{}}; }
 function lifePut(L){ state.kakei={...(state.kakei||{}),life:L}; Promise.resolve(kakeiPut({life:L})).catch(()=>toast("保存できませんでした")); render(); }
 const lifeYrs=(a,b)=>(b-a)/864e5/365.2425;
 function lifeCalc(b,ageNow,tgt){ const now=parse(today()); tgt=Math.min(120,Math.max(1,Number(tgt)||LIFE_DEF)); let age;
@@ -6539,7 +6539,7 @@ function lifeBase(who){ const P=["h","w"].map(lifeP).filter(Boolean); if(!P.leng
 function lifeEvents(){ const C=lifeCfg(), F=C.fam;
   const auto=[...(state.plans||[]).filter(p=>p.cat==="anniv"&&p.date&&!C.ev.some(e=>e.t===p.text)).map(p=>({id:"a_"+p.id,t:p.text,n:1,u:"y",who:"both",auto:"記念日から"})),
     ...F.filter(f=>f.bday!==false&&(f.b||f.age!=null)).map(f=>({id:"b_"+f.id,t:`${famName(f)}の誕生日${f.kind==="kid"?"（家にいる間）":""}`,n:1,u:"y",who:"both",fam:[f.id],auto:f.kind==="kid"?"子どもから":"家族から"}))];
-  return [...C.ev,...auto].map(e=>{ let y=lifeBase(e.who||"both"); if(y==null) return {...e,cnt:null};
+  return [...C.ev,...auto].map(e=>({...e,...(C.links[e.id]||{})})).map(e=>{ let y=lifeBase(e.who||"both"); if(y==null) return {...e,cnt:null};
     if(Number(e.oa)>0) y=Math.min(y,Math.max(0,LIFE_DEF-Number(e.oa)));
     const L=(e.fam||[]).map(id=>famP(F.find(f=>f.id===id))).filter(Boolean); if(L.length){ const ly=L.map(p=>p.leftY); y=Math.min(y,e.fm==="any"?Math.max(...ly):Math.min(...ly)); }
     const per=Number(e.n||1)*(LIFE_U[e.u]||LIFE_U.y)[1]; return {...e,years:y,per,cnt:Math.floor(y*per),famN:L.map(p=>famName(p.f))}; }); }
@@ -6547,7 +6547,16 @@ const lifeN=n=>Number(n).toLocaleString("ja-JP");
 function lifeDots(e){ if(e.cnt==null) return ""; if(e.cnt<=120) return `<div class="lf-dots" aria-hidden="true">${[...Array(e.cnt)].map((_,i)=>`<i class="${i===0?"nx":""}"></i>`).join("")}</div><small class="who">1つ＝1回。光っているのが次の1回</small>`;
   const yrs=Math.ceil(e.years); return `<div class="lf-dots yr" aria-hidden="true">${[...Array(Math.min(yrs,120))].map((_,i)=>`<i class="${i===0?"nx":""}"></i>`).join("")}</div><small class="who">1つ＝1年（1年に約${lifeN(Math.round(e.per))}回）</small>`; }
 function lifeEvCard(e){ const U=LIFE_U[e.u]||LIFE_U.y, who=(e.who||"both")==="both"?"ふたりで":`${esc(nameOf(e.who))}`, fn=(e.famN||[]);
-  return `<div class="lf-ev"><div class="lf-eh"><span class="lf-et"><b>${esc(e.t)}</b><small>${who}${fn.length?`・${esc(fn.join("・"))}と${fn.length>1?(e.fm==="any"?"（だれかがいる間）":"（そろって）"):""}`:""}・${U[0]}${e.n}回${Number(e.oa)>0?`・相手は今${e.oa}歳`:""}${e.auto?"・"+e.auto:""}</small></span><span class="lf-cnt">${e.cnt==null?`<small>誕生日を入れると出ます</small>`:`<small>あと</small><b>${lifeN(e.cnt)}</b><small>回</small>`}</span>${e.auto?"":`<button type="button" class="icon-btn lf-del" data-lfdel="${esc(e.id)}" aria-label="${esc(e.t)}を消す">×</button>`}</div>${lifeDots(e)}</div>`; }
+  return `<div class="lf-ev"><div class="lf-eh"><span class="lf-et"><b>${esc(e.t)}</b><small>${who}${fn.length?`・${esc(fn.join("・"))}と${fn.length>1?(e.fm==="any"?"（だれかがいる間）":"（そろって）"):""}`:""}・${U[0]}${e.n}回${Number(e.oa)>0?`・相手は今${e.oa}歳`:""}${e.auto?"・"+e.auto:""}</small></span><span class="lf-cnt">${e.cnt==null?`<small>誕生日を入れると出ます</small>`:`<small>あと</small><b>${lifeN(e.cnt)}</b><small>回</small>`}</span>${e.auto?"":`<button type="button" class="icon-btn lf-del" data-lfdel="${esc(e.id)}" aria-label="${esc(e.t)}を消す">×</button>`}</div>${lifeDots(e)}${lifePeopleHTML(e)}</div>`; }
+// Per-item people links also apply to generated anniversaries without copying them.
+function lifePeopleHTML(e){ const C=lifeCfg(), selected=e.fam||[];
+  return `<details class="lf-set lf-people"><summary>人を関連づける・変更</summary><div class="edit-row"><label>だれと <select data-lf-person-who aria-label="参加する人">${[["both","ふたりで"],["h",nameOf("h")],["w",nameOf("w")]].map(([v,n])=>`<option value="${v}" ${(e.who||"both")===v?"selected":""}>${esc(n)}</option>`).join("")}</select></label></div><div class="chips">${C.fam.map(f=>`<label class="chip lf-fc"><input type="checkbox" data-lf-person-fam="${esc(f.id)}" ${selected.includes(f.id)?"checked":""}> ${esc(famName(f))}</label>`).join("")}</div>${C.fam.length?"":`<p class="who">父・母などは上の「家族を追加」で登録すると選べます。</p>`}<div class="edit-row"><label>家族が複数のとき <select data-lf-person-mode><option value="all" ${e.fm!=="any"?"selected":""}>全員そろって</option><option value="any" ${e.fm==="any"?"selected":""}>だれかがいる間</option></select></label></div><p class="who">選んだ人の「目安の年齢」から残り回数を計算します。</p><button type="button" class="btn primary" data-lf-link="${esc(e.id)}">関連づけを保存</button></details>`;
+}
+function lifeSavePeople(id,who,fam,fm){ const C=lifeCfg(); if(!lifeEvents().some(e=>e.id===id)) return;
+  const link={who:["h","w","both"].includes(who)?who:"both",fam:[...new Set(fam)].filter(id=>C.fam.some(f=>f.id===id)),fm:fm==="any"?"any":"all"};
+  lifePut({...C,links:{...C.links,[id]:link}}); haptic("done"); toast("人の関連づけを保存しました");
+}
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-lf-link]"); if(!b||state.view!=="future"||state.fut!=="_life") return; e.stopPropagation(); const box=b.closest(".lf-people"); lifeSavePeople(b.dataset.lfLink,box.querySelector("[data-lf-person-who]").value,[...box.querySelectorAll("[data-lf-person-fam]:checked")].map(x=>x.dataset.lfPersonFam),box.querySelector("[data-lf-person-mode]").value); },true);
 function lifeMiniHTML(){ const P=["h","w"].map(lifeP).filter(Boolean);
   if(!P.length) return `<button type="button" class="lf-mini" data-fc="_life"><span class="lf-mi">⏳</span><span><b>残りの時間を見える化</b><small>誕生日を入れると、大切にしたいことが「あと何回」できるかわかります</small></span><span class="chev">›</span></button>`;
   const y=lifeBase("both"), E=lifeEvents().filter(e=>e.cnt!=null).sort((a,b)=>a.cnt-b.cnt).slice(0,3);

@@ -1103,3 +1103,24 @@ test('dish washing can be recorded several times a day and each time earns point
   const ev=plain(run(c,'contribEvents().filter(e=>e.id==="dish").map(e=>[e.r,e.p,e.key])'));
   assert.equal(ev.length,3);assert.deepEqual(ev.map(e=>e[0]).sort(),['h','h','w']);assert.equal(new Set(ev.map(e=>e[2])).size,3);
 });
+
+const lifeFns=['LIFE_DEF','lifeCfg','lifePut','lifeYrs','lifeCalc','lifeP','famP','famName','lifeBase','lifeEvents','lifePeopleHTML','lifeSavePeople'];
+test('people links persist for manual and generated events and change remaining counts',()=>{
+ const c=env(lifeFns,{kakeiPut:x=>c.writes.push(x)});
+ c.state.kakei.life={h:{b:'1997-03-05',age:85},w:{b:'1999-07-01',age:85},fam:[{id:'dad',name:'父',age:63,asOf:'2026-09-28',tgt:85},{id:'mom',name:'母',age:61,asOf:'2026-09-28',tgt:85}],ev:[{id:'trip',t:'旅行',n:2,u:'y',who:'both'}]};
+ c.state.plans=[{id:'ann',cat:'anniv',date:'1963-03-05',text:'父の誕生日'}];
+ vm.runInContext('lifeSavePeople("a_ann","both",["dad"],"all")',c);
+ assert.equal(vm.runInContext('lifeEvents().find(e=>e.id==="a_ann").cnt',c),22);
+ assert.equal(c.writes.length,1);
+ c.state.kakei=JSON.parse(JSON.stringify(c.writes[0]));
+ assert.equal(vm.runInContext('lifeEvents().find(e=>e.id==="a_ann").famN[0]',c),'父');
+ vm.runInContext('lifeSavePeople("trip","h",["dad","mom"],"all")',c);
+ assert.equal(vm.runInContext('lifeEvents().find(e=>e.id==="trip").cnt',c),44);
+ vm.runInContext('lifeSavePeople("trip","h",["dad","mom"],"any")',c);
+ assert.equal(vm.runInContext('lifeEvents().find(e=>e.id==="trip").cnt',c),48);
+ vm.runInContext('lifeSavePeople("a_ann","w",[],"all")',c);
+ assert.deepEqual(JSON.parse(JSON.stringify(c.state.kakei.life.links.a_ann.fam)),[]);
+ assert.equal(vm.runInContext('lifeEvents().filter(e=>e.id==="a_ann").length',c),1);
+ assert.match(vm.runInContext('lifePeopleHTML(lifeEvents().find(e=>e.id==="b_dad"))',c),/data-lf-link="b_dad"/);
+ assert.match(vm.runInContext('lifePeopleHTML(lifeEvents().find(e=>e.id==="b_dad"))',c),/data-lf-person-fam="dad" checked/);
+});
