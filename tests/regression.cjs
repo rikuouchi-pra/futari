@@ -1093,3 +1093,13 @@ test('v310 suggestion prompt asks the AI to generate new tasks from all app data
   assert.match(prompt,/新しいやることの生成/); assert.match(prompt,/まだリストにない具体的なやること/);
   assert.equal(c.state.ai.log.at(-1).a.acts.length,1);
 });
+
+test('dish washing can be recorded several times a day and each time earns points',()=>{
+  const c=env(['chRoles','CH_MULTI_RE','chMulti','chExtra','chCount','contribEvents'],{});
+  c.state.items=[];c.state.kakei={};
+  c.state.chores=[{id:'dish',text:'食器洗い',pts:1,log:{'2026-09-28':'h'},extra:{'2026-09-28':['w','h']}},{id:'bath',text:'お風呂掃除',pts:2,log:{'2026-09-28':'w'}},{id:'off',text:'食器洗い（夜）',multi:false,log:{}}];
+  assert.equal(run(c,'chMulti(state.chores[0])'),true);assert.equal(run(c,'chMulti(state.chores[1])'),false);assert.equal(run(c,'chMulti(state.chores[2])'),false);
+  assert.equal(run(c,'chCount(state.chores[0],"2026-09-28")'),3);
+  const ev=plain(run(c,'contribEvents().filter(e=>e.id==="dish").map(e=>[e.r,e.p,e.key])'));
+  assert.equal(ev.length,3);assert.deepEqual(ev.map(e=>e[0]).sort(),['h','h','w']);assert.equal(new Set(ev.map(e=>e[2])).size,3);
+});
