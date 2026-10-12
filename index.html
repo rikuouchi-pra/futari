@@ -972,6 +972,13 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .rv-who{flex:none;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}.rv-who.h{color:var(--who-h);background:color-mix(in srgb,var(--who-h) 14%,transparent)}.rv-who.w{color:var(--who-w);background:color-mix(in srgb,var(--who-w) 14%,transparent)}
 .rv-empty{margin:6px 4px}
 .rv-n{font-style:normal;font-size:11.5px;font-weight:800;margin-left:6px;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+/* v317 */
+.ctd{margin-top:10px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,var(--caution) 9%,transparent);display:flex;flex-direction:column;gap:4px}
+.ctd-h{display:flex;align-items:center;gap:8px}.ctd-h b{font-size:13.5px}.ctd-h .who{margin-left:auto;font-size:11.5px}
+.ctd-r{display:flex;align-items:center;gap:10px;padding:5px 0}.ctd-r .check{flex:none}.ctd-t{flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer}.ctd-t b{font-size:13.5px;font-weight:700;overflow-wrap:anywhere}.ctd-t small{font-size:11px;color:var(--muted)}.ctd-r.on .ctd-t b{color:var(--muted)}
+.l2h{margin-top:8px;display:flex;flex-direction:column;gap:8px}.l2h-h{display:flex;flex-direction:column}.l2h-h b{font-size:13px}.l2h-h .who{font-size:11px}
+.l2h-l{display:flex;flex-direction:column;gap:6px}.l2h-i{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--habit) 9%,transparent);font-size:13.5px}.l2h-i>span{flex:1;min-width:0;overflow-wrap:anywhere}.l2h-i input{width:20px;height:20px;flex:none;accent-color:var(--habit)}.l2h-i .link{flex:none;font-size:11.5px}.l2h-i.done{opacity:.6}.l2h-i.done small{font-size:11px}
+.l2h-a{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.l2h-own{display:flex;gap:6px}.l2h-own input{flex:1;min-width:0}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2375,7 +2382,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="316";
+const APP_VERSION="317";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6035,20 +6042,13 @@ async function fridgeSave(){ const el=$("fridgeEdit"); if(!el) return; const ite
   try{ if(!kakeiDoc) throw new Error("not connected"); await kakeiDoc.update({fridge,updatedAt:Date.now()}); state.kakei={...state.kakei,fridge}; state.fridgeDraft=null; toast("冷蔵庫の食材を保存しました"); render(); }catch(e){ toast("保存できませんでした。入力は残っています"); } }
 
 /* ================= 内省の学び → 習慣 ================= */
-function learnLines(s){ return (s||"").split(/\n+/).map(x=>x.replace(/^[\s・\-*●○◯□■]+/,"").trim()).filter(x=>x.length>1).slice(0,5); }
-function learnChips(s){
-  const L=learnLines(s); if(!L.length) return "";
-  const have=new Set(habitItems().map(h=>h.text));
-  return `<div class="chips" style="margin-top:6px">${L.map(x=>{ const t=x.slice(0,60);
-    return have.has(t)?`<span class="chip" style="opacity:.6">✓ 習慣に追加済み：${esc(t.slice(0,20))}</span>`:`<button type="button" class="chip" data-l2h="${esc(t)}">＋ 習慣にする：${esc(t.slice(0,20))}${t.length>20?"…":""}</button>`; }).join("")}</div>`;
-}
 function learnToHabit(t){
   if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); }
   if(habitItems().some(h=>h.text===t)){ toast("同じ習慣がもうあります"); return; }
   const id=newId(), now=Date.now();
   dset("habits",id,{text:t,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now,updatedAt:now}); haptic("done");
   toast(`習慣「${t.slice(0,16)}」を追加しました`,()=>ddel("habits",id),"done");
-  setTimeout(()=>{ const el=$("learnHabit"); if(el) el.innerHTML=learnChips($("rfLearn")?$("rfLearn").value:""); },60);
+  setTimeout(()=>{ if(typeof learnRefresh==="function") learnRefresh(); },60);
 }
 
 /* ================= 困りごと → 対応 → 注意 ================= */
@@ -6460,6 +6460,34 @@ document.addEventListener("click",e=>{ if(state.view!=="daylog"||state.dayView!=
   const w=e.target.closest('#main [data-seg="rvwho"] [data-sv]'); if(w){ e.stopPropagation(); state.rvWho=w.dataset.sv; haptic("tick"); render(); return; }
   const k=e.target.closest("#main [data-rvkind]"); if(k){ e.stopPropagation(); state.rvKind=k.dataset.rvkind===state.rvKind&&k.dataset.rvkind?"":k.dataset.rvkind; if(k.dataset.rvwho) state.rvWho=k.dataset.rvwho; haptic("tick"); render(); if(k.dataset.rvwho) setTimeout(()=>{ const l=$("rvList"); if(l) l.scrollIntoView({behavior:"smooth",block:"start"}); },30); return; }
   const b=e.target.closest("#main [data-rvday]"); if(b){ e.stopPropagation(); const d=b.dataset.rvday; state.rvDay=state.rvDay===d?"":d; haptic("tick"); render(); if(state.rvDay) setTimeout(()=>{ const x=document.querySelector(`#main .rv-day[data-rvd="${d}"]`); if(x) x.scrollIntoView({behavior:"smooth",block:"center"}); },30); } },true);
+
+/* v317: 気になること→「毎日気をつけること」を、ホームの今日やることでその場で「今日できた」に */
+function cautionTodayHTML(){ if(typeof cCanDo!=="function") return ""; const t=today(), me=myRole(), L=(state.cautions||[]).filter(c=>cCanDo(c)); if(!L.length) return "";
+  const dn=L.filter(c=>cLog(c,me)[t]).length, ord=L.slice().sort((a,b)=>(cLog(a,me)[t]?1:0)-(cLog(b,me)[t]?1:0));
+  return `<div class="ctd"><div class="ctd-h"><b>⚠️ 今日気をつけること</b><span class="who">${dn}/${L.length} できた</span><button class="link" data-go2="caution">一覧 ›</button></div>
+    ${ord.map(c=>{ const on=!!cLog(c,me)[t], st=typeof strkOf==="function"?strkOf(cLog(c,me),t):0, lv=(CLEVEL[c.level]||{});
+      return `<div class="ctd-r ${on?"on":""}"><button class="check ${on?"on":""}" style="--c:var(--caution)" data-ctoday="${esc(c.id)}" aria-label="${esc(c.text)} ${on?"今日できたを取り消す":"今日できた"}">${CHECK}</button><span class="ctd-t" data-ctoday="${esc(c.id)}"><b>${esc(String(c.text).slice(0,60))}</b><small>${on?"今日できた ✓":"今日できたらタップ"}${st?`・🔥${st}日連続`:""}</small></span></div>`; }).join("")}</div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-ctoday]"); if(!b) return; e.stopPropagation(); toggleCautionDay(b.dataset.ctoday,today()); },true);
+/* v317: 内省の「学び」から習慣を複数。文（。！？）ごと・行ごとに候補を出し、チェックしてまとめて追加／自分で書いて追加も */
+function learnLines(s){ const out=[]; for(const ln of String(s||"").split(/\n+/)) for(const x of ln.split(/(?<=[。！？!?])/)){ const t=x.replace(/^[\s・\-*●○◯□■]+/,"").replace(/[。．.]+\s*$/,"").trim(); if(t.length>1&&!out.includes(t)) out.push(t); } return out.slice(0,10); }
+function learnChips(s){ const L=learnLines(s), have=new Set(habitItems().map(h=>h.text)), sel=state.l2hSel||(state.l2hSel={});
+  const cand=L.map(x=>x.slice(0,60)), left=cand.filter(t=>!have.has(t)), nSel=left.filter(t=>sel[t]).length;
+  return `<div class="l2h">${cand.length?`<div class="l2h-h"><b>習慣にする</b><span class="who">文ごとに分けました。選んでまとめて追加できます</span></div>
+    <div class="l2h-l">${cand.map(t=>have.has(t)?`<span class="l2h-i done">✓ <span>${esc(t)}</span><small>追加済み</small></span>`:`<label class="l2h-i"><input type="checkbox" data-l2hsel="${esc(t)}" ${sel[t]?"checked":""}><span>${esc(t)}</span><button type="button" class="link" data-l2h="${esc(t)}">これだけ追加</button></label>`).join("")}</div>
+    ${left.length?`<div class="l2h-a"><button type="button" class="btn primary" data-l2hall="1" ${nSel?"":"disabled"}>＋ 選んだ${nSel?nSel:""}件を習慣にする</button>${left.length>1?`<button type="button" class="link" data-l2hpick="1">${nSel===left.length?"選択を外す":"すべて選ぶ"}</button>`:""}</div>`:""}`:""}
+    <div class="l2h-own"><input type="text" id="l2hIn" maxlength="60" placeholder="自分で書いて習慣にする（例：23時までに寝る）" enterkeyhint="done"><button type="button" class="btn" data-l2hown="1">追加</button></div></div>`; }
+function learnRefresh(){ const el=$("learnHabit"); if(el) el.innerHTML=learnChips($("rfLearn")?$("rfLearn").value:""); }
+function learnAddMany(T){ if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); } const have=new Set(habitItems().map(h=>h.text)), now=Date.now(), ids=[];
+  for(const t of T){ if(!t||have.has(t)) continue; const id=newId(); have.add(t); ids.push(id); dset("habits",id,{text:t,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now+ids.length,updatedAt:now}); }
+  if(!ids.length){ toast("同じ習慣がもうあります"); return; } for(const t of T) delete state.l2hSel[t]; haptic("done");
+  toast(ids.length>1?`習慣を${ids.length}件追加しました`:`習慣「${T.find(Boolean).slice(0,16)}」を追加しました`,()=>ids.forEach(id=>ddel("habits",id)),"done"); setTimeout(learnRefresh,60); }
+document.addEventListener("change",e=>{ const c=e.target.closest&&e.target.closest("[data-l2hsel]"); if(!c) return; state.l2hSel=state.l2hSel||{}; state.l2hSel[c.dataset.l2hsel]=c.checked; learnRefresh(); });
+document.addEventListener("click",e=>{ const a=e.target.closest("#main [data-l2hall],#main [data-l2hpick],#main [data-l2hown]"); if(!a) return; e.stopPropagation(); e.preventDefault();
+  const have=new Set(habitItems().map(h=>h.text)), left=learnLines($("rfLearn")?$("rfLearn").value:"").map(x=>x.slice(0,60)).filter(t=>!have.has(t)); state.l2hSel=state.l2hSel||{};
+  if(a.dataset.l2hall) learnAddMany(left.filter(t=>state.l2hSel[t]));
+  else if(a.dataset.l2hpick){ const all=left.every(t=>state.l2hSel[t]); for(const t of left) state.l2hSel[t]=!all; learnRefresh(); }
+  else { const i=$("l2hIn"), v=(i&&i.value||"").trim().slice(0,60); if(!v){ toast("習慣にしたいことを書いてください"); if(i) i.focus(); return; } learnAddMany([v]); } },true);
+document.addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target&&e.target.id==="l2hIn"&&!e.isComposing){ e.preventDefault(); const b=document.querySelector("#main [data-l2hown]"); if(b) b.click(); } });
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -9739,7 +9767,7 @@ function briefHTML(withChecks){
     const HH=homeHidden(), dupK=new Set(state.view==="home"?["qa"].filter(k=>!HH.has(k)&&homeOrder().includes(k)) /* v257: 習慣は「今日やること」にも出す（下の習慣カードと両方） */:[]), pcT=pc.filter(x=>!dupK.has(x.key)); /* v243 */
     const tiles=pcT.map(x=>{ const [v,col]=CHK_LOOK[x.key]||["check","--accent"]; return `<div class="htile-w" style="--tc:var(${col})"><button class="htile" data-chk="${x.key}" style="--tc:var(${col})"><span class="ht-top"><span class="ht-ic">${fIcon(v)||ic("spark")}</span><b class="ht-n">${x.num}</b></span><span class="ht-t">${esc(x.title)}</span><small class="ht-d">${esc(x.desc||"タップで確認")}</small></button><button class="ht-skip" data-chkskip="${x.key}" aria-label="${esc(x.title)}は今日は確認済み・見送り">✓ 見送り</button></div>`; }).join("");
     return `<section class="hcard tdo-card"><div class="tdo-h">${ring}<div><h3>今日やること</h3><div class="who">${pc.length?`残り ${pc.length}・済み ${done}/${N}`:"ぜんぶ済んでいます ✓"}</div></div></div>
-      ${pcT.length?`<div class="htiles">${tiles}</div>`:""}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
+      ${pcT.length?`<div class="htiles">${tiles}</div>`:""}${typeof cautionTodayHTML==="function"?cautionTodayHTML():""}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
       ${gomiBarHTML()}${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`; }
   if(!L.length&&!wn.length&&!prep.length&&!pc.length) return withChecks?`<section class="brief"><div class="br-h"><b>今日やること</b></div><div class="hempty">✓ 今日やることは全部済んでいます</div></section>`:"";
   return `<section class="brief"><div class="br-h"><b>${withChecks?"今日やること":"今日のまとめ"}</b>${withChecks&&pc.length?`<button class="link" data-go2="check">未入力・未確認 ${pc.length} ›</button>`:`<span class="who">${jpDate(t)}</span>`}</div>
