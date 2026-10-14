@@ -1009,14 +1009,16 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .wxa-i{font-size:18px}.wxa-t{display:flex;flex-direction:column;min-width:0}.wxa-t b{font-size:13px;white-space:nowrap}.wxa-t small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wxa-c .chev{color:var(--muted)}
 /* v323 */
 .qch{margin-top:10px;display:flex;flex-direction:column;gap:6px}.qch-h{display:flex;align-items:baseline;gap:8px}.qch-h b{font-size:13.5px}.qch-h small{font-size:11px}
-.qch-l{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.qch-l{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .qch-b{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:10px 10px;border-radius:14px;background:color-mix(in srgb,var(--future) 10%,var(--surface));font-size:12.5px;font-weight:700;min-width:0}
-.qch-b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qch-b i{font-style:normal;font-size:11.5px;font-weight:800;color:var(--future);flex:none}.qch-b.on{background:var(--future);color:#fff}.qch-b.on i{color:#fff}.qch-b:active{transform:scale(.96)}
+.qch-b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qch-b i{font-style:normal;font-size:11.5px;font-weight:800;color:var(--future);flex:none}.qch-b.on{background:var(--future);color:#fff}.qch-b.on i{color:#fff}.qch-b:active{transform:scale(.96)}.qch-w{display:flex;gap:3px;min-width:0}.qch-w .qch-b{flex:1}.qch-m{all:unset;cursor:pointer;flex:none;width:26px;display:grid;place-items:center;border-radius:12px;font-weight:900;background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .eve{margin:4px 0 12px;padding:14px 14px 12px;border-radius:22px;background:linear-gradient(150deg,#1d2a5a,#3b2f6b);color:#fff;box-shadow:0 10px 26px rgba(30,30,80,.25);display:flex;flex-direction:column;gap:10px}
 .eve .who,.eve small{color:#d5d7f5}.eve-h{display:flex;align-items:center;justify-content:space-between}.eve-h b{font-size:15px}.eve-h .icon-btn{color:#fff;background:rgba(255,255,255,.12)}
 .eve-k{display:flex;gap:8px}.eve-k button{all:unset;cursor:pointer;flex:1;display:flex;flex-direction:column;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.1)}.eve-k b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}.eve-k small{font-size:11px}
 .eve-tm{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08)}.eve-tm>b{font-size:13.5px}.eve-r{font-size:12.5px}.eve .dinfo{color:#fff}
 .eve-a{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.eve-a .btn{background:#fff;color:#2b2a6b;border:0}.eve-a .link{color:#d5d7f5}
+/* v325 */
+.ai-odx{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;margin-left:-4px;font-size:13px;opacity:.7}.ai-odx2{font-size:11.5px;margin:2px 0 0 4px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2420,7 +2422,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="323";
+const APP_VERSION="325";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6657,7 +6659,8 @@ function quickChores(){ const t=today(), from=addDays(t,-13), sc=c=>{ let n=0; f
   return (state.chores||[]).filter(c=>!c.archived).map(c=>({c,n:sc(c)})).filter(x=>x.n>=2).sort((a,b)=>b.n-a.n).slice(0,6).map(x=>x.c); }
 function quickChoresHTML(){ let L; try{ L=quickChores(); }catch(_){ return ""; } if(L.length<2) return ""; const t=today();
   return `<div class="qch"><div class="qch-h"><b>🧹 よくやる家事</b><small class="who">タップで記録</small></div><div class="qch-l">${L.map(c=>{ const n=chCount(c,t), m=chMulti(c);
-    return `<button type="button" class="qch-b ${n?"on":""}" data-qch="${esc(c.id)}" aria-label="${esc(c.text)}${m?" を1回記録":n?" の記録を取り消す":" を記録"}"><span>${esc(String(c.text).slice(0,9))}</span><i>${n?(m?`×${n}`:"✓"):m?"＋1":"○"}</i></button>`; }).join("")}</div></div>`; }
+    return `<span class="qch-w"><button type="button" class="qch-b ${n?"on":""}" data-qch="${esc(c.id)}" aria-label="${esc(c.text)}${m?" を1回記録":n?" の記録を取り消す":" を記録"}"><span>${esc(String(c.text).slice(0,9))}</span><i>${n?(m?`×${n}`:"✓"):m?"＋1":"○"}</i></button>${m&&n?`<button type="button" class="qch-m" data-qchm="${esc(c.id)}" aria-label="${esc(c.text)}を1回取り消す">−</button>`:""}</span>`; }).join("")}</div></div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-qchm]"); if(!b) return; e.stopPropagation(); choreMore(b.dataset.qchm,-1); },true);
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-qch]"); if(!b) return; e.stopPropagation(); const c=state.chores.find(x=>x.id===b.dataset.qch); if(!c) return; if(chMulti(c)) choreMore(c.id,1); else choreToggle(c.id); },true);
 /* 夜のまとめ */
 function eveOn(){ const h=new Date().getHours(); return (h>=19||h<2)&&(()=>{ try{ return localStorage.getItem("futari.eveHide")!==today(); }catch(_){ return true; } })(); }
@@ -6830,7 +6833,7 @@ function ringsHTML(){
 /* 家事・貢献：だれがどれだけ（家事ポイント＋完了したやること） */
 function contribEvents(){
   const out=[];
-  for(const c of state.chores||[]) for(const [d,L] of Object.entries(c.extra||{})) if(Array.isArray(L)) L.forEach((r,i)=>{ if(r==="h"||r==="w") out.push({d,r,p:Number(c.pts||1),k:"chore",text:c.text+`（${i+2}回目）`,src:"chores",id:c.id,key:d+"#"+(i+2)}); });
+  for(const c of state.chores||[]) for(const [d,L] of Object.entries(c.extra||{})) if(Array.isArray(L)) L.forEach((r,i)=>{ if(r==="h"||r==="w"){ const kk=d+"#"+(i+2), pv=(c.ptsLog||{})[kk]; out.push({d,r,p:Number(pv!=null?pv:(c.pts||1)),k:"chore",text:c.text+`（${i+2}回目）`,src:"chores",id:c.id,key:kk}); } });
   for(const c of state.chores||[]) for(const [d,v] of Object.entries(c.log||{})) for(const r of chRoles(v)){ const key=v==="b"?d+"~"+r:d, pl=c.ptsLog||{}, po=pl[key]!=null?pl[key]:v==="b"?null:pl[d]; out.push({d,r,p:po!=null?Number(po):Number(c.pts||1),k:"chore",text:c.text+(v==="b"?"（ふたりで）":""),src:"chores",id:c.id,key,both:v==="b"}); }
   for(const i of state.items.filter(x=>x.list==="task")){ const ov=i.ptsOv||{}, off=i.ptsOff||{}, P=r=>ov[r]!=null?Number(ov[r]):1;
     if(i.done_h&&i.doneAt_h&&!off.h) out.push({d:ymd(new Date(i.doneAt_h)),r:"h",p:P("h"),k:"task",text:i.text,src:"items",id:i.id,key:"h"});
@@ -6860,6 +6863,10 @@ function phAct(a){ const [op,src,id,key,v]=a.split("|");
     state.kakei={...(state.kakei||{}),bonus:[...((state.kakei||{}).bonus||[]),b],updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); toast(`「${b.text}」${b.p}pt を追加しました`); state.phOpen=true; render(); return; }
   const setBonus=f=>{ state.kakei={...(state.kakei||{}),bonus:((state.kakei||{}).bonus||[]).map(x=>x.id===id?f(x):x).filter(Boolean),updatedAt:Date.now()}; if(kakeiDoc) kakeiPut(state.kakei).catch(err); };
   const ev=contribEvents().find(e=>e.src===src&&e.id===id&&e.key===key); if(!ev) return;
+  /* v324: 1日に何回もの家事（2回目以降）は extra の配列を直す（以前は消しても戻っていた） */
+  if(src==="chores"&&/#\d+$/.test(key)&&(op==="del"||op==="who")){ const c=state.chores.find(x=>x.id===id); if(c){ const [d,n]=key.split("#"), ix=Number(n)-2, ex=((c.extra||{})[d]||[]).slice();
+      if(ix>=0&&ix<ex.length){ if(op==="del") ex.splice(ix,1); else ex[ix]=ex[ix]==="h"?"w":"h"; c.extra={...(c.extra||{}),[d]:ex}; dupd("chores",id,{extra:{[d]:ex}}); if(op==="del") toast("記録を消しました"); } }
+    haptic("tick"); state.phOpen=true; render(); return; }
   if(op==="who"){ const nr=v==="h"?"w":"h";
     if(src==="chores"){ if(ev.both) return; const c=state.chores.find(x=>x.id===id); if(c){ c.log={...(c.log||{}),[key]:nr}; dupd("chores",id,{log:{[key]:nr}}); } }
     else if(src==="bonus") setBonus(x=>({...x,r:nr})); }
@@ -8319,7 +8326,12 @@ function aiMemDel(id){ if(aiMemP().some(m=>m.id===id)){ aiMemPSet(aiMemP().filte
 const AI_BRIEF_Q="おはよう。今日のブリーフと、今日の予定の組み方を提案して（タイムテーブルを整理して、時間未定のものや食事も入れて）";
 const AI_REPLAN_Q="予定の時間を過ぎてまだ終わっていないものがあるので、今からの残りの予定を組み直して";
 function aiOverdue(){ const t=today(), nowM=new Date().getHours()*60+new Date().getMinutes();
-  return dayEntries(t).filter(o=>o.kind==="i"&&!o.done&&o.e<nowM-10&&o.c!=="events"); }
+  return dayEntries(t).filter(o=>o.kind==="i"&&!o.done&&o.e<nowM-10&&o.c!=="events"&&!odSeen().has(odKey(o))); }
+/* v325: 「過ぎた予定・組み直す」は、一度組み直した（または×で閉じた）ものは今日はもう出さない。新しく過ぎたものが出たときだけ再表示 */
+const odKey=o=>`${o.c}|${o.x&&o.x.id||o.t}|${o.s}`;
+function odSeen(){ try{ const o=JSON.parse(localStorage.getItem("futari.odSeen")||"null"); return new Set(o&&o.d===today()?o.k:[]); }catch(_){ return new Set(); } }
+function odMark(){ try{ const S=odSeen(), t=today(), nowM=new Date().getHours()*60+new Date().getMinutes(); for(const o of dayEntries(t).filter(o=>o.kind==="i"&&!o.done&&o.e<nowM-10&&o.c!=="events")) S.add(odKey(o)); localStorage.setItem("futari.odSeen",JSON.stringify({d:t,k:[...S].slice(-200)})); }catch(_){} }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-act=\"aiOdHide\"]"); if(b){ e.stopPropagation(); odMark(); haptic("tick"); render(); return; } if(e.target.closest("[data-act=\"aiReplan\"]")) odMark(); },true);
 function aiLogSave(){ try{ store.set("futari.ailog",JSON.stringify({d:today(),log:state.ai.log.slice(-6).map(x=>({q:x.q,a:x.a}))})); }catch(e){} }
 function aiLogLoad(){ try{ const o=JSON.parse(store.get("futari.ailog")||"null"); if(o&&o.d===today()&&Array.isArray(o.log)) state.ai.log=o.log.filter(x=>x.a); }catch(e){} }
 function aiAutoBrief(){ const A=state.ai; if(A.autoTried||!aiCan()||A.busy) return; A.autoTried=true; const h=new Date().getHours();
@@ -8332,12 +8344,12 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
   const L=A.log, older=L.slice(0,-1);
   /* v307: ホームのAIカードはミニマルに（1行の入力＋最近の返事だけ。前の会話・設定は「ひらく」で） */
   if(where==="home"&&!state.aiOpen){ const pend=last&&last.a?(last.a.acts||[]).filter(c=>!c.ok).length:0, fresh=last&&(A.busy||pend||(last.at&&Date.now()-last.at<30*60e3));
-    return `<section class="aicard mini ${state.aiVoiceStatus||state.aiListening||aiRecM||state.aiVoiceTranscribing||state.aiVoiceStarting?"vs":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ AI</b>${od.length?`<button class="ai-odm" data-act="aiReplan">⏰ 過ぎた予定 ${od.length}件・組み直す</button>`:""}<button class="link ai-open" data-act="aiOpen">${L.length?`会話 ${L.length} ›`:"ひらく ›"}</button></div>
+    return `<section class="aicard mini ${state.aiVoiceStatus||state.aiListening||aiRecM||state.aiVoiceTranscribing||state.aiVoiceStarting?"vs":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ AI</b>${od.length?`<button class="ai-odm" data-act="aiReplan">⏰ 過ぎた予定 ${od.length}件・組み直す</button><button class="ai-odx" data-act="aiOdHide" aria-label="今日は出さない">×</button>`:""}<button class="link ai-open" data-act="aiOpen">${L.length?`会話 ${L.length} ›`:"ひらく ›"}</button></div>
       ${fresh?`<div class="ai-last ${A.busy&&!last.a?"busy":""}">${A.busy&&!last.a?`<span class="ai-wait">考え中…</span>`:`<div class="ai-q1">${esc(last.q)}</div><div class="ai-a1 ${last.a&&last.a.err?"err":""}">${esc(last.a?aiReplyText(last.a.reply):"")}</div>${pend?`<button class="ai-pend" data-act="aiOpen">提案 ${pend}件を確認して実行 ›</button>`:`<button class="link ai-more1" data-act="aiOpen">続きを見る</button>`}`}</div>`:""}
       ${aiComposerHTML(false)}
       ${A.busy||fresh?"":`<div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}">${retry?"↻ "+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>`}</section>`; }
   return `<section class="aicard ${dock?"ai-dock":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ ${talk?"AIと話し合いの準備":"AI"}</b><span class="who mx">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="icon-btn sm ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話をリフレッシュ（入力は残ります）">↻</button>${dock?`<button class="icon-btn sm" data-act="aiDockClose" aria-label="AIを閉じる">✕</button>`:""}</div>
-    ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 過ぎた予定 ${od.length}件</span><b>組み直す</b></button>`:""}
+    ${od.length?`<button class="ai-od" data-act="aiReplan"><span>⏰ 過ぎた予定 ${od.length}件</span><b>組み直す</b></button><button class="link ai-odx2" data-act="aiOdHide">今日は出さない</button>`:""}
     ${older.length?`<details class="ai-old"><summary>前の会話（${older.length}）</summary>${older.map((x,li)=>qa(x,li)).join("")}</details>`:""}${last?qa(last,L.length-1):""}
     ${aiComposerHTML(talk)}
     ${A.busy?"":`<div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}">${retry?"↻ "+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>`}
