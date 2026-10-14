@@ -1002,6 +1002,21 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .lf-ck{display:inline-flex;align-items:center;gap:4px;font-size:12px}.lf-fl{display:flex;flex-direction:column;gap:6px;margin:6px 0}.lf-fc{display:inline-flex;align-items:center;gap:4px}.lf-fc input{accent-color:var(--future)}
 .section-label small.who{margin-left:auto;font-size:11px}
 .lf-p.k .lf-bar i{background:linear-gradient(90deg,var(--accent),var(--future))}.lf-ph{gap:8px}.lf-ph b{white-space:nowrap}.lf-ph span{text-align:right}
+/* v322 外の様子 */
+.wxa{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:10px 0 8px;padding-bottom:2px}.wxa::-webkit-scrollbar{display:none}
+.wxa-c{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:14px;text-decoration:none;color:inherit;max-width:78%;background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.wxa-c.adv{background:color-mix(in srgb,#e6a700 16%,transparent)}.wxa-c.warn{background:color-mix(in srgb,#e5484d 16%,transparent)}.wxa-c.sp{background:#7a1f9a;color:#fff}.wxa-c.sp small{color:#f1ddff}
+.wxa-i{font-size:18px}.wxa-t{display:flex;flex-direction:column;min-width:0}.wxa-t b{font-size:13px;white-space:nowrap}.wxa-t small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wxa-c .chev{color:var(--muted)}
+/* v323 */
+.qch{margin-top:10px;display:flex;flex-direction:column;gap:6px}.qch-h{display:flex;align-items:baseline;gap:8px}.qch-h b{font-size:13.5px}.qch-h small{font-size:11px}
+.qch-l{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.qch-b{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:10px 10px;border-radius:14px;background:color-mix(in srgb,var(--future) 10%,var(--surface));font-size:12.5px;font-weight:700;min-width:0}
+.qch-b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qch-b i{font-style:normal;font-size:11.5px;font-weight:800;color:var(--future);flex:none}.qch-b.on{background:var(--future);color:#fff}.qch-b.on i{color:#fff}.qch-b:active{transform:scale(.96)}
+.eve{margin:4px 0 12px;padding:14px 14px 12px;border-radius:22px;background:linear-gradient(150deg,#1d2a5a,#3b2f6b);color:#fff;box-shadow:0 10px 26px rgba(30,30,80,.25);display:flex;flex-direction:column;gap:10px}
+.eve .who,.eve small{color:#d5d7f5}.eve-h{display:flex;align-items:center;justify-content:space-between}.eve-h b{font-size:15px}.eve-h .icon-btn{color:#fff;background:rgba(255,255,255,.12)}
+.eve-k{display:flex;gap:8px}.eve-k button{all:unset;cursor:pointer;flex:1;display:flex;flex-direction:column;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.1)}.eve-k b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}.eve-k small{font-size:11px}
+.eve-tm{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08)}.eve-tm>b{font-size:13.5px}.eve-r{font-size:12.5px}.eve .dinfo{color:#fff}
+.eve-a{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.eve-a .btn{background:#fff;color:#2b2a6b;border:0}.eve-a .link{color:#d5d7f5}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2405,7 +2420,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="321";
+const APP_VERSION="323";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5134,7 +5149,7 @@ function renderChrome(){ applyTabOrder();
   $("lock").hidden=!PRIV_VIEWS.has(v);
   document.body.classList.toggle("v-home",v==="home"); $("rhome").setAttribute("aria-selected",String(v==="home"));
   document.querySelectorAll("#lsw [data-layer]").forEach(b=>b.setAttribute("aria-pressed",String(v!=="home"&&b.dataset.layer===layer))); $("lsw").hidden=false;
-  { const pc=pendingChecks().length, bc=$("b-chk"), bh=$("b-home"); bc.hidden=!pc; bc.textContent=pc; if(bh){ bh.hidden=!pc; bh.textContent=pc; } $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
+  { const pc=pendingChecks().length; if(typeof appBadge==="function") appBadge(pc); const bc=$("b-chk"), bh=$("b-home"); bc.hidden=!pc; bc.textContent=pc; if(bh){ bh.hidden=!pc; bh.textContent=pc; } $("chkBtn").setAttribute("aria-pressed",String(v==="check")); }
   setTimeout(tbarRender,0);
   const num= v==="task"?n.taskAll+(n.ptaskAll||0): v==="shop"?n.shopAll+(n.pshopAll||0): v==="trouble"?n.troubleAll: v==="talk"?null: v==="ptask"?n.ptaskAll: v==="pshop"?n.pshopAll: v==="pwish"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut==="_mine"?state.pitems.filter(i=>i.list==="wish"&&!i.done).length: v==="future"&&state.fut?state.plans.filter(p=>p.cat===state.fut&&!planDone(p)).length: null;
   $("title").innerHTML=esc(v==="future"&&state.fut?(state.fut==="_mine"?"やりたいこと🔒":state.fut==="_life"?"残りの時間":(PCATS[state.fut]||{label:"将来"}).label):TITLES[v])+(num!==null?`<span class="n">${num}件</span>`:v==="caution"&&n.caution?`<span class="n">未確認${n.caution}</span>`:v==="talk"&&n.talk?`<span class="n">${[talkTopicsN()?`議題${talkTopicsN()}`:"",talkMissing().length?`記録待ち${talkMissing().length}`:""].filter(Boolean).join("・")}</span>`:v==="diary"&&n.diaryC?`<span class="n">新しいコメント${n.diaryC}</span>`:"");
@@ -5167,7 +5182,7 @@ function render(anim){
     renderDiaryDynamic();
   } else {
     if((v==="usage"||v==="settings")&&window.__usageSub) window.__usageSub();
-    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
+    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+(v==="home"&&typeof eveHTML==="function"?eveHTML():"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -6607,6 +6622,76 @@ document.addEventListener("click",e=>{ const t=e.target; if(state.view!=="future
 function lifeKindSync(){ const k=$("lfFK"); if(!k) return; const kid=k.value==="kid", l=$("lfFTl"), t=$("lfFT"); if(l) l.textContent=kid?"家を出る見込み":"目安の年齢"; if(t&&kid&&Number(t.value)>40) t.value=18; if(t&&!kid&&Number(t.value)<40) t.value=LIFE_DEF; }
 document.addEventListener("change",e=>{ if(e.target&&e.target.id==="lfFK") lifeKindSync(); });
 
+/* v322: 外の様子（無料の公開API・キー不要）。刈谷市の気象警報・注意報（気象庁）、愛知の地震（P2P地震情報）、PM2.5・黄砂・紫外線（Open-Meteo）、寒暖差・暑さ寒さのひとこと。取れないときは何も出さない */
+const WXA_CITY="2321000", WXA_KEY="futari.wxa1";
+const JMA_W={"02":"暴風雪警報","03":"大雨警報","04":"洪水警報","05":"暴風警報","06":"大雪警報","07":"波浪警報","08":"高潮警報","10":"大雨注意報","12":"大雪注意報","13":"風雪注意報","14":"雷注意報","15":"強風注意報","16":"波浪注意報","17":"融雪注意報","18":"洪水注意報","19":"高潮注意報","20":"濃霧注意報","21":"乾燥注意報","22":"なだれ注意報","23":"低温注意報","24":"霜注意報","25":"着氷注意報","26":"着雪注意報","32":"暴風雪特別警報","33":"大雨特別警報","35":"暴風特別警報","36":"大雪特別警報","37":"波浪特別警報","38":"高潮特別警報"};
+const QK_SC={10:"1",20:"2",30:"3",40:"4",45:"5弱",46:"5弱以上",50:"5強",55:"6弱",60:"6強",70:"7"};
+async function wxaLoad(force){ try{ const c=JSON.parse(localStorage.getItem(WXA_KEY)||"null"); if(c){ state.wxa=c.d; if(!force&&Date.now()-c.at<20*60e3) return; } }catch(_){}
+  if(state.wxaBusy||!navigator.onLine) return; state.wxaBusy=true; const L=typeof wxLoc==="function"?wxLoc():{lat:35.0,lon:137.0}, d={...(state.wxa||{})};
+  const get=async u=>{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw 0; return r.json(); };
+  const jobs=[
+    get(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${L.lat}&longitude=${L.lon}&hourly=pm2_5,dust,uv_index&timezone=Asia%2FTokyo&forecast_days=2`).then(j=>{ d.aq=j.hourly; }).catch(()=>{}),
+    get("https://www.jma.go.jp/bosai/warning/data/warning/230000.json").then(j=>{ const out=[]; for(const at of j.areaTypes||[]) for(const a of at.areas||[]) if(a.code===WXA_CITY) for(const w of a.warnings||[]) if(w.code&&JMA_W[w.code]&&!/解除|なし/.test(w.status||"")) out.push({c:w.code,s:w.status}); d.warn={at:j.reportDatetime,list:out,head:String(j.headlineText||"").slice(0,120)}; }).catch(()=>{}),
+    get("https://api.p2pquake.net/v2/history?codes=551&limit=20").then(j=>{ d.qk=(Array.isArray(j)?j:[]).map(x=>{ const e=x.earthquake||{}, pts=(x.points||[]).filter(p=>p.pref==="愛知県"), ai=pts.reduce((m,p)=>Math.max(m,p.scale||0),0); return {t:e.time||x.time,name:(e.hypocenter||{}).name||"",mag:(e.hypocenter||{}).magnitude,max:e.maxScale||0,ai}; }).filter(q=>q.t); }).catch(()=>{}) ];
+  await Promise.all(jobs); state.wxa=d; state.wxaBusy=false; try{ localStorage.setItem(WXA_KEY,JSON.stringify({at:Date.now(),d})); }catch(_){} if(state.view==="home") requestRender(); }
+function wxaChips(){ const A=state.wxa||{}, t=today(), out=[];
+  const W=A.warn&&A.warn.list||[]; for(const w of W){ const n=JMA_W[w.c], lv=/特別警報/.test(n)?"sp":/警報/.test(n)?"warn":"adv"; out.push({lv,ic:lv==="adv"?"⚠️":"🚨",t:n,s:"刈谷市"+(w.s==="発表"?"・新しく発表":""),href:`https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${WXA_CITY}`}); }
+  const Q=(A.qk||[]).filter(q=>{ const tm=new Date(String(q.t).replace(/\//g,"-").replace(" ","T")+"+09:00").getTime(); return Date.now()-tm<36*3600e3&&(q.ai>=20||q.max>=55); })[0];
+  if(Q) out.push({lv:Q.ai>=40||Q.max>=55?"warn":"adv",ic:"🫨",t:`地震 ${String(Q.t).slice(5,16).replace(/^0/,"")}`,s:`${Q.name}${Q.mag>0?` M${Q.mag}`:""}${Q.ai?`・愛知で最大震度${QK_SC[Q.ai]||"-"}`:""}${Q.max>=55?`・最大震度${QK_SC[Q.max]}`:""}`,href:"https://www.jma.go.jp/bosai/map.html#contents=earthquake_map"});
+  const H=A.aq; if(H&&H.time){ const ix=H.time.map((x,i)=>x.startsWith(t)?i:-1).filter(i=>i>=0), v=k=>ix.map(i=>(H[k]||[])[i]).filter(x=>x!=null);
+    const uv=Math.max(0,...v("uv_index")), pm=v("pm2_5"), pmA=pm.length?pm.reduce((a,b)=>a+b,0)/pm.length:0, du=Math.max(0,...v("dust"));
+    if(uv>=6) out.push({lv:uv>=8?"warn":"adv",ic:"☀️",t:`紫外線 ${uv>=8?"非常に強い":"強い"}`,s:`UV指数 最大${Math.round(uv)}・日焼け止め・帽子`});
+    if(du>=50) out.push({lv:du>=100?"warn":"adv",ic:"🌫",t:`黄砂 ${du>=100?"多い":"やや多い"}`,s:"洗濯物は部屋干し・マスク"});
+    if(pmA>=35) out.push({lv:pmA>=70?"warn":"adv",ic:"😷",t:`PM2.5 ${pmA>=70?"多い":"やや多い"}`,s:`1日平均 約${Math.round(pmA)}μg/m³`}); }
+  const D=typeof wxDay==="function"?wxDay(t):null; if(D&&D.max!=null){ if(D.max>=31) out.push({lv:D.max>=35?"warn":"adv",ic:"🥵",t:`最高${D.max}°`,s:"熱中症に注意・水分と塩分"}); else if(D.max-D.min>=10) out.push({lv:"info",ic:"🧥",t:`寒暖差 ${D.max-D.min}°`,s:"脱ぎ着しやすい服で"}); if(D.min<=3) out.push({lv:"info",ic:"🥶",t:`最低${D.min}°`,s:"冷え込み・路面の凍結"}); }
+  return out; }
+function wxAlertsHTML(){ let C; try{ C=wxaChips(); }catch(_){ return ""; } if(!C.length) return "";
+  return `<div class="wxa" role="list" aria-label="外の様子">${C.map(c=>{ const tag=c.href?"a":"div"; return `<${tag} class="wxa-c ${c.lv}" role="listitem" ${c.href?`href="${c.href}" target="_blank" rel="noopener"`:""}><span class="wxa-i">${c.ic}</span><span class="wxa-t"><b>${esc(c.t)}</b><small>${esc(c.s)}</small></span>${c.href?`<span class="chev">›</span>`:""}</${tag}>`; }).join("")}</div>`; }
+if(typeof document!=="undefined"&&typeof setTimeout==="function"){ setTimeout(()=>wxaLoad(),4000); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") setTimeout(()=>wxaLoad(),1500); }); }
+/* v322: 追加画面が意図せず開く（保存せず閉じる率が高い）対策。スクロール直後の引っぱりは無視、少し深く引いたときだけ。設定で「引っぱって追加」を止められる */
+let lastScrollAt=0; if(typeof addEventListener==="function") addEventListener("scroll",()=>{ lastScrollAt=Date.now(); },{passive:true});
+const pullOK=()=>prefs.pullAdd!=="off"&&Date.now()-lastScrollAt>450;
+
+/* v323: 利用状況に合わせて。①いちばん多い操作＝家事を、ホームからワンタップで ②よく使う夜（19〜21時）に「今日のまとめ・明日の準備」を出し、相手に送れる ③ホーム画面のアプリのアイコンに残りの数（対応端末のみ） */
+function quickChores(){ const t=today(), from=addDays(t,-13), sc=c=>{ let n=0; for(let i=0;i<14;i++) n+=chCount(c,addDays(t,-i)); return n; };
+  return (state.chores||[]).filter(c=>!c.archived).map(c=>({c,n:sc(c)})).filter(x=>x.n>=2).sort((a,b)=>b.n-a.n).slice(0,6).map(x=>x.c); }
+function quickChoresHTML(){ let L; try{ L=quickChores(); }catch(_){ return ""; } if(L.length<2) return ""; const t=today();
+  return `<div class="qch"><div class="qch-h"><b>🧹 よくやる家事</b><small class="who">タップで記録</small></div><div class="qch-l">${L.map(c=>{ const n=chCount(c,t), m=chMulti(c);
+    return `<button type="button" class="qch-b ${n?"on":""}" data-qch="${esc(c.id)}" aria-label="${esc(c.text)}${m?" を1回記録":n?" の記録を取り消す":" を記録"}"><span>${esc(String(c.text).slice(0,9))}</span><i>${n?(m?`×${n}`:"✓"):m?"＋1":"○"}</i></button>`; }).join("")}</div></div>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-qch]"); if(!b) return; e.stopPropagation(); const c=state.chores.find(x=>x.id===b.dataset.qch); if(!c) return; if(chMulti(c)) choreMore(c.id,1); else choreToggle(c.id); },true);
+/* 夜のまとめ */
+function eveOn(){ const h=new Date().getHours(); return (h>=19||h<2)&&(()=>{ try{ return localStorage.getItem("futari.eveHide")!==today(); }catch(_){ return true; } })(); }
+function eveText(){ const t=today(), m=addDays(t,1), me=myRole(), ot=otherRole(), E=[]; try{ for(const e of duoActivityEntries(t)) E.push(e); }catch(_){} try{ for(const e of rvPrivEntries(t)) E.push(e); }catch(_){}
+  const cnt=r=>E.filter(e=>e.role===r||e.role==="both").length;
+  const ev=(state.events||[]).filter(e=>e.date===m).sort((a,b)=>(a.start||"99")<(b.start||"99")?-1:1);
+  const sh=["h","w"].map(r=>{ const s=shiftOf(r,m); return s?`${nameOf(r)} ${SHIFT_NAME[s]||s}`:""; }).filter(Boolean);
+  const G=typeof gomiOn==="function"?gomiOn(m):[], W=typeof wxDay==="function"?wxDay(m):null;
+  return {t,m,me:cnt(me),ot:cnt(ot),ev,sh,G,W,topics:typeof talkTopicsN==="function"?talkTopicsN():0}; }
+function eveHTML(){ if(!eveOn()) return ""; let X; try{ X=eveText(); }catch(_){ return ""; } const me=myRole(), ot=otherRole(), mm=parse(X.m);
+  return `<section class="eve"><div class="eve-h"><b>🌙 今日のまとめ・明日の準備</b><button type="button" class="icon-btn" data-eve="hide" aria-label="今日は閉じる">×</button></div>
+    <div class="eve-k"><button type="button" data-eve="rv"><b>${X.me}</b><small>${esc(nameOf(me))}がやったこと</small></button><button type="button" data-eve="rv"><b>${X.ot}</b><small>${esc(nameOf(ot))}がやったこと</small></button>${X.topics?`<button type="button" data-go2="talk"><b>${X.topics}</b><small>話すこと</small></button>`:""}</div>
+    <div class="eve-tm"><b>明日 ${mm.getMonth()+1}/${mm.getDate()}（${WDN[mm.getDay()]}）</b>${typeof dayInfoHTML==="function"?dayInfoHTML(X.m):""}
+      ${X.sh.length?`<div class="eve-r">👷 ${esc(X.sh.join("・"))}</div>`:""}${X.ev.length?X.ev.slice(0,4).map(e=>`<div class="eve-r">📅 ${e.start?esc(e.start)+" ":""}${esc(String(e.text).slice(0,30))}</div>`).join(""):`<div class="eve-r who">ふたりの予定はありません</div>`}</div>
+    <div class="eve-a"><button type="button" class="btn" data-eve="share">📤 明日の予定を${esc(nameOf(ot))}に送る</button><button type="button" class="link" data-go2="cal">カレンダー ›</button></div></section>`; }
+async function eveShare(){ const X=eveText(), mm=parse(X.m), W=X.W;
+  const lines=[`【明日 ${mm.getMonth()+1}/${mm.getDate()}（${WDN[mm.getDay()]}）】`, W?`天気：${WXN[W.k]||""} ${W.max}°/${W.min}°${W.pop>=30?` 傘${W.pop}%`:""}`:"", X.sh.length?`シフト：${X.sh.join("・")}`:"", X.G.length?`ごみ：${X.G.join("・")}`:"", ...X.ev.map(e=>`・${e.start?e.start+" ":""}${e.text}`)].filter(Boolean);
+  const txt=lines.join("\n")+"\n（ふたりのリストより）";
+  try{ if(navigator.share){ await navigator.share({text:txt}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  if(typeof copyText==="function") copyText(txt); }
+document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-eve]"); if(!b) return; e.stopPropagation(); const a=b.dataset.eve;
+  if(a==="hide"){ try{ localStorage.setItem("futari.eveHide",today()); }catch(_){} haptic("tick"); render(); }
+  else if(a==="rv"){ state.dayView="review"; state.rvPer="week"; state.rvDay=today(); go("daylog"); }
+  else if(a==="share") eveShare(); },true);
+/* アイコンの数字 */
+let _badgeN=-1; function appBadge(n){ try{ if(n===_badgeN||!("setAppBadge" in navigator)) return; _badgeN=n; (n?navigator.setAppBadge(n):navigator.clearAppBadge()).catch(()=>{}); }catch(_){} }
+/* v323: AIの返事が配列・入れ子・文字列など別の形で返っても答えを拾う。拾えないときは速いモデルで1回だけ作り直す（「うまく答えを作れませんでした」対策） */
+function aiNorm(d){ try{ if(typeof d==="string"){ const s=d.trim().replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,""); try{ d=JSON.parse(s); }catch(_){ return {reply:s}; } }
+  if(Array.isArray(d)){ const o=d.find(x=>x&&typeof x==="object"&&(x.reply||x.answer||x.text||Array.isArray(x.acts))); if(o) return aiNorm(o); const ss=d.filter(x=>typeof x==="string").join("\n"); return ss?{reply:ss}:{}; }
+  if(!d||typeof d!=="object") return {};
+  if(!aiHasReply(d)) for(const k of ["response","result","data","output","message","content","answer_json","json"]){ const v=d[k]; if(v&&typeof v==="object"&&!Array.isArray(v)&&aiHasReply(v)) return {...v,...(Array.isArray(d.acts)&&!v.acts?{acts:d.acts}:{})}; if(typeof v==="string"&&v.trim()) return {...d,reply:v}; }
+  return d; }catch(_){ return d||{}; } }
+function aiHasReply(d){ return !!(d&&typeof d==="object"&&[d.reply,d.answer,d.text].some(v=>typeof v==="string"&&v.trim())); }
+
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -7877,7 +7962,7 @@ function aiDoAct(li,ai){ const A=state.ai, e=A.log[li], x=e&&e.a&&e.a.acts&&e.a.
       const key=String(x.item||"").trim(), checks=(p.checks||[]).map(c=>({...c})); let i=checks.findIndex(c=>c.t===key); if(i<0) i=checks.findIndex(c=>key&&(c.t.includes(key)||key.includes(c.t)));
       if(i<0){ if(!key){ toast("チェック項目が分かりませんでした"); return; } checks.push({t:key.slice(0,80),done:false}); i=checks.length-1; }
       if(x.note!=null&&String(x.note).trim()) Object.assign(checks[i],{m:String(x.note).trim().slice(0,300),mAt:Date.now(),mBy:myRole()});
-      if(typeof x.done==="boolean") checks[i].done=x.done; p.checks=checks; dupd("plans",p.id,{checks,updatedAt:Date.now()}); }
+      if(typeof x.done==="boolean") checks[i].done=x.done; p.checks=checks; const allD=checks.length&&checks.every(c=>c.done)&&!p.done&&p.cat!=="anniv"; if(allD){ p.done=true; p.doneAt=Date.now(); } dupd("plans",p.id,allD?{checks,done:true,doneAt:p.doneAt,updatedAt:Date.now()}:{checks,updatedAt:Date.now()}); } /* v322: AIからチェックしても、全部済んだら完了（防災など） */
     else if(x.type==="done"){ const R=x._r; if(!R||!(state[R.c]||[]).find(i=>i.id===R.id)){ toast("対象の項目が見つかりませんでした"); return; } rightAction(R.c,R.id); }
     else if(x.type==="edit"||x.type==="delete"||x.type==="skip"){ const R=x._r, it=R&&(state[R.c]||[]).find(i=>i.id===R.id); if(!it){ toast("対象の項目が見つかりませんでした"); return; } const c=R.c;
       if(x.type==="delete"){ if(!canDelete(c,it)) return; removeWithUndo(c,[it.id],`「${cut2(it.text)}」を削除しました`); x.ok=true; render(); return; }
@@ -8179,6 +8264,7 @@ ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフ�
   const RF={...(state.ai.refs||{})}, req=(tier,c2)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},c2,tier==="pro"?(opt.brief?90000:60000):45000);
   let d; try{ d=await req(isOp?"quick":"pro",ctl); }catch(e1){ if(aiStoreLimited(e1)||isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
     if(A.runId!==runId)return;
+    if(typeof aiNorm==="function"){ d=aiNorm(d); if(!aiHasReply(d)&&!(Array.isArray(d.acts)&&d.acts.length)){ try{ A.phase="答えを作り直しています"; aiWaitPaint(); d=aiNorm(await req("quick",ctl)); }catch(_){} if(A.runId!==runId)return; } }
     const reply=aiReplyText((d&&(d.reply||d.answer||d.text))||"")||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(AI_REF_TYPES.has(x.type)&&!RF[x.ref])&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null,...(Array.isArray(x.refs)?{_rs:x.refs.map(k=>RF[k]).filter(Boolean)}:{})}));
     try{ usageFeat("aiProp",acts.length); }catch(_){}
@@ -8218,7 +8304,7 @@ const kgDef=g=>{ const G=KGROUPS.find(x=>x[0]===g); return G?((state.kLast||{})[
 function kindList(all){ const base=KGROUPS.map(g=>g[0]), ord=String(prefs.kindOrder||"").split(",").filter(k=>base.includes(k)), L=[...ord,...base.filter(k=>!ord.includes(k))];
   if(all) return L; const hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean)); const v=L.filter(k=>!hid.has(k)); return v.length?v:L; }
 function kindCardHTML(){ const L=kindList(true), hid=new Set(String(prefs.kindHide||"").split(",").filter(Boolean));
-  return `<section class="card" id="kindCard"><h2>追加画面の種類</h2><p class="who">↑↓で順番、右の丸（✓＝出す）で表示を切り替え。出さない種類も、各タブから追加するときは使えます</p>
+  return `<section class="card" id="kindCard"><h2>追加画面の種類</h2><p class="who">↑↓で順番、右の丸（✓＝出す）で表示を切り替え。出さない種類も、各タブから追加するときは使えます</p><div class="edit-row"><span class="who">画面のいちばん上で下に引っぱって追加</span></div><div class="opts"><button class="opt" data-pref="pullAdd" data-val="on" aria-pressed="${prefs.pullAdd!=="off"}">使う</button><button class="opt" data-pref="pullAdd" data-val="off" aria-pressed="${prefs.pullAdd==="off"}">使わない（＋ボタンだけ）</button></div>
     <ul class="kind-cfg">${L.map((k,i)=>`<li class="${hid.has(k)?"off":""}"><i class="dotc" style="background:var(${KINDS[KGROUPS.find(g=>g[0]===k)[2][0]].c})"></i><span>${esc(KGROUPS.find(g=>g[0]===k)[1])}${KGROUPS.find(g=>g[0]===k)[2].length>1?`<small class="kc-sub">${({event:"ふたりの予定・自分の時間",topic:"議題・困りごと",money:"出費・毎月の支払い",plan:"ふたりの将来・自分のやりたいこと"})[k]||""}</small>`:""}</span>
       <button class="icon-btn sm" data-kmv="${k}|-1" ${i?"":"disabled"} aria-label="上へ">↑</button><button class="icon-btn sm" data-kmv="${k}|1" ${i<L.length-1?"":"disabled"} aria-label="下へ">↓</button>
       <button class="kv ${hid.has(k)?"":"on"}" data-khide="${k}" aria-pressed="${!hid.has(k)}" aria-label="${hid.has(k)?"出さない（押すと出す）":"出す（押すと出さない）"}">${hid.has(k)?"":"✓"}</button></li>`).join("")}</ul>
@@ -8872,7 +8958,7 @@ function endSwipe(){
     return;
   }
   state.busy=false; setPull(0);
-  if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER) openSheet(); else if(state.dirty) render(); return; }
+  if(s.axis==="y"&&s.grid){ if(s.dy>PULL_TRIGGER&&prefs.pullAdd!=="off") openSheet(); else if(state.dirty) render(); return; }
   if(s.tt){ s.tt.style.transition="transform .18s,opacity .18s"; s.tt.style.transform=""; s.tt.style.opacity=""; }
   if(s.axis==="x"&&s.tt){ if(Math.abs(s.dx)>55) ttShiftDay(s.dx<0?1:-1); else if(state.dirty) render(); return; }
   const tabSw=!s.grid&&!s.strip, need=tabSw?Math.max(90,innerWidth*.28):55;
@@ -8913,13 +8999,13 @@ function endPaint(){ const p=paintSt; paintSt=null; state.busy=false; suppressCl
   if(p&&Object.keys(p.changes).length){ shiftEdit(p.role,p.changes); } render(); }
 
 /* pull down anywhere while at the top → add (diary: write today's entry). Low threshold, gesture kept inside the page. */
-const PULL_TRIGGER=56; /* v243: 36→56（スクロールの戻りで追加画面が開かないように） */
+const PULL_TRIGGER=72; /* v243: 36→56（スクロールの戻りで追加画面が開かないように） */
 function setPull(dy){ const h=Math.min(44,dy*.8); $("pull").style.height=h+"px"; const armed=dy>PULL_TRIGGER; if(armed&&!$("pull").classList.contains("armed")) haptic("arm"); $("pull").classList.toggle("armed",armed); $("pullText").textContent=armed?(state.view==="diary"?"離すと今日の日記":state.view==="reflect"?"離すと今日の内省":"離すと追加"):"引っぱって追加"; }
 let pull=null;
 const atTop=()=>(window.scrollY||document.documentElement.scrollTop||0)<=4;
 document.addEventListener("touchstart",e=>{
   pull=null;
-  if(state.sheet.open||state.editing||state.paint.on||state.view==="settings"||!atTop()) return;
+  if(state.sheet.open||state.editing||state.paint.on||state.view==="settings"||!atTop()||(typeof pullOK==="function"&&!pullOK())) return;
   if(e.target.closest("#grid,.rail,.sheet,input,textarea,.edit,.toast,.pal")) return;
   pull={y:e.touches[0].clientY,x:e.touches[0].clientX,dy:0};
 },{passive:true});
@@ -9885,7 +9971,7 @@ function briefHTML(withChecks){
     const HH=homeHidden(), dupK=new Set(state.view==="home"?["qa"].filter(k=>!HH.has(k)&&homeOrder().includes(k)) /* v257: 習慣は「今日やること」にも出す（下の習慣カードと両方） */:[]), pcT=pc.filter(x=>!dupK.has(x.key)); /* v243 */
     const tiles=pcT.map(x=>{ const [v,col]=CHK_LOOK[x.key]||["check","--accent"]; return `<div class="htile-w" style="--tc:var(${col})"><button class="htile" data-chk="${x.key}" style="--tc:var(${col})"><span class="ht-top"><span class="ht-ic">${fIcon(v)||ic("spark")}</span><b class="ht-n">${x.num}</b></span><span class="ht-t">${esc(x.title)}</span><small class="ht-d">${esc(x.desc||"タップで確認")}</small></button><button class="ht-skip" data-chkskip="${x.key}" aria-label="${esc(x.title)}は今日は確認済み・見送り">✓ 見送り</button></div>`; }).join("");
     return `<section class="hcard tdo-card"><div class="tdo-h">${ring}<div><h3>今日やること</h3><div class="who">${pc.length?`残り ${pc.length}・済み ${done}/${N}`:"ぜんぶ済んでいます ✓"}</div></div></div>
-      ${pcT.length?`<div class="htiles">${tiles}</div>`:""}${typeof cautionTodayHTML==="function"?cautionTodayHTML():""}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
+      ${typeof wxAlertsHTML==="function"?wxAlertsHTML():""}${pcT.length?`<div class="htiles">${tiles}</div>`:""}${typeof quickChoresHTML==="function"?quickChoresHTML():""}${typeof cautionTodayHTML==="function"?cautionTodayHTML():""}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
       ${gomiBarHTML()}${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`; }
   if(!L.length&&!wn.length&&!prep.length&&!pc.length) return withChecks?`<section class="brief"><div class="br-h"><b>今日やること</b></div><div class="hempty">✓ 今日やることは全部済んでいます</div></section>`:"";
   return `<section class="brief"><div class="br-h"><b>${withChecks?"今日やること":"今日のまとめ"}</b>${withChecks&&pc.length?`<button class="link" data-go2="check">未入力・未確認 ${pc.length} ›</button>`:`<span class="who">${jpDate(t)}</span>`}</div>
