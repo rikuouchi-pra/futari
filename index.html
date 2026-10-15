@@ -1033,6 +1033,16 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tm textarea{width:100%;box-sizing:border-box;border-radius:14px}.tm-a{display:flex;gap:6px;flex-wrap:wrap}.tm-a .btn{flex:1;min-width:30%;font-size:12.5px}
 /* v328 */
 #tbar{touch-action:pan-y}#tbar.tb-drag .on{transform:translateX(var(--tbdx,0));transition:none}#tbar .on{transition:transform .25s ease}
+/* v329 */
+#edgeBack{position:fixed;left:-56px;top:50%;width:48px;height:48px;margin-top:-24px;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:300;background:var(--surface);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:90;transition:left .15s,background .15s;pointer-events:none}
+#edgeBack.on{left:calc(-56px + 70px * var(--eb,0))}#edgeBack.go{background:var(--accent);color:#fff}
+#lpScrim{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#lpMenu{position:fixed;z-index:96;min-width:190px;max-width:80vw;padding:6px;border-radius:18px;background:var(--surface);box-shadow:0 14px 40px rgba(0,0,0,.28);display:flex;flex-direction:column;transform:scale(.92);opacity:0;transform-origin:bottom center;transition:transform .16s ease,opacity .16s ease}
+#lpMenu.on{transform:none;opacity:1}#lpMenu .lp-t{font-size:11.5px;color:var(--muted);padding:6px 12px 4px;font-weight:700}
+#lpMenu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:600}#lpMenu button span{width:20px;text-align:center;color:var(--accent)}#lpMenu button:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+#toTop{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:40;border:0;border-radius:999px;padding:8px 16px;font-weight:800;font-size:13px;background:var(--surface);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.18);transition:transform .2s,opacity .2s}
+#toTop.on{transform:translate(-50%,0);opacity:.95;pointer-events:auto}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2436,7 +2446,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="328";
+const APP_VERSION="329";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6775,6 +6785,50 @@ function tbHubGo(n){ const bar=$("tbar"); if(!bar||prefs.nav!=="tab"||prefs.hubs
     if(Math.abs(dx)>=36&&Math.abs(dx)>Math.abs(dy)*1.3){ sup=Date.now(); tbHubGo(dx<0?1:-1); } },{capture:true});
   document.addEventListener("click",e=>{ if(Date.now()-sup<400&&e.target.closest&&e.target.closest("#tbar")){ e.stopPropagation(); e.preventDefault(); } },true);
   let wAt=0; document.addEventListener("wheel",e=>{ if(!(e.target.closest&&e.target.closest("#tbar"))) return; const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(Math.abs(d)<12) return; e.preventDefault(); if(Date.now()-wAt<450) return; wAt=Date.now(); tbHubGo(d>0?1:-1); },{passive:false}); }
+
+/* v329: 直感的な操作をまとめて追加。
+   ①画面の左端から右へスワイプ→前の画面に戻る ②下のメニューを長押し→その中の画面を直接選ぶ ③＋を長押し→追加する種類を選ぶ
+   ④下までスクロールしたら「↑ 上へ」 ⑤タブ切り替えをなめらかに（View Transitions） ⑥iPad・PCのキーボード操作（/ 検索・N 追加・1〜5 メニュー・Esc 閉じる） */
+if(typeof window!=="undefined"&&typeof document!=="undefined"){
+/* ①前の画面に戻る */
+state.navHist=state.navHist||[]; let navBacking=false;
+{ const o=window.go; if(typeof o==="function") window.go=function(v,anim){ const p=state.view; const r=o.apply(this,arguments); try{ if(!navBacking&&p&&state.view!==p){ state.navHist.push(p); if(state.navHist.length>30) state.navHist.shift(); } }catch(_){} return r; }; }
+function navBack(){ const H=state.navHist; while(H.length&&H[H.length-1]===state.view) H.pop(); const p=H.pop(); if(!p){ haptic("tick"); return false; } navBacking=true; try{ go(p,-40); } finally{ navBacking=false; } return true; }
+{ let E=null; const ind=()=>{ let d=$("edgeBack"); if(!d){ d=document.createElement("div"); d.id="edgeBack"; d.innerHTML="‹"; document.body.appendChild(d); } return d; };
+  document.addEventListener("touchstart",e=>{ const t=e.touches[0]; E=(t.clientX<=22&&!state.sheet.open&&!(e.target.closest&&e.target.closest("#tbar,.sheet,input,textarea")))?{x:t.clientX,y:t.clientY,dx:0}:null; },{passive:true,capture:true});
+  document.addEventListener("touchmove",e=>{ if(!E) return; const t=e.touches[0]; E.dx=t.clientX-E.x; const dy=Math.abs(t.clientY-E.y); if(dy>Math.abs(E.dx)&&dy>14){ E=null; ind().classList.remove("on"); return; } if(E.dx>8){ const d=ind(); d.classList.add("on"); d.style.setProperty("--eb",Math.min(1,E.dx/90)); d.classList.toggle("go",E.dx>=80); if(e.cancelable) e.preventDefault(); e.stopPropagation(); } },{passive:false,capture:true});
+  document.addEventListener("touchend",e=>{ if(!E) return; const go_=E.dx>=80; E=null; const d=$("edgeBack"); if(d) d.classList.remove("on","go"); if(go_){ e.stopPropagation(); navBack(); } },{capture:true}); }
+/* ②③長押しメニュー */
+function lpMenu(x,y,items,title){ lpClose(); const m=document.createElement("div"); m.id="lpMenu"; m.setAttribute("role","menu");
+  m.innerHTML=`${title?`<div class="lp-t">${esc(title)}</div>`:""}${items.map((it,i)=>`<button type="button" role="menuitem" data-lpi="${i}"><span>${it.ic||""}</span>${esc(it.l)}</button>`).join("")}`;
+  document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x-r.width/2))+"px"; m.style.top=Math.max(8,y-r.height-14)+"px";
+  const sc=document.createElement("div"); sc.id="lpScrim"; document.body.insertBefore(sc,m); sc.addEventListener("click",lpClose); sc.addEventListener("touchstart",lpClose,{passive:true});
+  m.addEventListener("click",ev=>{ const b=ev.target.closest("[data-lpi]"); if(!b) return; ev.stopPropagation(); const it=items[Number(b.dataset.lpi)]; lpClose(); haptic("tick"); it.f(); });
+  haptic("arm"); requestAnimationFrame(()=>m.classList.add("on")); }
+function lpClose(){ const m=$("lpMenu"), s=$("lpScrim"); if(m) m.remove(); if(s) s.remove(); }
+let lpSup=0;
+function lpBind(sel,build){ let t=null, sx=0, sy=0;
+  document.addEventListener("pointerdown",e=>{ const el=e.target.closest&&e.target.closest(sel); if(!el) return; sx=e.clientX; sy=e.clientY; clearTimeout(t); t=setTimeout(()=>{ const B=build(el); if(!B) return; lpSup=Date.now(); const r=el.getBoundingClientRect(); lpMenu(r.left+r.width/2,r.top,B.items,B.title); },460); },true);
+  const cancel=e=>{ if(t&&(!e||!e.clientX||Math.hypot(e.clientX-sx,e.clientY-sy)>10)){ clearTimeout(t); t=null; } };
+  document.addEventListener("pointermove",cancel,true); document.addEventListener("pointerup",()=>{ clearTimeout(t); t=null; },true); document.addEventListener("pointercancel",()=>{ clearTimeout(t); t=null; },true); }
+document.addEventListener("click",e=>{ if(Date.now()-lpSup<600&&e.target.closest&&e.target.closest('#tbar,#plus')){ e.stopPropagation(); e.preventDefault(); } },true);
+document.addEventListener("contextmenu",e=>{ if(e.target.closest&&e.target.closest('#tbar,#plus')) e.preventDefault(); },true);
+lpBind('#tbar [data-tb^="hub:"]',el=>{ const H=HUBS.find(h=>"hub:"+h.k===el.dataset.tb); if(!H) return null; const hs=typeof hiddenTabs==="function"?hiddenTabs():new Set();
+  return {title:H.l,items:H.v.filter(([k])=>!hs.has(k)||["home","settings","usage"].includes(k)).map(([k,l])=>({l:l||TITLES[k]||k,ic:k===state.view?"●":"",f:()=>{ if(H.k==="us"&&typeof usToday==="function") usToday(); go(k); }}))}; });
+lpBind('#plus',()=>({title:"追加する",items:[["task","✓","やること"],["shop","🛒","買い物"],["event","📅","ふたりの予定"],["topic","💬","話すこと"],["chore","🧹","家事"],["trouble","🧩","気になること"],["habit","↻","習慣"],["spend","¥","出費"]].filter(([k])=>KINDS[k]||k==="spend").map(([k,ic,l])=>({ic,l,f:()=>openSheet(k)}))}));
+/* ④上へ */
+{ let b=null, sT=0; addEventListener("scroll",()=>{ clearTimeout(sT); sT=setTimeout(()=>{ const show=scrollY>900&&!state.sheet.open; if(show&&!b){ b=document.createElement("button"); b.id="toTop"; b.type="button"; b.setAttribute("aria-label","いちばん上へ"); b.textContent="↑ 上へ"; b.onclick=()=>{ haptic("tick"); scrollTo({top:0,behavior:"smooth"}); }; document.body.appendChild(b); } if(b) b.classList.toggle("on",show); },120); },{passive:true}); }
+/* ⑤なめらかな切り替え */
+{ const o=window.tbGo, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; if(typeof o==="function"&&document.startViewTransition&&!reduce) window.tbGo=function(b,f){ return o.call(this,b,()=>{ try{ document.startViewTransition(()=>f()); }catch(_){ f(); } }); }; }
+/* ⑥キーボード */
+document.addEventListener("keydown",e=>{ if(e.metaKey||e.ctrlKey||e.altKey||e.isComposing) return; const a=document.activeElement, typing=a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.isContentEditable);
+  if(e.key==="Escape"){ if($("lpMenu")){ lpClose(); return; } if(state.sheet.open){ closeSheet(); return; } if(typing) a.blur(); return; }
+  if(typing) return;
+  if(e.key==="/"){ e.preventDefault(); if(state.view!=="home") go("home"); setTimeout(()=>{ const s=$("srchIn"); if(s){ s.focus(); s.scrollIntoView({block:"center"}); } },120); }
+  else if(e.key==="n"||e.key==="N"){ e.preventDefault(); openAdd(); }
+  else if(/^[1-5]$/.test(e.key)){ const L=[...document.querySelectorAll('#tbar [data-tb]')], b=L[Number(e.key)-1]; if(b){ e.preventDefault(); b.click(); } }
+  else if(e.key==="ArrowLeft"&&e.altKey===false&&e.shiftKey){ navBack(); } });
+}
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
