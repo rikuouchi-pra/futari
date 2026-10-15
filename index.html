@@ -1031,6 +1031,8 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tm-h{display:flex;align-items:center;gap:8px}.tm-h b{font-size:15px}.tm-el{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .tm-cur{display:flex;flex-direction:column;gap:2px}.tm-cur>small{font-size:11px;color:var(--muted)}.tm-cur>b{font-size:19px;line-height:1.35}
 .tm textarea{width:100%;box-sizing:border-box;border-radius:14px}.tm-a{display:flex;gap:6px;flex-wrap:wrap}.tm-a .btn{flex:1;min-width:30%;font-size:12.5px}
+/* v328 */
+#tbar{touch-action:pan-y}#tbar.tb-drag .on{transform:translateX(var(--tbdx,0));transition:none}#tbar .on{transition:transform .25s ease}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2434,7 +2436,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="327";
+const APP_VERSION="328";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6760,6 +6762,19 @@ document.addEventListener("click",e=>{ if(state.view!=="talk") return; const b=e
   else if(a==="later"){ const v=Date.now(); dupd("topics",cur.id,{tmLater:v,...(dec?{note:(cur.note?cur.note+"\n":"")+dec}:{})}); cur.tmLater=v; if(dec) cur.note=(cur.note?cur.note+"\n":"")+dec; haptic("tick"); }
   else if(a==="next"){ const nd=typeof nextTalkDay==="function"?(nextTalkDay(d)||addDays(d,1)):addDays(d,1); dupd("topics",cur.id,{on:nd,tmLater:null,...(dec?{note:(cur.note?cur.note+"\n":"")+dec}:{})}); cur.on=nd; if(dec) appendTalkNote(d,`・${cur.text}：${dec}（次回へ）`); state.tm.next++; haptic("tick"); }
   render(); },true);
+
+/* v328: 下のメニュー（今日・予定・ふたり・将来・その他）を左右にスワイプして隣へ。トラックパッドの横スクロールでも移動。指に合わせて選択の光が動く */
+function tbHubGo(n){ const bar=$("tbar"); if(!bar||prefs.nav!=="tab"||prefs.hubs==="off") return false; const L=[...bar.querySelectorAll('[data-tb^="hub:"]')]; if(!L.length) return false;
+  const cur=hubOf(state.view).k, i=L.findIndex(b=>b.dataset.tb==="hub:"+cur), j=Math.max(0,Math.min(L.length-1,(i<0?0:i)+n)); if(j===i) { haptic("tick"); return false; }
+  const b=L[j], H=HUBS.find(h=>"hub:"+h.k===b.dataset.tb); if(!H) return false; tmoreToggle&&tmoreToggle(false); if(H.k==="us"&&typeof usToday==="function") usToday();
+  const dest=(state.hubLast||{})[H.k]||H.v[0][0]; haptic("tick"); tbGo(b,()=>go(dest,n>0?40:-40)); return true; }
+{ let T=null, sup=0;
+  document.addEventListener("touchstart",e=>{ const bar=e.target.closest&&e.target.closest("#tbar"); if(!bar){ T=null; return; } T={x:e.touches[0].clientX,y:e.touches[0].clientY,bar,w:bar.getBoundingClientRect().width}; },{passive:true,capture:true});
+  document.addEventListener("touchmove",e=>{ if(!T) return; const dx=e.touches[0].clientX-T.x, dy=e.touches[0].clientY-T.y; if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)){ T.bar.style.setProperty("--tbdx",Math.max(-40,Math.min(40,dx*.35))+"px"); T.bar.classList.add("tb-drag"); if(e.cancelable) e.preventDefault(); } },{passive:false,capture:true});
+  document.addEventListener("touchend",e=>{ if(!T) return; const t=e.changedTouches[0], dx=t.clientX-T.x, dy=t.clientY-T.y, bar=T.bar; bar.classList.remove("tb-drag"); bar.style.removeProperty("--tbdx"); T=null;
+    if(Math.abs(dx)>=36&&Math.abs(dx)>Math.abs(dy)*1.3){ sup=Date.now(); tbHubGo(dx<0?1:-1); } },{capture:true});
+  document.addEventListener("click",e=>{ if(Date.now()-sup<400&&e.target.closest&&e.target.closest("#tbar")){ e.stopPropagation(); e.preventDefault(); } },true);
+  let wAt=0; document.addEventListener("wheel",e=>{ if(!(e.target.closest&&e.target.closest("#tbar"))) return; const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY; if(Math.abs(d)<12) return; e.preventDefault(); if(Date.now()-wAt<450) return; wAt=Date.now(); tbHubGo(d>0?1:-1); },{passive:false}); }
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
