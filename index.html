@@ -1043,6 +1043,9 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 #toTop{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:40;border:0;border-radius:999px;padding:8px 16px;font-weight:800;font-size:13px;background:var(--surface);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.18);transition:transform .2s,opacity .2s}
 #toTop.on{transform:translate(-50%,0);opacity:.95;pointer-events:auto}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
+/* v330 */
+#tbar,#tbar *,#plus,#lpMenu,#lpMenu *,.tabbar,.tabbar *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.navbk{all:unset;cursor:pointer;flex:none;width:30px;height:30px;margin-right:4px;border-radius:50%;display:inline-grid;place-items:center;font-size:24px;font-weight:300;line-height:1;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}.navbk[hidden]{display:none}.trow{align-items:center}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2373,7 +2376,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
   <header>
     <div class="pull" id="pull"><span id="pullText">引っぱって追加</span></div>
     <div class="brand">
-      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><h1 id="title">やること</h1><span class="trow-r"><button class="share-shortcut" id="shareNotice" aria-label="相手からの共有通知">共有</button><button class="song" id="song" hidden aria-label="今日の1曲"></button><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
+      <div><div class="appname"><span id="appTitle">ふたりのリスト</span> <span class="sync" id="sync"><span class="dot"></span><span id="syncText">接続中…</span></span></div><div class="greet" id="greet" hidden></div><div class="trow"><button type="button" class="navbk" id="navBk" aria-label="前の画面に戻る" hidden>‹</button><h1 id="title">やること</h1><span class="trow-r"><button class="share-shortcut" id="shareNotice" aria-label="相手からの共有通知">共有</button><button class="song" id="song" hidden aria-label="今日の1曲"></button><button class="wx" id="wx" hidden aria-label="天気予報"></button><button class="hfold" id="hfold" aria-label="上部をたたむ"><svg viewBox="0 0 24 24"><path d="M6 14.5l6-6 6 6"/></svg></button></span></div><div class="hsub"><div class="lsw" id="lsw" role="group" aria-label="ふたり／じぶん"><button data-layer="us" aria-pressed="true">ふたり</button><button data-layer="me" aria-pressed="false"><svg viewBox="0 0 24 24" class="lic sm"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん</button></div><div class="dots" id="dots" aria-label="タブの位置"></div></div><div class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>じぶん専用：相手には見えません</div></div>
       <div class="hr">
         <button class="hbtn plus" id="plus" aria-label="追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <button class="hbtn" id="chkBtn" aria-label="未入力・未確認" style="position:relative"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16.5" rx="2.5"/><path d="M8.5 9.5l1.5 1.5 3-3M8.5 15.5l1.5 1.5 3-3M15 10h1M15 16h1"/></svg><span class="badge" id="b-chk" hidden></span></button>
@@ -2446,7 +2449,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="329";
+const APP_VERSION="330";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6792,16 +6795,18 @@ function tbHubGo(n){ const bar=$("tbar"); if(!bar||prefs.nav!=="tab"||prefs.hubs
 if(typeof window!=="undefined"&&typeof document!=="undefined"){
 /* ①前の画面に戻る */
 state.navHist=state.navHist||[]; let navBacking=false;
-{ const o=window.go; if(typeof o==="function") window.go=function(v,anim){ const p=state.view; const r=o.apply(this,arguments); try{ if(!navBacking&&p&&state.view!==p){ state.navHist.push(p); if(state.navHist.length>30) state.navHist.shift(); } }catch(_){} return r; }; }
-function navBack(){ const H=state.navHist; while(H.length&&H[H.length-1]===state.view) H.pop(); const p=H.pop(); if(!p){ haptic("tick"); return false; } navBacking=true; try{ go(p,-40); } finally{ navBacking=false; } return true; }
+{ const o=window.go; if(typeof o==="function") window.go=function(v,anim){ const p=state.view; const r=o.apply(this,arguments); try{ if(!navBacking&&p&&state.view!==p){ state.navHist.push(p); if(state.navHist.length>30) state.navHist.shift(); } navBkSync(); }catch(_){} return r; }; }
+function navBkSync(){ const b=$("navBk"); if(!b) return; const H=state.navHist; b.hidden=!H.some(v=>v!==state.view); }
+document.addEventListener("click",e=>{ if(e.target.closest&&e.target.closest("#navBk")){ e.stopPropagation(); haptic("tick"); navBack(); } },true);
+function navBack(){ const H=state.navHist; while(H.length&&H[H.length-1]===state.view) H.pop(); const p=H.pop(); if(!p){ haptic("tick"); return false; } navBacking=true; try{ go(p,-40); } finally{ navBacking=false; navBkSync(); } return true; }
 { let E=null; const ind=()=>{ let d=$("edgeBack"); if(!d){ d=document.createElement("div"); d.id="edgeBack"; d.innerHTML="‹"; document.body.appendChild(d); } return d; };
-  document.addEventListener("touchstart",e=>{ const t=e.touches[0]; E=(t.clientX<=22&&!state.sheet.open&&!(e.target.closest&&e.target.closest("#tbar,.sheet,input,textarea")))?{x:t.clientX,y:t.clientY,dx:0}:null; },{passive:true,capture:true});
+  document.addEventListener("touchstart",e=>{ const t=e.touches[0]; E=(t.clientX<=30&&!state.sheet.open&&!(e.target.closest&&e.target.closest("#tbar,.sheet,input,textarea")))?{x:t.clientX,y:t.clientY,dx:0}:null; },{passive:true,capture:true});
   document.addEventListener("touchmove",e=>{ if(!E) return; const t=e.touches[0]; E.dx=t.clientX-E.x; const dy=Math.abs(t.clientY-E.y); if(dy>Math.abs(E.dx)&&dy>14){ E=null; ind().classList.remove("on"); return; } if(E.dx>8){ const d=ind(); d.classList.add("on"); d.style.setProperty("--eb",Math.min(1,E.dx/90)); d.classList.toggle("go",E.dx>=80); if(e.cancelable) e.preventDefault(); e.stopPropagation(); } },{passive:false,capture:true});
   document.addEventListener("touchend",e=>{ if(!E) return; const go_=E.dx>=80; E=null; const d=$("edgeBack"); if(d) d.classList.remove("on","go"); if(go_){ e.stopPropagation(); navBack(); } },{capture:true}); }
 /* ②③長押しメニュー */
 function lpMenu(x,y,items,title){ lpClose(); const m=document.createElement("div"); m.id="lpMenu"; m.setAttribute("role","menu");
   m.innerHTML=`${title?`<div class="lp-t">${esc(title)}</div>`:""}${items.map((it,i)=>`<button type="button" role="menuitem" data-lpi="${i}"><span>${it.ic||""}</span>${esc(it.l)}</button>`).join("")}`;
-  document.body.appendChild(m); const r=m.getBoundingClientRect(); m.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x-r.width/2))+"px"; m.style.top=Math.max(8,y-r.height-14)+"px";
+  document.body.appendChild(m); const w=m.offsetWidth, hh=m.offsetHeight, vw=document.documentElement.clientWidth||innerWidth; m.style.left=Math.max(8,Math.min(vw-w-8,x-w/2))+"px"; m.style.top=Math.max(8,y-hh-14)+"px"; m.style.transformOrigin=`${Math.round(x-parseFloat(m.style.left))}px 100%`;
   const sc=document.createElement("div"); sc.id="lpScrim"; document.body.insertBefore(sc,m); sc.addEventListener("click",lpClose); sc.addEventListener("touchstart",lpClose,{passive:true});
   m.addEventListener("click",ev=>{ const b=ev.target.closest("[data-lpi]"); if(!b) return; ev.stopPropagation(); const it=items[Number(b.dataset.lpi)]; lpClose(); haptic("tick"); it.f(); });
   haptic("arm"); requestAnimationFrame(()=>m.classList.add("on")); }
@@ -9063,6 +9068,7 @@ function exportCSV(){
 let sw=null;
 $("app").addEventListener("pointerdown",e=>{
   if(e.button>0||state.editing) return;
+  if(e.pointerType!=="mouse"&&e.clientX<=30) return; /* v330: 左端は「前の画面に戻る」のスワイプ */
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
   /* v205: 横にスクロールできる場所（チップの列・表・ハブの切替など）では、タブ切替のスワイプを始めない */
   if(e.target.closest(".tt-overlap,#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
