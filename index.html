@@ -2434,7 +2434,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="326";
+const APP_VERSION="327";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6643,15 +6643,17 @@ const WXA_CITY="2321000", WXA_KEY="futari.wxa1";
 const JMA_W={"02":"暴風雪警報","03":"大雨警報","04":"洪水警報","05":"暴風警報","06":"大雪警報","07":"波浪警報","08":"高潮警報","10":"大雨注意報","12":"大雪注意報","13":"風雪注意報","14":"雷注意報","15":"強風注意報","16":"波浪注意報","17":"融雪注意報","18":"洪水注意報","19":"高潮注意報","20":"濃霧注意報","21":"乾燥注意報","22":"なだれ注意報","23":"低温注意報","24":"霜注意報","25":"着氷注意報","26":"着雪注意報","32":"暴風雪特別警報","33":"大雨特別警報","35":"暴風特別警報","36":"大雪特別警報","37":"波浪特別警報","38":"高潮特別警報"};
 const QK_SC={10:"1",20:"2",30:"3",40:"4",45:"5弱",46:"5弱以上",50:"5強",55:"6弱",60:"6強",70:"7"};
 async function wxaLoad(force){ try{ const c=JSON.parse(localStorage.getItem(WXA_KEY)||"null"); if(c){ state.wxa=c.d; if(!force&&Date.now()-c.at<20*60e3) return; } }catch(_){}
-  if(state.wxaBusy||!navigator.onLine) return; state.wxaBusy=true; const L=typeof wxLoc==="function"?wxLoc():{lat:35.0,lon:137.0}, d={...(state.wxa||{})};
-  const get=async u=>{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw 0; return r.json(); };
+  if((state.wxaBusy&&Date.now()-state.wxaBusy<30e3)||!navigator.onLine) return; state.wxaBusy=Date.now(); /* v327: 前の通信が止まったままでも30秒で次を試す */ const L=typeof wxLoc==="function"?wxLoc():{lat:35.0,lon:137.0}, d={...(state.wxa||{})};
+  const get=async u=>{ const c=new AbortController(), tm=setTimeout(()=>c.abort(),12000); try{ const r=await fetch(u,{cache:"no-store",signal:c.signal}); if(!r.ok) throw 0; return await r.json(); } finally{ clearTimeout(tm); } };
   const jobs=[
     get(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${L.lat}&longitude=${L.lon}&hourly=pm2_5,dust,uv_index&timezone=Asia%2FTokyo&forecast_days=2`).then(j=>{ d.aq=j.hourly; }).catch(()=>{}),
-    get("https://www.jma.go.jp/bosai/warning/data/warning/230000.json").then(j=>{ const out=[]; for(const at of j.areaTypes||[]) for(const a of at.areas||[]) if(a.code===WXA_CITY) for(const w of a.warnings||[]) if(w.code&&JMA_W[w.code]&&!/解除|なし/.test(w.status||"")) out.push({c:w.code,s:w.status}); d.warn={at:j.reportDatetime,list:out,head:String(j.headlineText||"").slice(0,120)}; }).catch(()=>{}),
+    get("https://www.jma.go.jp/bosai/warning/data/warning/230000.json").then(j=>{ const out=[]; for(const at of j.areaTypes||[]) for(const a of at.areas||[]) if(a.code===WXA_CITY) for(const w of a.warnings||[]) if(w.code&&JMA_W[w.code]&&!/解除|なし/.test(w.status||"")) out.push({c:w.code,s:w.status}); d.warn={at:j.reportDatetime,got:Date.now(),list:out,head:String(j.headlineText||"").slice(0,120)}; }).catch(()=>{ if(d.warn&&Date.now()-(d.warn.got||0)>60*60e3) d.warn=null; }),
     get("https://api.p2pquake.net/v2/history?codes=551&limit=20").then(j=>{ d.qk=(Array.isArray(j)?j:[]).map(x=>{ const e=x.earthquake||{}, pts=(x.points||[]).filter(p=>p.pref==="愛知県"), ai=pts.reduce((m,p)=>Math.max(m,p.scale||0),0); return {t:e.time||x.time,name:(e.hypocenter||{}).name||"",mag:(e.hypocenter||{}).magnitude,max:e.maxScale||0,ai}; }).filter(q=>q.t); }).catch(()=>{}) ];
-  await Promise.all(jobs); state.wxa=d; state.wxaBusy=false; try{ localStorage.setItem(WXA_KEY,JSON.stringify({at:Date.now(),d})); }catch(_){} if(state.view==="home") requestRender(); }
+  try{ await Promise.all(jobs); } finally{ state.wxaBusy=0; } state.wxa=d; try{ localStorage.setItem(WXA_KEY,JSON.stringify({at:Date.now(),d})); }catch(_){} if(state.view==="home") requestRender(); }
 function wxaChips(){ const A=state.wxa||{}, t=today(), out=[];
-  const W=A.warn&&A.warn.list||[]; for(const w of W){ const n=JMA_W[w.c], lv=/特別警報/.test(n)?"sp":/警報/.test(n)?"warn":"adv"; out.push({lv,ic:lv==="adv"?"⚠️":"🚨",t:n,s:"刈谷市"+(w.s==="発表"?"・新しく発表":""),href:`https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${WXA_CITY}`}); }
+  /* v327: 1時間以上前に取った警報・注意報は出さない（解除されたのに古い情報が残っていた）。気象庁の発表時刻を表示 */
+  const fresh=A.warn&&A.warn.got&&Date.now()-A.warn.got<60*60e3, rt=fresh&&A.warn.at?new Date(A.warn.at):null, rtl=rt&&!isNaN(rt)?`${rt.toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo",hour:"numeric",minute:"2-digit"})}の気象庁発表`:"";
+  const W=fresh?A.warn.list||[]:[]; for(const w of W){ const n=JMA_W[w.c], lv=/特別警報/.test(n)?"sp":/警報/.test(n)?"warn":"adv"; out.push({lv,ic:lv==="adv"?"⚠️":"🚨",t:n,s:"刈谷市"+(rtl?"・"+rtl:""),href:`https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${WXA_CITY}`}); }
   const Q=(A.qk||[]).filter(q=>{ const tm=new Date(String(q.t).replace(/\//g,"-").replace(" ","T")+"+09:00").getTime(); return Date.now()-tm<36*3600e3&&(q.ai>=20||q.max>=55); })[0];
   if(Q) out.push({lv:Q.ai>=40||Q.max>=55?"warn":"adv",ic:"🫨",t:`地震 ${String(Q.t).slice(5,16).replace(/^0/,"")}`,s:`${Q.name}${Q.mag>0?` M${Q.mag}`:""}${Q.ai?`・愛知で最大震度${QK_SC[Q.ai]||"-"}`:""}${Q.max>=55?`・最大震度${QK_SC[Q.max]}`:""}`,href:"https://www.jma.go.jp/bosai/map.html#contents=earthquake_map"});
   const H=A.aq; if(H&&H.time){ const ix=H.time.map((x,i)=>x.startsWith(t)?i:-1).filter(i=>i>=0), v=k=>ix.map(i=>(H[k]||[])[i]).filter(x=>x!=null);
