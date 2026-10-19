@@ -1073,6 +1073,11 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .lt-pbc{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,var(--reflect) 9%,transparent)}.lt-pbc b{font-size:13px}.lt-pbc svg{width:100%;height:auto}.lt-pbc .l{fill:none;stroke:var(--reflect);stroke-width:1.6}.lt-pbc circle{fill:var(--reflect)}.lt-pbc circle.sig{fill:#d0574f}.lt-pbc .ctr{stroke:var(--muted);stroke-width:1}.lt-pbc .lim{stroke:var(--muted);stroke-dasharray:4 3;stroke-width:1}.lt-pm{margin:0;font-size:12.5px}
 .lt-chk{background:color-mix(in srgb,var(--future) 10%,var(--surface))}.lt-ci{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--muted) 20%,transparent)}.lt-ci:first-of-type{border-top:0}.lt-ci span{font-size:12.5px}
 .lt-sub{font-size:13px}.lt-vr{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--future) 7%,transparent)}.lt-vh{display:flex;align-items:center;gap:6px;font-size:13px}.lt-vh span{flex:1}.lt-vn{font-variant-numeric:tabular-nums;font-size:15px}.lt-vr input[type=range]{width:100%}
+/* v334 */
+.ana-f{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:7px 10px;border-radius:12px;background:color-mix(in srgb,var(--reflect) 8%,transparent);font-size:13px}.ana-f small{grid-column:1/-1;font-size:11.5px;color:var(--muted)}.ana-f small i{font-style:normal}.ana-f b{font-variant-numeric:tabular-nums}
+.ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:96px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px}.ana-wd i{width:70%;background:var(--reflect);border-radius:6px 6px 2px 2px}.ana-wd b{font-size:11.5px}.ana-wd small{font-size:11px;color:var(--muted)}
+.ana-hr{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;height:56px;align-items:end}.ana-hr i{background:var(--future);border-radius:3px 3px 1px 1px}.ana-hx{display:flex;justify-content:space-between}.ana-hx small{font-size:10.5px;color:var(--muted)}
+.shq .chips{flex-wrap:wrap}.tabbar button:active .tb-i{transform:scale(.88)}.tb-i{transition:background .2s,transform .12s}.tt-bar .tb-h{cursor:pointer}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2476,7 +2481,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="333";
+const APP_VERSION="334";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3285,7 +3290,7 @@ function talkCard(d){
   const req=days.filter(q=>q>=talkSince()&&q<=t&&!["off","skip","before"].includes(talkState(q))), done=req.filter(q=>talkState(q)==="done").length;
   let streak=0; for(let q=talkState(t)==="done"?t:addDays(t,-1), n=0; n<400; q=addDays(q,-1), n++){ const s2=talkState(q); if(s2==="done") streak++; else if(s2==="off"||s2==="skip") continue; else break; }
   const LBL={done:"話した",skip:"見送り",off:"お休みの日",todo:"未記録",future:"",before:""};
-  const cell=q=>{ const s2=talkState(q); return `<i class="tk ${s2} ${q===d?"sel":""}" ${q<=t?`data-tkd="${q}"`:""} title="${short(q)} ${LBL[s2]}">${s2==="off"?"☾":parse(q).getDate()}</i>`; };
+  const cell=q=>{ const s2=talkState(q); return `<i class="tk ${s2} ${q===d?"sel":""}" ${q<=t?`data-tkd="${q}"`:`data-tkf="${q}"`} title="${short(q)} ${LBL[s2]}">${s2==="off"?"☾":parse(q).getDate()}</i>`; };
   const heldTime=x.heldAt?new Date(x.heldAt).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",hour12:false}):"";
   const heldEdit=st==="done"?`<details class="tk-set"><summary>話した記録を編集</summary><div class="edit-row"><span class="who">話した時刻</span><input type="time" id="talkHeldTime" data-talkdate="${d}" value="${esc(heldTime)}"><button class="btn" data-act="talkedit">メモを編集</button></div><div class="who">下の「決まったこと・メモ」はいつでも書き直せます</div></details>`:"";
   return `<div class="chart talkcard">${top}
@@ -5585,7 +5590,7 @@ $("main").addEventListener("click",e=>{
   const tt=e.target.closest("#tt"); if(tt&&state.ttPick&&!e.target.closest(".tt-b")){ const r=tt.getBoundingClientRect(), S0=ttS(); let m=Math.floor(((e.clientY-r.top)/TT_H*60+S0*60)/15)*15; m=Math.min(Math.max(m,S0*60),23*60+45); ttPlace(state.ttPick.c,state.ttPick.id,tt.dataset.ttdate,hhmm(m),null); return; }
   if(tt&&state.ttNewJust&&Date.now()-state.ttNewJust<400) return;
   if(tt&&state.ttSel&&!e.target.closest(".tt-b")){ state.ttSel=null; state.ttDelArm=false; } /* v164: 選択中でも1回のタップで新しい枠を出す */
-  if(e.target.closest("#ttNew")&&!e.target.closest("[data-nh]")){ const N=state.ttNew; state.pendTime=hhmm(N.s); state.pendEnd=hhmm(N.e%1440); state.pendPrivate=true; state.ttNew=null; openSheet("task"); return; } /* v178: タイムテーブルから追加＝時間つき・じぶんだけを初期値 */
+  if(e.target.closest("#ttNew")&&!e.target.closest("[data-nh]")&&state.ttNew){ const N=state.ttNew; state.pendTime=hhmm(N.s); state.pendEnd=hhmm(N.e%1440); state.pendPrivate=true; state.ttNew=null; openSheet("task"); return; } /* v178: タイムテーブルから追加＝時間つき・じぶんだけを初期値 */
   if(tt){ /* v164: 枠があっても、別の場所をタップしたらそこへ枠を移す（空振りのタップをなくす） */ const S0=ttS(), m=Math.min(Math.max(ttY2mF(tt,e.clientY,30),S0*60),23*60+30); state.ttNew={date:tt.dataset.ttdate,s:m,e:Math.min(m+60,1440),a:m}; haptic("tick"); renderTT(); return; }
   const bh=e.target.closest("[data-bug-history]"); if(bh){ state[bh.dataset.bugHistory==="fixed"?"bugShowFixed":"bugShowRejected"]=!bh.closest("details").open; return; }
   const bugAIButton=e.target.closest('[data-bug-ai]');if(bugAIButton){const id=bugAIButton.dataset.bugId,action=bugAIButton.dataset.bugAi,b=state.bugs.find(x=>x.id===id);if(!bugCanRequest(b)||state.bugSaving||state.bugAIJob)return;
@@ -7018,8 +7023,8 @@ function ltValHTML(){ const O=ltValsGet(), wk=ltWk(), lw=addDays(wk,-7), G=ltGoa
         ${cur!=null&&cur<=4?`<small class="lt-warn">大事なのに行動が少なめ。小さな一歩を1つ足すと満足感が上がりやすい所です。</small>`:""}</div>`; }).join("")}`:""}
     <details class="lt-why"><summary>なぜ価値観？</summary><ul><li>目標は達成すると終わりますが、価値観は方向なので「その日できたか」で何度でも満たせます（ACT・アクセプタンス＆コミットメント・セラピーの考え方）</li><li>大事さと実際の行動の差を見ると、次に力を入れる所が分かります（価値に沿った生き方の質問紙と同じ考え方）</li><li>価値観につながる目標ほど、続けやすく満足感も上がりやすいと報告されています</li></ul></details></section>`; }
 function viewLtGoal(){ const T=state.ltTab||"goal", n=ltBadge();
-  const seg=`<div class="lt-tabs">${[["goal","🎯 目標"+(n?` <i>${n}</i>`:"")],["refl","🔁 ふりかえり"],["val","🧭 価値観"]].map(([k,l])=>`<button type="button" class="chip" data-lttab="${k}" aria-pressed="${T===k}">${l}</button>`).join("")}</div>`;
-  return seg+(T==="refl"?ltReflHTML():T==="val"?ltValHTML():ltCheckHTML()+ltGoalHTML()); }
+  const seg=`<div class="lt-tabs">${[["goal","🎯 目標"+(n?` <i>${n}</i>`:"")],["refl","🔁 ふりかえり"],["val","🧭 価値観"],["ana","📈 分析"]].map(([k,l])=>`<button type="button" class="chip" data-lttab="${k}" aria-pressed="${T===k}">${l}</button>`).join("")}</div>`;
+  return seg+(T==="refl"?ltReflHTML():T==="val"?ltValHTML():T==="ana"?ltAnaHTML():ltCheckHTML()+ltGoalHTML()); }
 function ltAddStep(text,hab){ const now=Date.now(); if(hab){ dset("habits",newId(),{text,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"goal",createdAt:now,updatedAt:now}); } else { const it=baseItem("task",text,today(),""); delete it.who; delete it.by; dset("pitems",newId(),it); } ltRtMark("plan"); }
 function ltOpen(tab){ state.ltTab=tab; if(state.view!=="ltgoal") go("ltgoal"); else render(); setTimeout(()=>{ try{ scrollTo({top:0,behavior:"smooth"}); }catch(_){} },60); }
 const LT_IDS={ltT:"t",ltV0:"v0",ltVT:"vT",ltUnit:"unit",ltDue:"due",ltVision:"vision",ltObs:"obstacle",ltIf:"ifT",ltThen:"thenT",ltStep:"step",ltBehN:"behN"};
@@ -7065,6 +7070,108 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-lt],[data
       :`WOOPで目標づくりを手伝って。分野：${(LT_AREAS.find(x=>x[0]===G.area)||LT_AREAS[0])[2]}。つながる価値観：${G.val?(ltValOf(G.val)||[0,0,""])[2]:(V||"未設定")}。願い：${G.t||"未定"}。最高の結果：${G.vision||"未定"}。障害：${G.obstacle||"未定"}。私の記録（習慣・やったこと・内省・お金・予定）をふまえて、①数字と期限のある目標案を2個 ②それぞれの「もし〜なら…する」計画 ③今週できる一歩と回数 を提案して。`;
     if(typeof aiDockToggle==="function") aiDockToggle(true); aiAsk(q); return; } },true);
 }
+
+
+/* v334: じぶん分析（目標タブ＞📈 分析・🔒じぶんだけ）。端末の中だけで計算し、どこにも送らない（AIに聞くときは数字の要約だけ）。
+   ・気分（1〜5）と「その日にあったこと」（習慣・話し合い・シフト・休日・やったことの量・エネルギー）の関係
+   ・2群の平均の差は Welch の t 検定、たくさん比べるので Benjamini–Hochberg で「偶然の当たり」を抑える。効果の大きさは Cohen の d
+   ・曜日ごとの気分、やったことが多い時間帯、習慣ができない曜日
+   ・Claude に渡す用の書き出し（本人のデータだけ。相手の🔒は入らない） */
+function anaMS(a){ const n=a.length, m=n?a.reduce((s,v)=>s+v,0)/n:0, v=n>1?a.reduce((s,x)=>s+(x-m)**2,0)/(n-1):0; return {n,m,sd:Math.sqrt(v)}; }
+function anaTp(t,df){ if(!isFinite(t)) return 0; if(df<1) return 1; const z=Math.abs(t)*(1-1/(4*df))/Math.sqrt(1+t*t/(2*df)); return Math.max(0,Math.min(1,2*(1-ltPhi(z)))); } /* t分布のp値の近似 */
+function anaWelch(a,b){ const A=anaMS(a), B=anaMS(b); const va=A.sd**2/A.n, vb=B.sd**2/B.n, se=Math.sqrt(va+vb), diff=A.m-B.m;
+  const df=(va+vb)**2/((A.n>1?va*va/(A.n-1):0)+(B.n>1?vb*vb/(B.n-1):0)||1), t=se>0?diff/se:0, sp=Math.sqrt(((A.n-1)*A.sd**2+(B.n-1)*B.sd**2)/Math.max(1,A.n+B.n-2));
+  return {diff,p:se>0?anaTp(t,df):1,d:sp>0?diff/sp:0,n1:A.n,n0:B.n,m1:A.m,m0:B.m}; }
+function anaCor(x,y){ const n=x.length; if(n<8) return null; const mx=x.reduce((s,v)=>s+v,0)/n, my=y.reduce((s,v)=>s+v,0)/n; let sxy=0,sxx=0,syy=0; for(let i=0;i<n;i++){ sxy+=(x[i]-mx)*(y[i]-my); sxx+=(x[i]-mx)**2; syy+=(y[i]-my)**2; } if(!sxx||!syy) return null; const r=sxy/Math.sqrt(sxx*syy), t=r*Math.sqrt((n-2)/Math.max(1e-9,1-r*r)); return {r,n,p:anaTp(t,n-2)}; }
+function anaBH(L){ const S=L.map((x,i)=>[x.p,i]).sort((a,b)=>a[0]-b[0]), m=S.length; let prev=1; for(let k=m-1;k>=0;k--){ const q=Math.min(prev,S[k][0]*m/(k+1)); L[S[k][1]].q=q; prev=q; } return L; }
+function anaData(days){ const t=today(), me=myRole(), H=habitItems().filter(h=>!h.grad), D=[];
+  for(let i=days-1;i>=0;i--){ const d=addDays(t,-i), r=(state.reflect||[]).find(q=>q.id===d)||{}; let act=0; const hrs=[];
+    const take=e=>{ act++; if(e.at){ const h=new Date(e.at+9*3600e3).getUTCHours(); if(h>=0&&h<24) hrs.push(h); } };
+    try{ for(const e of duoActivityEntries(d)) if(e.role===me||e.role==="both") take(e); }catch(_){} try{ for(const e of rvPrivEntries(d)) if(e.role===me) take(e); }catch(_){}
+    let sh=""; try{ sh=shiftOf(me,d)||""; }catch(_){} let tk=""; try{ tk=talkState(d); }catch(_){} let off=false; try{ off=ltIsOff(d); }catch(_){}
+    const hab={}; for(const h of H){ try{ const L=habitLog(h), since=hSince(h); if(d<since) continue; if(typeof hOn==="function"&&tgtCode(h)!=="7"&&!hOn(h,d)&&!L[d]) continue; hab[h.id]=L[d]?1:0; }catch(_){} }
+    D.push({d,wd:parse(d).getDay(),mood:r.mood?Number(r.mood):null,en:r.energy?Number(r.energy):null,feel:Array.isArray(r.feel)?r.feel:[],act,hrs,sh,tk,off,hab}); }
+  return {D,H}; }
+function anaRun(days){ const {D,H}=anaData(days), M=D.filter(x=>x.mood!=null), F=[];
+  const bin=(name,test,ic)=>{ const a=[],b=[]; for(const x of M){ const v=test(x); if(v===1) a.push(x.mood); else if(v===0) b.push(x.mood); } if(a.length>=5&&b.length>=5) F.push({name,ic,...anaWelch(a,b)}); };
+  for(const h of H) bin(`${h.text}をした日`,x=>x.hab[h.id]===undefined?null:x.hab[h.id],"✅");
+  bin("話し合いをした日",x=>x.tk==="done"?1:(x.tk==="todo"||x.tk==="skip")?0:null,"🗣");
+  bin("休みの日",x=>x.off?1:0,"🌴");
+  const SH={}; for(const x of M) if(x.sh) SH[x.sh]=(SH[x.sh]||0)+1; for(const s of Object.keys(SH)) if(SH[s]>=5) bin(`シフト「${s}」の日`,x=>x.sh?(x.sh===s?1:0):null,"🗓");
+  anaBH(F); F.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+  const cA=anaCor(M.map(x=>x.act),M.map(x=>x.mood)), E=M.filter(x=>x.en!=null), cE=anaCor(E.map(x=>x.en),E.map(x=>x.mood));
+  const WD=[0,1,2,3,4,5,6].map(w=>anaMS(M.filter(x=>x.wd===w).map(x=>x.mood)));
+  const HR=Array(24).fill(0); for(const x of D) for(const h of x.hrs) HR[h]++;
+  const FE={}; for(const x of M) for(const f of x.feel){ (FE[f]=FE[f]||[]).push(x.mood); }
+  const MISS=[]; for(const h of H){ const c=Array(7).fill(0), m=Array(7).fill(0); for(const x of D){ const v=x.hab[h.id]; if(v===undefined) continue; c[x.wd]++; if(!v) m[x.wd]++; } let best=-1, rate=0; for(let w=0;w<7;w++) if(c[w]>=4&&m[w]/c[w]>rate){ rate=m[w]/c[w]; best=w; } const tot=c.reduce((s,v)=>s+v,0), tm=m.reduce((s,v)=>s+v,0); if(best>=0&&rate>=.5&&tot&&rate>tm/tot+.15) MISS.push({h,w:best,rate,avg:tm/tot}); }
+  return {D,M,F,cA,cE,WD,HR,FE,MISS,days}; }
+const anaSig=f=>f.q<.1?["lt-up","はっきり"]:f.p<.05?["lt-dz","ありそう（偶然の可能性も）"]:["lt-dz","はっきりしない"];
+function anaSummary(R){ const L=[]; L.push(`期間${R.days}日・気分の記録${R.M.length}日・平均${R.M.length?anaMS(R.M.map(x=>x.mood)).m.toFixed(2):"-"}`);
+  for(const f of R.F.slice(0,8)) L.push(`${f.name}：気分${f.m1.toFixed(2)}（${f.n1}日）vs しない日${f.m0.toFixed(2)}（${f.n0}日）・差${f.diff>=0?"+":""}${f.diff.toFixed(2)}・d=${f.d.toFixed(2)}・p=${f.p.toFixed(3)}・q=${f.q.toFixed(3)}`);
+  if(R.cA) L.push(`やったことの数と気分の相関 r=${R.cA.r.toFixed(2)}（n=${R.cA.n}, p=${R.cA.p.toFixed(3)}）`); if(R.cE) L.push(`エネルギーと気分 r=${R.cE.r.toFixed(2)}（n=${R.cE.n}）`);
+  L.push("曜日別の気分："+R.WD.map((s,i)=>s.n?`${WD[i]}${s.m.toFixed(1)}(${s.n})`:"").filter(Boolean).join(" "));
+  for(const x of R.MISS) L.push(`習慣「${x.h.text}」は${WD[x.w]}曜にできないことが多い（${Math.round(x.rate*100)}%・平均${Math.round(x.avg*100)}%）`);
+  return L.join("\n"); }
+function ltAnaHTML(){ const P=Number(state.anaPer)||90, R=anaRun(P), n=R.M.length;
+  const per=`<div class="lt-seg">${[[30,"30日"],[90,"90日"],[180,"180日"]].map(([k,l])=>`<button type="button" class="chip" data-anaper="${k}" aria-pressed="${P===k}">${l}</button>`).join("")}</div>`;
+  const head=`<section class="lt"><div class="lt-h"><b>📈 じぶん分析</b><small class="who">🔒端末の中だけで計算</small></div>${per}
+    <p class="who">気分の記録 <b>${n}日</b>（${P}日のうち）・やったこと ${R.D.reduce((s,x)=>s+x.act,0)}件。気分（内省の1〜5）と、その日にあったことの関係を見ます。</p>`;
+  if(n<14) return head+`<p class="lt-warn">気分の記録が14日分たまると分析できます（いま${n}日）。毎日の内省で気分だけでも選んでおくと、2週間で最初の結果が出ます。</p>${anaExportHTML()}</section>`;
+  const Fh=R.F.length?R.F.slice(0,10).map(f=>{ const s=anaSig(f), up=f.diff>=0; return `<div class="ana-f"><span>${f.ic} ${esc(f.name)}</span><b class="${up?"lt-up":"lt-dn"}">${up?"+":"−"}${Math.abs(f.diff).toFixed(1)}</b><small>${f.m1.toFixed(1)}／${f.m0.toFixed(1)}（${f.n1}日／${f.n0}日）・<i class="${s[0]}">${s[1]}</i></small></div>`; }).join(""):`<p class="who">比べられる組み合わせがまだありません（それぞれ5日以上の記録が必要）</p>`;
+  const wmx=Math.max(...R.WD.map(s=>s.n?s.m:0),1);
+  const WDh=`<div class="ana-wd">${[1,2,3,4,5,6,0].map(w=>{ const s=R.WD[w]; return `<div><i style="height:${s.n?Math.max(8,(s.m-1)/4*100):4}%;opacity:${s.n?1:.25}"></i><b>${s.n?s.m.toFixed(1):"-"}</b><small>${WD[w]}</small></div>`; }).join("")}</div>`;
+  const hm=Math.max(1,...R.HR), pk=R.HR.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,3).filter(x=>x[0]).map(x=>x[1]+"時");
+  const HRh=`<div class="ana-hr">${R.HR.map((v,i)=>`<i style="height:${v?Math.max(6,v/hm*100):2}%" title="${i}時 ${v}件"></i>`).join("")}</div><div class="ana-hx"><small>0時</small><small>6</small><small>12</small><small>18</small><small>23</small></div>`;
+  const cor=(c,l)=>c?`<div class="ana-f"><span>${l}</span><b>r=${c.r.toFixed(2)}</b><small>${Math.abs(c.r)<.1?"ほぼ関係なし":c.r>0?"多いほど気分が良い傾向":"多いほど気分が下がる傾向"}・${c.p<.05?"偶然とは言いにくい":"偶然の範囲かも"}（${c.n}日）</small></div>`:"";
+  const FEh=Object.entries(R.FE).filter(([,a])=>a.length>=3).sort((a,b)=>b[1].length-a[1].length).slice(0,8).map(([f,a])=>`<span class="chip mini">${esc(f)} ${a.length}回・気分${anaMS(a).m.toFixed(1)}</span>`).join("");
+  const MIh=R.MISS.map(x=>`<div class="ana-f"><span>🧩 ${esc(x.h.text)}</span><b class="lt-dn">${WD[x.w]}曜</b><small>${WD[x.w]}曜は${Math.round(x.rate*100)}%できていない（ふだん${Math.round(x.avg*100)}%）。「もし${WD[x.w]}曜で〜なら…する」と決めておくと続きやすい</small></div>`).join("");
+  return head+`<b class="lt-sub">気分と関係がありそうなこと</b><small class="who">数字＝あった日の平均気分 − なかった日の平均気分（1〜5）</small>${Fh}
+    ${cor(R.cA,"📋 やったことの数")}${cor(R.cE,"⚡ エネルギー")}
+    <b class="lt-sub">曜日ごとの平均気分</b>${WDh}
+    <b class="lt-sub">やったことが多い時間帯</b>${HRh}${pk.length?`<small class="who">多いのは ${pk.join("・")} 台。大事なことはこの時間に入れると進みやすい</small>`:""}
+    ${FEh?`<b class="lt-sub">よく出た気持ち</b><div class="lt-seg">${FEh}</div>`:""}
+    ${MIh?`<b class="lt-sub">習慣が抜けやすい曜日</b>${MIh}`:""}
+    <div class="lt-a"><button type="button" class="btn" data-anaai>✦ AIと一緒に読み解く</button></div>
+    <details class="lt-why"><summary>この分析の読み方（大事）</summary><ul>
+      <li>「関係がある」＝「原因」ではありません。気分が良い日に習慣ができている、という逆向きのこともあります</li>
+      <li>たくさんの項目を比べると、偶然に差が出る項目が混ざります。「はっきり」は、その偶然の当たりを抑える補正（Benjamini–Hochberg法）をしても差が残ったものです</li>
+      <li>記録が少ない（1つの側が5〜10日）うちは結果が大きくぶれます。90日以上で見るのがおすすめ</li>
+      <li>気分を記録した日だけで計算しています。書く日と書かない日に偏りがあると結果もずれます</li></ul></details>
+    ${anaExportHTML()}</section>`; }
+function anaExportHTML(){ return `<details class="lt-why"><summary>📤 Claudeに渡して詳しく分析する</summary><p class="who">あなた本人のデータ（内省・習慣・目標・日記・やったこと180日分・シフト）を1つのファイルに書き出します。相手の🔒は入りません。ファイルをClaudeのチャットに添付すると、文章の中身まで読んだ分析ができます。</p><div class="lt-a"><button type="button" class="btn" data-anaexp>書き出す（.json）</button></div><small class="who">ファイルには🔒の内容が入るので、渡す相手に注意してください</small></details>`; }
+function anaExport(){ const me=myRole(), t=today(), days=180, act=[], sh={};
+  for(let i=days-1;i>=0;i--){ const d=addDays(t,-i); let E=[]; try{ E=E.concat(duoActivityEntries(d).filter(e=>e.role===me||e.role==="both")); }catch(_){} try{ E=E.concat(rvPrivEntries(d).filter(e=>e.role===me)); }catch(_){}
+    for(const e of E) act.push({d,at:e.at?new Date(e.at+9*3600e3).toISOString().slice(11,16):"",kind:e.kind,type:e.type||"",who:e.role,title:e.title||"",detail:e.detail||""});
+    try{ const s=shiftOf(me,d); if(s) sh[d]=s; }catch(_){} }
+  const data={app:"futari-list",kind:"self-analysis",version:1,exportedAt:new Date().toISOString(),me,name:nameOf(me),partner:nameOf(otherRole()),note:"本人のデータだけ（相手の🔒は含まない）。activity は本人と『ふたり』の記録",
+    reflect:(state.reflect||[]).slice().sort((a,b)=>a.id<b.id?-1:1), habits:habitItems().map(h=>({text:h.text,grad:!!h.grad,since:hSince(h),target:h.target,done:Object.keys(habitLog(h)).sort()})),
+    goals:ltGoals(), longReflections:ltRefl(), values:ltValsGet(), diary:(state.diary||[]).filter(x=>x.by===state.me), privateDiary:state.priv||[],
+    myTasks:(state.pitems||[]).map(x=>({list:x.list,text:x.text,done:!!x.done,due:x.due||"",doneAt:x.doneAt||null})), shifts:sh, activity:act,
+    talks:(state.talks||[]).map(x=>({d:x.id,held:x.held})), analysis:anaSummary(anaRun(180))};
+  if(typeof usageFeat==="function") try{ usageFeat("export"); }catch(_){}
+  saveFile(`futari-self-${t}.json`,JSON.stringify(data,null,1)); }
+if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b=e.target.closest("[data-anaper],[data-anaai],[data-anaexp]"); if(!b||!b.closest("#main")) return; e.stopPropagation();
+  if(b.dataset.anaper){ state.anaPer=Number(b.dataset.anaper); haptic("tick"); render(); return; }
+  if(b.hasAttribute("data-anaexp")){ anaExport(); return; }
+  if(b.hasAttribute("data-anaai")){ const R=anaRun(Number(state.anaPer)||90); const q=`私の自己分析を一緒に読み解いて。以下はアプリが計算した数字（気分は1〜5、差は「あった日−なかった日」の平均気分、qは多重比較の補正後）：\n${anaSummary(R)}\n①何が気分と関係していそうか（因果とは限らない点に注意して）②試す価値のある小さな実験を2つ（期間と測り方つき）③データが足りない所 を教えて。`; if(typeof aiDockToggle==="function") aiDockToggle(true); aiAsk(q); return; } },true);
+
+/* v334: 追加画面の「候補をタップで追加」（話すこと・家事・ふたりの予定）。保存せずに閉じることが多かった画面 */
+const SHQ_CHORE=["風呂掃除","トイレ掃除","洗濯","ゴミ出し","掃除機がけ","洗い物","シーツ交換","排水口の掃除","玄関の掃除","冷蔵庫の整理"];
+const SHQ_TOPIC=["週末の予定","来週の予定と分担","最近うれしかったこと","お金の使い方","行きたい場所","家事の分担の見直し"];
+const SHQ_EVENT=["外食","買い出し","実家へ","散歩","映画","お出かけ"];
+function shqList(kind){ try{
+  if(kind==="topic"){ const open=new Set((state.topics||[]).filter(x=>x.status!=="done").map(x=>x.text)); const c=(typeof talkCands==="function"?talkCands():[]).map(x=>x.text).slice(0,3); return [...c,...SHQ_TOPIC].filter((s,i,a)=>a.indexOf(s)===i&&!open.has(s)).slice(0,8); }
+  if(kind==="chore"){ const have=new Set((state.chores||[]).map(x=>x.text)); return SHQ_CHORE.filter(s=>!have.has(s)).slice(0,8); }
+  if(kind==="event") return SHQ_EVENT; }catch(_){} return []; }
+function shqPaint(){ try{ const S=state.sheet, o=$("opts"); if(!S||!o) return; const old=$("shq"); if(old) old.remove(); const L=shqList(S.kind); if(!L.length) return;
+  const d=document.createElement("div"); d.id="shq"; d.className="edit-row shq"; d.innerHTML=`<span class="lbl">候補</span><div class="chips">${L.map(s=>`<button type="button" class="chip" data-shq="${esc(s)}">＋ ${esc(s)}</button>`).join("")}</div>`; o.prepend(d); }catch(_){} }
+if(typeof window!=="undefined"&&typeof renderSheet==="function"){ const _rs=renderSheet; renderSheet=function(){ const r=_rs.apply(this,arguments); shqPaint(); return r; }; }
+if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b=e.target.closest("#sheet [data-shq]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const inp=$("input"); if(!inp) return; inp.value=b.dataset.shq; haptic("tick"); $("form").requestSubmit(); },true);
+
+/* v334: 押しても反応しなかった所 ①タイムテーブルの下のバーの見出し→詳しく編集 ②話すの4週カレンダーの先の日も選べる */
+if(typeof document!=="undefined") document.addEventListener("click",e=>{ if(e.target.closest("button,a,input,textarea,select,label,summary,[data-act]")) return;
+  const h=e.target.closest(".tt-bar .tb-h,.tt-bar .tb-title"); if(h){ const b=h.closest(".tt-bar").querySelector('[data-act="ttedit"]'); if(b){ haptic("tick"); b.click(); } return; }
+  const k=e.target.closest("#main .tk-heat .tk[data-tkf]"); if(k){ state.talkDate=k.dataset.tkf; haptic("tick"); render(); } });
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -10636,15 +10743,15 @@ let UG=null, usgLastAct=Date.now();
 function usgDoc(){ const t=today(), role=myRole(); if(UG&&UG.date===t&&UG.role===role) return UG;
   if(UG&&UG.dirty) usageFlush(true);
   let o=null; try{ const c=JSON.parse(store.get("futari.usage")||"null"); if(c&&c.date===t&&c.role===role) o=c; }catch(e){}
-  UG=o||{id:`${role}_${t}_${USG_DEV}`,role,date:t,dev:USG_DEV,opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[]}; for(const f of ["flow","bounce","shOpen","shSave","shCancel","dead","rage","depth"]) UG[f]=(UG[f]&&typeof UG[f]==="object")?UG[f]:{}; UG.ttfa=UG.ttfa||0; UG.ttfaN=UG.ttfaN||0; UG.sess=UG.sess||0; UG.sessSec=UG.sessSec||0; return UG; }
-function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},views:{},hours:{},errMsg:[],errs:0,opens:0,sec:0,dead:{},rage:{},depth:{},ttfa:0,ttfaN:0,flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},sess:0,sessSec:0}; /* 夫・妻が決まるまでは数えない */ const u=usgDoc(); u.ver=APP_VERSION; u.ua=navigator.userAgent.replace(/.*?\(([^)]*)\).*/,"$1").slice(0,60); u.nav=prefs.nav; u.at=Date.now(); u.dirty=true; return u; }
+  UG=o||{id:`${role}_${t}_${USG_DEV}`,role,date:t,dev:USG_DEV,opens:0,sec:0,views:{},hours:{},acts:{},cols:{},feats:{},errs:0,errMsg:[]}; for(const f of ["flow","bounce","shOpen","shSave","shCancel","shEmpty","dead","rage","depth"]) UG[f]=(UG[f]&&typeof UG[f]==="object")?UG[f]:{}; UG.ttfa=UG.ttfa||0; UG.ttfaN=UG.ttfaN||0; UG.sess=UG.sess||0; UG.sessSec=UG.sessSec||0; return UG; }
+function usgTouch(){ if(db&&!state.acctRole) return {feats:{},acts:{},cols:{},views:{},hours:{},errMsg:[],errs:0,opens:0,sec:0,dead:{},rage:{},depth:{},ttfa:0,ttfaN:0,flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},shEmpty:{},sess:0,sessSec:0}; /* 夫・妻が決まるまでは数えない */ const u=usgDoc(); u.ver=APP_VERSION; u.ua=navigator.userAgent.replace(/.*?\(([^)]*)\).*/,"$1").slice(0,60); u.nav=prefs.nav; u.at=Date.now(); u.dirty=true; return u; }
 function usageFeat(k,n){ try{ const u=usgTouch(); usgFirst(u); u.feats[k]=(u.feats[k]||0)+(n==null?1:n); }catch(e){} }
 let usgSheet=null;
 /* v241: 開いてから最初の操作までの秒数（迷わず使えているか） */
 let usgSessT0=Date.now(), usgFirstDone=false;
 function usgFirst(u){ if(usgFirstDone) return; usgFirstDone=true; const sec=Math.round((Date.now()-usgSessT0)/1000); if(sec>0&&sec<600){ u.ttfa=(u.ttfa||0)+sec; u.ttfaN=(u.ttfaN||0)+1; } }
 /* v241: 反応しない場所のタップ（押せそうに見えて押せない所）・連打（反応が遅い／分かりにくい所）・画面をどこまで下まで見たか。書いた内容は記録しない */
-{ const INTER=".htd,.tk[data-tkd],.off2,button,a,input,textarea,select,label,summary,[role=button],[data-act],[data-hgo],[data-go2],[data-tb],[data-hub],[data-c],[data-id],.item,.chip,.pill,.tt,.duo-col,.duo-b,#grid,.day,.tt-b,[contenteditable]";
+{ const INTER=".htd,.tk[data-tkd],.tk[data-tkf],.tt-bar .tb-h,.off2,button,a,input,textarea,select,label,summary,[role=button],[data-act],[data-hgo],[data-go2],[data-tb],[data-hub],[data-c],[data-id],.item,.chip,.pill,.tt,.duo-col,.duo-b,#grid,.day,.tt-b,[contenteditable]";
   const where=t=>{ let el=t; for(let i=0;i<4&&el&&el.id!=="main";i++){ const c=[...(el.classList||[])].filter(x=>!/^(on|sel|open|done|active|vfade|hold|empty)$/.test(x))[0]; if(c) return `${state.view}:${c}`.slice(0,40); el=el.parentElement; } return `${state.view}:${t.tagName.toLowerCase()}`; };
   let taps=[];
   document.addEventListener("pointerup",e=>{ try{ if(e.pointerType==="mouse"&&e.button!==0) return; const t=e.target; if(!t||!t.closest) return; const u=usgTouch();
@@ -10669,7 +10776,7 @@ function usageFlush(force){ const u=UG; if(!u||!u.dirty) return; u.dirty=false; 
   /* v233: 画面の移動・すぐ離れた画面・追加画面を開いて保存したか */
   { const o=window.go; if(typeof o==="function") window.go=function(){ const p=state.view, t0=window.__usgViewAt||Date.now(); const r=o.apply(this,arguments); try{ if(state.view!==p){ const u=usgTouch(), k=(p||"?")+">"+state.view; if(Object.keys(u.flow).length<80||u.flow[k]) u.flow[k]=(u.flow[k]||0)+1; if(Date.now()-t0<3000) u.bounce[p]=(u.bounce[p]||0)+1; window.__usgViewAt=Date.now(); } }catch(e){} return r; }; }
   { const o=window.openSheet; if(typeof o==="function") window.openSheet=function(){ const r=o.apply(this,arguments); try{ const k=state.sheet&&state.sheet.kind||"?", u=usgTouch(); u.shOpen[k]=(u.shOpen[k]||0)+1; usgSheet={kind:k,adds:0}; }catch(e){} return r; }; }
-  { const o=window.closeSheet; if(typeof o==="function") window.closeSheet=function(){ try{ if(usgSheet){ const u=usgTouch(), f=usgSheet.adds?"shSave":"shCancel"; u[f][usgSheet.kind]=(u[f][usgSheet.kind]||0)+1; usgSheet=null; } }catch(e){} return o.apply(this,arguments); }; }
+  { const o=window.closeSheet; if(typeof o==="function") window.closeSheet=function(){ try{ if(usgSheet){ const u=usgTouch(), f=usgSheet.adds?"shSave":"shCancel"; u[f][usgSheet.kind]=(u[f][usgSheet.kind]||0)+1; if(!usgSheet.adds&&!(($("input")&&$("input").value)||"").trim()){ u.shEmpty=u.shEmpty||{}; u.shEmpty[usgSheet.kind]=(u.shEmpty[usgSheet.kind]||0)+1; } usgSheet=null; } }catch(e){} return o.apply(this,arguments); }; }
   W("quickCommit",()=>usageFeat("quick")); W("searchGo",()=>usageFeat("search")); W("exportXlsx",()=>usageFeat("export")); W("exportBackup",()=>usageFeat("export")); W("exportOffline",()=>usageFeat("export")); W("songToggle",()=>{ if(!state.songPlaying) usageFeat("song"); }); W("ttPlace",()=>usageFeat("tt")); }
 function usgPrune(){ const r=colRef("usage"); if(!r) return; const lim=addDays(today(),-120); for(const x of state.usage) if(x.role===myRole()&&x.date<lim) r.doc(x.id).delete().catch(()=>{}); }
 /* 集計 */
@@ -10677,9 +10784,9 @@ const USG_NAME=v=>v==="🔒じぶん"?"🔒じぶんの画面（〜v232）":v===
 const USG_SHEET={task:"やること",shop:"買い物",event:"ふたりの予定",block:"自分の予定",ptask:"自分のタスク",pshop:"自分の買い物",topic:"話すこと",trouble:"気になること",caution:"注意",plan:"将来",pwish:"自分のやりたい",habit:"習慣",recur:"毎月の支払い",goal:"目標",spend:"出費",chore:"家事"};
 function usgAgg(days){ const t=today(), from=addDays(t,-(days-1)), cur=UG&&!state.usage.some(x=>x.id===UG.id)?[{...UG}]:[];
   const L=[...state.usage.filter(x=>!(UG&&x.id===UG.id)),...(UG?[{...UG}]:[]),...cur.filter(()=>false)].filter(x=>x.date>=from&&x.date<=t);
-  const A={}; for(const r of ["h","w"]) A[r]={days:new Set(),opens:0,sec:0,sess:0,sessSec:0,ttfa:0,ttfaN:0,dead:{},rage:{},depthS:{},depthN:{},views:{},hours:{},acts:{},cols:{},feats:{},flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},errs:0,errMsg:[],byDay:{},ua:"",ver:"",nav:""};
+  const A={}; for(const r of ["h","w"]) A[r]={days:new Set(),opens:0,sec:0,sess:0,sessSec:0,ttfa:0,ttfaN:0,dead:{},rage:{},depthS:{},depthN:{},views:{},hours:{},acts:{},cols:{},feats:{},flow:{},bounce:{},shOpen:{},shSave:{},shCancel:{},shEmpty:{},errs:0,errMsg:[],byDay:{},ua:"",ver:"",nav:""};
   for(const x of L){ const a=A[x.role]; if(!a) continue; if(x.sec||x.opens) a.days.add(x.date); a.opens+=x.opens||0; a.sec+=x.sec||0; a.sess+=x.sess||0; a.sessSec+=x.sessSec||0; a.ttfa+=x.ttfa||0; a.ttfaN+=x.ttfaN||0; for(const f of ["dead","rage"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; for(const [k,v] of Object.entries(x.depth||{})){ a.depthS[k]=(a.depthS[k]||0)+v; a.depthN[k]=(a.depthN[k]||0)+1; } a.errs+=x.errs||0; a.byDay[x.date]=(a.byDay[x.date]||0)+(x.sec||0);
-    for(const f of ["views","hours","acts","cols","feats","bounce","shOpen","shSave","shCancel"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; if(x.flow&&typeof x.flow==="object") for(const [k,v] of Object.entries(x.flow)) a.flow[k]=(a.flow[k]||0)+v; for(const m of x.errMsg||[]) if(a.errMsg.length<12&&!a.errMsg.includes(m)) a.errMsg.push(m); if((x.at||0)>(a.lastAt||0)){ a.lastAt=x.at; a.ua=x.ua||""; a.ver=x.ver||""; a.nav=x.nav||""; } }
+    for(const f of ["views","hours","acts","cols","feats","bounce","shOpen","shSave","shCancel","shEmpty"]) for(const [k,v] of Object.entries(x[f]||{})) a[f][k]=(a[f][k]||0)+v; if(x.flow&&typeof x.flow==="object") for(const [k,v] of Object.entries(x.flow)) a.flow[k]=(a.flow[k]||0)+v; for(const m of x.errMsg||[]) if(a.errMsg.length<12&&!a.errMsg.includes(m)) a.errMsg.push(m); if((x.at||0)>(a.lastAt||0)){ a.lastAt=x.at; a.ua=x.ua||""; a.ver=x.ver||""; a.nav=x.nav||""; } }
   return {A,from,t,days}; }
 const mins=sec=>{ const m=Math.round(sec/60); return m>=60?`${Math.floor(m/60)}時間${m%60?m%60+"分":""}`:`${m}分`; };
 function usageCardHTML(){ const {A}=usgAgg(7), tot=A.h.sec+A.w.sec;
@@ -10699,7 +10806,7 @@ function usgInsights(A,days){ const R=["h","w"], out=[], tot=A.h.sec+A.w.sec, pc
   const so={}, ss={}, sc={}; for(const r of R){ for(const [k,v] of Object.entries(A[r].shOpen)) so[k]=(so[k]||0)+v; for(const [k,v] of Object.entries(A[r].shSave)) ss[k]=(ss[k]||0)+v; for(const [k,v] of Object.entries(A[r].shCancel)) sc[k]=(sc[k]||0)+v; }
   for(const k of Object.keys(so)){ const n=(ss[k]||0)+(sc[k]||0); if(n>=4&&(sc[k]||0)/n>=0.4) out.push(`追加画面「${USG_SHEET[k]||k}」は${n}回中${sc[k]}回、保存せずに閉じています（入力の手間・選択肢の分かりにくさ）`); }
   const ap=(A.h.feats.aiProp||0)+(A.w.feats.aiProp||0), ae=(A.h.feats.aiAct||0)+(A.w.feats.aiAct||0), af=(A.h.feats.aiFail||0)+(A.w.feats.aiFail||0), aq=(A.h.feats.ai||0)+(A.w.feats.ai||0);
-  if(ap>=5) out.push(`AIの操作の提案${ap}件のうち実行${ae}件（${pct(ae,ap)}%）${pct(ae,ap)<50?"。提案が意図とずれている可能性":""}`);
+  if(ap>=5) out.push(`AIの操作の提案${ap}回・実行${ae}回${ae>ap?"（1回の提案に複数の操作が入るため、実行の方が多くなります）":`（${pct(ae,ap)}%）${pct(ae,ap)<50?"。提案が意図とずれている可能性":""}`}`);
   if(aq&&af/aq>=0.15) out.push(`AIへの質問${aq}回のうち${af}回が失敗（接続・時間切れ）`);
   { const dd={}, rg={}; for(const r of R){ for(const [k,v] of Object.entries(A[r].dead)) dd[k]=(dd[k]||0)+v; for(const [k,v] of Object.entries(A[r].rage)) rg[k]=(rg[k]||0)+v; }
     const dl=top(dd,3).filter(([,v])=>v>=8); if(dl.length) out.push(`押しても反応しない場所をよく押しています：${dl.map(([k,v])=>`${usgWhere(k)}（${v}回）`).join("・")}（押せるようにする・見た目を変える候補）`);
@@ -10789,7 +10896,7 @@ function usageReport(days){ const {A,from,t}=usgAgg(days), R=["h","w"], top=(o,n
   s+=`\n## 操作の回数（種類別）\n| 操作 | ${nameOf("h")} | ${nameOf("w")} |\n|---|---|---|\n`; for(const [k,l] of Object.entries(USG_OP)) if((A.h.acts[k]||0)+(A.w.acts[k]||0)) s+=`| ${l} | ${A.h.acts[k]||0} | ${A.w.acts[k]||0} |\n`;
   { const fl={}; for(const r of R) for(const [k,v] of Object.entries(A[r].flow)) fl[k]=(fl[k]||0)+v; s+=`\n## よくある画面の移動\n${top(fl,12).map(([k,v])=>{ const [a,b]=k.split(">"); return `- ${USG_NAME(a)} → ${USG_NAME(b)}：${v}`; }).join("\n")||"なし"}\n`;
     const bo={}; for(const r of R) for(const [k,v] of Object.entries(A[r].bounce)) bo[k]=(bo[k]||0)+v; s+=`\n## 開いて3秒以内に離れた画面\n${top(bo,8).map(([k,v])=>`- ${USG_NAME(k)}：${v}`).join("\n")||"なし"}\n`;
-    const K=[...new Set(R.flatMap(r=>Object.keys(A[r].shOpen)))]; s+=`\n## 追加画面（開いた／保存／保存せず閉じた）\n${K.map(k=>`- ${USG_SHEET[k]||k}：${R.map(r=>`${nameOf(r)} ${A[r].shOpen[k]||0}/${A[r].shSave[k]||0}/${A[r].shCancel[k]||0}`).join("・")}`).join("\n")||"なし"}\n`; }
+    const K=[...new Set(R.flatMap(r=>Object.keys(A[r].shOpen)))]; s+=`\n## 追加画面（開いた／保存／保存せず閉じた）\n${K.map(k=>`- ${USG_SHEET[k]||k}：${R.map(r=>`${nameOf(r)} ${A[r].shOpen[k]||0}/${A[r].shSave[k]||0}/${A[r].shCancel[k]||0}${(A[r].shEmpty||{})[k]?`（うち何も書かず${A[r].shEmpty[k]}）`:""}`).join("・")}`).join("\n")||"なし"}\n`; }
   { const dd={}, rg={}; for(const r of R){ for(const [k,v] of Object.entries(A[r].dead)) dd[k]=(dd[k]||0)+v; for(const [k,v] of Object.entries(A[r].rage)) rg[k]=(rg[k]||0)+v; }
     s+=`\n## 反応しない場所のタップ（画面:部品）\n${top(dd,10).map(([k,v])=>`- ${k}：${v}`).join("\n")||"なし"}\n`;
     s+=`\n## 連打された場所（0.9秒以内に3回）\n${top(rg,8).map(([k,v])=>`- ${k}：${v}`).join("\n")||"なし"}\n`;
