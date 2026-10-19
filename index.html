@@ -1066,6 +1066,13 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .lt-num{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px}.lt-sp{width:120px;height:34px;flex:none}.lt-sp .l{fill:none;stroke:var(--future);stroke-width:2}.lt-sp circle{fill:var(--future)}.lt-sp .t{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1}
 .lt-fc{font-size:11.5px}.lt-in{width:5.5em}.lt-beh{display:flex;align-items:center;gap:6px;font-size:12.5px}.lt-beh span{flex:1;min-width:0}.lt-beh b{font-variant-numeric:tabular-nums}
 .lt-ift input{flex:1;min-width:0}.lt-why summary{cursor:pointer;font-size:12.5px;font-weight:800}.lt-why ul{margin:6px 0 0;padding-left:18px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+/* v333 */
+.lt-tabs{display:flex;gap:6px;margin:0 0 10px;overflow-x:auto;scrollbar-width:none}.lt-tabs .chip{flex:none}.lt-tabs i{font-style:normal;font-size:11px;background:var(--danger);color:#fff;border-radius:9px;padding:0 6px;margin-left:4px}
+.lt-tag{font-size:11.5px;color:var(--muted)}.lt-warn{font-size:11.5px;padding:6px 10px;border-radius:12px;background:color-mix(in srgb,#E0A030 14%,transparent)}.lt-fr{font-size:12px}
+.lt-wks{display:flex;align-items:center;gap:4px}.lt-wks i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--future);box-sizing:border-box}.lt-wks i.hit{background:var(--future)}.lt-wks i.cur{border-style:dashed}.lt-wks small{margin-left:6px;font-size:11px;color:var(--muted)}
+.lt-pbc{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,var(--reflect) 9%,transparent)}.lt-pbc b{font-size:13px}.lt-pbc svg{width:100%;height:auto}.lt-pbc .l{fill:none;stroke:var(--reflect);stroke-width:1.6}.lt-pbc circle{fill:var(--reflect)}.lt-pbc circle.sig{fill:#d0574f}.lt-pbc .ctr{stroke:var(--muted);stroke-width:1}.lt-pbc .lim{stroke:var(--muted);stroke-dasharray:4 3;stroke-width:1}.lt-pm{margin:0;font-size:12.5px}
+.lt-chk{background:color-mix(in srgb,var(--future) 10%,var(--surface))}.lt-ci{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--muted) 20%,transparent)}.lt-ci:first-of-type{border-top:0}.lt-ci span{font-size:12.5px}
+.lt-sub{font-size:13px}.lt-vr{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--future) 7%,transparent)}.lt-vh{display:flex;align-items:center;gap:6px;font-size:13px}.lt-vh span{flex:1}.lt-vn{font-variant-numeric:tabular-nums;font-size:15px}.lt-vr input[type=range]{width:100%}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2447,7 +2454,7 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 <input type="file" id="rcptIn" accept="image/*" multiple hidden>
 <input type="file" id="dphIn" accept="image/*" multiple hidden>
 <input type="file" id="fridgeIn" accept="image/*" multiple hidden>
-<span hidden><span id="b-caution"></span><span id="b-ptask"></span><span id="b-pshop"></span></span><nav class="fbar" id="fbar" aria-label="メニュー（フリック）"></nav><div class="fguide" id="fguide" hidden aria-hidden="true"></div><div class="sa-top" aria-hidden="true"></div><div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
+<span hidden><span id="b-caution"></span><span id="b-ptask"></span><span id="b-pshop"></span><span id="b-ltgoal"></span></span><nav class="fbar" id="fbar" aria-label="メニュー（フリック）"></nav><div class="fguide" id="fguide" hidden aria-hidden="true"></div><div class="sa-top" aria-hidden="true"></div><div class="toast" id="toast" hidden role="status" aria-live="polite"><span class="tico" id="toastIco" aria-hidden="true"></span><span id="toastMsg"></span><button id="toastUndo">元に戻す</button><button id="toastX" aria-label="閉じる">✕</button><i class="tbar" id="toastBar"></i></div>
 
 
 <script>
@@ -2455,21 +2462,21 @@ details.tdo-ok{display:block}details.tdo-ok summary{cursor:pointer;font-size:12p
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
 const DEFAULT_CHIPS=["牛乳","卵","食パン","納豆","豆腐","トイレットペーパー","洗剤","お米"];
 const TITLES={daylog:"やったこと",baby:"子ども",duo:"ふたりの予定",log:"更新ログ",chore:"家事",talk:"話す",task:"やること",shop:"買い物",cal:"カレンダー",trouble:"気になること",caution:"気になること",diary:"日記",future:"将来の計画",
-  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"お金",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
+  habit:"習慣",ptask:"じぶんのタスク",pshop:"じぶんの買い物",reflect:"内省",ltgoal:"目標",psched:"じぶんの予定",pwish:"やりたいこと",settings:"設定",home:"ホーム",money:"お金",check:"未入力・未確認",usage:"利用状況",dec:"決めたこと",meal:"料理"};
 /* two layers: ふたり (shared) and じぶん (private to each person) */
 /* v109: タブの数字＝そのタブの中身。ふたり／じぶんの数字＝そのレイヤーのタブの数字の合計（ホームの未確認は含めない） */
 const tabN=(t,n)=>t==="trouble"?(n.trouble||0)+(n.caution||0)+(n.cdo||0):t==="task"?(n.task||0)+(n.ptask||0):t==="shop"?(n.shop||0)+(n.pshop||0):(t==="check"||t==="home"||t[0]==="@")?0:(n[t]||0);
 let fN={}, fL="us"; const fCnt=t=>!t?0:(t==="check"||t==="home")?pendingChecks().length:t==="@me"?(fL!=="me"?layerN("me",fN):0):t==="@us"?(fL==="me"?layerN("us",fN):0):tabN(t,fN);
 const layerN=(L,n)=>LAYER_TABS[L].reduce((q,t)=>q+tabN(t,n),0);
 const LAYER_TABS={us:["daylog","talk","task","chore","shop","trouble","cal","diary","future","money","habit","reflect"],me:[]}; /* v127: ふたり／じぶんの区別をなくし1つのメニューに（中身の秘匿性はそのまま） */
-const PRIV_VIEWS=new Set(["habit","reflect"]);
+const PRIV_VIEWS=new Set(["habit","reflect","ltgoal"]);
 /* 統合した画面（v82）：じぶんのタスク・買い物 → やること・買い物（🔒）、やりたい → 将来、注意 → 気になること */
 const VIEW_ALIAS={ptask:"task",pshop:"shop",psched:"cal"};
 const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 | 記録 | 将来 */
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="332";
+const APP_VERSION="333";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2551,7 +2558,7 @@ const PRESETS={
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
 /* v238: 開いたときの画面を「よく使う画面」に自動で合わせる候補 */
 const AUTO_SV=["home","cal","talk","task","shop","money","future","diary","duo","chore","meal","baby"];
-const DEFAULT_PREFS={ltGoals:"[]",ltRefl:"[]",ltLast:"",pullAdd:"on",hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={ltGoals:"[]",ltVals:"{}",ltRefl:"[]",ltLast:"",pullAdd:"on",hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",pushAmTime:"",pushPmTime:"20:30",pushDays:"0,1,2,3,4,5,6",pushQuiet:"0",pushQuietStart:"22:00",pushQuietEnd:"07:00",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -5159,7 +5166,7 @@ function counts(){
   return {chore:choreDueCount(),task:state.items.filter(i=>i.list==="task"&&!i.done&&dueNow(i)&&forMe(i)).length+state.items.filter(i=>isRecItem(i)&&forMe(i)&&hFollow(i)).length, shop:state.items.filter(i=>i.list==="shop"&&!i.done&&dueNow(i)&&forMe(i)).length,
     taskAll:state.items.filter(i=>i.list==="task"&&!i.done).length, shopAll:state.items.filter(i=>i.list==="shop"&&!i.done).length,
     ptaskAll:state.pitems.filter(i=>i.list==="task"&&!i.done).length, pshopAll:state.pitems.filter(i=>i.list==="shop"&&!i.done).length,
-    cal:shiftMissing(myRole()).length?1:0, diaryC, reflect:eve&&!myReflectDone(t)?1:0,
+    cal:shiftMissing(myRole()).length?1:0, diaryC, reflect:eve&&!myReflectDone(t)?1:0, ltgoal:typeof ltBadge==="function"?ltBadge():0,
     trouble:state.troubles.filter(t=>t.status!=="done"&&t.status!=="habit"&&forMe(t)).length, troubleAll:state.troubles.filter(t=>t.status!=="done"&&t.status!=="habit").length,
     caution:state.cautions.filter(c=>!c.habit&&!isMine(c)&&cNeedAck(c)&&(!c.date||c.date>=today())&&!(c.ack&&c.ack[me])).length,
     cdo:typeof cCanDo==="function"?state.cautions.filter(c=>cCanDo(c)&&!cLog(c,myRole())[t]).length:0, /* v312: 気になること→対応で決めた「毎日気をつけること」の今日の確認 */
@@ -5209,7 +5216,7 @@ function renderChrome(){ applyTabOrder();
   $("dots").innerHTML=ORDER.map(k=>`<button class="pdot ${ORDER_GAP.has(k)?"gap":""}" data-go="${k}" aria-label="${TITLES[k]}" aria-current="${k===v}"></button>`).join("");
   $("dots").hidden=!ORDER.includes(v);
   document.querySelectorAll(".rtab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.v===v||(v==="caution"&&b.dataset.v==="trouble"))));
-  for(const k of ["task","chore","shop","trouble","caution","diary","future","talk","habit","ptask","pshop","psched","reflect","cal"]){ const b=$("b-"+k); if(!b) continue; b.hidden=!n[k]; b.textContent=n[k]; }
+  for(const k of ["task","chore","shop","trouble","caution","diary","future","talk","habit","ptask","pshop","psched","reflect","ltgoal","cal"]){ const b=$("b-"+k); if(!b) continue; b.hidden=!n[k]; b.textContent=n[k]; }
   { const mg=(id,x)=>{ const b=$("b-"+id); if(b){ b.hidden=!x; b.textContent=x; } }; mg("trouble",(n.trouble||0)+(n.caution||0)); mg("task",(n.task||0)+(n.ptask||0)); mg("shop",(n.shop||0)+(n.pshop||0)); }
   document.documentElement.style.setProperty("--frc",`var(--who-${otherRole()})`);
   { const F=freshByView(); if(F.caution) F.trouble=(F.trouble||0)+F.caution; document.querySelectorAll("#rail .rtab[data-v]").forEach(t=>{ let d=t.querySelector(".fdot"); if(!d){ d=document.createElement("i"); d.className="fdot"; d.setAttribute("aria-hidden","true"); t.appendChild(d); } d.hidden=!F[t.dataset.v]; t.title=F[t.dataset.v]?`${nameOf(otherRole())}の更新 ${F[t.dataset.v]}件`:""; });
@@ -5235,10 +5242,10 @@ function render(anim){
     renderDiaryDynamic();
   } else {
     if((v==="usage"||v==="settings")&&window.__usageSub) window.__usageSub();
-    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+(v==="home"&&typeof eveHTML==="function"?eveHTML():"")+(v==="home"&&typeof ltMorningHTML==="function"?ltMorningHTML():"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
+    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+(v==="home"&&typeof eveHTML==="function"?eveHTML():"")+(v==="home"&&typeof ltMorningHTML==="function"?ltMorningHTML():"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ltgoal"?viewLtGoal(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
     lastDiaryKey=null;
   }
-  if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
+  if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)&&v!=="ltgoal"||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
   aiDock(); hubMount(); ttScrollRestore();
   document.querySelectorAll("#main .heat").forEach(h=>{ h.scrollLeft=h.scrollWidth; });
   if(state.lastRV!==v){ state.lastRV=v; const m=$("main"); m.classList.remove("enter"); void m.offsetWidth; m.classList.add("enter"); clearTimeout(render.et); render.et=setTimeout(()=>m.classList.remove("enter"),700); }
@@ -6858,76 +6865,133 @@ document.addEventListener("keydown",e=>{ if(e.metaKey||e.ctrlKey||e.altKey||e.is
   else if(e.key==="ArrowLeft"&&e.altKey===false&&e.shiftKey){ navBack(); } });
 }
 
-/* v332: 長期の内省と目標（🔒じぶんだけ）— 根拠のある方法で作り直し。
-   ・目標＝WOOP（願い→最高の結果→障害→もし〜なら…の計画：心理対比＋実行意図）＋具体的で数字のある目標と期限（目標設定理論）
-   ・始める日は「節目」（月曜・月初）を提案（フレッシュスタート効果）
-   ・進み具合は「行動（今週の一歩の回数）」と「結果（数値）」を分けて記録し、推移の傾きから期限の見込みを出す（進捗モニタリング）。報告すると効果が上がるので話し合いの議題に出せる
-   ・ふりかえりは「データ→前の期間との比較→5つの問い」。1日の上下ではなく期間の平均で見る */
+/* v333: 「目標」タブ（その他＞目標・🔒じぶんだけ）。目標・長期のふりかえり・価値観をここに集約。
+   ・目標＝WOOP（願い→最高の結果→障害→もし〜なら…：心理対比＋実行意図）＋具体的で数字のある目標と期限（目標設定理論）
+   ・価値観とのつながり／「なぜやる？」（自分で選んだ理由の目標ほど続きやすい：自己一致目標）
+   ・始める日は節目（フレッシュスタート効果）
+   ・行動（今週の一歩の回数）と結果（数値）を分けて記録。推移の回帰から期限の見込み＋80%の幅＋届く確率（進捗モニタリング）
+   ・前半は「ここまで進んだ量」、後半は「あと残り」を見せる（小さい方に注目すると意欲が保ちやすい：Koo & Fishbach）
+   ・週1回のチェックイン：届かなかった週は責めずに計画を調整、2週続けて届いたら少し上げる（難しすぎず易しすぎず）
+   ・ふりかえり：データ→前の期間との比較→5つの問い。気分は「プロセス挙動図（XmR）」で本当の変化とふだんのぶれを見分ける
+   ・自分を名前で呼んで書く（自己距離化） */
 const LT_AREAS=[["work","💼","仕事・キャリア"],["health","💪","健康・体"],["money","💰","お金"],["us","👫","ふたり・家族"],["learn","📚","学び"],["fun","🎈","趣味・楽しみ"]];
 const LT_PER=[["w","1週間",7],["m","1か月",30],["q","3か月",90],["y","1年",365]];
 const LT_Q=[["a1","うまくいったこと・誇れること","小さなことでOK。なぜうまくいった？"],["a2","うまくいかなかったこと・学び","次はどうする？"],["a3","これから大事にしたいこと","価値観・ゆずれないもの"],["a4","やめること・減らすこと","時間やエネルギーを取られているもの"],["a5","次の期間のテーマ（ひとこと）","例：「早寝」「ふたりの時間」"]];
+const LT_QD={a1:"{n}は、何がうまくいった？　それはなぜ？",a2:"{n}がうまくいかなかったのは何？　友だちなら{n}に何と言う？",a3:"{n}がこれから大事にしたいことは？",a4:"{n}がやめると楽になることは？",a5:"{n}の次の期間のテーマは？"};
 const LT_ROUTINE=[["light","☀️","外か窓辺で光を浴びる（数分）"],["refl","🔁","ふりかえり"],["goal","🎯","目標のチェックイン"],["plan","📅","今週の一歩を予定に入れる"]];
+const LT_VALS=[["family","👨‍👩‍👧","家族・パートナー"],["health","💪","健康"],["growth","🌱","成長・学び"],["work","💼","仕事での貢献"],["secure","🏠","安心・安定"],["free","🕊","自由・ゆとり"],["fun","🎈","楽しさ・遊び"],["friend","🤝","友人・つながり"],["create","🎨","つくること"],["kind","💗","思いやり"],["honest","🧭","誠実さ"],["nature","🌿","自然・季節"]];
+const LT_MOT=[["joy","楽しい・好き",1],["imp","自分にとって大事",1],["guilt","やらないと罪悪感",0],["other","人に言われて・評価のため",0]];
 function ltLoad(k){ try{ const v=JSON.parse(prefs[k]||"[]"); return Array.isArray(v)?v:[]; }catch(_){ return []; } }
 function ltSave(k,arr){ prefs[k]=JSON.stringify(arr); savePrefs(true); }
 const ltGoals=()=>ltLoad("ltGoals"), ltRefl=()=>ltLoad("ltRefl");
+function ltValsGet(){ try{ const o=JSON.parse(prefs.ltVals||"{}"); if(o&&typeof o==="object"&&!Array.isArray(o)) return {sel:Array.isArray(o.sel)?o.sel.slice(0,5):[],rate:o.rate&&typeof o.rate==="object"?o.rate:{}}; }catch(_){} return {sel:[],rate:{}}; }
+function ltValsSave(o){ const R={}; for(const k of Object.keys(o.rate||{}).sort().slice(-26)) R[k]=o.rate[k]; prefs.ltVals=JSON.stringify({sel:o.sel,rate:R}); savePrefs(true); }
+const ltValOf=k=>LT_VALS.find(v=>v[0]===k);
 function ltIsOff(d){ try{ const me=myRole(), s=shiftOf(me,d); if(s==="休") return true; if(s) return false; const p=parse(d), wd=p.getDay(); if(wd===0||wd===6) return true; return typeof jpHolidays==="function"&&jpHolidays(p.getFullYear()).has(d); }catch(_){ return false; } }
 function ltRt(){ try{ const o=JSON.parse(localStorage.getItem("futari.ltRt")||"null"); return o&&o.d===today()?o.k:{}; }catch(_){ return {}; } }
 function ltRtMark(k,v){ try{ const R=ltRt(); R[k]=v===undefined?1:v; localStorage.setItem("futari.ltRt",JSON.stringify({d:today(),k:R})); }catch(_){} }
 const ltWk=d=>mondayOf(d||today());
+const ltMyName=()=>{ try{ return nameOf(myRole())||"じぶん"; }catch(_){ return "じぶん"; } };
 function ltStats(days,off){ off=off||0; const t=addDays(today(),-off), from=addDays(t,-(days-1)); let act=0; for(let i=0;i<days;i++){ const d=addDays(t,-i); try{ act+=duoActivityEntries(d).filter(e=>e.role===myRole()||e.role==="both").length; }catch(_){} try{ act+=rvPrivEntries(d).filter(e=>e.role===myRole()).length; }catch(_){} }
   const R=(state.reflect||[]).filter(q=>/^\d{4}-/.test(q.id)&&q.id>=from&&q.id<=t&&q.mood), mood=R.length?R.reduce((s,q)=>s+q.mood,0)/R.length:null;
   const H=habitItems().filter(h=>!h.grad); let hd=0,hn=0; for(const h of H){ const L=habitLog(h), since=hSince(h); for(let i=0;i<days;i++){ const d=addDays(t,-i); if(d<since) break; if(typeof hOn==="function"&&tgtCode(h)!=="7"&&!hOn(h,d)&&!L[d]) continue; hn++; if(L[d]) hd++; } }
   const goods=(state.reflect||[]).filter(q=>/^\d{4}-/.test(q.id)&&q.id>=from&&q.id<=t&&q.good).slice(-3).map(q=>String(q.good).split(/\n/)[0].slice(0,30));
   return {act,mood,hr:hn?Math.round(hd/hn*100):null,goods,n:R.length}; }
 const ltDelta=(a,b,dig)=>a==null||b==null?"":(()=>{ const d=a-b, s=dig?d.toFixed(dig):Math.round(d); return Number(s)===0?`<i class="lt-dz">±0</i>`:`<i class="${d>0?"lt-up":"lt-dn"}">${d>0?"▲":"▼"}${Math.abs(Number(s))}</i>`; })();
-/* 数値の目標：推移の傾き（最小二乗）から期限の見込み */
+/* ---- 統計のための小さな道具 ---- */
+function ltPhi(z){ const t=1/(1+0.2316419*Math.abs(z)), d=0.3989423*Math.exp(-z*z/2), p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274)))); return z>0?1-p:p; }
+function ltTq(df){ const T=[0,3.078,1.886,1.638,1.533,1.476,1.440,1.415,1.397,1.383,1.372]; if(df<1) return Infinity; if(df<=10) return T[df]; if(df>=30) return 1.31; return 1.372-(1.372-1.31)*(df-10)/20; } /* t分布の90%点（80%の幅） */
+/* 数値の目標：推移の回帰（最小二乗）から期限の見込み・80%の幅・届く確率 */
 function ltNum(g){ return g.unit!=null&&g.unit!==""&&isFinite(Number(g.vT))&&isFinite(Number(g.v0)); }
 function ltPts(g){ const P=[{d:g.start||g.at,v:Number(g.v0)},...(g.logs||[]).map(x=>({d:x.d,v:Number(x.v)}))].filter(x=>x.d&&isFinite(x.v)); return P.sort((a,b)=>a.d<b.d?-1:1); }
 function ltCur(g){ const P=ltPts(g); return P.length?P[P.length-1].v:Number(g.v0); }
 function ltPct(g){ if(!ltNum(g)) return g.p||0; const a=Number(g.v0), b=Number(g.vT), c=ltCur(g); if(a===b) return 100; return Math.max(0,Math.min(100,Math.round((c-a)/(b-a)*100))); }
 function ltFore(g){ const P=ltPts(g); if(P.length<3||!g.due) return null; const x0=parse(P[0].d).getTime(), X=P.map(p=>(parse(p.d).getTime()-x0)/864e5), Y=P.map(p=>p.v), n=X.length, mx=X.reduce((s,v)=>s+v,0)/n, my=Y.reduce((s,v)=>s+v,0)/n;
-  let sxx=0,sxy=0; for(let i=0;i<n;i++){ sxx+=(X[i]-mx)**2; sxy+=(X[i]-mx)*(Y[i]-my); } if(!sxx) return null; const k=sxy/sxx, dueX=(parse(g.due).getTime()-x0)/864e5, pred=my+k*(dueX-mx); const up=Number(g.vT)>=Number(g.v0);
-  return {k,pred,ok:up?pred>=Number(g.vT):pred<=Number(g.vT),perWk:k*7}; }
+  let sxx=0,sxy=0; for(let i=0;i<n;i++){ sxx+=(X[i]-mx)**2; sxy+=(X[i]-mx)*(Y[i]-my); } if(!sxx) return null; const k=sxy/sxx, dueX=(parse(g.due).getTime()-x0)/864e5, pred=my+k*(dueX-mx), up=Number(g.vT)>=Number(g.v0), tgt=Number(g.vT);
+  const r={k,pred,ok:up?pred>=tgt:pred<=tgt,perWk:k*7,n,rough:(dueX-X[n-1])>2*Math.max(1,X[n-1]-X[0])};
+  if(n>=4){ let sse=0; for(let i=0;i<n;i++) sse+=(Y[i]-(my+k*(X[i]-mx)))**2; const s=Math.sqrt(sse/(n-2)), se=s*Math.sqrt(1+1/n+(dueX-mx)**2/sxx), q=ltTq(n-2);
+    r.lo=pred-q*se; r.hi=pred+q*se; r.prob=se>0?(up?1-ltPhi((tgt-pred)/se):ltPhi((tgt-pred)/se)):(r.ok?1:0); }
+  return r; }
 function ltNeed(g){ if(!ltNum(g)||!g.due) return null; const w=Math.max(.5,dDiff(g.due,today())/7); return (Number(g.vT)-ltCur(g))/w; }
 const ltFmt=v=>{ const r=Math.round(v*10)/10; return (Number.isInteger(r)?r:r.toFixed(1)).toString(); };
+/* 前半は「進んだ量」、後半は「残り」に注目させる */
+function ltFrame(g){ const pc=ltPct(g); if(ltNum(g)){ const a=Number(g.v0), b=Number(g.vT), c=ltCur(g), u=esc(g.unit); return pc<50?`ここまで <b>${ltFmt(Math.abs(c-a))}${u}</b> 進みました`:pc>=100?"目標に届きました 🎉":`ゴールまで あと <b>${ltFmt(Math.abs(b-c))}${u}</b>`; }
+  return pc<50?`ここまで <b>${pc}%</b> 進みました`:pc>=100?"100%！":`ゴールまで あと <b>${100-pc}%</b>`; }
 function ltSpark(g){ const P=ltPts(g); if(P.length<2) return ""; const W=120,H=34, xs=P.map(p=>parse(p.d).getTime()), ys=P.map(p=>p.v), tgt=Number(g.vT), mn=Math.min(...ys,tgt), mx=Math.max(...ys,tgt), x0=Math.min(...xs), x1=Math.max(...xs,g.due?parse(g.due).getTime():0)||x0+1;
   const X=t=>4+(t-x0)/(x1-x0||1)*(W-8), Y=v=>H-4-(v-mn)/((mx-mn)||1)*(H-8);
   return `<svg class="lt-sp" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="4" x2="${W-4}" y1="${Y(tgt).toFixed(1)}" y2="${Y(tgt).toFixed(1)}" class="t"/><polyline points="${P.map(p=>`${X(parse(p.d).getTime()).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ")}" class="l"/>${P.map(p=>`<circle cx="${X(parse(p.d).getTime()).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="2"/>`).join("")}</svg>`; }
 function ltStartChips(cur){ const t=today(), p=parse(t), nm=addDays(mondayOf(t),7), m1=ymd(new Date(p.getFullYear(),p.getMonth()+1,1));
   return [["今日",t],["次の月曜",nm],["来月1日",m1]].map(([l,d])=>`<button type="button" class="chip" data-ltstart="${d}" aria-pressed="${cur===d}">${l}（${short(d)}）</button>`).join(""); }
+/* 週ごとの「今週の一歩」：達成した週の記録 */
+function ltWeeks(g,n){ const cur=ltWk(), sw=ltWk(g.start||g.at||today()), bt=Number(g.behN)||0, W=[]; for(let i=n-1;i>=0;i--){ const w=addDays(cur,-7*i); if(w<sw) continue; const c=(g.beh||{})[w]||0; W.push({w,c,hit:bt?c>=bt:c>0,cur:w===cur}); } return W; }
+/* 週1回のチェックイン：先週ぶんがまだのもの */
+function ltPending(){ const lw=addDays(ltWk(),-7); return ltGoals().filter(g=>!g.done&&g.step&&ltWk(g.start||g.at||today())<=lw&&!(g.rev||{})[lw]); }
+function ltBadge(){ try{ return ltPending().length; }catch(_){ return 0; } }
 function ltMorningHTML(){ const t=today(), h=new Date().getHours(); if(h<5||h>=11||!ltIsOff(t)) return ""; try{ if(localStorage.getItem("futari.ltHide")===t) return ""; }catch(_){}
   const R=ltRt(), done=LT_ROUTINE.filter(([k])=>R[k]).length; if(done===LT_ROUTINE.length) return "";
   return `<section class="ltm"><div class="ltm-h"><b>🌅 休日の朝ルーティン（10〜15分）</b><button type="button" class="icon-btn" data-lt="hide" aria-label="今日は閉じる">×</button></div>
     <div class="ltm-l">${LT_ROUTINE.map(([k,ic,l])=>`<button type="button" class="ltm-r ${R[k]?"on":""}" data-ltrt="${k}"><i>${R[k]?"✓":ic}</i><span>${l}</span></button>`).join("")}</div>
     <small>${done}/${LT_ROUTINE.length} 済・🔒じぶんだけ</small></section>`; }
-function ltReflHTML(){ const P=state.ltPer||"w", per=LT_PER.find(x=>x[0]===P)||LT_PER[0], S=ltStats(per[2]), S0=ltStats(per[2],per[2]), D=state.ltDraft||(state.ltDraft={}), last=ltRefl().filter(r=>r.per===P).slice(-1)[0];
-  return `<section class="lt"><div class="lt-h"><b>🔁 長期のふりかえり</b><button type="button" class="link" data-lt="close">閉じる</button></div>
+/* ---- 気分のプロセス挙動図（XmR）：本当の変化か、ふだんのぶれか ---- */
+function ltMoodPts(days){ const t=today(), P=[]; for(let i=days-1;i>=0;i--){ const d=addDays(t,-i), r=(state.reflect||[]).find(q=>q.id===d); if(r&&r.mood) P.push({d,v:Number(r.mood)}); } return P; }
+function ltXmR(P){ const B=P.slice(0,Math.min(20,P.length)), m=B.reduce((s,p)=>s+p.v,0)/B.length; let mr=0; for(let i=1;i<B.length;i++) mr+=Math.abs(B[i].v-B[i-1].v); mr=B.length>1?mr/(B.length-1):0;
+  const hi=m+2.66*mr, lo=m-2.66*mr, out=P.map(p=>p.v>hi||p.v<lo); let run=0, side=0, runS=0; for(const p of P){ const s=p.v>m?1:p.v<m?-1:0; if(s&&s===side) run++; else { side=s; run=s?1:0; } } runS=run>=8?side:0;
+  const recentOut=P.slice(-14).map((p,i)=>out[P.length-Math.min(14,P.length)+i]?(p.v>hi?1:-1):0).filter(Boolean);
+  return {m,mr,hi,lo,out,runS,run,recentOut}; }
+function ltMoodPBC(){ const P=ltMoodPts(60); if(P.length<10) return `<div class="lt-pbc"><b>📊 気分の変化の見分け</b><p class="who">気分の記録が10日分たまると、「本当の変化」か「ふだんのぶれ」かを見分けるグラフが出ます（いま${P.length}日）。</p></div>`;
+  const S=ltXmR(P), W=300, H=96, mn=Math.min(1,S.lo), mx=Math.max(5,S.hi), X=i=>8+i/(P.length-1)*(W-16), Y=v=>H-8-(Math.max(mn,Math.min(mx,v))-mn)/((mx-mn)||1)*(H-16);
+  const ln=(v,c)=>`<line x1="8" x2="${W-8}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="${c}"/>`;
+  const up=S.runS>0||S.recentOut.some(x=>x>0), dn=S.runS<0||S.recentOut.some(x=>x<0);
+  const msg=S.runS>0?`📈 ${S.run}日続けて平均より上。<b>本当に上向いているサイン</b>です。何が効いたかをふりかえりに書いておきましょう。`:S.runS<0?`📉 ${S.run}日続けて平均より下。<b>本当に下がっているサイン</b>です。睡眠・予定の詰めすぎ・体調を見直してみて。つらさが続くときは、パートナーや身近な人、専門家に話すのも一つです。`:up?"📈 最近、ふだんの幅を超えて良い日がありました。何があった日か見てみましょう。":dn?"📉 最近、ふだんの幅を下回った日がありました。その日の出来事をふりかえってみましょう。":"ふだんのぶれの範囲です。1日ごとの上下は偶然でも起きるので、一喜一憂しなくて大丈夫。";
+  return `<div class="lt-pbc"><b>📊 気分の変化の見分け（直近60日・${P.length}日分）</b>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="気分の推移">${ln(S.hi,"lim")}${ln(S.lo,"lim")}${ln(S.m,"ctr")}<polyline points="${P.map((p,i)=>`${X(i).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ")}" class="l"/>${P.map((p,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="${S.out[i]?3.4:2.2}" class="${S.out[i]?"sig":""}"/>`).join("")}</svg>
+    <small class="who">平均 ${S.m.toFixed(1)}・ふだんの幅 ${Math.max(1,S.lo).toFixed(1)}〜${Math.min(5,S.hi).toFixed(1)}（点線）</small><p class="lt-pm">${msg}</p></div>`; }
+/* ---- タブの中身 ---- */
+function ltReflHTML(){ const P=state.ltPer||"w", per=LT_PER.find(x=>x[0]===P)||LT_PER[0], S=ltStats(per[2]), S0=ltStats(per[2],per[2]), D=state.ltDraft||(state.ltDraft={}), last=ltRefl().filter(r=>r.per===P).slice(-1)[0], dist=!!state.ltDist, nm=ltMyName();
+  return `<section class="lt"><div class="lt-h"><b>🔁 長期のふりかえり</b><small class="who">🔒じぶんだけ</small></div>
     <div class="lt-seg">${LT_PER.map(([k,l])=>`<button type="button" class="chip" data-ltper="${k}" aria-pressed="${k===P}">${l}</button>`).join("")}</div>
     <div class="lt-sum"><div><b>${S.act}${ltDelta(S.act,S0.act)}</b><small>やったこと</small></div><div><b>${S.mood!=null?S.mood.toFixed(1):"-"}${ltDelta(S.mood,S0.mood,1)}</b><small>平均の気分（${S.n}日）</small></div><div><b>${S.hr!=null?S.hr+"%":"-"}${ltDelta(S.hr,S0.hr)}</b><small>習慣の実施率</small></div></div>
     <p class="who">▲▼は前の${per[1]}との差。1日ごとの上下は偶然でぶれるので、期間の平均で見ます。</p>
+    ${ltMoodPBC()}
     ${S.goods.length?`<p class="who">最近の「良かったこと」：${S.goods.map(esc).join("／")}</p>`:""}
     ${last?`<p class="who">前回（${short(last.d)}）のテーマ：<b>${esc(last.a5||"-")}</b></p>`:""}
-    ${LT_Q.map(([k,l,ph])=>`<label class="lt-q"><span>${l}</span><textarea data-ltq="${k}" rows="2" maxlength="600" placeholder="${esc(ph)}">${esc(D[k]||"")}</textarea></label>`).join("")}
+    <label class="lt-ck lt-dist"><input type="checkbox" data-ltdist ${dist?"checked":""}> 自分を名前で呼んで書く（距離をおく）</label>
+    ${dist?`<p class="who">「${esc(nm)}は…」と友だちのことのように書くと、気持ちに飲まれずに考えやすくなります（自己距離化）。</p>`:""}
+    ${LT_Q.map(([k,l,ph])=>`<label class="lt-q"><span>${l}</span><textarea data-ltq="${k}" rows="2" maxlength="600" placeholder="${esc(dist?LT_QD[k].replaceAll("{n}",nm):ph)}">${esc(D[k]||"")}</textarea></label>`).join("")}
     <div class="lt-a"><button type="button" class="btn primary" data-lt="saveRefl">保存する</button><button type="button" class="btn" data-lt="aiRefl">✦ AIと深める</button></div>
     ${ltRefl().length?`<details class="lt-past"><summary>これまでのふりかえり（${ltRefl().length}）</summary>${ltRefl().slice().reverse().slice(0,12).map(r=>`<div class="lt-pr"><b>${short(r.d)}・${(LT_PER.find(x=>x[0]===r.per)||[0,""])[1]}</b>${LT_Q.map(([k,l])=>r[k]?`<small><i>${l}</i>${esc(r[k])}</small>`:"").join("")}</div>`).join("")}</details>`:""}</section>`; }
-function ltCard(g){ const A=LT_AREAS.find(a=>a[0]===g.area)||LT_AREAS[0], left=g.due?dDiff(g.due,today()):null, wk=ltWk(), bn=(g.beh||{})[wk]||0, bt=Number(g.behN)||0, pc=ltPct(g), F=ltNum(g)?ltFore(g):null, need=ltNeed(g), started=!g.start||g.start<=today();
+function ltCheckHTML(){ const L=ltPending(); if(!L.length) return ""; const lw=addDays(ltWk(),-7);
+  return `<section class="lt lt-chk"><div class="lt-h"><b>🗓 先週のチェックイン</b><small class="who">${short(lw)}〜の週</small></div>
+    ${L.map(g=>{ const bt=Number(g.behN)||1, c=(g.beh||{})[lw]||0, hit=c>=bt, pw=addDays(lw,-7), hit2=hit&&((g.beh||{})[pw]||0)>=bt&&ltWk(g.start||g.at)<=pw;
+      return `<div class="lt-ci"><b>${esc(g.t)}</b><span>👣 ${esc(g.step)}：<b>${c}/${bt}回</b> ${hit?"✅":"・"}</span>
+        <small class="who">${hit?(hit2?"2週続けて届きました。少しだけ上げると、伸びやすい難しさを保てます。":"届きました。このままでOK。"):"届かない週は誰にでもあります。自分を責めるより、計画を合わせるほうが続きます。"}</small>
+        <div class="lt-ga">${hit?(hit2?`<button type="button" class="chip mini" data-ltrev="${g.id}|up">週${Math.min(21,bt+1)}回にする</button>`:""):`${bt>1?`<button type="button" class="chip mini" data-ltrev="${g.id}|down">週${bt-1}回にする</button>`:""}<button type="button" class="chip mini" data-ltrev="${g.id}|plan">「もし〜なら」を見直す</button>`}<button type="button" class="chip mini" data-ltrev="${g.id}|keep">このまま続ける</button></div></div>`; }).join("")}</section>`; }
+function ltCard(g){ const A=LT_AREAS.find(a=>a[0]===g.area)||LT_AREAS[0], left=g.due?dDiff(g.due,today()):null, wk=ltWk(), bn=(g.beh||{})[wk]||0, bt=Number(g.behN)||0, pc=ltPct(g), F=ltNum(g)?ltFore(g):null, need=ltNeed(g), started=!g.start||g.start<=today(), V=g.val&&ltValOf(g.val), M=Array.isArray(g.mot)?g.mot:[], auto=M.some(k=>(LT_MOT.find(m=>m[0]===k)||[])[2]===1), W=g.step?ltWeeks(g,8):[], done=W.filter(w=>!w.cur), hr=done.length?Math.round(done.filter(w=>w.hit).length/done.length*100):null;
+  const u=esc(g.unit||"");
+  const fc=F?(F.prob!=null?`${F.ok?"✅":"⚠️"} 期限の見込み 約${ltFmt(F.pred)}${u}（80%の幅 ${ltFmt(Math.min(F.lo,F.hi))}〜${ltFmt(Math.max(F.lo,F.hi))}）・届く確率 約${Math.max(F.rough?5:1,Math.min(F.rough?95:99,Math.round(F.prob*100)))}%${F.ok?"":`。あと週${ltFmt(Math.abs(need))}${u}ずつ必要`}`:(F.ok?`✅ このペースなら期限に約${ltFmt(F.pred)}${u}（届く見込み）`:`⚠️ このペースだと期限に約${ltFmt(F.pred)}${u}。あと週${ltFmt(Math.abs(need))}${u}ずつ必要`))+(F.rough?"<br>※記録した期間がまだ短いので、見込みは粗めです":""):need!=null?`目安：週${ltFmt(Math.abs(need))}${u}ずつ（記録が3回たまると見込み、4回で確率を出します）`:"";
   return `<div class="lt-g ${g.done?"done":""}"><div class="lt-gh"><span>${A[1]}</span><b>${esc(g.t)}</b>${g.due?`<small>${left>=0?`あと${left}日`:`期限を${-left}日過ぎ`}</small>`:""}</div>
+    ${V||M.length?`<small class="lt-tag">${V?`${V[1]} ${V[2]}につながる`:""}${M.length?`${V?"・":""}${M.map(k=>(LT_MOT.find(m=>m[0]===k)||[0,""])[1]).join("・")}`:""}</small>`:""}
+    ${M.length&&!auto?`<small class="lt-warn">「やらされ感」だけの目標は続きにくいと言われます。自分にとっての意味（③）を足すか、目標を見直してみて。</small>`:""}
     ${!started?`<small class="lt-st">🗓 ${short(g.start)}（節目の日）から始めます</small>`:""}
     ${g.ifT&&g.thenT?`<small class="lt-if">🧭 もし<b>${esc(g.ifT)}</b>なら、<b>${esc(g.thenT)}</b></small>`:""}
-    ${ltNum(g)?`<div class="lt-num"><span>今 <b>${ltFmt(ltCur(g))}</b>${esc(g.unit)} → 目標 <b>${ltFmt(Number(g.vT))}</b>${esc(g.unit)}</span>${ltSpark(g)}</div>
-      <small class="lt-fc">${F?(F.ok?`✅ このペースなら期限に約${ltFmt(F.pred)}${esc(g.unit)}（届く見込み）`:`⚠️ このペースだと期限に約${ltFmt(F.pred)}${esc(g.unit)}。あと週${ltFmt(Math.abs(need))}${esc(g.unit)}ずつ必要`):need!=null?`目安：週${ltFmt(Math.abs(need))}${esc(g.unit)}ずつ（記録が3回たまると見込みを出します）`:""}</small>`:""}
-    <div class="lt-pg"><span class="lt-bar"><i style="width:${pc}%"></i></span><b>${pc}%</b>${ltNum(g)?`<input type="number" step="any" inputmode="decimal" class="lt-in" data-ltvin="${g.id}" placeholder="今の${esc(g.unit)}" aria-label="今の値"><button type="button" class="chip mini" data-ltlog="${g.id}">記録</button>`:`<button type="button" class="chip mini" data-ltp="${g.id}|-10">−</button><button type="button" class="chip mini" data-ltp="${g.id}|10">＋</button>`}</div>
-    ${g.step?`<div class="lt-beh"><span>👣 今週の一歩：${esc(g.step)}</span><b>${bn}${bt?`/${bt}`:""}回</b><button type="button" class="chip mini" data-ltbeh="${g.id}|1">＋1</button>${bn?`<button type="button" class="chip mini" data-ltbeh="${g.id}|-1">−</button>`:""}</div>`:""}
+    ${ltNum(g)?`<div class="lt-num"><span>今 <b>${ltFmt(ltCur(g))}</b>${u} → 目標 <b>${ltFmt(Number(g.vT))}</b>${u}</span>${ltSpark(g)}</div><small class="lt-fc">${fc}</small>`:""}
+    <div class="lt-pg"><span class="lt-bar"><i style="width:${pc}%"></i></span><b>${pc}%</b>${g.done?"":ltNum(g)?`<input type="number" step="any" inputmode="decimal" class="lt-in" data-ltvin="${g.id}" placeholder="今の${u}" aria-label="今の値"><button type="button" class="chip mini" data-ltlog="${g.id}">記録</button>`:`<button type="button" class="chip mini" data-ltp="${g.id}|-10">−</button><button type="button" class="chip mini" data-ltp="${g.id}|10">＋</button>`}</div>
+    ${g.done?"":`<small class="lt-fr">${ltFrame(g)}</small>`}
+    ${g.step?`<div class="lt-beh"><span>👣 今週の一歩：${esc(g.step)}</span><b>${bn}${bt?`/${bt}`:""}回</b>${g.done?"":`<button type="button" class="chip mini" data-ltbeh="${g.id}|1">＋1</button>${bn?`<button type="button" class="chip mini" data-ltbeh="${g.id}|-1">−</button>`:""}`}</div>
+      ${W.length>1?`<div class="lt-wks" aria-label="週ごとの達成">${W.map(w=>`<i class="${w.cur?"cur":w.hit?"hit":""}" title="${short(w.w)}〜 ${w.c}回"></i>`).join("")}${hr!=null?`<small>届いた週 ${hr}%</small>`:""}</div>`:""}`:""}
     <div class="lt-ga">${g.done?`<button type="button" class="link" data-ltg="${g.id}|undone">戻す</button>`:`<button type="button" class="link" data-ltg="${g.id}|step">今週の一歩を決める</button><button type="button" class="link" data-ltg="${g.id}|share">${g.share?"🗣 話し合いで報告中":"🗣 話し合いで報告する"}</button><button type="button" class="link" data-ltg="${g.id}|done">🏁 達成</button>`}<button type="button" class="link danger" data-ltg="${g.id}|del">削除</button></div></div>`; }
-function ltGoalHTML(){ const G=ltGoals(), D=state.ltG||(state.ltG={area:"health",start:today()});
-  return `<section class="lt"><div class="lt-h"><b>🎯 目標</b><button type="button" class="link" data-lt="close">閉じる</button></div>
-    ${G.filter(g=>!g.done).map(ltCard).join("")||`<p class="who">まだ目標はありません。下の手順で1つ作ってみましょう（10分）。</p>`}
-    <details class="lt-new" ${G.filter(g=>!g.done).length?"":"open"}><summary>＋ 新しい目標を立てる（WOOP）</summary>
-      <div class="lt-step"><b>① 分野</b><div class="lt-seg">${LT_AREAS.map(([k,ic,l])=>`<button type="button" class="chip" data-ltarea="${k}" aria-pressed="${D.area===k}">${ic} ${l}</button>`).join("")}</div></div>
+function ltGoalHTML(){ const G=ltGoals(), D=state.ltG||(state.ltG={area:"health",start:today()}), act=G.filter(g=>!g.done), VS=ltValsGet().sel, M=Array.isArray(D.mot)?D.mot:[];
+  return `<section class="lt"><div class="lt-h"><b>🎯 目標</b><small class="who">🔒じぶんだけ</small></div>
+    ${act.length>3?`<small class="lt-warn">同時に追う目標は3つまでが目安です（注意が分かれ、目標どうしがぶつかりやすくなります）。いま${act.length}件。</small>`:""}
+    ${act.map(ltCard).join("")||`<p class="who">まだ目標はありません。下の手順で1つ作ってみましょう（10分）。</p>`}
+    <details class="lt-new" ${act.length&&!state.ltNewOpen?"":"open"}><summary>＋ 新しい目標を立てる（WOOP）</summary>
+      <div class="lt-step"><b>① 分野</b><div class="lt-seg">${LT_AREAS.map(([k,ic,l])=>`<button type="button" class="chip" data-ltarea="${k}" aria-pressed="${D.area===k}">${ic} ${l}</button>`).join("")}</div>
+        ${VS.length?`<small class="who">つながる価値観</small><div class="lt-seg">${VS.map(k=>{ const v=ltValOf(k); return v?`<button type="button" class="chip" data-ltgval="${k}" aria-pressed="${D.val===k}">${v[1]} ${v[2]}</button>`:""; }).join("")}</div>`:`<small class="who">「🧭 価値観」を選ぶと、目標とつなげられます</small>`}</div>
       <label class="lt-step"><b>② 願い：何を達成したい？（具体的に・少し高めに）</b><input type="text" id="ltT" maxlength="60" value="${esc(D.t||"")}" placeholder="例：体重を68kgにする"></label>
       <div class="lt-step"><b>　数字で測る（任意）</b><span class="lt-row"><input type="number" step="any" id="ltV0" value="${esc(D.v0??"")}" placeholder="今" style="width:5.5em"><span class="who">→</span><input type="number" step="any" id="ltVT" value="${esc(D.vT??"")}" placeholder="目標" style="width:5.5em"><input type="text" id="ltUnit" maxlength="6" value="${esc(D.unit||"")}" placeholder="単位" style="width:4.5em"></span>
         <span class="lt-row"><span class="who">期限</span><input type="date" id="ltDue" value="${esc(D.due||addDays(today(),90))}"></span></div>
       <label class="lt-step"><b>③ 最高の結果：達成したら、どんないいことがある？</b><input type="text" id="ltVision" maxlength="80" value="${esc(D.vision||"")}" placeholder="思い浮かべてから書く（例：朝から体が軽い）"></label>
+      <div class="lt-step"><b>　なぜやる？（いくつでも）</b><div class="lt-seg">${LT_MOT.map(([k,l])=>`<button type="button" class="chip" data-ltmot="${k}" aria-pressed="${M.includes(k)}">${l}</button>`).join("")}</div><small class="who">自分で「大事」「楽しい」と思える目標ほど続きやすい</small></div>
       <label class="lt-step"><b>④ 障害：じぶんの中の一番の壁は？</b><input type="text" id="ltObs" maxlength="60" value="${esc(D.obstacle||"")}" placeholder="例：夜に甘いものが食べたくなる"></label>
       <div class="lt-step"><b>⑤ 計画：もし〜なら、…する</b><span class="lt-row lt-ift"><span class="who">もし</span><input type="text" id="ltIf" maxlength="50" value="${esc(D.ifT||D.obstacle||"")}" placeholder="④の壁が起きたら"><span class="who">なら</span></span><span class="lt-row lt-ift"><input type="text" id="ltThen" maxlength="50" value="${esc(D.thenT||"")}" placeholder="例：炭酸水を飲んで歯をみがく"><span class="who">する</span></span></div>
       <div class="lt-step"><b>⑥ 今週の一歩（行動）と回数</b><span class="lt-row"><input type="text" id="ltStep" maxlength="60" value="${esc(D.step||"")}" placeholder="例：夕食後に10分歩く" style="flex:1;min-width:0"><input type="number" id="ltBehN" min="1" max="21" value="${esc(D.behN||3)}" style="width:4em"><span class="who">回/週</span></span><label class="lt-ck"><input type="checkbox" id="ltHab"> 毎日の習慣にする</label></div>
@@ -6936,21 +7000,48 @@ function ltGoalHTML(){ const G=ltGoals(), D=state.ltG||(state.ltG={area:"health"
     <details class="lt-why"><summary>この方法の根拠</summary><ul>
       <li>具体的で少し難しい目標は、あいまいな「がんばる」より成果が出やすい（目標設定理論）</li>
       <li>願い→結果→障害→計画（WOOP）と「もし〜なら…する」計画は、達成を後押しすると多くの研究で報告</li>
+      <li>自分の価値観や「大事・楽しい」から選んだ目標は、義務感の目標より続きやすい（自己一致目標）</li>
       <li>進み具合をこまめに記録すると達成しやすく、記録・人に報告するとさらに効果が上がる（138研究のまとめ）</li>
+      <li>前半は「進んだ量」、後半は「残り」を見ると意欲を保ちやすい</li>
+      <li>見込みは記録の直線の当てはめで、80%の幅と届く確率は「今のペースが続いたら」の目安。記録が少ないうちは粗い</li>
       <li>習慣が自動になるまでの目安は人により18〜254日、平均66日。1日抜けても大きな影響はない</li></ul></details>
     ${G.filter(g=>g.done).length?`<details class="lt-past"><summary>🏁 達成した目標（${G.filter(g=>g.done).length}）</summary>${G.filter(g=>g.done).map(ltCard).join("")}</details>`:""}</section>`; }
-function ltEntryHTML(){ const G=ltGoals().filter(g=>!g.done), R=ltRefl().slice(-1)[0];
-  if(state.ltMode==="refl") return ltReflHTML(); if(state.ltMode==="goal") return ltGoalHTML();
-  const behind=G.filter(g=>{ const F=ltNum(g)?ltFore(g):null; return F&&!F.ok; }).length;
-  return `<section class="lte"><div><b>🌱 長期の内省と目標</b><small>${R?`前回のふりかえり ${short(R.d)}`:"休日の朝がおすすめ"}${G.length?`・目標 ${G.length}件${behind?`（⚠️ ${behind}件ペース不足）`:""}`:""}</small></div><div class="lte-a"><button type="button" class="chip" data-lt="refl">🔁 ふりかえる</button><button type="button" class="chip" data-lt="goal">🎯 目標</button></div></section>`; }
+function ltValHTML(){ const O=ltValsGet(), wk=ltWk(), lw=addDays(wk,-7), G=ltGoals().filter(g=>!g.done), R=O.rate||{};
+  return `<section class="lt"><div class="lt-h"><b>🧭 価値観</b><small class="who">🔒じぶんだけ</small></div>
+    <p class="who">目標の「その先」にある、大事にしたい方向です。ゴールのように終わりはありません。5つまで選んでください。</p>
+    <div class="lt-seg">${LT_VALS.map(([k,ic,l])=>`<button type="button" class="chip" data-ltval="${k}" aria-pressed="${O.sel.includes(k)}">${ic} ${l}</button>`).join("")}</div>
+    ${O.sel.length?`<b class="lt-sub">今週、それぞれにそって行動できた？（0〜10）</b>
+    ${O.sel.map(k=>{ const v=ltValOf(k); if(!v) return ""; const cur=(R[wk]||{})[k], prev=(R[lw]||{})[k], hist=Object.keys(R).sort().slice(-8).map(w=>(R[w]||{})[k]).filter(x=>x!=null), ng=G.filter(g=>g.val===k).length;
+      return `<div class="lt-vr"><div class="lt-vh"><span>${v[1]} <b>${v[2]}</b></span><b class="lt-vn">${cur!=null?cur:"-"}</b>${prev!=null&&cur!=null?ltDelta(cur,prev):""}</div>
+        <input type="range" min="0" max="10" step="1" value="${cur!=null?cur:5}" data-ltvr="${k}" aria-label="${v[2]}にそって行動できた度合い">
+        <small class="who">${hist.length>1?`最近：${hist.join("・")}　`:""}${ng?`🎯 つながる目標 ${ng}件`:`<button type="button" class="link" data-ltvgoal="${k}">この価値観で目標をつくる</button>`}</small>
+        ${cur!=null&&cur<=4?`<small class="lt-warn">大事なのに行動が少なめ。小さな一歩を1つ足すと満足感が上がりやすい所です。</small>`:""}</div>`; }).join("")}`:""}
+    <details class="lt-why"><summary>なぜ価値観？</summary><ul><li>目標は達成すると終わりますが、価値観は方向なので「その日できたか」で何度でも満たせます（ACT・アクセプタンス＆コミットメント・セラピーの考え方）</li><li>大事さと実際の行動の差を見ると、次に力を入れる所が分かります（価値に沿った生き方の質問紙と同じ考え方）</li><li>価値観につながる目標ほど、続けやすく満足感も上がりやすいと報告されています</li></ul></details></section>`; }
+function viewLtGoal(){ const T=state.ltTab||"goal", n=ltBadge();
+  const seg=`<div class="lt-tabs">${[["goal","🎯 目標"+(n?` <i>${n}</i>`:"")],["refl","🔁 ふりかえり"],["val","🧭 価値観"]].map(([k,l])=>`<button type="button" class="chip" data-lttab="${k}" aria-pressed="${T===k}">${l}</button>`).join("")}</div>`;
+  return seg+(T==="refl"?ltReflHTML():T==="val"?ltValHTML():ltCheckHTML()+ltGoalHTML()); }
 function ltAddStep(text,hab){ const now=Date.now(); if(hab){ dset("habits",newId(),{text,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"goal",createdAt:now,updatedAt:now}); } else { const it=baseItem("task",text,today(),""); delete it.who; delete it.by; dset("pitems",newId(),it); } ltRtMark("plan"); }
+function ltOpen(tab){ state.ltTab=tab; if(state.view!=="ltgoal") go("ltgoal"); else render(); setTimeout(()=>{ try{ scrollTo({top:0,behavior:"smooth"}); }catch(_){} },60); }
 const LT_IDS={ltT:"t",ltV0:"v0",ltVT:"vT",ltUnit:"unit",ltDue:"due",ltVision:"vision",ltObs:"obstacle",ltIf:"ifT",ltThen:"thenT",ltStep:"step",ltBehN:"behN"};
-document.addEventListener("input",e=>{ const q=e.target.closest&&e.target.closest("[data-ltq]"); if(q){ (state.ltDraft=state.ltDraft||{})[q.dataset.ltq]=q.value; return; } const k=e.target&&LT_IDS[e.target.id]; if(k) (state.ltG=state.ltG||{})[k]=e.target.value; });
-document.addEventListener("click",e=>{ const b=e.target.closest("[data-lt],[data-ltper],[data-ltarea],[data-ltp],[data-ltg],[data-ltrt],[data-ltstart],[data-ltlog],[data-ltbeh]"); if(!b||!b.closest("#main")) return; e.stopPropagation();
-  if(b.dataset.ltrt){ const k=b.dataset.ltrt; if(k==="light"){ ltRtMark("light",ltRt().light?0:1); haptic("tick"); render(); return; } state.ltMode=k==="refl"?"refl":"goal"; state.refDate=today(); if(state.view!=="reflect") go("reflect"); else render(); return; }
+if(typeof document!=="undefined"){
+document.addEventListener("input",e=>{ const q=e.target.closest&&e.target.closest("[data-ltq]"); if(q){ (state.ltDraft=state.ltDraft||{})[q.dataset.ltq]=q.value; return; } if(e.target&&e.target.dataset&&e.target.dataset.ltvr){ const n=e.target.closest(".lt-vr"), o=n&&n.querySelector(".lt-vn"); if(o) o.textContent=e.target.value; return; } const k=e.target&&LT_IDS[e.target.id]; if(k) (state.ltG=state.ltG||{})[k]=e.target.value; });
+document.addEventListener("change",e=>{ const t=e.target; if(!t||!t.closest||!t.closest("#main")) return;
+  if(t.dataset&&t.dataset.ltvr){ const O=ltValsGet(), wk=ltWk(); O.rate[wk]={...(O.rate[wk]||{}),[t.dataset.ltvr]:Number(t.value)}; ltValsSave(O); ltRtMark("goal"); haptic("tick"); render(); return; }
+  if(t.hasAttribute&&t.hasAttribute("data-ltdist")){ state.ltDist=t.checked; render(); } });
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-lt],[data-ltper],[data-ltarea],[data-ltp],[data-ltg],[data-ltrt],[data-ltstart],[data-ltlog],[data-ltbeh],[data-lttab],[data-ltrev],[data-ltval],[data-ltgval],[data-ltmot],[data-ltvgoal]"); if(!b||!b.closest("#main")) return; e.stopPropagation();
+  if(b.dataset.ltrt){ const k=b.dataset.ltrt; if(k==="light"){ ltRtMark("light",ltRt().light?0:1); haptic("tick"); render(); return; } ltOpen(k==="refl"?"refl":"goal"); return; }
+  if(b.dataset.lttab){ state.ltTab=b.dataset.lttab; haptic("tick"); render(); return; }
   if(b.dataset.ltper){ state.ltPer=b.dataset.ltper; render(); return; }
-  if(b.dataset.ltarea){ state.ltG=state.ltG||{}; state.ltG.area=b.dataset.ltarea; render(); return; }
-  if(b.dataset.ltstart){ state.ltG=state.ltG||{}; state.ltG.start=b.dataset.ltstart; render(); return; }
+  if(b.dataset.ltarea){ state.ltG=state.ltG||{}; state.ltG.area=b.dataset.ltarea; state.ltNewOpen=true; render(); return; }
+  if(b.dataset.ltgval){ const D=state.ltG=state.ltG||{}; D.val=D.val===b.dataset.ltgval?"":b.dataset.ltgval; state.ltNewOpen=true; render(); return; }
+  if(b.dataset.ltmot){ const D=state.ltG=state.ltG||{}, k=b.dataset.ltmot, M=Array.isArray(D.mot)?D.mot:[]; D.mot=M.includes(k)?M.filter(x=>x!==k):[...M,k]; state.ltNewOpen=true; render(); return; }
+  if(b.dataset.ltval){ const O=ltValsGet(), k=b.dataset.ltval; if(O.sel.includes(k)) O.sel=O.sel.filter(x=>x!==k); else { if(O.sel.length>=5){ toast("5つまでにしぼってください"); return; } O.sel.push(k); } ltValsSave(O); haptic("tick"); render(); return; }
+  if(b.dataset.ltvgoal){ state.ltG={...(state.ltG||{area:"health",start:today()}),val:b.dataset.ltvgoal}; state.ltNewOpen=true; ltOpen("goal"); setTimeout(()=>{ const el=$("ltT"); if(el){ el.scrollIntoView({block:"center",behavior:"smooth"}); el.focus(); } },200); return; }
+  if(b.dataset.ltstart){ state.ltG=state.ltG||{}; state.ltG.start=b.dataset.ltstart; state.ltNewOpen=true; render(); return; }
+  if(b.dataset.ltrev){ const [id,op]=b.dataset.ltrev.split("|"), G=ltGoals(), g=G.find(x=>x.id===id); if(!g) return; const lw=addDays(ltWk(),-7), bt=Number(g.behN)||1;
+    if(op==="plan"){ const s=prompt(`もし「${g.ifT||"壁が起きた"}」なら、何をする？（もっと小さく・確実にできることに）`,g.thenT||""); if(s===null) return; if(s.trim()) g.thenT=s.trim().slice(0,50); }
+    if(op==="up") g.behN=Math.min(21,bt+1); if(op==="down") g.behN=Math.max(1,bt-1);
+    g.rev={...(g.rev||{}),[lw]:op}; ltSave("ltGoals",G); ltRtMark("goal"); haptic("done"); toast(op==="up"?`週${g.behN}回にしました`:op==="down"?`週${g.behN}回にしました。小さく確実に`:op==="plan"?"計画を見直しました":"このまま続けます",null,"done"); render(); return; }
   if(b.dataset.ltp){ const [id,v]=b.dataset.ltp.split("|"), G=ltGoals(), g=G.find(x=>x.id===id); if(g){ g.p=Math.max(0,Math.min(100,(g.p||0)+Number(v))); g.upd=today(); ltSave("ltGoals",G); ltRtMark("goal"); haptic("tick"); if(g.p===100) toast("🎉 100%！「🏁 達成」にしましょう"); render(); } return; }
   if(b.dataset.ltlog){ const id=b.dataset.ltlog, inp=document.querySelector(`#main [data-ltvin="${id}"]`), v=inp&&inp.value.trim(); if(!v||!isFinite(Number(v))){ toast("今の値を数字で入れてください"); inp&&inp.focus(); return; } const G=ltGoals(), g=G.find(x=>x.id===id); if(!g) return; g.logs=(g.logs||[]).filter(x=>x.d!==today()); g.logs.push({d:today(),v:Number(v)}); g.logs=g.logs.slice(-120); ltSave("ltGoals",G); ltRtMark("goal"); haptic("done"); toast(`記録しました：${ltFmt(Number(v))}${g.unit}`,null,"done"); render(); return; }
   if(b.dataset.ltbeh){ const [id,v]=b.dataset.ltbeh.split("|"), G=ltGoals(), g=G.find(x=>x.id===id); if(!g) return; const wk=ltWk(); g.beh={...(g.beh||{})}; g.beh[wk]=Math.max(0,(g.beh[wk]||0)+Number(v)); ltSave("ltGoals",G); ltRtMark("goal"); haptic(Number(v)>0?"done":"tick"); render(); return; }
@@ -6963,17 +7054,17 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-lt],[data
     render(); return; }
   const a=b.dataset.lt;
   if(a==="hide"){ try{ localStorage.setItem("futari.ltHide",today()); }catch(_){} render(); return; }
-  if(a==="refl"||a==="goal"){ state.ltMode=a; if(state.view!=="reflect"){ state.refDate=today(); go("reflect"); } else render(); setTimeout(()=>{ const s=document.querySelector("#main .lt"); if(s) s.scrollIntoView({block:"start",behavior:"smooth"}); },80); return; }
-  if(a==="close"){ state.ltMode=null; render(); return; }
-  if(a==="saveRefl"){ const D=state.ltDraft||{}; if(!LT_Q.some(([k])=>(D[k]||"").trim())){ toast("1つ以上書いてください"); return; } const R=ltRefl(); R.push({id:newId().slice(-8),d:today(),per:state.ltPer||"w",...Object.fromEntries(LT_Q.map(([k])=>[k,(D[k]||"").trim().slice(0,600)]))}); ltSave("ltRefl",R.slice(-40)); prefs.ltLast=today(); savePrefs(true); ltRtMark("refl"); state.ltDraft={}; haptic("done"); toast("ふりかえりを保存しました（🔒じぶんだけ）",null,"done"); state.ltMode="goal"; render(); return; }
+  if(a==="refl"||a==="goal"||a==="val"){ ltOpen(a); return; }
+  if(a==="saveRefl"){ const D=state.ltDraft||{}; if(!LT_Q.some(([k])=>(D[k]||"").trim())){ toast("1つ以上書いてください"); return; } const R=ltRefl(); R.push({id:newId().slice(-8),d:today(),per:state.ltPer||"w",...Object.fromEntries(LT_Q.map(([k])=>[k,(D[k]||"").trim().slice(0,600)]))}); ltSave("ltRefl",R.slice(-40)); prefs.ltLast=today(); savePrefs(true); ltRtMark("refl"); state.ltDraft={}; haptic("done"); toast("ふりかえりを保存しました（🔒じぶんだけ）",null,"done"); state.ltTab="goal"; render(); return; }
   if(a==="saveGoal"){ const D=state.ltG||{}, t=(D.t||"").trim(); if(!t){ toast("②の目標を書いてください"); $("ltT")&&$("ltT").focus(); return; }
     const hasNum=D.v0!==undefined&&D.v0!==""&&D.vT!==undefined&&D.vT!==""&&isFinite(Number(D.v0))&&isFinite(Number(D.vT));
-    const g={id:newId().slice(-8),area:D.area||"health",t:t.slice(0,60),vision:(D.vision||"").trim(),obstacle:(D.obstacle||"").trim(),ifT:(D.ifT||D.obstacle||"").trim(),thenT:(D.thenT||"").trim(),due:D.due||addDays(today(),90),start:D.start||today(),step:(D.step||"").trim(),behN:Math.max(1,Math.min(21,Number(D.behN)||3)),beh:{},p:0,at:today(),...(hasNum?{v0:Number(D.v0),vT:Number(D.vT),unit:(D.unit||"").trim()||"",logs:[]}:{})};
-    const G=ltGoals(); G.push(g); ltSave("ltGoals",G); if(g.step) ltAddStep(g.step,$("ltHab")&&$("ltHab").checked); prefs.ltLast=today(); savePrefs(true); ltRtMark("goal"); state.ltG={area:g.area,start:today()}; haptic("done"); if(typeof celebrate==="function") celebrate(); toast(g.step?"目標を保存し、今週の一歩を追加しました":"目標を保存しました",null,"done"); render(); return; }
-  if(a==="aiRefl"||a==="aiGoal"){ const D=state.ltDraft||{}, G=state.ltG||{}, per=(LT_PER.find(x=>x[0]===(state.ltPer||"w"))||LT_PER[0])[1];
-    const q=a==="aiRefl"?`長期のふりかえり（${per}）を一緒に深めて。私のメモ：${LT_Q.map(([k,l])=>D[k]?`${l}：${D[k]}`:"").filter(Boolean).join("／")||"（まだ書いていない）"}。記録（やったこと・習慣・気分・内省）もふまえて、前の期間との違い・パターン・次の期間のテーマ案を3つ、具体的に。`
-      :`WOOPで目標づくりを手伝って。分野：${(LT_AREAS.find(x=>x[0]===G.area)||LT_AREAS[0])[2]}。願い：${G.t||"未定"}。最高の結果：${G.vision||"未定"}。障害：${G.obstacle||"未定"}。私の記録（習慣・やったこと・内省・お金・予定）をふまえて、①数字と期限のある目標案を2個 ②それぞれの「もし〜なら…する」計画 ③今週できる一歩と回数 を提案して。`;
+    const g={id:newId().slice(-8),area:D.area||"health",t:t.slice(0,60),vision:(D.vision||"").trim(),obstacle:(D.obstacle||"").trim(),ifT:(D.ifT||D.obstacle||"").trim(),thenT:(D.thenT||"").trim(),due:D.due||addDays(today(),90),start:D.start||today(),step:(D.step||"").trim(),behN:Math.max(1,Math.min(21,Number(D.behN)||3)),beh:{},p:0,at:today(),...(D.val?{val:D.val}:{}),...(Array.isArray(D.mot)&&D.mot.length?{mot:D.mot.slice()}:{}),...(hasNum?{v0:Number(D.v0),vT:Number(D.vT),unit:(D.unit||"").trim()||"",logs:[]}:{})};
+    const G=ltGoals(); G.push(g); ltSave("ltGoals",G); if(g.step) ltAddStep(g.step,$("ltHab")&&$("ltHab").checked); prefs.ltLast=today(); savePrefs(true); ltRtMark("goal"); state.ltG={area:g.area,start:today()}; state.ltNewOpen=false; haptic("done"); if(typeof celebrate==="function") celebrate(); toast(g.step?"目標を保存し、今週の一歩を追加しました":"目標を保存しました",null,"done"); render(); return; }
+  if(a==="aiRefl"||a==="aiGoal"){ const D=state.ltDraft||{}, G=state.ltG||{}, per=(LT_PER.find(x=>x[0]===(state.ltPer||"w"))||LT_PER[0])[1], V=ltValsGet().sel.map(k=>(ltValOf(k)||[0,0,""])[2]).filter(Boolean).join("・");
+    const q=a==="aiRefl"?`長期のふりかえり（${per}）を一緒に深めて。私のメモ：${LT_Q.map(([k,l])=>D[k]?`${l}：${D[k]}`:"").filter(Boolean).join("／")||"（まだ書いていない）"}。大事にしたい価値観：${V||"未設定"}。記録（やったこと・習慣・気分・内省）もふまえて、前の期間との違い・パターン・次の期間のテーマ案を3つ、具体的に。`
+      :`WOOPで目標づくりを手伝って。分野：${(LT_AREAS.find(x=>x[0]===G.area)||LT_AREAS[0])[2]}。つながる価値観：${G.val?(ltValOf(G.val)||[0,0,""])[2]:(V||"未設定")}。願い：${G.t||"未定"}。最高の結果：${G.vision||"未定"}。障害：${G.obstacle||"未定"}。私の記録（習慣・やったこと・内省・お金・予定）をふまえて、①数字と期限のある目標案を2個 ②それぞれの「もし〜なら…する」計画 ③今週できる一歩と回数 を提案して。`;
     if(typeof aiDockToggle==="function") aiDockToggle(true); aiAsk(q); return; } },true);
+}
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -10084,10 +10175,10 @@ const HUBS=[
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"],["duo","ふたりの予定"]]} /* v249: 予定に関するものは「予定」へまとめる */,
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["daylog","やったこと"],["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
   {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","将来の計画"],["baby","子ども"],["money","お金"]]},
-  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["usage","利用状況"],["settings","設定"]]}];
+  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["ltgoal","目標"],["usage","利用状況"],["settings","設定"]]}];
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
-function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="dec"||k==="meal"); if(items.length<2) return "";
+function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="ltgoal"||k==="dec"||k==="meal"); if(items.length<2) return "";
   return `<nav class="hubbar" aria-label="${h.l}の中">${items.map(([k,l])=>{ const b=k==="home"?"":tabBadge(k); return `<button data-hub="${k}" class="${(v===k||(v==="caution"&&k==="trouble"))?"on":""}">${l}${b?`<i>${b}</i>`:""}</button>`; }).join("")}</nav>`; }
 function stickVars(){ const r=document.documentElement, hd=document.querySelector("header"), hb=$("hubBar"); if(hd) r.style.setProperty("--hdrH",hd.offsetHeight+"px"); r.style.setProperty("--hubH",(hb&&hb.offsetParent?hb.offsetHeight+4:0)+"px");
   const fb=document.querySelector("#main .futbar"), on=fb&&fb.querySelector(".on"); if(on&&!fb.dataset.c){ fb.dataset.c="1"; fb.scrollLeft=on.offsetLeft-(fb.clientWidth-on.offsetWidth)/2; } }
