@@ -1078,6 +1078,8 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .ana-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:96px;align-items:end}.ana-wd div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px}.ana-wd i{width:70%;background:var(--reflect);border-radius:6px 6px 2px 2px}.ana-wd b{font-size:11.5px}.ana-wd small{font-size:11px;color:var(--muted)}
 .ana-hr{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;height:56px;align-items:end}.ana-hr i{background:var(--future);border-radius:3px 3px 1px 1px}.ana-hx{display:flex;justify-content:space-between}.ana-hx small{font-size:10.5px;color:var(--muted)}
 .shq .chips{flex-wrap:wrap}.tabbar button:active .tb-i{transform:scale(.88)}.tb-i{transition:background .2s,transform .12s}.tt-bar .tb-h{cursor:pointer}
+/* v335: 画面名は戻るボタンのすぐ右に（真ん中に浮いて見えていた） */
+.brand .trow{justify-content:flex-start}.brand .trow h1{margin-right:auto;text-align:left}.brand .trow .trow-r{margin-left:auto}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2481,7 +2483,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="334";
+const APP_VERSION="335";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -8036,7 +8038,7 @@ function autoCook(){ if(pushEnabled()){ clearTimeout(window.__pushDeb); window._
       const id=`auto_${r.id}`, ex=state.chores.find(b=>b.id===id), ar={mode:r.mode||"or",groups:r.groups||[],off:Number(r.off||0)}, want=!!r.on;
       if(want&&!ex){ dset("chores",id,{text:r.name,every:1,target:"ar",ar,who:r.who||"both",pts:1,log:{},auto:r.id,autoBy:myRole(),by:state.me||null,role:myRole(),createdAt:now,updatedAt:now}); }
       else if(!want&&ex&&ex.auto) ddel("chores",id);
-      else if(want&&ex&&ex.auto&&ex.target==="ar"&&(stableJSON(ex.ar)!==stableJSON(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
+      else if(want&&ex&&ex.auto&&ex.target==="ar"&&(stableJSON(ex.ar)!==stableJSON(ar)||(!ex.touched&&(ex.text!==r.name||(ex.who||"both")!==(r.who||"both"))))) { const W=(window.__arW=window.__arW||{}), tn=Date.now(); if(!(W[id]>tn-10*60e3)){ W[id]=tn; dupd("chores",id,ex.touched?{ar}:{text:r.name,ar,who:r.who||"both"}); } } /* v335: 同じ家事を短い間に何度も書き直さない（10/3に1日1951回の書き換えがあった） */ /* 家事の画面で名前・担当・ポイントを直したら、そちらを優先 */
       continue; }
     if(r.kind==="topic"){ /* v214: 議題は「次の1回」だけ入れる。話し終えたら次の回。話していない前回分があれば増やさない */
       const mine=(state.topics||[]).filter(b=>b.auto===r.id), open=mine.filter(b=>b.status!=="done"&&b.status!=="hold"); /* v248: 「期日まで残す」にした回は次の回を止めない */
