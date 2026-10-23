@@ -622,12 +622,20 @@ function sleepHook_(p) {
     const g = UrlFetchApp.fetch(url, { headers: H, muteHttpExceptions: true }); let n = {};
     if (g.getResponseCode() === 200) { try { n = JSON.parse((((JSON.parse(g.getContentText()).fields || {}).json || {}).stringValue) || "{}") || {}; } catch (x) { n = {}; } }
     const now = Date.now(), hJ = Number(Utilities.formatDate(new Date(now), "Asia/Tokyo", "H"));
-    const night = Utilities.formatDate(new Date(ty === "wake" || hJ < 4 ? now - 864e5 : now), "Asia/Tokyo", "yyyy-MM-dd");
+    let night = Utilities.formatDate(new Date(ty === "wake" || hJ < 4 ? now - 864e5 : now), "Asia/Tokyo", "yyyy-MM-dd"), hk = null;
+    if (String(p.sleep) === "hk") { /* v15：ヘルスケアの睡眠記録（実際に眠っていた時間）。s＝寝付いた時刻・e＝起きた時刻・m＝眠っていた合計（任意） */
+      const pd = function (v) { v = String(v || "").trim().replace(/ /g, "+"); if (/^\d{12,14}$/.test(v)) return Number(v); const t = Date.parse(v); return isFinite(t) ? t : NaN; };
+      const s = pd(p.s), e2 = pd(p.e); if (!isFinite(s) || !isFinite(e2) || e2 <= s || e2 - s > 16 * 3600e3) return { ok: false, error: "時刻の形が違います（s・e）：" + String(p.s || "").slice(0, 30) };
+      let m = Number(String(p.m || "").replace(/[^0-9.]/g, "")); if (isFinite(m) && m > 0) { if (m > 1000) m = m / 60; else if (m <= 16) m = m * 60; m = Math.round(m); if (m > 960 || m > (e2 - s) / 60e3 + 5) m = NaN; } else m = NaN;
+      night = Utilities.formatDate(new Date(Number(Utilities.formatDate(new Date(s), "Asia/Tokyo", "H")) < 12 ? s - 864e5 : s), "Asia/Tokyo", "yyyy-MM-dd");
+      hk = { as: s, ae: e2, am: isFinite(m) ? m : null };
+    }
     const e = n[night] || {};
-    if (ty === "bed") e.bed = now; else if (!e.wake || now - e.wake > 6 * 3600e3) e.wake = now;
+    if (hk) { e.as = hk.as; e.ae = hk.ae; if (hk.am) e.am = hk.am; else delete e.am; e.src = "hk"; }
+    else if (ty === "bed") e.bed = now; else if (!e.wake || now - e.wake > 6 * 3600e3) e.wake = now;
     n[night] = e; Object.keys(n).sort().slice(0, Math.max(0, Object.keys(n).length - 120)).forEach(function (x) { delete n[x]; });
     const w = UrlFetchApp.fetch(url + "?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt", { method: "patch", contentType: "application/json", headers: H, muteHttpExceptions: true, payload: JSON.stringify({ fields: { json: { stringValue: JSON.stringify(n) }, updatedAt: { integerValue: String(now) } } }) });
     if (w.getResponseCode() !== 200) return { ok: false, error: "保存できませんでした（" + w.getResponseCode() + "）" };
-    return { ok: true, night: night, type: ty, at: Utilities.formatDate(new Date(now), "Asia/Tokyo", "HH:mm") };
+    return { ok: true, night: night, type: hk ? "hk" : ty, at: Utilities.formatDate(new Date(hk ? hk.as : now), "Asia/Tokyo", "HH:mm") };
   } finally { lock.releaseLock(); }
 }
