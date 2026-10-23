@@ -1332,6 +1332,23 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .mgo-env{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .mgo-env .btn{flex:none;white-space:nowrap}
 .mr-fg.z{opacity:0}
+/* v351: ホームのたためるカード・タブ */
+#main section.hf > .hc-head{cursor:pointer;gap:6px;-webkit-tap-highlight-color:transparent}
+#main section.hf > .hc-head > :first-child:not(.hf-ic),#main section.hf > .hc-head > .hf-ic + *{flex:none}
+#main section.hf:not(.hf-fold) > .hc-head > .hf-ic + *{flex:1;text-align:left}
+.hf-ic{font-size:16px;line-height:1;margin-right:2px;flex:none}
+.hf-peek{flex:1;min-width:0;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-left:6px;animation:suIn .25s both}
+.hf-chev{flex:none;width:18px;height:18px;margin-left:2px;border-radius:50%;background:color-mix(in srgb,var(--ink) 7%,transparent);position:relative;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.hf-chev::before{content:"";position:absolute;left:6px;top:5px;width:5px;height:5px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}
+#main section.hf:not(.hf-fold) .hf-chev{transform:rotate(180deg)}
+#main section.hf.hf-fold > :not(.hc-head){display:none!important}
+#main section.hf.hf-fold{padding-top:10px;padding-bottom:10px}
+#main section.hf.hf-fold > .hc-head{margin-bottom:0}
+#main section.hf.hf-fold > .hc-head .link,#main section.hf.hf-fold > .hc-head button{display:none}
+#main section.hf.hf-open > :not(.hc-head){animation:suIn .3s cubic-bezier(.2,.8,.2,1) both}
+.hubbar{scroll-behavior:smooth;scroll-snap-type:x proximity}
+.hubbar button{scroll-snap-align:center;transition:background-color .25s,color .25s,transform .12s}
+.hubbar button.on{box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2735,7 +2752,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="350";
+const APP_VERSION="351";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7870,6 +7887,36 @@ if(typeof document!=="undefined"){
     if(b.dataset.mtab){ state.moneyTab=b.dataset.mtab; state.mCnt=0; render(); return; }
     const q=b.dataset.mq; if(q==="spend"){ openSheet("spend"); return; }
     state.moneyTab=q; render(); if(q==="env") setTimeout(()=>{ const x=document.querySelector("#main .env-mvf"); if(x) x.scrollIntoView({behavior:"smooth",block:"center"}); },60); },true);
+}
+/* v351: ホームを見やすく。2つ目以降のカードは「見出し＋ひとこと」にたためる（タップで開く・開いた状態は端末に記憶）。見出しにアイコン。
+   上の切り替えタブは選んだものが真ん中に来るように */
+const HF_IC={"この先7日":"📅","今日のタイムライン":"⏱","今日の習慣":"🌱","今日の気分":"😊","今日の話し合い":"🗣","今月のお金":"💴","今週の達成":"🏆","家事のバランス":"🧹","の更新":"🔔"};
+const HF_DEF=new Set(["この先7日","今日の気分","今日の話し合い","今月のお金","今週の達成","家事のバランス","の更新"]);
+function hfGet(){ try{ return JSON.parse(localStorage.getItem("futari.hfold")||"{}")||{}; }catch(_){ return {}; } }
+function hfSet(o){ try{ localStorage.setItem("futari.hfold",JSON.stringify(o)); }catch(_){} }
+function hfKey(card){ const h=card.querySelector(":scope > .hc-head"); if(!h) return ""; const c=h.cloneNode(true); c.querySelectorAll("button,a,.link,small,.lock,i.hf-chev,.hf-peek,.hf-ic").forEach(x=>x.remove()); return c.textContent.replace(/開く\s*›/g,"").replace(/🔒.*$/,"").replace(/\s+/g," ").trim(); }
+function hfMatch(k,M){ for(const t of Object.keys(M)) if(k===t||(t.startsWith("の")&&k.endsWith(t))) return t; return null; }
+function hfPeek(k,card){ try{ const T=hfMatch(k,HF_IC)||k;
+  if(T==="この先7日"){ const t=today(), e=addDays(t,6); const n=(state.events||[]).filter(x=>x.date>=t&&x.date<=e).length+(state.items||[]).filter(x=>x.due&&!x.done&&x.due>=t&&x.due<=e).length; return n?`予定・やること ${n}件`:"予定なし"; }
+  if(T==="今日の気分"){ const r=(state.reflect||[]).find(x=>x.id===today()); return r&&r.mood?`${(typeof MF!=="undefined"&&MF[r.mood]?MF[r.mood][0]:"")} ${(MOODS.find(m=>m[0]===r.mood)||[,""])[1]}`:"まだ記録していません"; }
+  if(T==="今月のお金"&&typeof mHeroData==="function"){ const D=mHeroData(); return D.avail?(D.left<0?`${yen(-D.left)} オーバー`:`あと ${yen(D.left)}`):`今月の支出 ${yen(D.spent)}`; }
+  if(T==="今週の達成"){ return [...card.querySelectorAll(".rings li, .rings .r, .rings > div > div")].slice(0,0).length?"":card.querySelector(".rings").textContent.replace(/\s+/g,"").replace(/(ふたり|じぶん)/g,"").replace(/(\d+\/\d+)/g,"$1・").replace(/・$/,"").slice(0,40); }
+  if(T==="今日の習慣"){ const a=card.textContent.match(/あと\s*\d+/); return a?a[0].replace(/\s/,""):"今日の分は完了"; }
+  const b=card.querySelector(":scope > .hrow, :scope > .hempty, :scope > .bal, :scope > .who"); return b?b.textContent.replace(/\s+/g," ").trim().slice(0,40):""; }catch(_){ return ""; } }
+function homeFold(){ if(state.view!=="home") return; const F=hfGet();
+  for(const card of document.querySelectorAll("#main > section.hcard:not(.tdo-card)")){ const k=hfKey(card); if(!k) continue; const h=card.querySelector(":scope > .hc-head");
+    if(!h.querySelector(".hf-ic")){ const ic=HF_IC[hfMatch(k,HF_IC)]; if(ic){ const s=document.createElement("span"); s.className="hf-ic"; s.textContent=ic; h.prepend(s); } }
+    const fold=F[k]!==undefined?!!F[k]:HF_DEF.has(hfMatch(k,HF_IC)||"");
+    card.classList.add("hf"); card.classList.toggle("hf-fold",fold); card.dataset.hfk=k;
+    let ch=h.querySelector(".hf-chev"); if(!ch){ ch=document.createElement("i"); ch.className="hf-chev"; ch.setAttribute("aria-hidden","true"); h.append(ch); }
+    let pk=h.querySelector(".hf-peek"); if(fold){ const t=hfPeek(k,card); if(!pk){ pk=document.createElement("span"); pk.className="hf-peek"; const first=h.querySelector(".hf-ic")?h.children[1]:h.firstElementChild; (first||h).after(pk); } pk.textContent=t; } else if(pk) pk.remove();
+    h.setAttribute("role","button"); h.setAttribute("aria-expanded",String(!fold)); h.tabIndex=0; } }
+function hubCenter(){ const hb=document.querySelector("#hubBar .hubbar"), on=hb&&hb.querySelector(".on"); if(!hb||!on||hb.dataset.cv===state.view) return; hb.dataset.cv=state.view; const L=on.offsetLeft-(hb.clientWidth-on.offsetWidth)/2; hb.scrollTo({left:Math.max(0,L),behavior:"smooth"}); }
+if(typeof window!=="undefined"&&typeof render==="function"){ const _r351=render; render=function(){ const r=_r351.apply(this,arguments); try{ homeFold(); hubCenter(); }catch(_){} return r; }; }
+if(typeof document!=="undefined"){
+  const hfToggle=h=>{ const card=h.closest("section.hf"); if(!card) return; const k=card.dataset.hfk, F=hfGet(), now=!card.classList.contains("hf-fold"); F[k]=now?1:0; hfSet(F); haptic("tick"); homeFold(); if(!now){ card.classList.add("hf-open"); setTimeout(()=>card.classList.remove("hf-open"),400); } };
+  document.addEventListener("click",e=>{ const h=e.target.closest("#main section.hf > .hc-head"); if(!h) return; if(e.target.closest("button,a,[data-go],[data-go2],[data-act],.link")) return; e.stopPropagation(); hfToggle(h); },true);
+  document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#main section.hf > .hc-head")){ e.preventDefault(); hfToggle(e.target); } });
 }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
