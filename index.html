@@ -1082,6 +1082,12 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .brand .trow{justify-content:flex-start}.brand .trow h1{margin-right:auto;text-align:left}.brand .trow .trow-r{margin-left:auto}
 /* v337 */
 .rc-warn{margin:0 0 8px;padding:8px 10px;border-radius:12px;font-size:12.5px;background:color-mix(in srgb,#E0A030 16%,transparent)}
+/* v339 土台 */
+.base-c{margin:0 0 12px;padding:12px 14px;border-radius:20px;background:var(--surface);box-shadow:var(--elev,none);display:flex;flex-direction:column;gap:8px;border:1.5px solid color-mix(in srgb,var(--accent) 22%,transparent)}.base-c.easy{border-color:color-mix(in srgb,#E0A030 45%,transparent)}
+.base-h{display:flex;align-items:center;justify-content:space-between;gap:8px}.base-h b{font-size:15px}.base-w{display:flex;gap:4px}.base-w i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--accent);box-sizing:border-box}.base-w i.full{background:var(--accent)}.base-w i.half{background:linear-gradient(90deg,var(--accent) 50%,transparent 50%)}.base-w i.na{border-color:var(--line)}.base-w i.cur{outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:1px}
+.base-m{font-size:12px;color:var(--muted)}.base-r{display:grid;grid-template-columns:28px 1fr auto;grid-template-areas:"ic t s" "ic a a";align-items:center;gap:2px 8px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.base-ic{grid-area:ic;font-size:20px;text-align:center}.base-r>div{grid-area:t;display:flex;flex-direction:column;min-width:0}.base-r>div b{font-size:14px}.base-r>div small{font-size:11.5px;color:var(--muted)}.base-s{grid-area:s;font-size:12px;text-align:right}.base-s small{color:var(--muted)}.b-ok{color:#2e9b5a;font-size:18px}.base-a{grid-area:a;display:flex;gap:6px;justify-content:flex-end}.base-a:empty{display:none}
+.base-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.base-ed{display:flex;flex-direction:column;gap:6px}.base-er{display:flex;align-items:center;gap:6px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2485,7 +2491,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="338";
+const APP_VERSION="339";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2567,7 +2573,7 @@ const PRESETS={
 const PATTERNS=[["none","なし"],["dot","水玉"],["grid","方眼"],["stripe","ストライプ"],["seigaiha","青海波"],["asanoha","麻の葉"]];
 /* v238: 開いたときの画面を「よく使う画面」に自動で合わせる候補 */
 const AUTO_SV=["home","cal","talk","task","shop","money","future","diary","duo","chore","meal","baby"];
-const DEFAULT_PREFS={ltGoals:"[]",ltVals:"{}",ltRefl:"[]",ltLast:"",pullAdd:"on",hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
+const DEFAULT_PREFS={baseCfg:"",baseLog:"{}",easyDay:"",baseCard:"",ltGoals:"[]",ltVals:"{}",ltRefl:"[]",ltLast:"",pullAdd:"on",hubs:"on",mini:"on",navMig:"",voiceMig:"",voiceAI:"fix",flickKeys:"4",tabOrder:"",startView:"home",svMig:"",autoStartV:"",qaPop:"on",qaPopDay:"",qaSeen:"",homeOrder:"",homeHide:"",aiProf:"{}",aiProfShare:"on",kindOrder:"",kindHide:"",aiMem:"[]",aiBriefDay:"",songAuto:"off",aiBrief:"on",eveH:"18",shRem:"on",hsLogo:"same",cardTone:"auto",cardAlpha:"65",cardHex:"",lineTone:"auto",lineHex:"",textTone:"auto",textHex:"",hintsAlways:"0",pal:"mori",accent:"",shape:"round",icon:"line",fs:"m",railSide:"right",railY:-1,view:"task",diaryPriv:"0",seenC:0,
   itemFavorites:"[]",role:"",whoF:"all",lastUs:"talk",lastMe:"psched",
   font:"kaku",pattern:"none",density:"normal",colorH:"",colorW:"",celebrate:"confetti",greet:"1",appName:"",mode:"auto",rlabel:"1",
   onboarded:"0",tipDone:"0",style:"modern",calPh:"1",bg:"",actSeen:0,seenTabs:"{}",onbPreset:"",wv:"",gShow:"1",gShowV:"1",gsItems:"1",gAuto:"1",gsPitems:"1",gsBlocks:"1",gsAnniv:"1",gsShift:"0",gLast:"",ttStart:"4",hideTabs:"",nick:"",autoRules:"",autoSkip:"",autoMade:"",chkSkip:"",pushOn:"0",pushOff:"",pushLead:"30",pushAmH:"7",pushAmTime:"",pushPmTime:"20:30",pushDays:"0,1,2,3,4,5,6",pushQuiet:"0",pushQuietStart:"22:00",pushQuietEnd:"07:00",keepPhoto:"1",haptic:"on",hapWay:"A",cGuide:"1",nav:"tab",navPrev:"",navRev:"0",music:"on",musicSvc:"apple",bgTone:"auto",bgPhotoLum:"",bgPhotoLumId:"",bgPhoto:"",bgDim:"45",bgBlur:"0",fbL:"",fbT:"",fvL:"",fvT:"",hdrPos:"top",hdrSize:"m",hdrFold:"0",hdrOrder:"brand,greet,title,layer",hdrHide:"",hdrSz:"",ai:"on",hand:"right",logo:"rings",logoTxt:"",logoImg:"",logoBg:"",logoSvg:"",logoFg:"",logoSz:"m",micSz:"m",micCol:"mono",wx:"on",wxLat:"",wxLon:"",wxName:""};
@@ -5255,7 +5261,7 @@ function render(anim){
     renderDiaryDynamic();
   } else {
     if((v==="usage"||v==="settings")&&window.__usageSub) window.__usageSub();
-    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+(v==="home"&&typeof eveHTML==="function"?eveHTML():"")+(v==="home"&&typeof ltMorningHTML==="function"?ltMorningHTML():"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ltgoal"?viewLtGoal(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
+    $("main").innerHTML=(typeof rbBarHTML==="function"?rbBarHTML(v):"")+(v==="home"&&typeof eveHTML==="function"?eveHTML():"")+(v==="home"&&typeof baseHTML==="function"?baseHTML():"")+(v==="home"&&typeof ltMorningHTML==="function"?ltMorningHTML():"")+( v==="daylog"?viewDay(): v==="usage"?viewUsage(): v==="baby"?viewBaby(): v==="duo"?viewDuo(): v==="dec"?viewDecisions(): v==="meal"?viewMeal(): v==="cal"?viewCal(): v==="settings"?viewSettings(): v==="home"?viewHome(): v==="money"?viewMoney(): v==="check"?viewCheck(): v==="log"?viewLog(): v==="chore"?viewChore(): v==="trouble"?viewTrouble(): v==="caution"?viewCaution(): v==="future"?viewFuture(): v==="talk"?viewTalk(): v==="habit"?viewHabit(): v==="reflect"?viewReflect(): v==="ltgoal"?viewLtGoal(): v==="ptask"?viewList("task","pitems"): v==="pshop"?viewList("shop","pitems"): v==="pwish"?viewList("wish","pitems"): v==="psched"?viewPsched(): viewList(v));
     lastDiaryKey=null;
   }
   if(vaultMode()&&!state.vaultKey&&(PRIV_VIEWS.has(v)&&v!=="ltgoal"||v==="diary")&&v!=="settings"){ const lk=document.createElement("div"); lk.style.marginTop="8px"; lk.innerHTML=vaultCardHTML(); $("main").prepend(lk); }
@@ -7032,7 +7038,7 @@ function ltValHTML(){ const O=ltValsGet(), wk=ltWk(), lw=addDays(wk,-7), G=ltGoa
     <details class="lt-why"><summary>なぜ価値観？</summary><ul><li>目標は達成すると終わりますが、価値観は方向なので「その日できたか」で何度でも満たせます（ACT・アクセプタンス＆コミットメント・セラピーの考え方）</li><li>大事さと実際の行動の差を見ると、次に力を入れる所が分かります（価値に沿った生き方の質問紙と同じ考え方）</li><li>価値観につながる目標ほど、続けやすく満足感も上がりやすいと報告されています</li></ul></details></section>`; }
 function viewLtGoal(){ const T=state.ltTab||"goal", n=ltBadge();
   const seg=`<div class="lt-tabs">${[["goal","🎯 目標"+(n?` <i>${n}</i>`:"")],["refl","🔁 ふりかえり"],["val","🧭 価値観"],["ana","📈 分析"]].map(([k,l])=>`<button type="button" class="chip" data-lttab="${k}" aria-pressed="${T===k}">${l}</button>`).join("")}</div>`;
-  return seg+(T==="refl"?ltReflHTML():T==="val"?ltValHTML():T==="ana"?ltAnaHTML():ltCheckHTML()+ltGoalHTML()); }
+  return (prefs.baseCard==="off"?`<p class="who"><button type="button" class="link" data-baseon>🏠 ホームの「今日の土台」をまた出す</button></p>`:"")+seg+(T==="refl"?ltReflHTML():T==="val"?ltValHTML():T==="ana"?ltAnaHTML():ltCheckHTML()+ltGoalHTML()); }
 function ltAddStep(text,hab){ const now=Date.now(); if(hab){ dset("habits",newId(),{text,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"goal",createdAt:now,updatedAt:now}); } else { const it=baseItem("task",text,today(),""); delete it.who; delete it.by; dset("pitems",newId(),it); } ltRtMark("plan"); }
 function ltOpen(tab){ state.ltTab=tab; if(state.view!=="ltgoal") go("ltgoal"); else render(); setTimeout(()=>{ try{ scrollTo({top:0,behavior:"smooth"}); }catch(_){} },60); }
 const LT_IDS={ltT:"t",ltV0:"v0",ltVT:"vT",ltUnit:"unit",ltDue:"due",ltVision:"vision",ltObs:"obstacle",ltIf:"ifT",ltThen:"thenT",ltStep:"step",ltBehN:"behN"};
@@ -7105,6 +7111,7 @@ function anaRun(days){ const {D,H}=anaData(days), M=D.filter(x=>x.mood!=null), F
   for(const h of H) bin(`${h.text}をした日`,x=>x.hab[h.id]===undefined?null:x.hab[h.id],"✅");
   bin("話し合いをした日",x=>x.tk==="done"?1:(x.tk==="todo"||x.tk==="skip")?0:null,"🗣");
   bin("休みの日",x=>x.off?1:0,"🌴");
+  if(typeof baseLog==="function"){ const BL=baseLog(); bin("前の夜に睡眠の土台を守れた日",x=>{ const v=(BL[addDays(x.d,-1)]||{}).sleep; return v===1?1:v===0?0:null; },"🌙"); } /* v339 */
   const SH={}; for(const x of M) if(x.sh) SH[x.sh]=(SH[x.sh]||0)+1; for(const s of Object.keys(SH)) if(SH[s]>=5) bin(`シフト「${s}」の日`,x=>x.sh?(x.sh===s?1:0):null,"🗓");
   anaBH(F); F.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
   const cA=anaCor(M.map(x=>x.act),M.map(x=>x.mood)), E=M.filter(x=>x.en!=null), cE=anaCor(E.map(x=>x.en),E.map(x=>x.mood));
@@ -7180,6 +7187,64 @@ if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b
 if(typeof document!=="undefined") document.addEventListener("click",e=>{ if(e.target.closest("button,a,input,textarea,select,label,summary,[data-act]")) return;
   const h=e.target.closest(".tt-bar .tb-h,.tt-bar .tb-title"); if(h){ const b=h.closest(".tt-bar").querySelector('[data-act="ttedit"]'); if(b){ haptic("tick"); b.click(); } return; }
   const k=e.target.closest("#main .tk-heat .tk[data-tkf]"); if(k){ state.talkDate=k.dataset.tkf; haptic("tick"); render(); } });
+
+
+/* v339: 「土台」を守る仕組み。全部を毎日完璧にするより、睡眠とふたりの会話のような土台を崩さないことを優先する。
+   ・ホームの一番上に「今日の土台」（最低ラインだけ。ふつうは2つ）。ほかは「できたらボーナス」
+   ・睡眠：夜は「寝る準備まであと何分」、翌朝に「きのうの夜は最低ラインを守れた？」を1タップで記録
+   ・会話：話し合いを記録した日は自動で✓。話し合いの日でなくても「10分話した」を1タップで
+   ・1日抜けても大丈夫、2日続けて抜けないことを大事にする（習慣は1日休んでも定着に大きく響かない：Lally 2010）
+   ・しんどい日モード：今日やることを、土台と期限・約束のあるものだけにしぼる（ほかは今日はお休み） */
+const BASE_DEF=[{k:"sleep",ic:"🌙",l:"睡眠",min:"23:00までに布団に入る",t:"23:00",on:true},{k:"talk",ic:"🗣",l:"ふたりの会話",min:"10分話す",on:true},{k:"c1",ic:"⭐",l:"じぶんの土台",min:"",on:false}];
+const BASE_EASY_KEEP=new Set(["talk","task","shift","sharedNotice","trouble"]);
+function baseCfg(){ let o=null; try{ o=JSON.parse(prefs.baseCfg||"null"); }catch(_){} const L=o&&Array.isArray(o.items)?o.items:[]; return BASE_DEF.map(d=>({...d,...(L.find(x=>x&&x.k===d.k)||{})})); }
+function baseCfgSave(L){ prefs.baseCfg=JSON.stringify({items:L.map(x=>({k:x.k,min:String(x.min||"").slice(0,40),t:x.t||"",l:String(x.l||"").slice(0,16),on:!!x.on}))}); savePrefs(true); }
+function baseLog(){ try{ const o=JSON.parse(prefs.baseLog||"{}"); return o&&typeof o==="object"&&!Array.isArray(o)?o:{}; }catch(_){ return {}; } }
+function baseSet(d,k,v){ const L=baseLog(); L[d]={...(L[d]||{}),[k]:v}; const K=Object.keys(L).sort(); for(const x of K.slice(0,Math.max(0,K.length-150))) delete L[x]; prefs.baseLog=JSON.stringify(L); savePrefs(true); }
+const baseEasy=()=>prefs.easyDay===today();
+/* 夜のうちは日付をまたいでも「その夜」の日付で数える（4時まで） */
+const baseNight=()=>{ const h=new Date().getHours(); return h<4?addDays(today(),-1):today(); };
+function baseSt(d,it){ const v=(baseLog()[d]||{})[it.k];
+  if(it.k==="talk"){ try{ const s=talkState(d); if(s==="done") return 1; if(v===1||v===0) return v; if(s==="off") return "off"; if(s==="skip") return 0; }catch(_){} return v===undefined?null:v; }
+  return v===undefined?null:v; }
+function baseOn(){ return baseCfg().filter(x=>x.on&&(x.k!=="c1"||x.min)); }
+function baseDay(d){ const L=baseOn(); let n=0,ok=0; for(const it of L){ const s=baseSt(d,it); if(s!==1&&s!==0) continue; n++; if(s===1) ok++; } return {n,ok}; } /* 記録のない日は「抜け」に数えない */
+function baseMinLeft(t){ const now=new Date(), m=now.getHours()*60+now.getMinutes(), [hh,mm]=String(t||"23:00").split(":").map(Number), tg=hh*60+(mm||0); let d=tg-(m<4*60?m+1440:m); if(tg<12*60) d+=1440; return d; }
+function baseHTML(){ const L=baseOn(); if(!L.length&&!baseEasy()) return ""; if(prefs.baseCard==="off") return "";
+  const t=today(), y=addDays(t,-1), h=new Date().getHours(), nt=baseNight();
+  const row=it=>{ let st, act="";
+    if(it.k==="sleep"){ const yv=(baseLog()[y]||{}).sleep, tn=(baseLog()[nt]||{}).sleep;
+      if(h>=4&&h<14&&yv==null) { st=`<small>きのうの夜は？</small>`; act=`<button type="button" class="chip mini" data-base="sleep|${y}|1">守れた</button><button type="button" class="chip mini" data-base="sleep|${y}|0">守れなかった</button>`; }
+      else if((h>=19||h<4)&&tn==null){ const left=baseMinLeft(it.t); st=`<small>${left>0?`${it.t}まであと${left>=60?Math.floor(left/60)+"時間":""}${left%60}分${left<=60?"・そろそろ寝る準備":""}`:`${it.t}を過ぎています`}</small>`; act=`<button type="button" class="chip mini" data-base="sleep|${nt}|${left>=-15?1:0}">布団に入った</button>`; }
+      else { const v=h>=4&&h<19?yv:tn; st=v===1?`<b class="b-ok">✓</b>`:v===0?`<small>きのうは守れず・今夜に</small>`:`<small>夜に記録</small>`; } }
+    else { const s=baseSt(t,it); st=s===1?`<b class="b-ok">✓</b>`:s==="off"?`<small>今日はお休みの日</small>`:""; if(s!==1) act=it.k==="talk"?`<button type="button" class="chip mini" data-base="talk|${t}|1">話した</button>`:`<button type="button" class="chip mini" data-base="${it.k}|${t}|1">できた</button>`; }
+    return `<div class="base-r"><span class="base-ic">${it.ic}</span><div><b>${esc(it.l)}</b><small>${esc(it.min||"")}</small></div><span class="base-s">${st}</span><span class="base-a">${act}</span></div>`; };
+  const W=[...Array(7)].map((_,i)=>addDays(t,i-6)).map(d=>{ const r=baseDay(d); const c=!r.n?"na":r.ok===r.n?"full":r.ok?"half":"none"; return `<i class="${c} ${d===t?"cur":""}" title="${short(d)} ${r.ok}/${r.n}"></i>`; }).join("");
+  const yd=baseDay(y), yd2=baseDay(addDays(t,-2)), miss2=yd.n&&!yd.ok&&yd2.n&&!yd2.ok, miss1=yd.n&&yd.ok<yd.n;
+  const msg=miss2?"2日続けて抜けています。今日は土台だけでOK。ほかは休んで大丈夫":miss1?"きのう抜けた分は気にしなくて大丈夫。今日、もう一度守れれば十分":"全部できなくてOK。ここだけ守れれば十分です";
+  return `<section class="base-c ${baseEasy()?"easy":""}"><div class="base-h"><b>🏠 今日の土台</b><span class="base-w" aria-label="直近7日">${W}</span></div>
+    <small class="base-m">${msg}</small>${L.map(row).join("")}
+    <div class="base-f"><button type="button" class="link" data-base="easy">${baseEasy()?"😮‍💨 しんどい日モード中（戻す）":"😮‍💨 しんどい日モード"}</button><button type="button" class="link" data-base="edit">土台を変える</button></div>
+    ${baseEasy()?`<small class="who">今日やることは、土台と期限・約束のあるものだけにしています。ほかは今日はお休み。</small>`:""}
+    ${state.baseEdit?baseEditHTML():""}</section>`; }
+function baseEditHTML(){ const L=baseCfg();
+  return `<div class="base-ed">${L.map(it=>`<div class="base-er"><label class="lt-ck"><input type="checkbox" data-basecfg="${it.k}|on" ${it.on?"checked":""}> ${it.ic}</label>
+    ${it.k==="c1"?`<input type="text" data-basecfg="c1|l" value="${esc(it.l)}" maxlength="16" placeholder="名前（例：運動）" style="width:7em">`:`<b>${esc(it.l)}</b>`}
+    <input type="text" data-basecfg="${it.k}|min" value="${esc(it.min)}" maxlength="40" placeholder="最低ライン（例：5分歩く）" style="flex:1;min-width:0">
+    ${it.k==="sleep"?`<input type="time" data-basecfg="sleep|t" value="${esc(it.t||"23:00")}">`:""}</div>`).join("")}
+    <small class="who">最低ラインは「調子が悪い日でもできる」くらいに。守れる日が増えたら少しずつ上げます。</small>
+    <div class="lt-a"><button type="button" class="btn" data-base="editdone">閉じる</button><button type="button" class="link" data-base="hide">このカードを出さない</button></div></div>`; }
+if(typeof document!=="undefined"){
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-baseon]"); if(!b) return; e.stopPropagation(); prefs.baseCard=""; savePrefs(true); toast("ホームに土台カードを出します"); render(); },true);
+document.addEventListener("change",e=>{ const t=e.target; if(!t||!t.dataset||!t.dataset.basecfg) return; const [k,f]=t.dataset.basecfg.split("|"), L=baseCfg(), it=L.find(x=>x.k===k); if(!it) return; it[f]=f==="on"?t.checked:t.value; baseCfgSave(L); render(); });
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-base]"); if(!b||!b.closest("#main")) return; e.stopPropagation(); const a=b.dataset.base;
+  if(a==="easy"){ prefs.easyDay=baseEasy()?"":today(); savePrefs(true); haptic("tick"); toast(baseEasy()?"今日はしんどい日モード：土台と期限のあるものだけにしました":"ふだんの表示に戻しました"); render(); return; }
+  if(a==="edit"){ state.baseEdit=!state.baseEdit; render(); return; }
+  if(a==="editdone"){ state.baseEdit=false; render(); return; }
+  if(a==="hide"){ prefs.baseCard="off"; savePrefs(true); state.baseEdit=false; toast("土台カードを出さないようにしました（目標タブから戻せます）"); render(); return; }
+  const [k,d,v]=a.split("|"); if(!k||!d) return; baseSet(d,k,Number(v)); haptic(Number(v)?"done":"tick");
+  if(k==="sleep") toast(Number(v)?"🌙 おつかれさま。ゆっくり休んでください":"記録しました。今夜また"); else toast("✓ 土台を守れました",null,"done"); render(); },true);
+}
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -10473,10 +10538,10 @@ function briefHTML(withChecks){
   if(withChecks){ /* v173: 今日やること＝未確認の一覧と統合。色つきのタイルで一目で分かるように */
     const SK=chkSkips(), all=checkList(), skipped=all.filter(x=>x.num>0&&SK.has(x.key)), done=all.filter(x=>!x.num).length+skipped.length, N=all.length, pct=N?done/N:1, R=22, C=2*Math.PI*R;
     const ring=`<svg class="tdo-ring" viewBox="0 0 56 56" aria-label="済み ${done}/${N}"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--task)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 28 28)"/><text x="28" y="32" text-anchor="middle">${pc.length}</text></svg>`;
-    const HH=homeHidden(), dupK=new Set(state.view==="home"?["qa"].filter(k=>!HH.has(k)&&homeOrder().includes(k)) /* v257: 習慣は「今日やること」にも出す（下の習慣カードと両方） */:[]), pcT=pc.filter(x=>!dupK.has(x.key)); /* v243 */
+    const HH=homeHidden(), dupK=new Set(state.view==="home"?["qa"].filter(k=>!HH.has(k)&&homeOrder().includes(k)) /* v257: 習慣は「今日やること」にも出す（下の習慣カードと両方） */:[]), pcT=pc.filter(x=>!dupK.has(x.key)&&!(typeof baseEasy==="function"&&baseEasy()&&!BASE_EASY_KEEP.has(x.key))); /* v243 */
     const tiles=pcT.map(x=>{ const [v,col]=CHK_LOOK[x.key]||["check","--accent"]; return `<div class="htile-w" style="--tc:var(${col})"><button class="htile" data-chk="${x.key}" style="--tc:var(${col})"><span class="ht-top"><span class="ht-ic">${fIcon(v)||ic("spark")}</span><b class="ht-n">${x.num}</b></span><span class="ht-t">${esc(x.title)}</span><small class="ht-d">${esc(x.desc||"タップで確認")}</small></button><button class="ht-skip" data-chkskip="${x.key}" aria-label="${esc(x.title)}は今日は確認済み・見送り">✓ 見送り</button></div>`; }).join("");
     return `<section class="hcard tdo-card"><div class="tdo-h">${ring}<div><h3>今日やること</h3><div class="who">${pc.length?`残り ${pc.length}・済み ${done}/${N}`:"ぜんぶ済んでいます ✓"}</div></div></div>
-      ${typeof wxAlertsHTML==="function"?wxAlertsHTML():""}${pcT.length?`<div class="htiles">${tiles}</div>`:""}${typeof quickChoresHTML==="function"?quickChoresHTML():""}${typeof cautionTodayHTML==="function"?cautionTodayHTML():""}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
+      ${typeof wxAlertsHTML==="function"?wxAlertsHTML():""}${pcT.length?`<div class="htiles">${tiles}</div>`:""}${typeof baseEasy==="function"&&baseEasy()?"":(typeof quickChoresHTML==="function"?quickChoresHTML():"")+(typeof cautionTodayHTML==="function"?cautionTodayHTML():"")}${pc.length>pcT.length?`<div class="who tdo-below">ほか ${pc.length-pcT.length}件（${pc.filter(x=>dupK.has(x.key)).map(x=>esc(x.title)).join("・")}）は下のカードでそのまま入力できます</div>`:""}${skipped.length?`<details class="tdo-ok tdo-skipd"><summary>見送り ${skipped.length}件（今日はもう出しません）</summary><div class="tdo-skip">${skipped.map(x=>`<button class="chip mini" data-chkskip="${x.key}" title="タップでフォローに戻す">⏸ ${esc(x.title)}（${x.num}）・戻す</button>`).join("")}</div></details>`:""}${all.filter(x=>!x.num).length?`<details class="tdo-ok"><summary>済み ${all.filter(x=>!x.num).length}件</summary><div>${all.filter(x=>!x.num).map(x=>`<span>✓ ${esc(x.title)}</span>`).join("")}</div></details>`:""}
       ${gomiBarHTML()}${wn.slice(0,3).map(x=>`<div class="br-w">${ic("alert")}<span>${esc(x)}</span></div>`).join("")}${prep.slice(0,2).map(o=>prepOfferHTML(o)).join("")}</section>`; }
   if(!L.length&&!wn.length&&!prep.length&&!pc.length) return withChecks?`<section class="brief"><div class="br-h"><b>今日やること</b></div><div class="hempty">✓ 今日やることは全部済んでいます</div></section>`:"";
   return `<section class="brief"><div class="br-h"><b>${withChecks?"今日やること":"今日のまとめ"}</b>${withChecks&&pc.length?`<button class="link" data-go2="check">未入力・未確認 ${pc.length} ›</button>`:`<span class="who">${jpDate(t)}</span>`}</div>
