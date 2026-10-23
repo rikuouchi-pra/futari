@@ -2485,7 +2485,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="337";
+const APP_VERSION="338";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -2756,7 +2756,11 @@ function err(e){
   $("offline").textContent= c==="quota_exceeded"?"保存上限に達しました。片付けてから追加してください。"
     : c==="invalid_argument"?"このアカウントには編集権限がありません。共有時に「編集可」で招待してください。"
     : "保存できませんでした。通信状況を確認してもう一度お試しください。";
-  $("offline").hidden=false;
+  /* v338: 1回の失敗で出たお知らせが消えずに残っていた。理由を小さく出し、閉じるボタンと15秒後の自動非表示を付ける。利用状況にも残す */
+  const why=String(c||(e&&e.message)||"").slice(0,40);
+  $("offline").innerHTML=`${esc($("offline").textContent)}${why?` <small class="off-why">（${esc(why)}）</small>`:""} <button type="button" class="link" data-act="offx">閉じる</button>`;
+  $("offline").hidden=false; try{ if(typeof usageErr==="function") usageErr("保存失敗 "+why); }catch(_){}
+  clearTimeout(err.t); err.t=setTimeout(()=>{ if(!state.connIssue&&!state.guest&&!state.needCode) $("offline").hidden=true; },15000);
 }
 const guestBlock=c=>{ if((state.guest||state.needCode)&&!PRIVATE.has(c)&&c!=="bugs"){ toast("このアカウントは登録されていないため、ふたりのデータは変更できません"); return true; } return false; };
 async function dset(c,id,data){ if(guestBlock(c)) return false; const existed=(state[c]||[]).some(x=>x.id===id); netMark(); if(actTracked(c)){ const ex=(state[c]||[]).find(i=>i.id===id); data={...data,updBy:myRole(),updAt:Date.now()}; logAct(ex?"edit":"add",c,id,{...(ex||{}),...data},ex?data:null); } const r=colRef(c); if(r){try{await r.doc(id).set(data);try{pushNotifyAdded(c,id,data,existed)}catch(_){}}catch(e){err(e);return false;}} else {state[c]=state[c].filter(x=>x.id!==id);state[c].push({id,...data});vaultSave(c);requestRender();} return true; }
@@ -5937,7 +5941,7 @@ $("rhome").onclick=()=>{ if(railDrag.moved) return; go("home"); };
 $("shareNotice").addEventListener("click",()=>{state.shareInboxOpen=true;go("home");requestAnimationFrame(() => $("shareInbox")?.scrollIntoView({block:"start",behavior:"smooth"}));});
 $("lsw").addEventListener("click",e=>{ const b=e.target.closest("[data-layer]"); if(b) switchLayer(b.dataset.layer); });
 $("appTitle").style.cursor="pointer"; $("appTitle").onclick=()=>go("home"); $("title").onclick=()=>{ if(state.view!=="home") go("home"); };
-$("offline").addEventListener("click",e=>{ if(e.target.closest("[data-act=openBind]")) go("settings"); });
+$("offline").addEventListener("click",e=>{ if(e.target.closest("[data-act=openBind]")) go("settings"); if(e.target.closest("[data-act=offx]")){ e.stopPropagation(); $("offline").hidden=true; } });
 $("plus").onclick=()=>openAdd();
 function openAdd(){
   if(state.view==="reflect"){ state.refDate=today(); render(); const ta=$("rfGood"); if(ta) ta.focus(); return; }
