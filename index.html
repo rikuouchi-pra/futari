@@ -7655,6 +7655,34 @@ function l2hMake(t,i,now){ const k=l2hTo(), id=newId(), d=addDays(state.refDate|
   if(k==="task"){ const it=baseItem("task",t,d,"",myRole()); dset("items",id,it); return ["items",id]; }
   if(k==="topic"){ dset("topics",id,{text:t,who:myRole(),status:"open",note:"",ref:null,by:state.me||null,createdAt:now+i,updatedAt:now}); return ["topics",id]; }
   dset("cautions",id,{text:t,level:"warn",who:myRole(),by:state.me||null,createdAt:now+i,updatedAt:now,ack:{}}); return ["cautions",id]; }
+/* v348: 日付をまちがえて書いても、その日の記録ごと別の日へ移せる（内省・日記）。移す先に記録があれば足し合わせる。取り消しもできる */
+function mvBarHTML(kind,d){ const has=kind==="reflect"?(()=>{ const r=state.reflect.find(x=>x.id===d); return !!(r&&(r.mood||r.energy||r.good||r.bad||r.learn||(r.feel||[]).length)); })():!!((myPriv(d)||{}).text||(myShared(d)||{}).text||((myPriv(d)||myShared(d)||{}).photos||[]).length);
+  if(!has) return ""; const op=state.mvOpen===kind+"|"+d;
+  return `<div class="mvbar ${op?"open":""}">${op?`<span>この日の${kind==="reflect"?"内省":"日記"}を</span><input type="date" id="mvTo" value="${esc(state.mvTo||addDays(d,-1))}" max="${today()}" aria-label="移す先の日付"><span>へ</span><button type="button" class="btn primary" data-mvgo="${kind}|${d}">移す</button><button type="button" class="link" data-mvx="1">やめる</button>`:`<button type="button" class="link" data-mvopen="${kind}|${d}">📅 日付をまちがえた？ 別の日に移す</button>`}</div>`; }
+const mvJoin=(a,b)=>[a,b].map(x=>String(x||"").trim()).filter(Boolean).join("\n");
+async function moveReflect(from,to,silent){ const src=state.reflect.find(x=>x.id===from); if(!src) return false; const dst=state.reflect.find(x=>x.id===to);
+  if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); }
+  const {id:_a,...S}=src, {id:_b,...D}=dst||{}; const before={from:{...S},to:dst?{...D}:null};
+  const doc={...D,...S,date:to,mood:D.mood||S.mood||null,energy:D.energy||S.energy||null,feel:[...new Set([...(D.feel||[]),...(S.feel||[])])],good:mvJoin(D.good,S.good),bad:mvJoin(D.bad,S.bad),learn:mvJoin(D.learn,S.learn),movedFrom:from,updatedAt:Date.now()};
+  if(dst) Object.assign(dst,doc); else state.reflect.push({id:to,...doc}); state.reflect=state.reflect.filter(x=>x.id!==from);
+  await dset("reflect",to,doc); await ddel("reflect",from);
+  if(!silent) toast(`${short(from)}の内省を${short(to)}へ移しました${dst?"（あった記録と合わせました）":""}`,async()=>{ if(before.to){ await dset("reflect",to,before.to); const t=state.reflect.find(x=>x.id===to); if(t) Object.assign(t,before.to); } else { await ddel("reflect",to); state.reflect=state.reflect.filter(x=>x.id!==to); } await dset("reflect",from,before.from); if(!state.reflect.find(x=>x.id===from)) state.reflect.push({id:from,...before.from}); state.refDate=from; render(); },"done");
+  return true; }
+async function moveDiary(from,to){ try{ await flushDiary(); }catch(_){} const p=myPriv(from), s=myShared(from); if(!p&&!s) return false;
+  if(s&&state.comments.some(c=>c.entry===s.id)){ toast("コメントがついている日記は移せません（コメントが離れてしまうため）"); return false; }
+  const tp=myPriv(to), ts=myShared(to), now=Date.now();
+  if(p){ const t=tp||{}; await privSet(to,{date:to,text:mvJoin(t.text,p.text),photos:[...new Set([...(t.photos||[]),...(p.photos||[])])],updatedAt:now}); await privDel(from); }
+  if(s){ const t=ts||{}; await sharedSet(ts?ts.id:sharedId(to),{date:to,text:mvJoin(t.text,s.text),photos:[...new Set([...(t.photos||[]),...(s.photos||[])])],by:state.me||null,role:myRole(),updatedAt:now}); await sharedDel(s.id); }
+  toast(`${short(from)}の日記を${short(to)}へ移しました${tp||ts?"（あった日記と合わせました）":""}`,null,"done"); return true; }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",async e=>{ const o=e.target.closest("#main [data-mvopen],#main [data-mvx],#main [data-mvgo]"); if(!o) return; e.stopPropagation(); e.preventDefault();
+    if(o.dataset.mvopen){ state.mvOpen=o.dataset.mvopen; state.mvTo=""; render(); setTimeout(()=>{ const i=$("mvTo"); if(i&&i.showPicker) try{ i.showPicker(); }catch(_){} },60); return; }
+    if(o.dataset.mvx){ state.mvOpen=""; render(); return; }
+    const [k,from]=o.dataset.mvgo.split("|"), to=($("mvTo")||{}).value; if(!to||to===from){ toast("移す先の日付を選んでください"); return; } if(to>today()){ toast("未来の日には移せません"); return; }
+    o.disabled=true; let ok=false; try{ ok=k==="reflect"?await moveReflect(from,to):await moveDiary(from,to); }catch(er){ err(er); }
+    state.mvOpen=""; if(ok){ haptic("done"); if(k==="reflect") state.refDate=to; else state.diaryDate=to; } render(); },true);
+  document.addEventListener("change",e=>{ if(e.target&&e.target.id==="mvTo") state.mvTo=e.target.value; });
+}
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
