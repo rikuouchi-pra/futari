@@ -7772,6 +7772,34 @@ function viewMoneyEnv(){ const ym=ymOf(state.moneyRef||today()), [y,m]=ym.split(
   h+=`<div class="chart"><h3>📈 直近6か月</h3>${envTrendHTML(ym)}</div>`;
   return h+hint("分類をタップで、予算・繰越のしかた・繰越額を変更<br>繰越：「余りだけ」＝残った分を翌月へ、「余りも不足も」＝使いすぎた分は翌月の予算から引く");
 }
+function envEditHTML(r,ym){ const E=envOf(), cv=((E.cov||{})[r.k]||{})[ym];
+  return `<div class="env-ed"><div class="edit-row"><span class="who mlbl">毎月の予算</span><input type="text" inputmode="numeric" data-envgoal="${r.k}" value="${r.goal||""}" placeholder="例 40000" class="minp"><span class="who">円</span></div>
+    <div class="edit-row"><span class="who mlbl">繰越</span>${seg("envroll_"+r.k,r.mode,[["none","しない"],["plus","余りだけ"],["both","余りも不足も"]])}</div>
+    <div class="edit-row"><span class="who mlbl">${Number(ym.slice(5))}月の繰越額</span><input type="text" inputmode="text" data-envcov="${r.k}" value="${cv??""}" placeholder="自動（${r.carry>=0?"+":""}${r.carry}）" class="minp"><span class="who">円</span>${cv!=null&&cv!==""?`<button class="link" data-envcovclr="${r.k}">自動に戻す</button>`:""}</div>
+    <small class="who">繰越額を入れると、その月の繰越をその額に固定します（はじめて使う月の残高や、ずれた時の調整に）。マイナスは「-5000」のように。</small>
+    <div class="lt-a"><button class="btn primary" data-envsave="${r.k}">保存</button><button class="link" data-envk="${r.k}">閉じる</button></div></div>`; }
+function envSetupHTML(){ const G=catGoals(); return `<div class="chart env-setup"><h3>分類ごとの毎月の予算</h3>${ENV_CATS().map(k=>`<div class="edit-row"><span class="nm" style="min-width:7.5em"><i style="background:${MCATS[k].c}"></i>${MCATS[k].l}</span><input type="text" inputmode="numeric" data-envgoal="${k}" value="${Number(G[k]||0)||""}" placeholder="0" class="minp"><span class="who">円</span></div>`).join("")}<div class="lt-a"><button class="btn primary" data-envsetupsave="1">まとめて保存</button><button class="link" data-envsetup="0">閉じる</button></div></div>`; }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-envk],#main [data-envsetup],#main [data-envsetupsave],#main [data-envsave],#main [data-envcovclr],#main [data-envmv],#main [data-envmvgo],#main [data-envmvdel],#main [data-envanadd],#main [data-envandel],#main [data-seg^='envroll_'] [data-sv]"); if(!b) return; e.stopPropagation(); e.preventDefault();
+    const E=envOf(), ym=ymOf(state.moneyRef||today()), num=v=>{ const n=Number(String(v||"").replace(/[^0-9-]/g,"")); return isFinite(n)?n:0; };
+    if(b.dataset.envk){ state.envOpen=state.envOpen===b.dataset.envk?"":b.dataset.envk; haptic("tick"); render(); return; }
+    if(b.dataset.envsetup!==undefined){ state.envSetup=b.dataset.envsetup!=="0"; render(); return; }
+    if(b.dataset.sv){ const k=b.closest("[data-seg]").dataset.seg.slice(8), v=b.dataset.sv; const roll={...(E.roll||{}),[k]:v}, rf={...(E.rollFrom||{})}; if(v!=="none"&&!rf[k]) rf[k]=ymOf(today()); envSave({roll,rollFrom:rf},v==="none"?`${MCATS[k].l}：繰越しない`:`${MCATS[k].l}：${v==="plus"?"余りだけ":"余りも不足も"}翌月へ繰り越します（${Number(rf[k].slice(5))}月から）`); return; }
+    if(b.dataset.envsetupsave){ const G={...catGoals()}; document.querySelectorAll("#main .env-setup [data-envgoal]").forEach(i=>{ G[i.dataset.envgoal]=num(i.value)||0; }); state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()}; state.envSetup=false; envSave({},"予算を保存しました"); return; }
+    if(b.dataset.envsave){ const k=b.dataset.envsave, gi=document.querySelector(`#main .env-ed [data-envgoal="${k}"]`), ci=document.querySelector(`#main [data-envcov="${k}"]`); const G={...catGoals(),[k]:num(gi&&gi.value)||0}; state.kakei={...(state.kakei||{}),catGoals:G,updatedAt:Date.now()};
+      const cov={...(E.cov||{})}; const cvs=ci?String(ci.value).trim():""; cov[k]={...(cov[k]||{})}; if(cvs!=="") cov[k][ym]=num(cvs); else delete cov[k][ym]; const rf={...(E.rollFrom||{})}; if(cvs!==""&&(!rf[k]||rf[k]>ym)) rf[k]=ym;
+      state.envOpen=""; envSave({cov,rollFrom:rf},`${MCATS[k].l}の予算を保存しました`); return; }
+    if(b.dataset.envcovclr){ const k=b.dataset.envcovclr, cov={...(E.cov||{})}; cov[k]={...(cov[k]||{})}; delete cov[k][ym]; envSave({cov},"繰越額を自動に戻しました"); return; }
+    if(b.dataset.envmv||b.dataset.envmvgo){ let from,to,a; if(b.dataset.envmv){ [from,to,a]=b.dataset.envmv.split("|"); a=Number(a); } else { from=$("envFrom").value; to=$("envTo").value; a=num($("envAmt").value); }
+      if(!a||a<=0){ toast("金額を入れてください"); return; } if(from===to){ toast("ちがう分類を選んでください"); return; }
+      const mv={id:newId().slice(-8),ym,from,to,a,by:myRole(),at:Date.now()}; envSave({moves:[...(E.moves||[]),mv]},`${MCATS[from].l} → ${MCATS[to].l} に ${yen(a)} 付け替えました`); return; }
+    if(b.dataset.envmvdel){ envSave({moves:(E.moves||[]).filter(x=>x.id!==b.dataset.envmvdel)},"付け替えを取り消しました"); return; }
+    if(b.dataset.envanadd){ const t=($("anText").value||"").trim(), a=num($("anAmt").value), mo=Number($("anMonth").value)||1, cat=$("anCat").value; if(!t||!a){ toast("名前と年額を入れてください"); return; }
+      const roll={...(E.roll||{})}, rf={...(E.rollFrom||{})}; if(!roll[cat]||roll[cat]==="none"){ roll[cat]="both"; } if(!rf[cat]) rf[cat]=ymOf(today());
+      envSave({annual:[...(E.annual||[]),{id:newId().slice(-8),text:t.slice(0,30),a,m:mo,cat,from:ymOf(today())}],roll,rollFrom:rf},`${t}：毎月 ${yen(Math.round(a/12))} を${MCATS[cat].l}に積み立てます`); return; }
+    if(b.dataset.envandel){ const x=(E.annual||[]).find(q=>q.id===b.dataset.envandel); envSave({annual:(E.annual||[]).filter(q=>q.id!==b.dataset.envandel)},x?`「${x.text}」を削除しました`:""); return; }
+  },true);
+}
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
