@@ -613,7 +613,10 @@ function sleepHook_(p) {
   const P = PropertiesService.getScriptProperties(), k = String(p.k || "");
   if (!/^[a-f0-9]{32}$/.test(k)) return { ok: false, error: "鍵がありません" };
   const email = P.getProperty("SLEEPK:" + k); if (!email) return { ok: false, error: "鍵が違います" };
-  const ty = String(p.sleep) === "wake" ? "wake" : "bed";
+  const ty0 = String(p.sleep), ty = ty0 === "wake" ? "wake" : ty0 === "use" ? "use" : ty0 === "charge" ? "charge" : "bed";
+  /* v16：スマホを最後に使った時刻（アプリを閉じたとき）・充電を始めた時刻で寝付きを推定。昼間（12〜18時）は何もしない。朝は最初の1回だけ */
+  if (ty === "use" || ty === "charge") { const h0 = Number(Utilities.formatDate(new Date(), "Asia/Tokyo", "H")); if (h0 >= 12 && h0 < 18) return { ok: true, skip: "daytime" };
+    if (ty === "use" && h0 >= 4 && h0 < 12) { const ck = "fu:" + email + ":" + Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd"); if (CacheService.getScriptCache().get(ck)) return { ok: true, skip: "already" }; CacheService.getScriptCache().put(ck, "1", 21600); } }
   const lock = LockService.getScriptLock(); if (!lock.tryLock(15000)) return { ok: false, error: "混み合っています" };
   try {
     const tok = relayTokenFor_(email); if (!tok) return { ok: false, error: "ログインの鍵がありません（アプリを一度ふだんの回線で開いてください）" };
@@ -622,7 +625,7 @@ function sleepHook_(p) {
     const g = UrlFetchApp.fetch(url, { headers: H, muteHttpExceptions: true }); let n = {};
     if (g.getResponseCode() === 200) { try { n = JSON.parse((((JSON.parse(g.getContentText()).fields || {}).json || {}).stringValue) || "{}") || {}; } catch (x) { n = {}; } }
     const now = Date.now(), hJ = Number(Utilities.formatDate(new Date(now), "Asia/Tokyo", "H"));
-    let night = Utilities.formatDate(new Date(ty === "wake" || hJ < 4 ? now - 864e5 : now), "Asia/Tokyo", "yyyy-MM-dd"), hk = null;
+    let night = Utilities.formatDate(new Date(ty === "wake" || hJ < 4 || ((ty === "use" || ty === "charge") && hJ < 12) ? now - 864e5 : now), "Asia/Tokyo", "yyyy-MM-dd"), hk = null;
     if (String(p.sleep) === "hk") { /* v15：ヘルスケアの睡眠記録（実際に眠っていた時間）。s＝寝付いた時刻・e＝起きた時刻・m＝眠っていた合計（任意） */
       const pd = function (v) { v = String(v || "").trim().replace(/ /g, "+"); if (/^\d{12,14}$/.test(v)) return Number(v); const t = Date.parse(v); return isFinite(t) ? t : NaN; };
       const s = pd(p.s), e2 = pd(p.e); if (!isFinite(s) || !isFinite(e2) || e2 <= s || e2 - s > 16 * 3600e3) return { ok: false, error: "時刻の形が違います（s・e）：" + String(p.s || "").slice(0, 30) };
@@ -632,6 +635,8 @@ function sleepHook_(p) {
     }
     const e = n[night] || {};
     if (hk) { e.as = hk.as; e.ae = hk.ae; if (hk.am) e.am = hk.am; else delete e.am; e.src = "hk"; }
+    else if (ty === "use") { if (hJ >= 4 && hJ < 12) { if (!e.fu) e.fu = now; } else { e.lu = now; e.lus = (Array.isArray(e.lus) ? e.lus : []).concat(now).slice(-40); } }
+    else if (ty === "charge") { if (!(hJ >= 4 && hJ < 12)) e.chg = now; }
     else if (ty === "bed") e.bed = now; else if (!e.wake || now - e.wake > 6 * 3600e3) e.wake = now;
     n[night] = e; Object.keys(n).sort().slice(0, Math.max(0, Object.keys(n).length - 120)).forEach(function (x) { delete n[x]; });
     const w = UrlFetchApp.fetch(url + "?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt", { method: "patch", contentType: "application/json", headers: H, muteHttpExceptions: true, payload: JSON.stringify({ fields: { json: { stringValue: JSON.stringify(n) }, updatedAt: { integerValue: String(now) } } }) });

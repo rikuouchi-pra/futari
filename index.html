@@ -2516,7 +2516,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="342";
+const APP_VERSION="343";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7281,17 +7281,26 @@ let sleepDoc=null;
 function bindSleep(){ if(sleepDoc||!state.me||!db) return; try{ sleepDoc=db.doc(`data/users/${state.me}/sleep`); sleepDoc.onSnapshot(s=>{ let n={}; try{ n=s&&s.exists?JSON.parse((s.data()||{}).json||"{}")||{}:{}; }catch(_){ n={}; } state.sleepN=n; try{ sleepAutoMark(); }catch(_){} requestRender(); },()=>{}); }catch(_){} }
 function sleepLimit(d,t){ const [hh,mm]=String(t||"23:00").split(":").map(Number), b=new Date(parse(d)); b.setHours(hh||0,mm||0,0,0); if((hh||0)<12) b.setDate(b.getDate()+1); return b.getTime(); }
 function sleepAutoMark(){ const it=(typeof baseCfg==="function"?baseCfg():[]).find(x=>x.k==="sleep"); if(!it||!it.on) return; const L=baseLog(); let ch=false;
-  for(const [d,e] of Object.entries(state.sleepN||{})){ const b0=e&&(e.bed||e.as); if(!b0||(L[d]||{}).sleep!=null) continue; L[d]={...(L[d]||{}),sleep:b0<=sleepLimit(d,it.t)+15*60e3?1:0}; ch=true; }
+  for(const [d,e] of Object.entries(state.sleepN||{})){ const b0=e&&(e.bed||e.as||(slEst(e)||{}).on); if(!b0||(L[d]||{}).sleep!=null) continue; L[d]={...(L[d]||{}),sleep:b0<=sleepLimit(d,it.t)+15*60e3?1:0}; ch=true; }
   if(ch){ prefs.baseLog=JSON.stringify(L); savePrefs(true); } }
 const slHM=ms=>{ const d=new Date(ms); return `${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`; };
 /* v342: ヘルスケアの睡眠記録（as＝寝付き・ae＝起床・am＝眠っていた分）があればそれを優先。なければ就寝・起床の合図から */
-const slDur=e=>!e?null:e.am?e.am*60e3:e.as&&e.ae&&e.ae>e.as?e.ae-e.as:e.bed&&e.wake&&e.wake>e.bed&&e.wake-e.bed<16*3600e3?e.wake-e.bed:null;
+const slDur=e=>{ if(!e) return null; if(e.am) return e.am*60e3; if(e.as&&e.ae&&e.ae>e.as) return e.ae-e.as; const x=slEst(e); if(x&&x.off&&x.on&&x.off-x.on>=60*60e3&&x.off-x.on<16*3600e3) return x.off-x.on; return e.bed&&e.wake&&e.wake>e.bed&&e.wake-e.bed<16*3600e3?e.wake-e.bed:null; };
 const slOn=e=>e&&(e.as||e.bed)||0, slOff=e=>e&&(e.ae||e.wake)||0;
+/* v343: スマホの使い方から寝付き・起床を推定。夜のあいだにアプリを閉じた時刻（lus）・充電を始めた時刻・睡眠モードの時刻を並べ、
+   起きるまでのあいだで「いちばん長く何も触っていなかった時間」の始まり＝寝付き、朝に最初に触った時刻（fu）＝起床とみなす（夜中に一度スマホを見ても、その前の長い空白を寝付きにできる） */
+function slEst(e){ if(!e) return null; if(e.as&&e.ae) return {on:e.as,off:e.ae,src:"hk"};
+  const off=e.wake||e.fu||0, P=[...(Array.isArray(e.lus)?e.lus:e.lu?[e.lu]:[]),e.chg,e.bed].filter(x=>x&&(!off||x<off)).sort((a,b)=>a-b); if(!P.length) return null;
+  if(!off) return {on:P[P.length-1],off:0,src:P[P.length-1]===e.bed?"bed":"use"};
+  let best=0, on=P[P.length-1], first=0; const Q=[...P,off]; for(let i=0;i<Q.length-1;i++){ const g=Q[i+1]-Q[i]; if(!first&&g>=120*60e3) first=Q[i]; if(g>best){ best=g; on=Q[i]; } }
+  if(first) on=first; /* 2時間以上触らなかった最初の空白＝寝付き（なければいちばん長い空白） */
+  return {on,off,src:on===e.bed?"bed":on===e.chg?"charge":"use",gap:best}; }
 const slTxt=ms=>`${Math.floor(ms/3600e3)}時間${String(Math.round(ms%3600e3/60e3)).padStart(2,"0")}分`;
 function slAvg(n){ const t=today(), D=[]; for(let i=1;i<=n;i++){ const x=slDur((state.sleepN||{})[addDays(t,-i)]); if(x) D.push(x); } return D.length?{avg:D.reduce((s,v)=>s+v,0)/D.length,n:D.length}:null; }
 function sleepLineHTML(){ const N=state.sleepN||{}; if(!Object.keys(N).length) return ""; const t=today(), y=addDays(t,-1), h=new Date().getHours(), nt=h<4?y:t, e=N[y], tn=N[nt], A=slAvg(7); let s="";
   if((h>=19||h<4)&&tn&&tn.bed&&!tn.wake) s=`就寝 ${slHM(tn.bed)} を記録`;
   else if(e&&e.as) s=`昨夜 寝付き ${slHM(e.as)} → 起床 ${slHM(e.ae)}（眠った ${slTxt(slDur(e))}）${e.bed&&e.as>e.bed&&e.as-e.bed<4*3600e3?`・布団から${Math.round((e.as-e.bed)/60e3)}分で寝付き`:""}`;
+  else if(e&&(e.lus||e.lu||e.chg||e.fu)&&slEst(e)){ const x=slEst(e); s=`昨夜（推定）寝付き ${slHM(x.on)}${x.src==="use"?"（最後に触った）":x.src==="charge"?"（充電を始めた）":""} → 起床 ${x.off?slHM(x.off):"？"}${slDur(e)?`（${slTxt(slDur(e))}）`:""}`; }
   else if(e&&(e.bed||e.wake)) s=`昨夜 ${e.bed?slHM(e.bed):"？"} → ${e.wake?slHM(e.wake):"？"}${slDur(e)?`（${slTxt(slDur(e))}）`:""}`;
   if(A&&A.n>=2) s+=`${s?"・":""}7日平均 ${slTxt(A.avg)}`;
   return s?`<small class="base-sl">⌚ ${s}</small>`:""; }
@@ -7306,6 +7315,12 @@ function sleepSetupHTML(){ const G=(window.FUTARI_GAS_URLS||{})[String((window._
       <div class="slp-u"><button type="button" class="btn" data-slp="copy|bed">🌙 就寝のURLをコピー</button><button type="button" class="btn" data-slp="copy|wake">☀️ 起床のURLをコピー</button></div>
       <small class="who">iPhoneのヘルスケアで睡眠スケジュールを入れていると「睡眠」の項目が使えます。URLには本人用の鍵が入っているので人に渡さないでください（<button type="button" class="link" data-slp="renew">鍵を作り直す</button>）。記録は本人だけが見られます。</small>
       <small class="who">試すとき：コピーしたURLをSafariで開くと、その時刻で記録されます（「ok」が出れば成功）。</small>
+      <details class="slp-hk"><summary>📱 スマホを最後に触った時刻から推定（Apple Watchなしでも）</summary>
+        <small class="who">夜のあいだ、よく使うアプリを閉じるたびに時刻を送り、<b>起きるまででいちばん長く触っていなかった時間の始まり</b>を寝付き、<b>朝に最初に触った時刻</b>を起床とみなします。夜中に一度スマホを見ても、その前の長い空白を寝付きにします。昼（12〜18時）は送っても記録しません。</small>
+        <ol class="slp-st"><li>オートメーション「＋」→「<b>アプリ</b>」→ よく使うアプリをいくつか選ぶ（LINE・Safari・YouTube・X・Instagramなど）→「<b>閉じている</b>」にチェック →「すぐに実行」・「実行時に通知」はオフ</li>
+          <li>アクション「URLの内容を取得」に下の<b>スマホ利用のURL</b>を貼る</li>
+          <li>（任意・おすすめ）「<b>充電器</b>」→「接続したとき」で<b>充電のURL</b>（寝る前に充電する人は、これだけでもかなり近い時刻になります）</li></ol>
+        <div class="slp-u"><button type="button" class="btn" data-slp="copy|use">📱 スマホ利用のURLをコピー</button><button type="button" class="btn" data-slp="copy|charge">🔌 充電のURLをコピー</button></div></details>
       <details class="slp-hk"><summary>🎯 もっと正確に：ヘルスケアの「睡眠」記録から（Apple Watch・睡眠アプリなど）</summary>
         <small class="who">上の方法は「睡眠モードが始まった・アラームを止めた」時刻です。こちらは<b>実際に眠っていた時間</b>（寝付いた時刻・起きた時刻・眠っていた合計）を毎朝まとめて送ります。Apple Watchを着けて寝るか、睡眠を記録するアプリがヘルスケアに書き込んでいると使えます。</small>
         <ol class="slp-st"><li>オートメーション「＋」→「時刻」（例：毎日 9:00）または「アラーム」→「止めたとき」→「すぐに実行」</li>
@@ -7323,7 +7338,7 @@ if(typeof document!=="undefined") document.addEventListener("click",async e=>{ c
     catch(x){ toast(/未対応の操作/.test(String(x&&x.message))?"Apps Scriptの更新がまだです。少し待ってからもう一度":"準備できませんでした（"+String((x&&(x.code||x.message))||"").slice(0,40)+"）"); }
     b.disabled=false; render(); return; }
   if(a==="copy"){ const G=(window.FUTARI_GAS_URLS||{})[String((window.__futariEmail&&window.__futariEmail())||"").toLowerCase()]||window.FUTARI_GAS_URL||"", u=`${G}?sleep=${ty}&k=${state.sleepKey}${ty==="hk"?"&s=&e=&m=":""}`;
-    try{ await navigator.clipboard.writeText(u); toast(ty==="bed"?"就寝のURLをコピーしました":ty==="hk"?"ヘルスケア用のURLをコピーしました（s= e= m= のあとに変数を入れてください）":"起床のURLをコピーしました",null,"done"); }catch(_){ prompt("このURLをコピーしてください",u); } } },true);
+    try{ await navigator.clipboard.writeText(u); toast(ty==="bed"?"就寝のURLをコピーしました":ty==="use"?"スマホ利用のURLをコピーしました":ty==="charge"?"充電のURLをコピーしました":ty==="hk"?"ヘルスケア用のURLをコピーしました（s= e= m= のあとに変数を入れてください）":"起床のURLをコピーしました",null,"done"); }catch(_){ prompt("このURLをコピーしてください",u); } } },true);
 
 
 /* v341: 大事な予定をカレンダーで目立たせる
