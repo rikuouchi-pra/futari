@@ -2662,7 +2662,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="347";
+const APP_VERSION="348";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -3822,12 +3822,12 @@ const MOODS=[[1,"つらい"],[2,"いまいち"],[3,"ふつう"],[4,"よい"],[5,
 let refTimer=null;
 function viewReflect(){
   const d=state.refDate, r=state.reflect.find(x=>x.id===d)||{}, isT=d===today();
-  let h=(typeof ltEntryHTML==="function"?ltEntryHTML():"")+`<div class="dstrip" data-strip="reflect"><button class="icon-btn" data-act="rprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="rnext" aria-label="次の日">›</button></div>
+  let h=(typeof ltEntryHTML==="function"?ltEntryHTML():"")+`<div class="dstrip" data-strip="reflect"><button class="icon-btn" data-act="rprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}${isT?"・今日":""}</div><button class="icon-btn" data-act="rnext" aria-label="次の日">›</button></div>${typeof mvBarHTML==="function"?mvBarHTML("reflect",d):""}
     ${isT?"":'<div class="tools"><span></span><button class="pill" data-act="rtoday">今日</button></div>'}
     <div class="paper" style="display:flex;flex-direction:column;gap:12px">
-      <div class="rf"><label>今日の気分</label><div class="moods">${MOODS.map(([v,l])=>`<button type="button" class="mood" data-mood="${v}" aria-pressed="${r.mood===v}"><b>${v}</b>${l}</button>`).join("")}</div></div>
-      <div class="rf"><label>いまの気持ち（いくつでも）</label><div class="feels">${FEELS.map(f=>`<button type="button" class="feel ${(r.feel||[]).includes(f[0])?"on":""}" data-feel="${f[0]}" style="--fc:var(${f[1]})">${f[0]}</button>`).join("")}</div></div>
-      <div class="rf"><label>エネルギー</label><div class="enr">${[1,2,3,4,5].map(v=>`<button type="button" class="en ${r.energy===v?"on":""}" data-energy="${v}" aria-label="エネルギー${v}"><i style="height:${v*20}%"></i></button>`).join("")}<span class="who">${r.energy?["","へとへと","低め","ふつう","元気","絶好調"][r.energy]:"未入力"}</span></div></div>
+      <div class="rf"><label>今日の気分 <small class="who">タップ、または指でなぞって</small></label>${moodFacesHTML(r.mood,"data-mood")}</div>
+      <div class="rf"><label>いまの気持ち（いくつでも・近い言葉を）</label>${typeof feelPickHTML==="function"?feelPickHTML(r):""}</div>
+      <div class="rf"><label>エネルギー</label>${energyBarsHTML(r.energy,"data-energy")}</div>
       <div class="rf"><label for="rfGood">良かったこと（3つ書けると◎）</label><div class="chips"><button class="chip" data-refq="rfGood" data-q="今日うまくいったのは？">うまくいったこと</button><button class="chip" data-refq="rfGood" data-q="誰かに助けられたことは？">助かったこと</button><button class="chip" data-refq="rfGood" data-q="自分を褒めるなら？">自分を褒める</button></div><textarea id="rfGood" maxlength="1000" placeholder="うまくいったこと・うれしかったこと">${esc(r.good||"")}</textarea></div>
       <div class="rf"><label for="rfBad">うまくいかなかったこと</label><div class="chips"><button class="chip" data-refq="rfBad" data-q="何が起きた？（事実だけ）">起きたこと</button><button class="chip" data-refq="rfBad" data-q="何が難しかった？">難しかったこと</button><button class="chip" data-refq="rfBad" data-q="自分で変えられることは？">変えられること</button></div><textarea id="rfBad" maxlength="1000" placeholder="悔しかったこと・反省">${esc(r.bad||"")}</textarea></div>
       <div class="rf"><label for="rfLearn">学び・明日やってみること</label><div class="chips"><button class="chip" data-refq="rfLearn" data-q="今日わかったことは？">わかったこと</button><button class="chip" data-refq="rfLearn" data-q="明日1つだけ試すなら？">明日1つ試す</button><button class="chip" data-refq="rfLearn" data-q="続けたいことは？">続けたいこと</button></div><textarea id="rfLearn" maxlength="1000" placeholder="次はこうする（1行ずつ書くと、行ごとに習慣へ追加できます）">${esc(r.learn||"")}</textarea><div id="learnHabit">${learnChips(r.learn)}</div></div>
@@ -3842,8 +3842,8 @@ function viewReflect(){
   h+=!rec.length?`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）</h3>${chartEmpty("気分を選ぶと、30日の推移がここに出ます")}</div>`:`<div class="section-label">ふりかえり</div><div class="chart"><h3>気分の推移（直近30日）　記録${rec.length}日・よい日${good}日</h3><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="直近30日の気分。記録${rec.length}日、よい日${good}日">${grid}<path d="${path}" fill="none" stroke="var(--reflect)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots.join("")}${xl}</svg></div>`;
   { const d30=addDays(today(),-29), R30=state.reflect.filter(q=>q.id>=d30), fc={}; for(const q of R30) for(const f of q.feel||[]) fc[f]=(fc[f]||0)+1; const top=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6), mx=top.length?top[0][1]:1;
     const en=[...Array(14)].map((_,i)=>addDays(today(),i-13)).map(dd=>(state.reflect.find(q=>q.id===dd)||{}).energy||0);
-    h+=`<div class="chart"><h3>よく出た気持ち（30日）</h3>${top.length?`<div class="fbar">${top.map(([f,n])=>{ const F=FEELS.find(x=>x[0]===f)||[f,"--muted"]; return `<div class="fb-r"><span>${esc(f)}</span><span class="fb-b"><i style="width:${Math.round(n/mx*100)}%;background:var(${F[1]})"></i></span><b>${n}</b></div>`; }).join("")}</div>`:`<div class="who">気持ちを選ぶと、ここに集計されます</div>`}
-      <h3 style="margin-top:12px">エネルギー（14日）</h3>${en.some(Boolean)?"":chartEmpty("エネルギーを選ぶと、14日分がここに出ます")}<div class="enw" ${en.some(Boolean)?"":"hidden"}>${en.map((v,i)=>`<i title="${short(addDays(today(),i-13))}：${v||"—"}" style="height:${v?v*20:4}%;opacity:${v?1:.25}"></i>`).join("")}</div></div>`;
+    h+=(typeof feelAnaHTML==="function"?feelAnaHTML():"")+`<div class="chart">
+      <h3>エネルギー（14日）</h3>${en.some(Boolean)?"":chartEmpty("エネルギーを選ぶと、14日分がここに出ます")}<div class="enw" ${en.some(Boolean)?"":"hidden"}>${en.map((v,i)=>`<i title="${short(addDays(today(),i-13))}：${v||"—"}" style="height:${v?v*20:4}%;opacity:${v?1:.25}"></i>`).join("")}</div></div>`;
     if(aiText()) h+=`<div class="chart"><div class="hc-head"><h3>AIのふりかえり（直近7日・🔒自分だけ）</h3><button class="btn" data-act="refAi" ${state.refAiBusy?"disabled":""}>${state.refAiBusy?'<span class="spin"></span>':"まとめる"}</button></div>${state.refAi?`<div class="ai-a" style="max-width:100%">${esc(state.refAi).replace(/\n/g,"<br>")}</div>`:`<div class="who">気分・気持ち・書いたことから、傾向と小さなヒントをまとめます</div>`}</div>`; }
   const list=state.reflect.filter(q=>q.good||q.bad||q.learn).filter(q=>state.refFilter==="good"?q.good:state.refFilter==="bad"?q.bad:state.refFilter==="learn"?q.learn:true).sort((a,b)=>a.id<b.id?1:-1).slice(0,60);
   h+=`<div class="section-label">見返す</div><div class="tools" style="margin-top:0;margin-bottom:8px">${seg("rfilter",state.refFilter,[["all","すべて"],["good","良かった"],["bad","うまくいかず"],["learn","学び"]])}</div>`;
@@ -5114,9 +5114,9 @@ function viewDiary(){
   if(state.diaryTab==="partner") return h+`<div class="tl" id="timeline" style="margin-top:10px"></div><p class="hint">「ふたりで見る」にした日記だけ表示・コメントできます<br>←→でタブ切替</p>`;
   const d=state.diaryDate, p=myPriv(d), s=myShared(d), mine=p||s;
   diaryPrivNow=p?true:s?false:prefs.diaryPriv==="1";
-  return h+`<div class="dstrip" data-strip="diary"><button class="icon-btn" data-act="dprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}</div><button class="icon-btn" data-act="dnext" aria-label="次の日">›</button></div>
+  return h+`<div class="dstrip" data-strip="diary"><button class="icon-btn" data-act="dprev" aria-label="前の日">‹</button><div class="ttl">${jpDate(d)}</div><button class="icon-btn" data-act="dnext" aria-label="次の日">›</button></div>${typeof mvBarHTML==="function"?mvBarHTML("diary",d):""}
     <div class="tools"><div class="grp"><span class="who">公開範囲</span>${seg("dpriv",diaryPrivNow?"1":"0",[["0","ふたりで見る"],["1","自分だけ"]])}</div>${d!==today()?'<button class="pill" data-act="dtoday">今日</button>':""}</div>
-    ${diaryStreakHTML()}<div class="dprompts">${diaryPrompts(d).map(q=>`<button type="button" class="chip mini" data-dprompt="${esc(q)}">＋ ${esc(q)}</button>`).join("")}</div>
+    ${diaryStreakHTML()}${typeof diaryMoodHTML==="function"?diaryMoodHTML(d):""}<div class="dprompts">${diaryPrompts(d).map(q=>`<button type="button" class="chip mini" data-dprompt="${esc(q)}">＋ ${esc(q)}</button>`).join("")}</div>
     <div class="paper"><textarea id="diaryText" placeholder="今日あったこと、感じたこと…" maxlength="4000">${esc(mine?mine.text:"")}</textarea>
       <div class="paper-foot"><span id="saveState">${mine?"保存済み":"入力すると自動で保存されます"}</span><span id="charCount"></span></div>
       <div id="dphWrap">${diaryPhotoStrip(d,true)}</div>${diaryPrivNow?`<div class="who" style="font-size:11px">※写真は写真用の保存場所に置かれます（文章は自分だけのままです）</div>`:""}</div>
@@ -5743,7 +5743,7 @@ $("main").addEventListener("click",e=>{
   const hwm=e.target.closest("[data-hwmv]"); if(hwm){ const [k,d]=hwm.dataset.hwmv.split("|"), L=homeOrder(), i=L.indexOf(k), j=i+Number(d); if(j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; prefs.homeOrder=L.join(","); savePrefs(true); haptic("tick"); render(); return; }
   const hwv=e.target.closest("[data-hwvis]"); if(hwv){ const k=hwv.dataset.hwvis, H=homeHidden(); if(H.has(k)) H.delete(k); else H.add(k); prefs.homeHide=[...H].join(","); savePrefs(true); haptic("tick"); render(); return; }
   const hm=e.target.closest("[data-hmood]"); if(hm){ state.refDate=today(); saveReflect({mood:Number(hm.dataset.hmood)}); haptic("tick"); render(); return; }
-  const fe=e.target.closest("[data-feel]"); if(fe){ const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]), f=fe.dataset.feel; if(F.has(f)) F.delete(f); else F.add(f); saveReflect({feel:[...F]}); fe.classList.toggle("on",F.has(f)); haptic("tick"); return; }
+  const fe=e.target.closest("[data-feel]"); if(fe){ const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]), f=fe.dataset.feel; if(F.has(f)) F.delete(f); else F.add(f); saveReflect({feel:[...F]}); fe.classList.toggle("on",F.has(f)); fe.setAttribute("aria-pressed",String(F.has(f))); haptic("tick"); clearTimeout(window.__feelR); window.__feelR=setTimeout(()=>{ const ae=document.activeElement; if(ae&&/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return; if(state.view!=="reflect") return; const y=scrollY; render(); scrollTo(0,y); },900); return; }
   const en=e.target.closest("[data-energy]"); if(en){ saveReflect({energy:Number(en.dataset.energy)}); haptic("tick"); render(); return; }
   const rq=e.target.closest("[data-refq]"); if(rq){ const ta=$(rq.dataset.refq); if(ta){ const q=rq.dataset.q; ta.placeholder=q; toast(q); ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); } return; }
   const dp=e.target.closest("[data-dprompt]"); if(dp){ const ta=$("diaryText"); if(ta){ ta.value=(ta.value.trim()?ta.value.replace(/\s*$/,"")+"\n\n":"")+"【"+dp.dataset.dprompt+"】\n"; ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length); diaryPending=true; updateCount(); clearTimeout(diaryTimer); diaryTimer=setTimeout(flushDiary,900); } return; }
@@ -5805,7 +5805,7 @@ $("main").addEventListener("click",e=>{
   const so=e.target.closest("[data-sho]"); if(so&&state.shOcr&&state.shOcr.days){ const L=[...SHIFTS.map(x=>x[0]),""], cur=state.shOcr.days[so.dataset.sho]||"", nx=L[(L.indexOf(cur)+1)%L.length]; if(nx) state.shOcr.days[so.dataset.sho]=nx; else delete state.shOcr.days[so.dataset.sho]; haptic("tick"); render(); return; }
   const hd=e.target.closest("[data-hday]"); if(hd){ toggleHabit(hd.dataset.hid,hd.dataset.hday,true); return; }
   const cd=e.target.closest("[data-cday]"); if(cd){ toggleCautionDay(cd.dataset.cid,cd.dataset.cday); return; }
-  const l2h=e.target.closest("[data-l2h]"); if(l2h){ learnToHabit(l2h.dataset.l2h); return; }
+  const l2h=e.target.closest("[data-l2h]"); if(l2h){ if(typeof learnAddMany==="function") learnAddMany([l2h.dataset.l2h]); else learnToHabit(l2h.dataset.l2h); return; }
   const mcc=e.target.closest("[data-mcc]"); if(mcc){ state.mchartCat=mcc.dataset.mcc; render(); return; }
   const dpd=e.target.closest("[data-dphdel]"); if(dpd){ diaryDelPhoto(dpd.dataset.dphdel); return; }
   const ph=e.target.closest("[data-photo]"); if(ph){ openPhoto(ph.dataset.photo); return; }
@@ -5824,7 +5824,7 @@ $("main").addEventListener("click",e=>{
   const rp=e.target.closest("[data-rpay]"); if(rp){ const r=state.recur.find(x=>x.id===rp.dataset.rpay); if(r&&(rPaid(r,rp.dataset.ym)||{}).skip){ setRecurSkip(r.id,rp.dataset.ym); return; } if(r&&rPaid(r,rp.dataset.ym)&&(rPaid(r,rp.dataset.ym).h||rPaid(r,rp.dataset.ym).w)){ const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[rp.dataset.ym]:null}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; toast(`未確認に戻しました：${r.text}`,u,"done"); render(); return; } if(r&&!rPaid(r,rp.dataset.ym)){ const ym=rp.dataset.ym, val={h:{amount:Math.round(rShare(r,"h")),at:Date.now()},w:{amount:Math.round(rShare(r,"w")),at:Date.now()}}; val.amount=val.h.amount+val.w.amount; val.at=Date.now(); val.role=myRole(); const u=snapUndo("recur",r.id); r.paid={...(r.paid||{}),[ym]:val}; dupd("recur",r.id,{paid:{...(r.paid||{})}}) /* v208: 月の実績は全体を書く（一部だけ送ると他の月が消えていた） */; haptic("done"); celebrate(); toast(`振込確認：${r.text} ${yen(val.amount)}（ふたり分）`,u,"done"); render(); return; } toggleRecurPaid(rp.dataset.rpay,rp.dataset.ym,null); return; }
   const ck=e.target.closest("[data-chk]"); if(ck){ goCheck(ck.dataset.chk); return; }
   const ht=e.target.closest("[data-htpl]"); if(ht){ const now=Date.now(); dset("habits",newId(),{text:ht.dataset.htpl,entryKind:"habit",showInTimetable:false,target:7,log:{},createdAt:now,updatedAt:now}); toast(`習慣「${ht.dataset.htpl}」を追加しました`); return; }
-  const md=e.target.closest("[data-mood]"); if(md){ const v=Number(md.dataset.mood); document.querySelectorAll("[data-mood]").forEach(b=>b.setAttribute("aria-pressed",String(b===md))); saveReflect({mood:v}); return; }
+  const md=e.target.closest("[data-mood]"); if(md){ const v=Number(md.dataset.mood); document.querySelectorAll("[data-mood]").forEach(b=>{ b.setAttribute("aria-pressed",String(b===md)); b.setAttribute("aria-checked",String(b===md)); }); saveReflect({mood:v}); haptic("tick"); return; }
   const rd=e.target.closest("[data-rdate]"); if(rd){ state.refDate=rd.dataset.rdate; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   const pv=e.target.closest("[data-pv]"); if(pv){ state.paint.val=pv.dataset.pv; document.querySelectorAll("[data-pv]").forEach(x=>x.setAttribute("aria-pressed",String(x===pv))); return; }
   const fc=e.target.closest("[data-fc]"); if(fc){ state.fut=fc.dataset.fc; state.futFilter="all"; window.scrollTo(0,0); render(40); return; }
@@ -6760,20 +6760,21 @@ function cautionTodayHTML(){ if(typeof cCanDo!=="function") return ""; const t=t
 document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-ctoday]"); if(!b) return; e.stopPropagation(); toggleCautionDay(b.dataset.ctoday,today()); },true);
 /* v317: 内省の「学び」から習慣を複数。文（。！？）ごと・行ごとに候補を出し、チェックしてまとめて追加／自分で書いて追加も */
 function learnLines(s){ const out=[]; for(const ln of String(s||"").split(/\n+/)) for(const x of ln.split(/(?<=[。！？!?])/)){ const t=x.replace(/^[\s・\-*●○◯□■]+/,"").replace(/[。．.]+\s*$/,"").trim(); if(t.length>1&&!out.includes(t)) out.push(t); } return out.slice(0,10); }
-function learnChips(s){ const L=learnLines(s), have=new Set(habitItems().map(h=>h.text)), sel=state.l2hSel||(state.l2hSel={});
+function learnChips(s){ const L=learnLines(s), have=l2hHave(), sel=state.l2hSel||(state.l2hSel={});
   const cand=L.map(x=>x.slice(0,60)), left=cand.filter(t=>!have.has(t)), nSel=left.filter(t=>sel[t]).length;
-  return `<div class="l2h">${cand.length?`<div class="l2h-h"><b>習慣にする</b><span class="who">文ごとに分けました。選んでまとめて追加できます</span></div>
+  return `<div class="l2h">${cand.length?`<div class="l2h-h"><b>次の行動にする</b><span class="who">文ごとに分けました。追加先を選んで、まとめて追加できます</span></div><div class="l2h-to" role="group" aria-label="追加先">${L2H_TO.map(([k,l])=>`<button type="button" class="chip mini" data-l2hto="${k}" aria-pressed="${l2hTo()===k}">${l}</button>`).join("")}</div>
     <div class="l2h-l">${cand.map(t=>have.has(t)?`<span class="l2h-i done">✓ <span>${esc(t)}</span><small>追加済み</small></span>`:`<label class="l2h-i"><input type="checkbox" data-l2hsel="${esc(t)}" ${sel[t]?"checked":""}><span>${esc(t)}</span><button type="button" class="link" data-l2h="${esc(t)}">これだけ追加</button></label>`).join("")}</div>
-    ${left.length?`<div class="l2h-a"><button type="button" class="btn primary" data-l2hall="1" ${nSel?"":"disabled"}>＋ 選んだ${nSel?nSel:""}件を習慣にする</button>${left.length>1?`<button type="button" class="link" data-l2hpick="1">${nSel===left.length?"選択を外す":"すべて選ぶ"}</button>`:""}</div>`:""}`:""}
-    <div class="l2h-own"><input type="text" id="l2hIn" maxlength="60" placeholder="自分で書いて習慣にする（例：23時までに寝る）" enterkeyhint="done"><button type="button" class="btn" data-l2hown="1">追加</button></div></div>`; }
+    ${left.length?`<div class="l2h-a"><button type="button" class="btn primary" data-l2hall="1" ${nSel?"":"disabled"}>＋ 選んだ${nSel?nSel:""}件を${l2hLbl()}に追加</button>${left.length>1?`<button type="button" class="link" data-l2hpick="1">${nSel===left.length?"選択を外す":"すべて選ぶ"}</button>`:""}</div>`:""}`:""}
+    <div class="l2h-own"><input type="text" id="l2hIn" maxlength="60" placeholder="自分で書いて${l2hLbl()}に追加（例：23時までに寝る）" enterkeyhint="done"><button type="button" class="btn" data-l2hown="1">追加</button></div></div>`; }
 function learnRefresh(){ const el=$("learnHabit"); if(el) el.innerHTML=learnChips($("rfLearn")?$("rfLearn").value:""); }
-function learnAddMany(T){ if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); } const have=new Set(habitItems().map(h=>h.text)), now=Date.now(), ids=[];
-  for(const t of T){ if(!t||have.has(t)) continue; const id=newId(); have.add(t); ids.push(id); dset("habits",id,{text:t,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now+ids.length,updatedAt:now}); }
-  if(!ids.length){ toast("同じ習慣がもうあります"); return; } for(const t of T) delete state.l2hSel[t]; haptic("done");
-  toast(ids.length>1?`習慣を${ids.length}件追加しました`:`習慣「${T.find(Boolean).slice(0,16)}」を追加しました`,()=>ids.forEach(id=>ddel("habits",id)),"done"); setTimeout(learnRefresh,60); }
+function learnAddMany(T){ if(refTimer){ clearTimeout(refTimer); refTimer=null; saveReflect(); } const have=l2hHave(), now=Date.now(), ids=[], lb=l2hLbl();
+  for(const t of T){ if(!t||have.has(t)) continue; have.add(t); ids.push(l2hMake(t,ids.length,now)); }
+  if(!ids.length){ toast(`同じ${lb}がもうあります`); return; } for(const t of T) delete state.l2hSel[t]; haptic("done");
+  toast(ids.length>1?`${lb}に${ids.length}件追加しました`:`${lb}に「${T.find(Boolean).slice(0,16)}」を追加しました${l2hTo()==="ptask"||l2hTo()==="task"?"（期限：翌日）":""}`,()=>ids.forEach(([c,id])=>ddel(c,id)),"done"); setTimeout(learnRefresh,60); }
 document.addEventListener("change",e=>{ const c=e.target.closest&&e.target.closest("[data-l2hsel]"); if(!c) return; state.l2hSel=state.l2hSel||{}; state.l2hSel[c.dataset.l2hsel]=c.checked; learnRefresh(); });
-document.addEventListener("click",e=>{ const a=e.target.closest("#main [data-l2hall],#main [data-l2hpick],#main [data-l2hown]"); if(!a) return; e.stopPropagation(); e.preventDefault();
-  const have=new Set(habitItems().map(h=>h.text)), left=learnLines($("rfLearn")?$("rfLearn").value:"").map(x=>x.slice(0,60)).filter(t=>!have.has(t)); state.l2hSel=state.l2hSel||{};
+document.addEventListener("click",e=>{ const a=e.target.closest("#main [data-l2hall],#main [data-l2hpick],#main [data-l2hown],#main [data-l2hto]"); if(!a) return; e.stopPropagation(); e.preventDefault();
+  const have=l2hHave(), left=learnLines($("rfLearn")?$("rfLearn").value:"").map(x=>x.slice(0,60)).filter(t=>!have.has(t)); state.l2hSel=state.l2hSel||{};
+  if(a.dataset.l2hto){ state.l2hTo=a.dataset.l2hto; haptic("tick"); learnRefresh(); return; }
   if(a.dataset.l2hall) learnAddMany(left.filter(t=>state.l2hSel[t]));
   else if(a.dataset.l2hpick){ const all=left.every(t=>state.l2hSel[t]); for(const t of left) state.l2hSel[t]=!all; learnRefresh(); }
   else { const i=$("l2hIn"), v=(i&&i.value||"").trim().slice(0,60); if(!v){ toast("習慣にしたいことを書いてください"); if(i) i.focus(); return; } learnAddMany([v]); } },true);
@@ -9813,7 +9814,7 @@ $("app").addEventListener("pointerdown",e=>{
   if(e.pointerType!=="mouse"&&e.clientX<=30) return; /* v330: 左端は「前の画面に戻る」のスワイプ */
   if(e.target.closest("input,textarea,.edit,.seg,.swatches,.opts,.kinds,.cinput,.pal,.dots")) return;
   /* v205: 横にスクロールできる場所（チップの列・表・ハブの切替など）では、タブ切替のスワイプを始めない */
-  if(e.target.closest(".tt-overlap,#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g")||appHScroll(e.target)) return;
+  if(e.target.closest(".tt-overlap,#hubBar,.futbar,.tabbar,.tabmore,.off2,.rh-g,.pm,.sho-g,[data-mfrow]")||appHScroll(e.target)) return;
   const row=e.target.closest(".row"), grid=e.target.closest("#grid"), strip=e.target.closest(".dstrip");
   if(row&&e.target.closest(".check,.dgrip")) return;
   if(e.target.closest(".tt-b.sel,.tt-rs,.dgrip,.tt-bar,.duo-g,.duo-bar,.duo-grip")) return;
