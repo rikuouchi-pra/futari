@@ -275,7 +275,40 @@
       var direct=!!(r.payload&&r.payload.directAI===1);aiBackendInfo={url:G,at:Date.now(),direct:direct};return direct;
     })().finally(function(){aiBackendJob=null;});return waitAbort_(aiBackendJob,signal);
   }
+  /* v336: 会社などで Apps Script に直接つながらないときは Firestore 経由の「中継」で聞く（Apps Script が1分ごとに取りに来て答えを書き戻す） */
+  var relayUntil=0;
   async function aiAsk(prompt,o){
+    o=o||{};if(!gasUrl())throw gasError_("no_gas","AIの接続先がありません");
+    if(Date.now()<relayUntil)return aiAskRelay_(prompt,o);
+    try{var r=await aiAskNet_(prompt,o);relayRegMaybe_();return r;}
+    catch(e){if(e&&e.code==="gas_connection"&&navigator.onLine!==false&&!(o.signal&&o.signal.aborted)){relayUntil=Date.now()+30*60e3;return aiAskRelay_(prompt,o);}throw e;}
+  }
+  async function aiAskRelay_(prompt,o){
+    o=o||{};var signal=o.signal;if(signal&&signal.aborted)throw aiAbortError_();
+    var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
+    var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[],id="ar"+rid(),ref=M.doc(fs,"aitmp",id),doc={prompt:String(prompt).slice(0,40000),at:Date.now(),by:me.uid,relay:1};
+    if(o.modelTier)doc.tier=String(o.modelTier).slice(0,10);
+    if(o.audio){if(o.audio.size>MAX_ONE)throw gasError_("too_large","録音が長すぎます");doc.img=M.Bytes.fromUint8Array(new Uint8Array(await o.audio.arrayBuffer()));doc.mime=o.audio.type||"audio/wav";}
+    else if(imgs[0]){var b=await aiShrink(imgs[0]);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await b.arrayBuffer()));doc.mime="image/jpeg";}
+    phase("このネットワークではAIのサーバーに直接つながらないため、中継で送っています（返事まで1〜2分）");
+    var written=fbSend_(ref.path,"set",doc);await waitAbort_(written,signal);
+    try{
+      var ans=await new Promise(function(ok,ng){var done=false,stop=null,t=setTimeout(function(){fin(gasError_("ai_timeout","中継のAIから時間内に返事が届きませんでした。会社などのネットワークでは1〜2分かかります。入力は残しています。"));},240000);
+        function fin(err,v){if(done)return;done=true;clearTimeout(t);try{if(stop)stop();}catch(_){}if(signal)signal.removeEventListener("abort",ab);err?ng(err):ok(v);}
+        function ab(){fin(aiAbortError_());}
+        if(signal)signal.addEventListener("abort",ab,{once:true});
+        try{stop=M.onSnapshot(ref,function(snap){var d=snap&&snap.data&&snap.data();if(d&&d.relay===2&&typeof d.ans==="string")fin(null,d.ans);},function(e){fin(e);});}catch(e){fin(e);}
+      });
+      var j;try{j=JSON.parse(ans);}catch(_){throw gasError_("gas_response","中継の返事を読み取れませんでした");}
+      if(j.error)throw gasError_(j.error.code||"tool_error",j.error.message||"AIに接続できませんでした");
+      return j.payload;
+    }finally{Promise.resolve(written).then(function(){return fbSend_(ref.path,"delete");}).catch(function(){});}
+  }
+  /* 中継のため、ふだんの回線でつながったときに本人のログインの更新用の鍵を Apps Script（本人だけが読めるスクリプト プロパティ）へ預ける（14日に1回） */
+  function relayRegMaybe_(){try{var k="futari.relayReg."+(me&&me.uid),G=gasUrl();if(!G||!me||!me.refreshToken)return;if(Date.now()-Number(localStorage.getItem(k)||0)<14*864e5)return;localStorage.setItem(k,String(Date.now()));
+    me.getIdToken().then(function(tok){return gasCall_(G,{idToken:tok,tool:"relayReg",args:{rt:me.refreshToken}},20000);}).then(function(r){if(!r||r.error)localStorage.removeItem(k);}).catch(function(){localStorage.removeItem(k);});}catch(_){}}
+  if(typeof setTimeout==="function")setTimeout(function(){try{if(me)relayRegMaybe_();}catch(_){}},15000);
+  async function aiAskNet_(prompt,o){
     o=o||{};if(!gasUrl())throw gasError_("no_gas","AIの接続先がありません");
     if(await aiSupportsDirect_(o.signal))return aiAskDirect_(prompt,o);
     if(fbOffline&&fbOffline.snapshot().paused)throw gasError_("gas_update_required","Firestoreを使わないAIの接続サーバーは更新待ちです。入力は残しています。");

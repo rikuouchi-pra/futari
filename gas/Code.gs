@@ -52,8 +52,12 @@ function handle_(raw) {
     const email = verifyUser_(req.idToken);
     if (["firestoreUsage", "aiDirect", "capabilities"].indexOf(String(req.tool || "")) >= 0) {
       if (AI_USERS.map(function(x){return x.toLowerCase();}).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
-      if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:1}};
+      if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:1,relay:1}};
       return {payload: req.tool === "aiDirect" ? aiDirect_(req.args || {}) : firestoreUsage_()};
+    }
+    if (String(req.tool || "") === "relayReg") {
+      if (AI_USERS.map(function (x) { return x.toLowerCase(); }).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
+      return { payload: relayReg_(email, (req.args || {}).rt) };
     }
     if (String(req.tool || "") === "push") return { payload: push_(req.idToken, email, req.args || {}) };
     if (String(req.tool || "") === "workcal") {
@@ -541,4 +545,39 @@ function firestoreFormReply_(p){
   const raw=String(p.rpcPayload||''),result=raw.length>1400000?{error:{code:'too_large',message:'送信内容が大きすぎます'}}:handle_(raw);
   const message=JSON.stringify({type:'futari-rpc',nonce:nonce,result:result}).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
   return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>window.top.postMessage('+message+',"https://rikuouchi-pra.github.io");</script>').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/* ---------- v13：AIの中継（会社などで Apps Script に直接つながらない端末のため）----------
+ * アプリは質問を Firestore の aitmp に relay:1 を付けて置く → relayTick（1分ごと）が取りに行って AI に聞き、ans に答えを書き戻す
+ * Firestore を読むために、ふだんの回線でつながったときにアプリが預けた「ログインの更新用の鍵」をスクリプト プロパティ RELAY_RT に保存する（本人だけが読める） */
+function relayReg_(email, rt) {
+  rt = String(rt || ""); if (rt.length < 20 || rt.length > 4000) throw err_("tool_error", "鍵の形が違います");
+  const P = PropertiesService.getScriptProperties(); P.setProperty("RELAY_RT", rt); P.setProperty("RELAY_EMAIL", email); CacheService.getScriptCache().remove("relayIdTok");
+  if (!ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === "relayTick"; })) ScriptApp.newTrigger("relayTick").timeBased().everyMinutes(1).create();
+  return { ok: true };
+}
+function relayToken_() {
+  const C = CacheService.getScriptCache(); let t = C.get("relayIdTok"); if (t) return t;
+  const P = PropertiesService.getScriptProperties(), rt = P.getProperty("RELAY_RT"); if (!rt) return "";
+  const r = UrlFetchApp.fetch("https://securetoken.googleapis.com/v1/token?key=" + FIREBASE_API_KEY, { method: "post", contentType: "application/x-www-form-urlencoded", payload: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(rt), muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return "";
+  const j = JSON.parse(r.getContentText()); if (j.refresh_token && j.refresh_token !== rt) P.setProperty("RELAY_RT", j.refresh_token);
+  t = j.id_token || ""; if (t) C.put("relayIdTok", t, 3000); return t;
+}
+function relayTick() {
+  const h = Number(Utilities.formatDate(new Date(), "Asia/Tokyo", "H")); if (h < 5 || h >= 24) return;
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(5000)) return;
+  try {
+    const tok = relayToken_(); if (!tok) return;
+    const base = "https://firestore.googleapis.com/v1/projects/" + FIREBASE_PROJECT_ID + "/databases/(default)/documents";
+    const q = { structuredQuery: { from: [{ collectionId: "aitmp" }], where: { fieldFilter: { field: { fieldPath: "relay" }, op: "EQUAL", value: { integerValue: "1" } } }, limit: 4 } };
+    const r = UrlFetchApp.fetch(base + ":runQuery", { method: "post", contentType: "application/json", payload: JSON.stringify(q), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) return;
+    JSON.parse(r.getContentText()).filter(function (x) { return x && x.document; }).forEach(function (x) {
+      const name = x.document.name, id = name.split("/").pop(), at = Number(((x.document.fields || {}).at || {}).integerValue || 0); let out;
+      if (at && at < Date.now() - 15 * 60e3) out = { error: { code: "ai_timeout", message: "古い質問なので答えませんでした" } };
+      else { try { out = { payload: ai_(tok, id) }; } catch (e) { out = { error: { code: e.code || "tool_error", message: String((e && e.message) || e) } }; } }
+      UrlFetchApp.fetch("https://firestore.googleapis.com/v1/" + name + "?updateMask.fieldPaths=relay&updateMask.fieldPaths=ans&currentDocument.exists=true", { method: "patch", contentType: "application/json", payload: JSON.stringify({ fields: { relay: { integerValue: "2" }, ans: { stringValue: JSON.stringify(out).slice(0, 800000) } } }), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
+    });
+  } finally { lock.releaseLock(); }
 }
