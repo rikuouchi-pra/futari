@@ -7568,6 +7568,55 @@ const impColOf=k=>{ const p=IMP_PAL.find(x=>x[0]===k)||IMP_PAL[0]; return [p[2],
 const impSty=k=>{ const [a,b]=impColOf(k); return `--ia:${a};--ib:${b}`; };
 function impColPick(attr,cur){ cur=cur||"sun"; return `<div class="impcol" role="group" aria-label="強調の色">${IMP_PAL.map(([k,l])=>`<button type="button" ${attr}${k}" style="${impSty(k)}" aria-pressed="${cur===k}" aria-label="${l}" title="${l}"></button>`).join("")}</div>`; }
 if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b=e.target.closest("[data-impcol]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const [c,id,k]=b.dataset.impcol.split("|"), x=(state[c]||[]).find(q=>q.id===id); if(!x) return; x.impCol=k; dupd(c,id,{impCol:k}); haptic("tick"); for(const s of b.parentElement.children) s.setAttribute("aria-pressed",String(s===b)); { const r=b.closest(".imp-row"); if(r) r.setAttribute("style",impSty(k)); } try{ requestRender(); }catch(_){} },true);
+/* v348: 気持ちを32語に（感情の円環モデル：心地よさ×エネルギーの4つのまとまり、Russell 1980 / Mood Meter）。
+   細かく言葉にするほど気持ちを扱いやすくなる（感情の粒度：Barrett 2001、言語化：Lieberman 2007）。
+   グラフ：気持ちマップ（日ごとの位置）・まとまりの割合（週ごと）・よく出た気持ちと前の30日との差・気持ちと気分の関係（日数つき） */
+const FQ=[["hp","⚡😊","元気・心地よい","--shop",[["うれしい",1.6,1.0],["楽しい",1.6,1.2],["わくわく",1.5,1.7],["やる気",1.2,1.4],["誇らしい",1.4,0.9],["感動",1.6,1.3],["夢中",1.2,1.5],["自信",1.2,0.8]]],
+  ["lp","🌿😌","落ち着き・心地よい","--task",[["安心",1.2,-0.8],["穏やか",1.2,-1.2],["ほっとした",1.1,-0.9],["感謝",1.4,-0.2],["満足",1.4,-0.4],["愛おしい",1.5,-0.3],["くつろぎ",1.0,-1.4],["心地よい",1.2,-0.9]]],
+  ["hu","⚡😣","ざわざわ・しんどい","--danger",[["イライラ",-1.4,1.3],["不安",-1.2,0.9],["焦り",-1.1,1.4],["緊張",-0.7,1.4],["怒り",-1.7,1.7],["ストレス",-1.3,1.2],["悔しい",-1.3,1.0],["モヤモヤ",-0.9,0.4]]],
+  ["lu","💧😔","沈む・しんどい","--cal",[["疲れた",-0.7,-1.5],["さみしい",-1.2,-0.8],["悲しい",-1.6,-0.9],["落ち込み",-1.6,-1.2],["だるい",-0.8,-1.6],["退屈",-0.6,-1.2],["無気力",-1.1,-1.7],["孤独",-1.4,-0.9]]]];
+const FMAP={}; for(const [q,,,c,L] of FQ) for(const [n,v,a] of L) FMAP[n]={q,c,v,a};
+if(typeof FEELS!=="undefined") FEELS.splice(0,FEELS.length,...FQ.flatMap(([,,,c,L])=>L.map(([n])=>[n,c])));
+function feelPickHTML(r){ const S=new Set(r.feel||[]), cust=[...S].filter(f=>!FMAP[f]);
+  return `<div class="fq-g">${FQ.map(([q,ic,l,c,L])=>`<div class="fq fq-${q}" style="--fc:var(${c})"><div class="fq-h"><span>${ic}</span>${l}</div><div class="feels">${L.map(([n])=>`<button type="button" class="feel ${S.has(n)?"on":""}" data-feel="${n}" aria-pressed="${S.has(n)}">${n}</button>`).join("")}</div></div>`).join("")}</div>
+  <div class="feels fq-cust" style="--fc:var(--reflect)">${cust.map(n=>`<button type="button" class="feel on" data-feel="${esc(n)}">${esc(n)}</button>`).join("")}<input type="text" id="feelAdd" maxlength="12" placeholder="＋ ほかの言葉" enterkeyhint="done" aria-label="ほかの気持ちを追加"></div>
+  ${S.size?`<small class="who fq-now">${(()=>{ const p=feelPt(r.feel); return p?`いまの位置：${p.a>=0?"エネルギー高め":"エネルギー低め"}・${p.v>=0?"心地よい":"しんどい"}側`:""; })()}</small>`:""}`; }
+function feelPt(F){ const P=(F||[]).map(f=>FMAP[f]).filter(Boolean); if(!P.length) return null; return {v:P.reduce((s,p)=>s+p.v,0)/P.length,a:P.reduce((s,p)=>s+p.a,0)/P.length,q:P}; }
+function feelAnaHTML(){ const t=today(), d30=addDays(t,-29), d60=addDays(t,-59), R=state.reflect.filter(q=>q.id>=d30&&q.id<=t&&(q.feel||[]).length), Rp=state.reflect.filter(q=>q.id>=d60&&q.id<d30&&(q.feel||[]).length);
+  if(!R.length) return `<div class="chart"><h3>気持ちの分析（30日）</h3>${chartEmpty("気持ちを選ぶと、気持ちマップと集計がここに出ます")}</div>`;
+  /* 1) 気持ちマップ */
+  const W=300,H=300,c=150,sc=62, X=v=>c+v*sc, Y=a=>c-a*sc; const pts=R.map(q=>({d:q.id,p:feelPt(q.feel),m:q.mood})).filter(o=>o.p);
+  const qc={hp:0,lp:0,hu:0,lu:0}; for(const o of pts) qc[(o.p.a>=0?"h":"l")+(o.p.v>=0?"p":"u")]++;
+  const age=d=>dDiff(t,d), last=pts.slice().sort((a,b)=>a.d<b.d?1:-1)[0];
+  const cv=pts.reduce((s,o)=>s+o.p.v,0)/(pts.length||1), ca=pts.reduce((s,o)=>s+o.p.a,0)/(pts.length||1);
+  const sdv=Math.sqrt(pts.reduce((s,o)=>s+(o.p.v-cv)**2,0)/Math.max(1,pts.length-1)), sda=Math.sqrt(pts.reduce((s,o)=>s+(o.p.a-ca)**2,0)/Math.max(1,pts.length-1));
+  const tint=(x,y,col)=>`<rect x="${x}" y="${y}" width="${c}" height="${c}" fill="var(${col})" opacity=".09"/>`;
+  const map=`<svg class="fa-map" viewBox="0 0 ${W} ${H}" role="img" aria-label="気持ちマップ：横が心地よさ、縦がエネルギー。30日で${pts.length}日分">
+    ${tint(c,0,"--shop")}${tint(c,c,"--task")}${tint(0,0,"--danger")}${tint(0,c,"--cal")}
+    <line x1="0" x2="${W}" y1="${c}" y2="${c}" class="fa-ax"/><line y1="0" y2="${H}" x1="${c}" x2="${c}" class="fa-ax"/>
+    <text x="${W-6}" y="${c-6}" text-anchor="end" class="fa-t">心地よい →</text><text x="6" y="${c-6}" class="fa-t">← しんどい</text><text x="${c+6}" y="14" class="fa-t">エネルギー高 ↑</text><text x="${c+6}" y="${H-6}" class="fa-t">↓ 低</text>
+    <text x="${W-8}" y="22" text-anchor="end" class="fa-q">⚡😊 ${Math.round(qc.hp/pts.length*100)}%</text><text x="8" y="22" class="fa-q">⚡😣 ${Math.round(qc.hu/pts.length*100)}%</text><text x="${W-8}" y="${H-24}" text-anchor="end" class="fa-q">🌿😌 ${Math.round(qc.lp/pts.length*100)}%</text><text x="8" y="${H-24}" class="fa-q">💧😔 ${Math.round(qc.lu/pts.length*100)}%</text>
+    ${pts.length>=3?`<ellipse cx="${X(cv)}" cy="${Y(ca)}" rx="${Math.max(6,sdv*sc)}" ry="${Math.max(6,sda*sc)}" class="fa-sd"/><path d="M${X(cv)-6},${Y(ca)}h12M${X(cv)},${Y(ca)-6}v12" class="fa-c"/>`:""}
+    ${pts.map(o=>`<circle cx="${X(o.p.v).toFixed(1)}" cy="${Y(o.p.a).toFixed(1)}" r="${o===last?7:5}" class="fa-pt ${o===last?"last":""}" style="opacity:${o===last?1:(0.25+0.65*(1-age(o.d)/29)).toFixed(2)}"><title>${short(o.d)} ${esc((state.reflect.find(q=>q.id===o.d).feel||[]).join("・"))}</title></circle>`).join("")}
+    ${last?`<text x="${Math.min(W-30,Math.max(30,X(last.p.v)))}" y="${Y(last.p.a)-11}" text-anchor="middle" class="fa-lb">${last.d===t?"今日":short(last.d)}</text>`:""}</svg>`;
+  /* 2) 週ごとのまとまりの割合（ラベルの数で） */
+  const ws=weekStarts(6), wk=ws.map(w=>{ const o={hp:0,lp:0,hu:0,lu:0}; for(let i=0;i<7;i++){ const q=state.reflect.find(x=>x.id===addDays(w,i)); for(const f of (q&&q.feel)||[]) if(FMAP[f]) o[FMAP[f].q]++; } return o; });
+  const stack=`<div class="fa-wk">${ws.map((w,i)=>{ const o=wk[i], n=o.hp+o.lp+o.hu+o.lu; return `<div class="fa-wc"><div class="fa-st" title="${short(w)}の週 ${n}語">${n?["hp","lp","lu","hu"].map(k=>o[k]?`<i class="q-${k}" style="height:${(o[k]/n*100).toFixed(1)}%"></i>`:"").join(""):'<i class="q-na" style="height:100%"></i>'}</div><small>${short(w)}</small></div>`; }).join("")}</div>
+    <div class="fa-lg"><span><i class="q-hp"></i>元気・心地よい</span><span><i class="q-lp"></i>落ち着いて心地よい</span><span><i class="q-lu"></i>沈んで</span><span><i class="q-hu"></i>ざわざわ</span></div>`;
+  /* 3) よく出た気持ち＋前の30日との差 */
+  const cnt=L=>{ const o={}; for(const q of L) for(const f of q.feel||[]) o[f]=(o[f]||0)+1; return o; }, C=cnt(R), Cp=cnt(Rp), top=Object.entries(C).sort((a,b)=>b[1]-a[1]).slice(0,8), mx=top.length?top[0][1]:1;
+  const bars=`<div class="fa-bars">${top.map(([f,n])=>{ const F=FMAP[f], dl=n-(Cp[f]||0); return `<div class="fa-r"><span>${esc(f)}</span><span class="fa-b"><i style="width:${Math.round(n/mx*100)}%;background:var(${F?F.c:"--reflect"})"></i></span><b>${n}日</b><em class="${dl>0?"up":dl<0?"dn":""}">${Rp.length?(dl>0?"▲"+dl:dl<0?"▼"+(-dl):"±0"):""}</em></div>`; }).join("")}</div>`;
+  /* 4) 気持ちと気分（その気持ちがあった日の平均気分 − なかった日）。3日以上のものだけ */
+  const RM=state.reflect.filter(q=>q.id>=addDays(t,-89)&&q.mood&&(q.feel||[]).length), allF=[...new Set(RM.flatMap(q=>q.feel||[]))];
+  const rel=allF.map(f=>{ const a=RM.filter(q=>q.feel.includes(f)).map(q=>q.mood), b=RM.filter(q=>!q.feel.includes(f)).map(q=>q.mood); if(a.length<3||b.length<3) return null; const ma=a.reduce((s,x)=>s+x,0)/a.length, mb=b.reduce((s,x)=>s+x,0)/b.length; return {f,d:ma-mb,n:a.length,ma}; }).filter(Boolean).sort((a,b)=>b.d-a.d);
+  const relH=rel.length?`<div class="fa-rel">${rel.slice(0,10).map(o=>`<div class="fa-rr"><span>${esc(o.f)}</span><span class="fa-dv"><i class="${o.d>=0?"p":"n"}" style="width:${Math.min(50,Math.abs(o.d)/2*50).toFixed(1)}%"></i></span><b>${o.d>=0?"+":""}${o.d.toFixed(1)}</b><small>${o.n}日</small></div>`).join("")}</div><small class="who">その気持ちがあった日の気分の平均と、なかった日の差（直近90日・3日以上あるものだけ）。日数が少ないうちは偶然の差も大きく、原因を示すものではありません。</small>`:`<small class="who">気分（1〜5）と気持ちを一緒に記録した日が増えると、「どの気持ちの日に気分が高い・低いか」がここに出ます（それぞれ3日以上）。</small>`;
+  const uniq=Object.keys(C).length, avgN=(R.reduce((s,q)=>s+(q.feel||[]).length,0)/R.length).toFixed(1);
+  return `<div class="chart fa"><h3>気持ちマップ（30日・${pts.length}日分）</h3>${map}<small class="who">点は1日ぶん（その日に選んだ気持ちの平均の位置）。濃いほど最近。＋と楕円は30日の中心とばらつき。${pts.length>=3?`中心は「${ca>=0?"エネルギー高め":"エネルギー低め"}・${cv>=0?"心地よい":"しんどい"}」側です。`:""}</small></div>
+    <div class="chart fa"><h3>気持ちのまとまり（週ごとの割合）</h3>${stack}</div>
+    <div class="chart fa"><h3>よく出た気持ち（30日）${Rp.length?"<small>・右は前の30日との差</small>":""}</h3>${bars}<small class="who">使った言葉 ${uniq}種類・1日あたり平均 ${avgN}語。いろいろな言葉で言い分けられるほど、気持ちの扱い方を選びやすくなると言われています。</small></div>
+    <div class="chart fa"><h3>気持ちと気分の関係</h3>${relH}</div>`; }
+if(typeof document!=="undefined") document.addEventListener("keydown",e=>{ const t=e.target; if(!t||t.id!=="feelAdd"||e.key!=="Enter") return; e.preventDefault(); const v=t.value.trim().slice(0,12); if(!v) return; const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]); F.add(v); saveReflect({feel:[...F]}); haptic("tick"); render(); });
+if(typeof document!=="undefined") document.addEventListener("change",e=>{ const t=e.target; if(!t||t.id!=="feelAdd") return; const v=t.value.trim().slice(0,12); if(!v) return; const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]); if(F.has(v)) return; F.add(v); saveReflect({feel:[...F]}); render(); });
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
