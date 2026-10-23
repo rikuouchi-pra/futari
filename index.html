@@ -1080,6 +1080,8 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .shq .chips{flex-wrap:wrap}.tabbar button:active .tb-i{transform:scale(.88)}.tb-i{transition:background .2s,transform .12s}.tt-bar .tb-h{cursor:pointer}
 /* v335: 画面名は戻るボタンのすぐ右に（真ん中に浮いて見えていた） */
 .brand .trow{justify-content:flex-start}.brand .trow h1{margin-right:auto;text-align:left}.brand .trow .trow-r{margin-left:auto}
+/* v337 */
+.rc-warn{margin:0 0 8px;padding:8px 10px;border-radius:12px;font-size:12.5px;background:color-mix(in srgb,#E0A030 16%,transparent)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2483,7 +2485,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="335";
+const APP_VERSION="337";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -9004,16 +9006,26 @@ const RQ={files:[],i:0,cur:null,ctl:null,res:[],gen:0,saved:0};
 function rcptStart(){ const inp=$("rcptIn"); if(!inp) return; inp.value=""; inp.click(); }
 function rcptLinkables(){ return moneyEntries().filter(e=>e.budget&&!e.actual&&e.c!=="recur"&&e.c!=="spend"&&["items","pitems","plans"].includes(e.c)).slice(0,30); }
 function rcptPrompt(src){ const cats=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>`${k}=${o.l}`).join(", ");
-  return `${src}読み取って、次の形のJSONだけを返してください。
-{"store":"店名（わからなければ空文字）","date":"YYYY-MM-DD（読めなければnull）","total":税込の合計金額(数値・円),"items":[{"name":"品名","price":数値}],"category":"分類キー"}
-- totalは「合計」「お支払い」「領収金額」など最終的に支払った金額。ポイント・お預り・お釣りは含めない。
-- itemsは主な品目を最大12件まで。
-- categoryは次から1つ: ${cats}
-- 飲食店・カフェ・テイクアウトは eatout、スーパーの食料品中心は food、ドラッグストアの日用品中心は daily。`; }
+  return `${src}読み取って、次の形のJSONだけを返してください（説明文は不要）。
+{"store":"店名","date":"YYYY-MM-DD","total":数値,"items":[{"name":"品名","price":数値}],"category":"分類キー","confidence":"high|mid|low"}
+- store：レシート上部の店名（チェーン名＋支店名）。読めなければ空文字。
+- date：購入日。和暦（令和7年など）は西暦に、「25/10/21」のような2桁の年は20XX年にする。読めなければnull。
+- total：最終的に支払った税込の金額（「合計」「お買上計」「お支払」「領収金額」）。小計・お預り・お釣り・ポイント・税額の行は使わない。カンマや「円」「¥」は付けず数値だけ。
+- items：品目ごとの税込の金額を最大15件。値引き・割引・クーポンは price をマイナスにして1行にする。数量「×2」は合計金額にする。
+- 外税のレシートで品目が税抜のときは、items は税抜のままでよいが total は必ず税込の合計。
+- category は次から1つ：${cats}。飲食店・カフェ・テイクアウトは eatout、スーパーの食料品中心は food、ドラッグストアの日用品中心は daily。
+- 文字がかすれて自信がない項目は推測しすぎず、confidence を low にする。`; }
+const rcNum=v=>{ if(v==null||v==="") return null; const t=String(v).replace(/[，,円¥￥\s]/g,"").replace(/[－−ー‐]/g,"-"); const m=t.match(/-?\d+(\.\d+)?/); return m?Math.round(Number(m[0])):null; };
+function rcDate(v){ let t=String(v||"").trim().replace(/[年月\/.]/g,"-").replace(/日/g,""); const m=t.match(/^(\d{2,4})-(\d{1,2})-(\d{1,2})/); if(!m) return ""; let y=Number(m[1]); if(y<100) y+=2000; const d=`${y}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`; return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:""; }
 function rcptApply(d){ const today0=today(), ok=d&&typeof d==="object";
-  const total=ok?money(d.total):null, date=ok&&/^\d{4}-\d{2}-\d{2}$/.test(String(d.date||""))&&d.date<=today0?d.date:today0;
+  const tot=ok?rcNum(d.total):null, total=tot&&tot>0?tot:null, dd=ok?rcDate(d.date):"", date=dd&&dd<=today0&&dd>=addDays(today0,-400)?dd:today0;
   const cat=ok&&MCATS[d.category]&&d.category!=="save"?d.category:guessCat(ok?d.store:"","other");
-  return {store:ok?String(d.store||"").slice(0,40):"",date,total:total||"",cat,items:ok&&Array.isArray(d.items)?d.items.slice(0,12).map(x=>({name:String(x&&x.name||"").slice(0,30),price:money(x&&x.price)})).filter(x=>x.name):[],who:"both",link:""}; }
+  const items=ok&&Array.isArray(d.items)?d.items.slice(0,15).map(x=>({name:String(x&&x.name||"").slice(0,30),price:rcNum(x&&x.price)})).filter(x=>x.name):[];
+  const warn=[]; if(ok&&!total) warn.push("合計金額を読み取れませんでした");
+  if(ok&&dd&&dd!==date) warn.push(`日付「${dd}」が不自然なので今日にしています`); else if(ok&&!dd) warn.push("日付を読み取れなかったので今日にしています");
+  const sum=items.reduce((s,x)=>s+(x.price||0),0); if(total&&items.length>=2&&items.every(x=>x.price!=null)&&(sum>total+Math.max(10,total*.12)||(items.length<15&&sum<total-Math.max(10,total*.12)))) warn.push(`品目の合計（${yen(sum)}）と合計金額がずれています。合計を確認してください`);
+  if(ok&&d.confidence==="low") warn.push("かすれなどで自信が低い読み取りです");
+  return {store:ok?String(d.store||"").slice(0,40):"",date,total:total||"",cat,items,who:"both",link:"",warn}; }
 async function rcptFromText(){
   const ta=$("rcTxt"), txt=ta?ta.value.trim():""; if(!txt){ toast("レシートの文字を貼り付けてください"); return; }
   if(!state.sampleTxt){ toast("読み取り機能を準備中です"); return; }
@@ -9026,20 +9038,16 @@ async function rcptFromText(){
 function rcptTextStart(){ RQ.files=[]; RQ.i=0; RQ.cur={status:"ready",url:"",err:"",d:rcptApply(null),paste:true}; state.rcptOn=true; if(state.view!=="money"){ state.moneyTab="sum"; go("money"); } else render(); rcptScroll(); setTimeout(()=>{ const t=$("rcTxt"); if(t) t.focus(); },120); }
 /* v269: レシートを連続で。選んだ写真は裏で順に先読みしておき、確認→保存ですぐ次へ。確認中に「＋ 追加」、終わったら「続けて読み取る」 */
 async function rcptAI(f){
-  const cats=Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>`${k}=${o.l}`).join(", ");
-  RQ.ctl=new AbortController();
+  RQ.ctl=new AbortController(); const P=rcptPrompt("これは日本の買い物のレシート（または領収書）の写真です。");
+  const ask=tier=>state.sample.json(P,{images:f,signal:RQ.ctl.signal,imgOpt:{doc:1},...(tier?{modelTier:tier}:{}),timeoutMs:120000});
   try{
-    const d=await state.sample.json(`これは日本の買い物のレシート（または領収書）の写真です。読み取って、次の形のJSONだけを返してください。
-{"store":"店名（わからなければ空文字）","date":"YYYY-MM-DD（読めなければnull）","total":税込の合計金額(数値・円),"items":[{"name":"品名","price":数値}],"category":"分類キー"}
-- totalは「合計」「お支払い」「領収金額」など最終的に支払った金額。ポイント・お預り・お釣りは含めない。
-- itemsは主な品目を最大12件まで。
-- categoryは次から1つ: ${cats}
-- 飲食店・カフェ・テイクアウトは eatout、スーパーの食料品中心は food、ドラッグストアの日用品中心は daily。`,{images:f,signal:RQ.ctl.signal});
-    return {status:"ready",d:rcptApply(d),err:""};
+    let d; try{ d=await ask("pro"); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json"].includes(e.code)&&!RQ.ctl.signal.aborted) d=await ask(""); else throw e; } /* v337: 読み取りは賢いモデル。混雑・失敗時はふつうのモデルでもう一度 */
+    let r=rcptApply(d); if(!r.total&&!RQ.ctl.signal.aborted){ try{ const d2=await ask(""); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
+    return {status:"ready",d:r,err:""};
   }catch(e){
-    if(e&&e.code==="cancelled") return {status:"cancelled"};
-    const msg={not_granted:"読み取りが許可されませんでした。手入力で登録できます",images_unavailable:"この画面では写真を送れません。手入力で登録できます",image_rejected:"この写真は読めませんでした（形式・サイズ）",rate_limited:"混み合っています。少し待ってからもう一度",invalid_json:"うまく読み取れませんでした。手で入力してください",refused:"読み取れない内容でした"}[e&&e.code]||"読み取りに失敗しました。手で入力できます";
-    return {status:"ready",err:msg,d:{store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:""}};
+    if(e&&(e.code==="cancelled"||e.code==="ai_cancelled"||e.name==="AbortError")) return {status:"cancelled"};
+    const msg={not_granted:"読み取りが許可されませんでした。手入力で登録できます",images_unavailable:"この画面では写真を送れません。手入力で登録できます",image_rejected:"この写真は読めませんでした（形式・サイズ）",bad_image:"写真を開けませんでした。スクリーンショットにして選び直すと読めることがあります",too_large:"写真が大きすぎます。レシートの部分だけ切り取って選び直してください",rate_limited:"AIが混み合っています。少し待ってからもう一度",invalid_json:"うまく読み取れませんでした。手で入力してください",refused:"読み取れない内容でした",gas_connection:"AIのサーバーにつながりません（会社などのネットワークでは使えないことがあります）。4Gで試すか、手で入力してください",ai_timeout:"AIの返事が時間内に届きませんでした。もう一度試すか、手で入力してください",gas_update_required:"AIのサーバーの更新が必要です。手で入力できます"}[e&&e.code]||`読み取りに失敗しました（${esc(String(e&&(e.code||e.message)||"不明").slice(0,40))}）。手で入力できます`;
+    return {status:"ready",err:msg,d:{store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:"",warn:[]}};
   }
 }
 async function rcptPump(){ if(RQ.pumping||!state.sample) return; RQ.pumping=true; const gen=RQ.gen;
@@ -9083,14 +9091,14 @@ function rcptHTML(){
   const C=RQ.cur, n=Math.max(1,RQ.files.length), head=`<div class="hc-head"><h3>${C.paste&&!RQ.files.length?"レシート（文字から）":`レシート ${RQ.i+1}/${n}`}<small class="rc-q">${rcptQHTML()}</small></h3><span class="rc-hb">${RQ.files.length?`<button class="link" data-act="rcadd">＋ 追加</button>`:""}<button class="link" data-act="rcclose">やめる</button></span></div>`;
   if(C.status==="reading") return `<section class="chart rcpt">${head}<div class="rc-body">${C.url?`<img src="${C.url}" alt="レシート" class="rc-img">`:""}<div class="rc-wait"><span class="spin"></span>読み取り中…<br><small>10〜30秒ほどかかります</small></div></div></section>`;
   const d=C.d, L=rcptLinkables();
-  return `<section class="chart rcpt">${head}${C.err?`<div class="notice" style="margin:0 0 8px">${esc(C.err)}</div>`:""}
+  return `<section class="chart rcpt">${head}${C.err?`<div class="notice" style="margin:0 0 8px">${esc(C.err)}</div>`:""}${d&&d.warn&&d.warn.length?`<div class="rc-warn">⚠️ ${d.warn.map(esc).join("<br>⚠️ ")}</div>`:""}
     ${!state.sample&&state.sampleTxt?`<div class="rc-paste"><div class="who"><b>文字を貼り付けて自動入力</b>：写真アプリでレシートを開き、文字を長押し→「すべてを選択」→「コピー」して下に貼り付け</div><textarea id="rcTxt" rows="3" placeholder="ここに貼り付け"></textarea><button class="btn" data-act="rctxt">文字から読み取る</button></div>`:""}
     <div class="rc-body">${C.url?`<img src="${C.url}" alt="レシート" class="rc-img">`:""}<div class="rc-form">
       <label class="rc-f"><span>合計</span><input id="rcT" type="text" inputmode="numeric" value="${esc(d.total)}" placeholder="円" class="rc-total"></label>
       <label class="rc-f"><span>内容・店名</span><input id="rcS" type="text" value="${esc(d.store)}" maxlength="40"></label>
       <label class="rc-f"><span>日付</span><input id="rcD" type="date" value="${esc(d.date)}" max="${today()}"></label>
       <label class="rc-f"><span>分類</span><select id="rcC">${Object.entries(MCATS).filter(([k])=>k!=="save").map(([k,o])=>`<option value="${k}" ${d.cat===k?"selected":""}>${esc(o.l)}</option>`).join("")}</select></label></div></div>
-    ${d.items.length?`<details class="rc-items"><summary>読み取った品目（${d.items.length}）</summary>${d.items.map(x=>`<div><span>${esc(x.name)}</span><b>${x.price?yen(x.price):""}</b></div>`).join("")}</details>`:""}
+    ${d.items.length?`<details class="rc-items"><summary>読み取った品目（${d.items.length}）</summary>${d.items.map(x=>`<div><span>${esc(x.name)}</span><b>${x.price?(x.price<0?"−"+yen(-x.price):yen(x.price)):""}</b></div>`).join("")}</details>`:""}
     <div class="edit-row"><span class="who mlbl">だれが</span>${seg("rcw",editSeg.rcw||d.who||"both",WHO_OPTS())}</div>
     ${L.length?`<label class="rc-f wide"><span>予算のある項目の実績にする（任意）</span><select id="rcL"><option value="">しない（新しい出費として登録）</option>${L.map(e=>`<option value="${e.c}|${esc(e.id)}">${esc(e.text.slice(0,24))}（予算${yen(e.budget)}）</option>`).join("")}</select></label>`:""}
     ${RQ.files[RQ.i]?(state.assets?`<label class="rc-keep"><input type="checkbox" id="rcKeep" ${prefs.keepPhoto!=="0"?"checked":""}> レシートの写真も保存する（あとで見返せます）</label>`:`<div class="who" style="margin-top:6px">この画面では写真を保存できません（編集できる人の画面でのみ保存できます）</div>`):""}

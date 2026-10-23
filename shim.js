@@ -245,12 +245,18 @@
     try { return await new Promise(function(ok, ng){ var im = new Image(); im.onload = function(){ ok(im); }; im.onerror = function(){ var e = new Error("写真を開けませんでした（JPEGで撮り直すか、スクリーンショットで試してください）"); e.code = "bad_image"; ng(e); }; im.src = url; }); }
     finally { setTimeout(function(){ URL.revokeObjectURL(url); }, 30000); }
   }
-  async function aiShrink(blob){
-    var src = await aiDecode_(blob), max = 2000, q = 0.82, out = null;
-    for(var i = 0; i < 6; i++){
+  async function aiShrink(blob,opt){
+    var doc=!!(opt&&opt.doc), src = await aiDecode_(blob), max = doc?3200:2000, q = doc?0.86:0.82, out = null; /* v337: レシートなど文字の写真は解像度を上げ、白黒・くっきりにして容量を抑える */
+    for(var i = 0; i < 7; i++){
       var W0 = src.naturalWidth || src.width, H0 = src.naturalHeight || src.height, k = Math.min(1, max / Math.max(W0, H0)), c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
-      c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); out = await new Promise(function(r){ c.toBlob(r, "image/jpeg", q); });
-      if(out && out.size <= MAX_ONE) return out; max = Math.round(max * 0.82); q = Math.max(0.55, q - 0.06); }
+      var g=c.getContext("2d"); g.drawImage(src, 0, 0, c.width, c.height);
+      if(doc){ try{ var im=g.getImageData(0,0,c.width,c.height), p=im.data, lo=255, hi=0, n=p.length, step=Math.max(4,Math.floor(n/4/40000)*4);
+        for(var j=0;j<n;j+=step){ var y=0.299*p[j]+0.587*p[j+1]+0.114*p[j+2]; if(y<lo) lo=y; if(y>hi) hi=y; }
+        lo=Math.min(lo+10,120); hi=Math.max(hi-10,140); var sc=255/Math.max(1,hi-lo);
+        for(var j2=0;j2<n;j2+=4){ var v=(0.299*p[j2]+0.587*p[j2+1]+0.114*p[j2+2]-lo)*sc; v=v<0?0:v>255?255:v; p[j2]=p[j2+1]=p[j2+2]=v; }
+        g.putImageData(im,0,0); }catch(_){} }
+      out = await new Promise(function(r){ c.toBlob(r, "image/jpeg", q); });
+      if(out && out.size <= MAX_ONE) return out; max = Math.round(max * 0.85); q = Math.max(0.55, q - 0.06); }
     var e = new Error("写真が大きすぎます"); e.code = "too_large"; throw e;
   }
   function aiAbortError_(){ var e=new Error("AI request cancelled"); e.name="AbortError"; e.code="ai_cancelled"; return e; }
@@ -289,7 +295,7 @@
     var imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[],id="ar"+rid(),ref=M.doc(fs,"aitmp",id),doc={prompt:String(prompt).slice(0,40000),at:Date.now(),by:me.uid,relay:1};
     if(o.modelTier)doc.tier=String(o.modelTier).slice(0,10);
     if(o.audio){if(o.audio.size>MAX_ONE)throw gasError_("too_large","録音が長すぎます");doc.img=M.Bytes.fromUint8Array(new Uint8Array(await o.audio.arrayBuffer()));doc.mime=o.audio.type||"audio/wav";}
-    else if(imgs[0]){var b=await aiShrink(imgs[0]);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await b.arrayBuffer()));doc.mime="image/jpeg";}
+    else if(imgs[0]){var b=await aiShrink(imgs[0],o.imgOpt);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await b.arrayBuffer()));doc.mime="image/jpeg";}
     phase("このネットワークではAIのサーバーに直接つながらないため、中継で送っています（返事まで1〜2分）");
     var written=fbSend_(ref.path,"set",doc);await waitAbort_(written,signal);
     try{
@@ -329,7 +335,7 @@
     try{
       phase("送信を準備しています");
       if(o.audio){if(o.audio.size>MAX_ONE){var ea=new Error("録音が長すぎます");ea.code="too_large";throw ea;}doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(o.audio.arrayBuffer(),ctl.signal)));doc.mime=o.audio.type||"audio/wav";} /* v193: 音声の文字起こし */
-      else if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0]),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
+      else if(imgs[0]){var b=await waitAbort_(aiShrink(imgs[0],o.imgOpt),ctl.signal);doc.img=M.Bytes.fromUint8Array(new Uint8Array(await waitAbort_(b.arrayBuffer(),ctl.signal)));doc.mime="image/jpeg";}
       if(ctl.signal.aborted)throw aiAbortError_();
       written=fbSend_(ref.path,"set",doc);await waitAbort_(written,ctl.signal);
       var tok=await waitAbort_(me.getIdToken(),ctl.signal);
@@ -370,7 +376,7 @@
     var phase=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
     try{
       phase("送信を準備しています");var args={prompt:String(prompt).slice(0,40000),tier:String(o.modelTier||"").slice(0,10)},imgs=o.images?(Array.isArray(o.images)?o.images:[o.images]):[];
-      var blob=o.audio|| (imgs[0]?await waitAbort_(aiShrink(imgs[0]),ctl.signal):null);
+      var blob=o.audio|| (imgs[0]?await waitAbort_(aiShrink(imgs[0],o.imgOpt),ctl.signal):null);
       if(blob){if(blob.size>MAX_ONE)throw gasError_("too_large","音声・写真が大きすぎます");var bytes=new Uint8Array(await waitAbort_(blob.arrayBuffer(),ctl.signal)),binary="";for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));args.img=btoa(binary);args.mime=o.audio?(blob.type||"audio/wav"):"image/jpeg";}
       var tok=await waitAbort_(me.getIdToken(),ctl.signal);phase("AIに直接問い合わせています");
       var j=await gasForm_(G,{idToken:tok,tool:"aiDirect",args:args},Math.max(1,deadline-Date.now()),ctl.signal);
