@@ -1259,6 +1259,42 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .mvbar.open{justify-content:flex-start;background:var(--surface);border-radius:14px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);animation:suIn .25s both}
 .mvbar input[type=date]{min-height:36px;width:150px}
 .mvbar .link{font-size:12.5px}
+/* v349: 予算と繰越 */
+.env-sum{display:flex;flex-direction:column;gap:8px}
+.env-big{display:flex;flex-direction:column}.env-big small{color:var(--muted);font-size:12px;font-weight:700}
+.env-big b{font-size:30px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--habit)}
+.neg{color:var(--danger)!important}.pos{color:var(--task)}
+.env-meter{height:12px;border-radius:6px;background:var(--ground);overflow:hidden}
+.env-meter i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--habit),color-mix(in srgb,var(--habit) 60%,var(--shop)));transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.env-meter i.over{background:var(--danger)}
+.env-kv{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}.env-kv b{color:var(--ink);font-variant-numeric:tabular-nums}
+.env-rows{display:flex;flex-direction:column;gap:10px}
+.env-r{display:flex;flex-direction:column;gap:4px}
+.env-rh{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px;font-weight:700}
+.env-rh .nm{display:flex;align-items:center;gap:6px}.env-rh .nm i{width:10px;height:10px;border-radius:3px}.env-rh em{font-style:normal;font-size:11px;color:var(--habit);border:1px solid currentColor;border-radius:99px;padding:0 5px}
+.env-left{font-variant-numeric:tabular-nums;color:var(--habit)}
+.env-bar{position:relative;height:12px;border-radius:6px;background:var(--ground);overflow:hidden}
+.env-bar span{position:absolute;top:0;bottom:0;left:0;border-radius:6px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.eb-av{background:color-mix(in srgb,var(--habit) 22%,transparent)}
+.eb-us{opacity:.9}
+.eb-ov{background:repeating-linear-gradient(45deg,var(--danger) 0 4px,color-mix(in srgb,var(--danger) 60%,#fff) 4px 8px)!important}
+.env-calc{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.env-ed{background:var(--ground);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;margin-top:4px;animation:suIn .25s both}
+.env-sug{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.env-mvf,.env-anf{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.env-mvf select,.env-anf select{min-height:38px;max-width:9.5em}
+.env-anf input[type=text]:not(.minp){flex:1;min-width:9em}
+.env-mvl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.env-mvl li{display:flex;gap:8px;align-items:center;font-size:12.5px}.env-mvl li span{flex:1}
+.env-ann{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.an-h{display:flex;justify-content:space-between;gap:8px;font-size:13px}.an-h span{color:var(--muted);font-size:12px}
+.an-m{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:11.5px;color:var(--muted);margin-top:3px;align-items:center}.an-m b{color:var(--ink)}
+.env-tr{width:100%;display:block}
+.tr-av{fill:color-mix(in srgb,var(--habit) 35%,transparent);background:color-mix(in srgb,var(--habit) 35%,transparent)}
+.tr-ac{fill:var(--habit);background:var(--habit)}.tr-ac.over{fill:var(--danger);background:var(--danger)}
+.tr-t{font-size:10px;fill:var(--muted)}.tr-t.cur{fill:var(--ink);font-weight:800}
+.env-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:4px}.env-lg span{display:flex;align-items:center;gap:4px}.env-lg i{width:10px;height:10px;border-radius:3px;display:block}
+.env-setup .edit-row .nm{display:flex;align-items:center;gap:6px;font-size:13px}.env-setup .edit-row .nm i{width:10px;height:10px;border-radius:3px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2662,7 +2698,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="348";
+const APP_VERSION="349";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6452,8 +6488,8 @@ function moneyEntries(){
 }
 function viewMoney(){
   const t=state.moneyTab||"sum";
-  const head=whoBar()+`<div class="tools">${seg("mtab",t,[["sum","集計"],["month","毎月・振込"],["goal","目標"]])}</div>`;
-  return head+(t==="sum"&&Number((state.kakei||{}).limit||0)?`<div class="chart">${paceHTML()}</div>`:"") /* v244: 上限がないときは下の「支出の実績」と同じ数字になるので出さない */+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():viewMoneySum());
+  const head=whoBar()+`<div class="tools">${seg("mtab",t,[["sum","集計"],["env","予算・繰越"],["month","毎月・振込"],["goal","目標"]])}</div>`;
+  return head+(t==="sum"&&Number((state.kakei||{}).limit||0)?`<div class="chart">${paceHTML()}</div>`:"") /* v244: 上限がないときは下の「支出の実績」と同じ数字になるので出さない */+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():t==="env"&&typeof viewMoneyEnv==="function"?viewMoneyEnv():viewMoneySum());
 }
 /* v264: だれが払ったか（りく／のり／ふたりで分担）。出費・買い物などは「払った人」、毎月の支払いは人別の振込確認から */
 function payShare(e){ const a=Number(e.actual||0), x=e.x||{}; if(!a) return {h:0,w:0,u:0};
@@ -7682,6 +7718,59 @@ if(typeof document!=="undefined"){
     o.disabled=true; let ok=false; try{ ok=k==="reflect"?await moveReflect(from,to):await moveDiary(from,to); }catch(er){ err(er); }
     state.mvOpen=""; if(ok){ haptic("done"); if(k==="reflect") state.refDate=to; else state.diaryDate=to; } render(); },true);
   document.addEventListener("change",e=>{ if(e.target&&e.target.id==="mvTo") state.mvTo=e.target.value; });
+}
+/* v349: 予算と繰越（封筒式）。分類ごとに 毎月の予算＋前月からの繰越（余り・不足）＋付け替え＋年払いの月割り ＝ 今月使える額。
+   データは家計（ふたり共有）の kakei.env に保存：roll{分類:"none"|"plus"|"both"}, rollFrom{分類:開始月}, cov{分類:{月:繰越額}}, moves[{id,ym,from,to,a}], annual[{id,text,a,m,cat,from}] */
+const envOf=()=>((state.kakei||{}).env)||{};
+function envSave(patch,msg){ const E={...envOf(),...patch}; state.kakei={...(state.kakei||{}),env:E,updatedAt:Date.now()}; if(typeof kakeiDoc!=="undefined"&&kakeiDoc) kakeiPut(state.kakei).catch(err); haptic("done"); if(msg) toast(msg,null,"done"); render(); }
+const ENV_CATS=()=>Object.keys(MCATS).filter(k=>k!=="save");
+const annMonthly=a=>Math.round(Number(a.a||0)/12);
+function envActMap(){ const M={}; for(const e of byWho(moneyEntries())){ if(!e.actual||e.save||!e.aDate) continue; const ym=ymOf(e.aDate), k=MCATS[e.cat]&&e.cat!=="save"?e.cat:"other"; (M[ym]=M[ym]||{})[k]=((M[ym]||{})[k]||0)+e.actual; } return M; }
+function envBud(k,ym){ const E=envOf(); let b=Number(catGoals()[k]||0);
+  for(const a of E.annual||[]) if(a.cat===k&&(!a.from||a.from<=ym)) b+=annMonthly(a);
+  for(const m of E.moves||[]) if(m.ym===ym){ if(m.to===k) b+=Number(m.a||0); if(m.from===k) b-=Number(m.a||0); }
+  return b; }
+function envCarry(k,ym,AM){ const E=envOf(), mode=(E.roll||{})[k]||"none", s=(E.rollFrom||{})[k], ov=m=>{ const v=((E.cov||{})[k]||{})[m]; return v===undefined||v===null||v===""?null:Number(v); };
+  if(mode==="none"||!s||ym<s) return ov(ym)??0;
+  let c=ov(s)??0; for(let m=s,i=0; m<ym&&i<60; m=ymAdd(m,1),i++){ const bal=c+envBud(k,m)-(((AM[m]||{})[k])||0); const n=ymAdd(m,1); c=ov(n)??(mode==="both"?bal:Math.max(0,bal)); } return c; }
+function envRows(ym){ const AM=envActMap(), E=envOf();
+  return ENV_CATS().map(k=>{ const goal=Number(catGoals()[k]||0), ann=(E.annual||[]).filter(a=>a.cat===k&&(!a.from||a.from<=ym)).reduce((s,a)=>s+annMonthly(a),0), mv=(E.moves||[]).filter(m=>m.ym===ym).reduce((s,m)=>s+(m.to===k?Number(m.a):0)-(m.from===k?Number(m.a):0),0), carry=envCarry(k,ym,AM), act=((AM[ym]||{})[k])||0, avail=goal+ann+mv+carry;
+    return {k,o:MCATS[k],goal,ann,mv,carry,act,avail,left:avail-act,mode:(E.roll||{})[k]||"none"}; }).filter(r=>r.goal||r.ann||r.mv||r.carry||r.act); }
+function envTrendHTML(ym){ const AM=envActMap(), ms=[...Array(6)].map((_,i)=>ymAdd(ym,i-5)), ks=ENV_CATS();
+  const D=ms.map(m=>{ let av=0,ac=0; for(const k of ks){ const b=envBud(k,m), c=envCarry(k,m,AM), a=((AM[m]||{})[k])||0; if(b||c||a){ av+=b+c; ac+=a; } } return {m,av,ac,left:av-ac}; });
+  const mx=Math.max(1,...D.map(d=>Math.max(d.av,d.ac))), W=300,H=130,bw=W/6;
+  return `<svg class="env-tr" viewBox="0 0 ${W} ${H+18}" role="img" aria-label="直近6か月の使える額と使った額">${D.map((d,i)=>{ const x=i*bw+bw*.18, w=bw*.3, ha=d.av/mx*H, hc=d.ac/mx*H;
+    return `<rect x="${x}" y="${H-ha}" width="${w}" height="${ha}" rx="3" class="tr-av"><title>${Number(d.m.slice(5))}月 使える額 ${yen(d.av)}</title></rect><rect x="${x+w+2}" y="${H-hc}" width="${w}" height="${hc}" rx="3" class="tr-ac ${d.ac>d.av?"over":""}"><title>${Number(d.m.slice(5))}月 使った額 ${yen(d.ac)}</title></rect><text x="${i*bw+bw/2}" y="${H+13}" text-anchor="middle" class="tr-t ${d.m===ym?"cur":""}">${Number(d.m.slice(5))}月</text>`; }).join("")}</svg>
+    <div class="env-lg"><span><i class="tr-av"></i>使える額（予算＋繰越）</span><span><i class="tr-ac"></i>使った額</span><span><i class="tr-ac over"></i>超えた月</span></div>`; }
+function viewMoneyEnv(){ const ym=ymOf(state.moneyRef||today()), [y,m]=ym.split("-").map(Number), R=envRows(ym), E=envOf(), now=ymOf(today());
+  let h=`<div class="dstrip" data-strip="mmon"><button class="icon-btn" data-act="mmprev" aria-label="前の月">‹</button><div class="ttl">${y}年${m}月の予算</div><button class="icon-btn" data-act="mmnext" aria-label="次の月">›</button></div>`;
+  const T=R.reduce((s,r)=>({av:s.av+r.avail,ac:s.ac+r.act,c:s.c+r.carry}),{av:0,ac:0,c:0}), left=T.av-T.ac, pct=T.av>0?Math.min(100,T.ac/T.av*100):0;
+  h+=`<div class="chart env-sum"><div class="env-big"><small>今月まだ使える額</small><b class="${left<0?"neg":""}">${yen(left)}</b></div>
+    <div class="env-meter"><i style="width:${pct.toFixed(1)}%" class="${left<0?"over":""}"></i></div>
+    <div class="env-kv"><span>使える額 <b>${yen(T.av)}</b></span><span>使った <b>${yen(T.ac)}</b></span><span>うち繰越 <b class="${T.c<0?"neg":""}">${T.c>=0?"+":""}${yen(T.c)}</b></span></div></div>`;
+  if(!R.length) h+=`<div class="empty">分類ごとの毎月の予算を決めると、ここで「余り・不足の繰越」「付け替え」「年払いの月割り」を管理できます。<br><button class="btn primary" data-envsetup="1" style="margin-top:8px">予算を決める</button></div>`;
+  else { const mx=Math.max(1,...R.map(r=>Math.max(r.avail,r.act)));
+    h+=`<div class="chart"><h3>分類ごとの残り</h3><div class="env-rows">${R.sort((a,b)=>a.left-b.left).map(r=>{ const op=state.envOpen===r.k, base=Math.max(0,r.avail), wA=base/mx*100, wU=Math.min(r.act,Math.max(r.avail,0))/mx*100, wO=Math.max(0,r.act-Math.max(r.avail,0))/mx*100;
+      return `<div class="env-r ${r.left<0?"over":""} ${op?"open":""}"><button type="button" class="env-rh" data-envk="${r.k}" aria-expanded="${op}"><span class="nm"><i style="background:${r.o.c}"></i>${r.o.l}${r.mode!=="none"?`<em title="繰越あり">↻</em>`:""}</span><span class="env-left ${r.left<0?"neg":""}">${r.left<0?"不足 ":"残り "}${yen(Math.abs(r.left))}</span></button>
+        <div class="env-bar"><span class="eb-av" style="width:${wA}%"></span><span class="eb-us" style="width:${wU}%;background:${r.o.c}"></span>${wO?`<span class="eb-ov" style="left:${wU}%;width:${wO}%"></span>`:""}</div>
+        <div class="env-calc"><span>予算 ${yen(r.goal)}</span>${r.ann?`<span>年払い月割り +${yen(r.ann)}</span>`:""}${r.carry?`<span class="${r.carry<0?"neg":"pos"}">繰越 ${r.carry>0?"+":""}${yen(r.carry)}</span>`:""}${r.mv?`<span class="${r.mv<0?"neg":"pos"}">付け替え ${r.mv>0?"+":""}${yen(r.mv)}</span>`:""}<span>＝ 使える ${yen(r.avail)}・使った ${yen(r.act)}</span></div>
+        ${op?envEditHTML(r,ym):""}</div>`; }).join("")}</div><button type="button" class="link" data-envsetup="1" style="margin-top:6px">＋ 予算のない分類にも予算を入れる</button></div>`;
+    if(state.envSetup) h+=envSetupHTML();
+    /* 付け替え */
+    const MV=(E.moves||[]).filter(x=>x.ym===ym), opts=ENV_CATS().map(k=>`<option value="${k}">${MCATS[k].l}</option>`).join(""), over=R.filter(r=>r.left<0), rich=R.filter(r=>r.left>0).sort((a,b)=>b.left-a.left);
+    h+=`<div class="chart"><h3>🔀 予算の付け替え（${m}月）</h3>
+      ${over.length&&rich.length?`<div class="env-sug">${over.slice(0,3).map(o=>{ const s=rich.find(x=>x.k!==o.k); if(!s) return ""; const a=Math.min(-o.left,s.left); return `<button type="button" class="chip mini" data-envmv="${s.k}|${o.k}|${a}">${s.o.l} → ${o.o.l} ${yen(a)} で不足をうめる</button>`; }).join("")}</div>`:""}
+      <div class="env-mvf"><select id="envFrom" aria-label="付け替え元">${opts}</select><span>→</span><select id="envTo" aria-label="付け替え先">${opts}</select><input type="text" inputmode="numeric" id="envAmt" placeholder="金額" class="minp" aria-label="金額"><button class="btn primary" data-envmvgo="1">付け替える</button></div>
+      ${MV.length?`<ul class="env-mvl">${MV.map(x=>`<li><span>${MCATS[x.from]?.l||x.from} → ${MCATS[x.to]?.l||x.to}</span><b>${yen(x.a)}</b><button class="link" data-envmvdel="${esc(x.id)}" aria-label="取り消す">取り消す</button></li>`).join("")}</ul>`:`<small class="who">余っている分類から足りない分類へ、その月の予算を移せます（毎月の予算そのものは変わりません）。</small>`}</div>`;
+  }
+  /* 年払いの月割り */
+  const AN=E.annual||[];
+  h+=`<div class="chart"><h3>📆 年払いの月割り（積み立て）</h3>${AN.length?`<div class="env-ann">${AN.map(a=>{ const mo=annMonthly(a), pm=Number(a.m)||1, cm=m; const fromN=a.from?Math.max(1,(y*12+m)-(Number(a.from.slice(0,4))*12+Number(a.from.slice(5)))+1):12, since=Math.min(fromN,((cm-pm+12)%12)||12), acc=Math.min(Number(a.a), mo*since), next=((pm-cm+12)%12)||12, due=cm===pm;
+      return `<div class="an-r"><div class="an-h"><b>${esc(a.text)}</b><span>${yen(a.a)}/年・${pm}月払い</span></div><div class="mbar"><i style="width:${Math.min(100,acc/Math.max(1,a.a)*100).toFixed(1)}%;background:${(MCATS[a.cat]||MCATS.other).c}"></i></div>
+        <div class="an-m"><span>毎月 <b>${yen(mo)}</b> を${(MCATS[a.cat]||MCATS.other).l}の予算に</span><span>${due?"<b>今月が支払い月</b>":`たまった額 ${yen(acc)}・支払いまであと${next}か月`}</span><button class="link" data-envandel="${esc(a.id)}">削除</button></div></div>`; }).join("")}</div>`:`<small class="who">自動車税・保険・年会費など年に1回払うものを入れると、12で割った額を毎月その分類の予算に積み立てます（繰越が自動でオンになり、支払い月にまとめて使えます）。</small>`}
+    <div class="env-anf"><input type="text" id="anText" maxlength="30" placeholder="名前（例：自動車税）"><input type="text" inputmode="numeric" id="anAmt" placeholder="年額" class="minp"><select id="anMonth" aria-label="支払い月">${[...Array(12)].map((_,i)=>`<option value="${i+1}">${i+1}月払い</option>`).join("")}</select><select id="anCat" aria-label="分類">${ENV_CATS().map(k=>`<option value="${k}" ${k==="car"?"selected":""}>${MCATS[k].l}</option>`).join("")}</select><button class="btn primary" data-envanadd="1">追加</button></div></div>`;
+  h+=`<div class="chart"><h3>📈 直近6か月</h3>${envTrendHTML(ym)}</div>`;
+  return h+hint("分類をタップで、予算・繰越のしかた・繰越額を変更<br>繰越：「余りだけ」＝残った分を翌月へ、「余りも不足も」＝使いすぎた分は翌月の予算から引く");
 }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
