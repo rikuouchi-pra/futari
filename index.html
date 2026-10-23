@@ -1113,6 +1113,52 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .impr.rg{border-radius:0}.impr.rg-s{border-radius:5px 0 0 5px;margin-right:-4px;width:calc(100% + 2px);max-width:none}.impr.rg-m{margin:0 -4px;width:calc(100% + 6px);max-width:none}.impr.rg-e{border-radius:0 5px 5px 0;margin-left:-4px;width:calc(100% + 2px);max-width:none}
 .imp-row{margin:2px 0 4px}.imp-row .chip[aria-pressed="true"]{background:linear-gradient(110deg,#e0577a,#f08a3c);color:#fff;border-color:transparent}
 .slp-hk summary{cursor:pointer;font-size:12.5px;font-weight:800}.slp-hk{display:flex;flex-direction:column;gap:6px}
+/* v346: 追加画面の統一レイアウト */
+#opts .su-top{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+#opts .su-top .su-f{display:grid!important;grid-template-columns:86px minmax(0,1fr);align-items:center;gap:6px 10px;margin:0!important}
+#opts .su-card{background:var(--ground);border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;overflow:hidden}
+#opts .su-card>.su-f{display:grid!important;grid-template-columns:86px minmax(0,1fr);align-items:center;gap:6px 10px;margin:0!important;padding:10px 12px;border-top:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+#opts .su-card>.su-f[hidden]{display:none!important}
+#opts .su-card>:first-child{border-top:0}
+#opts .su-f.su-cont{padding-top:0!important;border-top:0!important}
+#opts .su-f.su-cont>.su-c{grid-column:2}
+#opts .su-f.su-full{grid-template-columns:minmax(0,1fr)!important}
+#opts .su-l{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);min-width:0;line-height:1.2}
+#opts .su-l i{font-style:normal;font-size:14px;flex:none;width:24px;height:24px;display:grid;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--kc,var(--accent)) 16%,transparent)}
+#opts .su-l small{display:block;font-weight:500;font-size:10px;opacity:.75;margin-left:-2px}
+#opts .su-c{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+#opts .su-c>.seg,#opts .su-c>.chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%;margin:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+#opts .su-c>.seg::-webkit-scrollbar,#opts .su-c>.chips::-webkit-scrollbar{display:none}
+#opts .su-c .seg button,#opts .su-c .chips .chip{flex:none;white-space:nowrap}
+#opts .su-c .lbl{min-width:0}
+#opts .su-c input[type="text"],#opts .su-c input[type="number"],#opts .su-c select{min-height:40px}
+#opts .su-note{margin:0!important;padding:0 12px 10px 108px;font-size:11.5px;line-height:1.45}
+#opts .su-card>.su-full+.su-note,#opts .su-card>.su-note:first-child{padding-left:12px}
+#opts .su-tail{margin-top:8px}
+#opts .su-in{position:relative;display:inline-flex;min-width:0}
+#opts .su-in input{min-height:40px}
+#opts .su-in.su-e::after{content:attr(data-ph);position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;white-space:nowrap}
+#opts .su-in.su-e input{color:transparent}
+#opts .su-in.su-e input::-webkit-datetime-edit{color:transparent}
+#opts .imp-row.su-f{padding:4px 6px!important}
+#opts .imp-row .su-c{display:block}
+#opts .imp-row .chip,#opts .imp-row .chip[aria-pressed="true"]{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;background:transparent;color:var(--ink);font-weight:700;font-size:14px;padding:8px 8px;border-radius:12px;box-shadow:none}
+#opts .imp-row .chip::after{content:"";flex:none;width:44px;height:26px;border-radius:99px;background:radial-gradient(circle at 13px 50%,#fff 9.5px,transparent 10.5px),color-mix(in srgb,var(--muted) 40%,transparent);transition:background .2s}
+#opts .imp-row .chip[aria-pressed="true"]{background:color-mix(in srgb,#f08a3c 10%,transparent)}
+#opts .imp-row .chip[aria-pressed="true"]::after{background:radial-gradient(circle at 31px 50%,#fff 9.5px,transparent 10.5px),linear-gradient(110deg,#e0577a,#f08a3c)}
+#opts .imp-row .who{display:block;padding:0 8px 6px;font-size:11.5px}
+#opts .su-anim{animation:suIn .3s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*28ms)}
+@keyframes suIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.su-sum{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin:-2px 2px 0;min-height:0}
+.su-sum[hidden]{display:none}
+.su-sum>span{font-weight:700;margin-right:2px}
+.su-sum b{background:color-mix(in srgb,var(--kc,var(--accent)) 16%,transparent);color:var(--ink);padding:3px 9px;border-radius:99px;font-weight:700;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.su-sum.pulse b{animation:suPulse .35s ease}
+@keyframes suPulse{40%{transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){#opts .su-anim,.su-sum.pulse b{animation:none}}
+#opts .su-in input[type="date"]{width:148px;max-width:100%}
+#opts .su-in input[type="time"]{width:104px;max-width:100%}
+#opts .su-c>.lbl{font-size:12px;color:var(--muted)}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2516,7 +2562,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="345";
+const APP_VERSION="346";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7370,6 +7416,51 @@ if(typeof document!=="undefined"){
   document.addEventListener("click",e=>{ const b=e.target.closest("[data-impc]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const [c,id]=b.dataset.impc.split("|"), x=(state[c]||[]).find(q=>q.id===id); if(!x) return; const v=!impOf(c,x); x.imp=v; dupd(c,id,{imp:v}); haptic("tick"); b.setAttribute("aria-pressed",String(v)); b.textContent=v?"⭐ カレンダーで強調中":"☆ カレンダーで強調する"; toast(v?(impDate(c,x)?"カレンダーで強調します":"強調にしました（日付を入れるとカレンダーに出ます）"):"強調をやめました"); },true);
 }
 
+/* v346: 追加画面のレイアウトを全種類で統一（ラベル＋アイコンの左列・右に操作、同じ順番：だれが→いつ→くり返し→詳細→強調）。
+   日付・時刻の空欄に「日付を選ぶ」を表示、入力内容のまとめを入力欄の下にリアルタイム表示、種類を切り替えたときは行がふわっと出る */
+const SU_G={"候補":0,"だれが":1,"担当":1,"だれの":1,"共有":1,"期限":2,"納期":2,"日付":2,"やる日（任意）":2,"話す日":2,"いつまでに":2,"いつ頃":2,"最終日":2,"時間":2,"終わり":2,"次のふたり休み":2,"引き落とし日":2,"出発日":2,"日付（毎年）":2,"期限・点検日":2,"準備期限":2,"目標日":2,"毎年表示":2,"くり返し":3,"曜日":3,"前回から":3,"頻度":3,"毎月":3,"予算":4,"金額":4,"毎月の額":4,"目標金額":4,"大変さ":4,"色":4,"困り度":4,"重要度":4,"種類":4,"払った人":4};
+const SU_I={"候補":"✨","だれが":"👤","担当":"👤","だれの":"👤","共有":"👥","期限":"📅","納期":"📦","日付":"📅","やる日（任意）":"📅","話す日":"🗓","いつまでに":"🏁","いつ頃":"🕰","最終日":"🏁","時間":"🕒","終わり":"🕒","次のふたり休み":"🌿","引き落とし日":"🏦","出発日":"🧳","日付（毎年）":"💐","期限・点検日":"🔧","準備期限":"📅","目標日":"🎯","くり返し":"🔁","曜日":"📆","前回から":"🔁","頻度":"🔁","毎月":"📆","予算":"💴","金額":"💴","毎月の額":"💴","目標金額":"🎯","大変さ":"💪","色":"🎨","困り度":"😣","重要度":"⚠️","種類":"🏷","払った人":"👛"};
+let suLastKind=null;
+const suRel=d=>{ try{ const t=today(); if(d===t) return "今日"; if(d===addDays(t,1)) return "明日"; if(d===addDays(t,2)) return "あさって"; const x=parse(d); return `${x.getMonth()+1}/${x.getDate()}(${"日月火水木金土"[x.getDay()]})`; }catch(_){ return d; } };
+function suNote(el){ return !el.classList.contains("edit-row")&&(el.classList.contains("who")||el.classList.contains("mc-prev")||el.classList.contains("hnext")); }
+function suField(el){ const l=el.firstElementChild&&el.firstElementChild.classList.contains("lbl")?el.firstElementChild:null, t=l?l.textContent.trim():"";
+  const c=document.createElement("div"); c.className="su-c";
+  if(el.classList.contains("imp-row")||(!l&&el.tagName==="LABEL")) el.classList.add("su-full"); else if(!t) el.classList.add("su-cont");
+  if(l) l.remove(); while(el.firstChild) c.appendChild(el.firstChild);
+  if(t){ const h=document.createElement("div"); h.className="su-l"; const op=/（任意）/.test(t); h.innerHTML=`<i aria-hidden="true">${SU_I[t]||"•"}</i><span>${esc(t.replace("（任意）",""))}</span>${op?"<small>任意</small>":""}`; el.append(h); }
+  el.append(c); el.classList.add("su-f"); }
+function sheetUnify(){ try{ const S=state.sheet, o=$("opts"); if(!S||!o||o.querySelector(":scope > .su-card")) return;
+  const inner=o.querySelector(":scope > div[style]"), els=[...o.children].flatMap(c=>c===inner?[...inner.children]:[c]);
+  const U=[]; let lastG=4;
+  for(const el of els){ if(suNote(el)&&U.length){ U[U.length-1].n.push(el); continue; }
+    const l=el.classList.contains("edit-row")&&el.firstElementChild&&el.firstElementChild.classList.contains("lbl")?el.firstElementChild.textContent.trim():null;
+    let g; if(el.classList.contains("imp-row")) g=5; else if(el.classList.contains("ksub")||el.classList.contains("chips")||el.classList.contains("shq")) g=0; else if(el.classList.contains("lock")) g=6; else if(l&&SU_G[l]!=null) g=SU_G[l]; else g=lastG;
+    if(g<6) lastG=g; U.push({g,el,n:[]}); }
+  U.sort((a,b)=>a.g-b.g);
+  const top=document.createElement("div"); top.className="su-top"; const card=document.createElement("div"); card.className="su-card"; const tail=[];
+  for(const u of U){ if(u.g===0){ if(u.el.classList.contains("edit-row")&&!u.el.classList.contains("ksub")) suField(u.el); top.append(u.el,...u.n); continue; }
+    if(u.g===6){ tail.push(u.el,...u.n); continue; }
+    if(u.el.classList.contains("edit-row")) suField(u.el); else u.el.classList.add("su-f","su-full");
+    u.el.classList.add("su-g"+u.g); card.append(u.el); for(const n of u.n){ n.classList.add("su-note"); card.append(n); } }
+  o.innerHTML=""; if(top.children.length) o.append(top); if(card.children.length) o.append(card); for(const x of tail){ x.classList.add("su-tail"); o.append(x); }
+  for(const i of o.querySelectorAll('input[type="date"],input[type="time"]')){ const w=document.createElement("span"); w.className="su-in"+(i.value?"":" su-e"); w.dataset.ph=i.type==="date"?"日付を選ぶ":"時刻"; i.before(w); w.append(i); }
+  if(suLastKind!==S.kind){ suLastKind=S.kind; [...o.querySelectorAll(".su-card > *,.su-top > *")].forEach((x,i)=>{ x.style.setProperty("--i",Math.min(i,10)); x.classList.add("su-anim"); }); }
+  if(!$("suSum")){ const d=document.createElement("div"); d.id="suSum"; d.className="su-sum"; d.setAttribute("aria-live","polite"); o.before(d); }
+  suSumPaint(); }catch(e){ try{ console.warn("sheetUnify",e); }catch(_){} } }
+function suSumPaint(){ const o=$("opts"), el=$("suSum"); if(!o||!el) return; const P=[];
+  for(const f of o.querySelectorAll(".su-card > .su-f")){ if(f.hidden) continue; const g=[1,2,3,4,5].find(n=>f.classList.contains("su-g"+n)); if(!g) continue;
+    if(f.classList.contains("imp-row")){ const b=f.querySelector("[data-simp]"); if(b&&b.getAttribute("aria-pressed")==="true") P.push("⭐ 強調"); continue; }
+    const lab=((f.querySelector(".su-l span")||{}).textContent)||"", v=[];
+    const sb=f.querySelector(".seg [aria-pressed=\"true\"]"); if(sb){ const s=sb.textContent.trim(); if(!(g===3&&/^(しない|この日だけ)$/.test(s))) v.push(s); }
+    const wd=[...f.querySelectorAll(".wdp [aria-pressed=\"true\"]")].map(b=>b.textContent.trim()).join(""); if(wd) v.push(wd);
+    const D=[],T=[]; for(const i of f.querySelectorAll("input")){ if(!i.value||i.type==="checkbox") continue; if(i.type==="date") D.push(suRel(i.value)); else if(i.type==="time") T.push(i.value); else if(/予算|金額|額/.test(lab)){ const n=Number(String(i.value).replace(/[^0-9]/g,"")); if(n) v.push(n.toLocaleString()+"円"); } }
+    if(D.length||T.length) v.push([D.join("〜"),T.join("〜")].filter(Boolean).join(" "));
+    if(f.tagName==="LABEL"){ const c=f.querySelector("input[type=checkbox]"); if(c&&c.checked) v.push(f.textContent.trim().slice(0,14)); }
+    if(v.length) P.push(v.join(" ")); }
+  const h=P.length?`<span>追加内容</span>${P.map(x=>`<b>${esc(x)}</b>`).join("")}`:""; if(el.innerHTML!==h){ el.innerHTML=h; el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); } el.hidden=!P.length; }
+if(typeof window!=="undefined"&&typeof renderSheet==="function"){ const _rs2=renderSheet; renderSheet=function(){ const r=_rs2.apply(this,arguments); sheetUnify(); return r; }; }
+if(typeof document!=="undefined"){ const suUpd=e=>{ const t=e.target; if(!t||!t.closest||!t.closest("#opts")) return; const w=t.closest(".su-in"); if(w) w.classList.toggle("su-e",!t.value); requestAnimationFrame(suSumPaint); };
+  document.addEventListener("input",suUpd); document.addEventListener("change",suUpd); document.addEventListener("click",e=>{ if(e.target.closest&&e.target.closest("#opts")) requestAnimationFrame(suSumPaint); }); }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -9360,7 +9451,7 @@ function renderSheet(){
   const S=state.sheet, k=KINDS[S.kind]; if(S.kind==="rtask"&&String(S.htarget||"7")==="7") S.htarget="wd";
   $("sheet").style.setProperty("--kc",`var(${k.c})`);
   { const cg=kgOf(S.kind), gl=kindList(); $("kinds").innerHTML=[...gl,...(cg&&!gl.includes(cg)?[cg]:[])].map(g=>{ const G=KGROUPS.find(x=>x[0]===g); return `<button type="button" class="kind" data-kgrp="${g}" style="--kc:var(${KINDS[G[2][0]].c})" aria-pressed="${cg===g}">${G[1]}</button>`; }).join("")+(cg?"":`<button type="button" class="kind" aria-pressed="true" style="--kc:var(${k.c})">${k.label}</button>`)+`<button type="button" class="kind kcfg" data-kcfg="1" aria-label="種類の並べ替え・表示">✎</button>`; }
-  $("input").placeholder= S.kind==="block"?"時間の予定（例：ジム、勉強、入浴）": S.kind==="gevent"?"Googleカレンダーの予定名": S.kind==="topic"?"話したいこと（例：年末の帰省の予定）": S.kind==="habit"?"習慣（例：毎朝ストレッチ、毎週の運動）": S.kind==="rtask"?"繰り返すタスク（例：ゴミ出し、排水口そうじ）": S.kind==="ptask"?"じぶんのタスク": S.kind==="pshop"?"じぶんの買うもの": S.kind==="pwish"?"やってみたいこと（例：陶芸で夫婦の器をつくる）": S.kind==="plan"?({wish:"やりたいこと・欲しいもの",travel:"行きたい場所・旅行名",anniv:"記念日の名前（例：結婚記念日）",bousai:"備えるもの・やること",prep:"準備すること",kids:"子どもとやりたいこと"})[S.pcat]: S.kind==="spend"?"何に使った？（例：スーパー、ホテル代）": S.kind==="recur"?`名前（例：${(RKIND[S.rkind]||RKIND.fixed).ex.split("、")[0]}）`: S.kind==="goal"?"目標の名前（例：旅行資金、車の買い替え）": S.kind==="event"?"予定（例：歯医者、実家に帰る、友人と食事）": S.kind==="task"?"やることを入力": S.kind==="shop"?"買うものを入力": S.kind==="trouble"?"困っていること（例：洗面所の水が流れにくい）":"気をつけること（例：明日は断水 9-12時）";
+  $("input").placeholder= S.kind==="block"?"時間の予定（例：ジム、勉強、入浴）": S.kind==="gevent"?"Googleカレンダーの予定名": S.kind==="topic"?"話したいこと（例：年末の帰省の予定）": S.kind==="habit"?"習慣（例：毎朝ストレッチ、毎週の運動）": S.kind==="rtask"?"繰り返すタスク（例：ゴミ出し、排水口そうじ）": S.kind==="ptask"?"じぶんのタスク": S.kind==="pshop"?"じぶんの買うもの": S.kind==="pwish"?"やってみたいこと（例：陶芸で夫婦の器をつくる）": S.kind==="plan"?({wish:"やりたいこと・欲しいもの",travel:"行きたい場所・旅行名",anniv:"記念日の名前（例：結婚記念日）",bousai:"備えるもの・やること",prep:"準備すること",kids:"子どもとやりたいこと"})[S.pcat]: S.kind==="spend"?"何に使った？（例：スーパー、ホテル代）": S.kind==="recur"?`名前（例：${(RKIND[S.rkind]||RKIND.fixed).ex.split("、")[0]}）`: S.kind==="goal"?"目標の名前（例：旅行資金、車の買い替え）": S.kind==="event"?"予定（例：歯医者、実家に帰る、友人と食事）": S.kind==="task"?"やることを入力": S.kind==="shop"?"買うものを入力": S.kind==="trouble"?"困っていること（例：洗面所の水が流れにくい）": S.kind==="chore"?"家事（例：風呂掃除、ゴミ出し）":"気をつけること（例：明日は断水 9-12時）";
   const t=today(), sat=(()=>{const x=parse(t);x.setDate(x.getDate()+((6-x.getDay()+7)%7||7));return ymd(x);})();
   const q=[["今日",t],["明日",addDays(t,1)],["土曜",sat],["1週間後",addDays(t,7)]];
   const dateRow=(lbl)=>`<div class="edit-row"><span class="lbl">${lbl}</span><div class="chips">${q.map(([l,s])=>`<button type="button" class="chip" data-qd="${s}" aria-pressed="${S.date===s}">${l}</button>`).join("")}</div></div>
