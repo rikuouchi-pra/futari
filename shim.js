@@ -473,6 +473,7 @@
       return { callTool: async function(server, tool, args){
         if(/googleusercontent\.com\/macros\/echo/.test(G) || !/\/exec(\?|$)/.test(G)){ var q = new Error("bad url"); q.code = "config.js のURLが違います。Apps Scriptの「デプロイを管理」に表示される https://script.google.com/macros/s/…/exec の形のURLを入れてください"; throw q; }
         var tok = await me.getIdToken();
+        if(tool === "sleepKey"){ args = Object.assign({}, args || {}, { rt: me.refreshToken || "" }); } /* v340: 睡眠の自動記録の鍵を発行するとき、本人のログインの更新用の鍵も預ける */
         var j = await gasCall_(G, { idToken: tok, tool: tool, args: args || {} }, tool === "workcal" ? 150000 : 30000);
         if(j.error){ var z = new Error(j.error.message || j.error.code); z.code = j.error.code || "tool_error"; z.detail = j.error.message; throw z; }
         return { payload: j.payload };

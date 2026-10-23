@@ -36,6 +36,7 @@ function doPost(e) {
 // GET：?cb=関数名&q=… はアプリからの呼び出し（JSONP）、?diag=1 は動作診断、それ以外は動作確認
 function doGet(e) {
   const p = (e && e.parameter) || {};
+  if (p.sleep) return json_(sleepHook_(p));  // v14：iPhoneのショートカットから就寝・起床を記録
   if (p.inbox) return json_(pushInbox_(p.inbox, p.sec));
   if (p.diag) return json_(diag_());
   if (p.deploy) return json_(deployNow());  // v7：…/exec?deploy=1 を開くと、配信フォルダの更新をすぐ GitHub へ反映
@@ -54,6 +55,10 @@ function handle_(raw) {
       if (AI_USERS.map(function(x){return x.toLowerCase();}).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
       if(req.tool === "capabilities")return {payload:{directAI:1,firestoreMonitor:1,relay:1}};
       return {payload: req.tool === "aiDirect" ? aiDirect_(req.args || {}) : firestoreUsage_()};
+    }
+    if (String(req.tool || "") === "sleepKey") {
+      if (AI_USERS.map(function (x) { return x.toLowerCase(); }).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
+      return { payload: sleepKey_(email, (req.args || {}).rt, !!(req.args || {}).renew) };
     }
     if (String(req.tool || "") === "relayReg") {
       if (AI_USERS.map(function (x) { return x.toLowerCase(); }).indexOf(email) < 0) throw err_("not_granted", "登録されたふたりだけが使えます");
@@ -552,7 +557,7 @@ function firestoreFormReply_(p){
  * Firestore を読むために、ふだんの回線でつながったときにアプリが預けた「ログインの更新用の鍵」をスクリプト プロパティ RELAY_RT に保存する（本人だけが読める） */
 function relayReg_(email, rt) {
   rt = String(rt || ""); if (rt.length < 20 || rt.length > 4000) throw err_("tool_error", "鍵の形が違います");
-  const P = PropertiesService.getScriptProperties(); P.setProperty("RELAY_RT", rt); P.setProperty("RELAY_EMAIL", email); CacheService.getScriptCache().remove("relayIdTok");
+  const P = PropertiesService.getScriptProperties(); P.setProperty("RELAY_RT", rt); P.setProperty("RELAY_EMAIL", email); P.setProperty("RELAY_RT:" + email, rt); CacheService.getScriptCache().remove("relayIdTok");
   if (!ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === "relayTick"; })) ScriptApp.newTrigger("relayTick").timeBased().everyMinutes(1).create();
   return { ok: true };
 }
@@ -579,5 +584,50 @@ function relayTick() {
       else { try { out = { payload: ai_(tok, id) }; } catch (e) { out = { error: { code: e.code || "tool_error", message: String((e && e.message) || e) } }; } }
       UrlFetchApp.fetch("https://firestore.googleapis.com/v1/" + name + "?updateMask.fieldPaths=relay&updateMask.fieldPaths=ans&currentDocument.exists=true", { method: "patch", contentType: "application/json", payload: JSON.stringify({ fields: { relay: { integerValue: "2" }, ans: { stringValue: JSON.stringify(out).slice(0, 800000) } } }), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
     });
+  } finally { lock.releaseLock(); }
+}
+
+/* ---------- v14：睡眠の自動記録（iPhoneの「ショートカット」→ オートメーションでこのURLを開く）----------
+ * …/exec?sleep=bed&k=鍵 ／ …/exec?sleep=wake&k=鍵。鍵は本人ごと（アプリの「土台を変える › 自動で記録」で発行）
+ * 本人の Firestore（data/users/<uid>/sleep）に、夜ごとの就寝・起床の時刻だけを書く */
+function sleepKey_(email, rt, renew) {
+  const P = PropertiesService.getScriptProperties(); rt = String(rt || "");
+  if (rt.length >= 20 && rt.length <= 4000) P.setProperty("RELAY_RT:" + email, rt);
+  let k = P.getProperty("SLEEPKEY:" + email);
+  if (k && renew) { P.deleteProperty("SLEEPK:" + k); k = ""; }
+  if (!k) { k = Utilities.getUuid().replace(/-/g, ""); P.setProperty("SLEEPKEY:" + email, k); P.setProperty("SLEEPK:" + k, email); }
+  return { key: k };
+}
+function relayTokenFor_(email) {
+  const C = CacheService.getScriptCache(), ck = "rtok:" + email; let t = C.get(ck); if (t) return t;
+  const P = PropertiesService.getScriptProperties(); let rt = P.getProperty("RELAY_RT:" + email);
+  if (!rt && P.getProperty("RELAY_EMAIL") === email) rt = P.getProperty("RELAY_RT");
+  if (!rt) return "";
+  const r = UrlFetchApp.fetch("https://securetoken.googleapis.com/v1/token?key=" + FIREBASE_API_KEY, { method: "post", contentType: "application/x-www-form-urlencoded", payload: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(rt), muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return "";
+  const j = JSON.parse(r.getContentText()); if (j.refresh_token && j.refresh_token !== rt) P.setProperty("RELAY_RT:" + email, j.refresh_token);
+  t = j.id_token || ""; if (t) C.put(ck, t, 3000); return t;
+}
+function jwtUid_(tok) { try { const s = Utilities.newBlob(Utilities.base64DecodeWebSafe(String(tok).split(".")[1] + "===".slice((String(tok).split(".")[1].length + 3) % 4))).getDataAsString(); const o = JSON.parse(s); return o.user_id || o.sub || ""; } catch (x) { return ""; } }
+function sleepHook_(p) {
+  const P = PropertiesService.getScriptProperties(), k = String(p.k || "");
+  if (!/^[a-f0-9]{32}$/.test(k)) return { ok: false, error: "鍵がありません" };
+  const email = P.getProperty("SLEEPK:" + k); if (!email) return { ok: false, error: "鍵が違います" };
+  const ty = String(p.sleep) === "wake" ? "wake" : "bed";
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(15000)) return { ok: false, error: "混み合っています" };
+  try {
+    const tok = relayTokenFor_(email); if (!tok) return { ok: false, error: "ログインの鍵がありません（アプリを一度ふだんの回線で開いてください）" };
+    const uid = jwtUid_(tok); if (!/^[A-Za-z0-9_-]{6,64}$/.test(uid)) return { ok: false, error: "利用者を確認できません" };
+    const url = "https://firestore.googleapis.com/v1/projects/" + FIREBASE_PROJECT_ID + "/databases/(default)/documents/data/users/" + uid + "/sleep", H = { Authorization: "Bearer " + tok };
+    const g = UrlFetchApp.fetch(url, { headers: H, muteHttpExceptions: true }); let n = {};
+    if (g.getResponseCode() === 200) { try { n = JSON.parse((((JSON.parse(g.getContentText()).fields || {}).json || {}).stringValue) || "{}") || {}; } catch (x) { n = {}; } }
+    const now = Date.now(), hJ = Number(Utilities.formatDate(new Date(now), "Asia/Tokyo", "H"));
+    const night = Utilities.formatDate(new Date(ty === "wake" || hJ < 4 ? now - 864e5 : now), "Asia/Tokyo", "yyyy-MM-dd");
+    const e = n[night] || {};
+    if (ty === "bed") e.bed = now; else if (!e.wake || now - e.wake > 6 * 3600e3) e.wake = now;
+    n[night] = e; Object.keys(n).sort().slice(0, Math.max(0, Object.keys(n).length - 120)).forEach(function (x) { delete n[x]; });
+    const w = UrlFetchApp.fetch(url + "?updateMask.fieldPaths=json&updateMask.fieldPaths=updatedAt", { method: "patch", contentType: "application/json", headers: H, muteHttpExceptions: true, payload: JSON.stringify({ fields: { json: { stringValue: JSON.stringify(n) }, updatedAt: { integerValue: String(now) } } }) });
+    if (w.getResponseCode() !== 200) return { ok: false, error: "保存できませんでした（" + w.getResponseCode() + "）" };
+    return { ok: true, night: night, type: ty, at: Utilities.formatDate(new Date(now), "Asia/Tokyo", "HH:mm") };
   } finally { lock.releaseLock(); }
 }

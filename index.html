@@ -1088,6 +1088,8 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .base-m{font-size:12px;color:var(--muted)}.base-r{display:grid;grid-template-columns:28px 1fr auto;grid-template-areas:"ic t s" "ic a a";align-items:center;gap:2px 8px;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .base-ic{grid-area:ic;font-size:20px;text-align:center}.base-r>div{grid-area:t;display:flex;flex-direction:column;min-width:0}.base-r>div b{font-size:14px}.base-r>div small{font-size:11.5px;color:var(--muted)}.base-s{grid-area:s;font-size:12px;text-align:right}.base-s small{color:var(--muted)}.b-ok{color:#2e9b5a;font-size:18px}.base-a{grid-area:a;display:flex;gap:6px;justify-content:flex-end}.base-a:empty{display:none}
 .base-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.base-ed{display:flex;flex-direction:column;gap:6px}.base-er{display:flex;align-items:center;gap:6px}
+/* v340 */
+.base-sl{display:block;font-size:11.5px;color:var(--accent);margin-top:2px}.base-slp{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 7%,transparent)}.slp-st{margin:0;padding-left:20px;font-size:12px;display:flex;flex-direction:column;gap:3px}.slp-u{display:flex;gap:6px;flex-wrap:wrap}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2491,7 +2493,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="339";
+const APP_VERSION="340";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7119,11 +7121,12 @@ function anaRun(days){ const {D,H}=anaData(days), M=D.filter(x=>x.mood!=null), F
   const HR=Array(24).fill(0); for(const x of D) for(const h of x.hrs) HR[h]++;
   const FE={}; for(const x of M) for(const f of x.feel){ (FE[f]=FE[f]||[]).push(x.mood); }
   const MISS=[]; for(const h of H){ const c=Array(7).fill(0), m=Array(7).fill(0); for(const x of D){ const v=x.hab[h.id]; if(v===undefined) continue; c[x.wd]++; if(!v) m[x.wd]++; } let best=-1, rate=0; for(let w=0;w<7;w++) if(c[w]>=4&&m[w]/c[w]>rate){ rate=m[w]/c[w]; best=w; } const tot=c.reduce((s,v)=>s+v,0), tm=m.reduce((s,v)=>s+v,0); if(best>=0&&rate>=.5&&tot&&rate>tm/tot+.15) MISS.push({h,w:best,rate,avg:tm/tot}); }
-  return {D,M,F,cA,cE,WD,HR,FE,MISS,days}; }
+  let cS=null; try{ const N=state.sleepN||{}, X=[], Y=[]; for(const x of M){ const e=N[addDays(x.d,-1)]; const du=e&&e.bed&&e.wake&&e.wake>e.bed&&e.wake-e.bed<16*3600e3?(e.wake-e.bed)/3600e3:null; if(du!=null){ X.push(du); Y.push(x.mood); } } cS=anaCor(X,Y); }catch(_){}
+  return {D,M,F,cA,cE,cS,WD,HR,FE,MISS,days}; }
 const anaSig=f=>f.q<.1?["lt-up","はっきり"]:f.p<.05?["lt-dz","ありそう（偶然の可能性も）"]:["lt-dz","はっきりしない"];
 function anaSummary(R){ const L=[]; L.push(`期間${R.days}日・気分の記録${R.M.length}日・平均${R.M.length?anaMS(R.M.map(x=>x.mood)).m.toFixed(2):"-"}`);
   for(const f of R.F.slice(0,8)) L.push(`${f.name}：気分${f.m1.toFixed(2)}（${f.n1}日）vs しない日${f.m0.toFixed(2)}（${f.n0}日）・差${f.diff>=0?"+":""}${f.diff.toFixed(2)}・d=${f.d.toFixed(2)}・p=${f.p.toFixed(3)}・q=${f.q.toFixed(3)}`);
-  if(R.cA) L.push(`やったことの数と気分の相関 r=${R.cA.r.toFixed(2)}（n=${R.cA.n}, p=${R.cA.p.toFixed(3)}）`); if(R.cE) L.push(`エネルギーと気分 r=${R.cE.r.toFixed(2)}（n=${R.cE.n}）`);
+  if(R.cA) L.push(`やったことの数と気分の相関 r=${R.cA.r.toFixed(2)}（n=${R.cA.n}, p=${R.cA.p.toFixed(3)}）`); if(R.cE) L.push(`エネルギーと気分 r=${R.cE.r.toFixed(2)}（n=${R.cE.n}）`); if(R.cS) L.push(`前の夜の睡眠時間と気分 r=${R.cS.r.toFixed(2)}（n=${R.cS.n}）`);
   L.push("曜日別の気分："+R.WD.map((s,i)=>s.n?`${WD[i]}${s.m.toFixed(1)}(${s.n})`:"").filter(Boolean).join(" "));
   for(const x of R.MISS) L.push(`習慣「${x.h.text}」は${WD[x.w]}曜にできないことが多い（${Math.round(x.rate*100)}%・平均${Math.round(x.avg*100)}%）`);
   return L.join("\n"); }
@@ -7141,7 +7144,7 @@ function ltAnaHTML(){ const P=Number(state.anaPer)||90, R=anaRun(P), n=R.M.lengt
   const FEh=Object.entries(R.FE).filter(([,a])=>a.length>=3).sort((a,b)=>b[1].length-a[1].length).slice(0,8).map(([f,a])=>`<span class="chip mini">${esc(f)} ${a.length}回・気分${anaMS(a).m.toFixed(1)}</span>`).join("");
   const MIh=R.MISS.map(x=>`<div class="ana-f"><span>🧩 ${esc(x.h.text)}</span><b class="lt-dn">${WD[x.w]}曜</b><small>${WD[x.w]}曜は${Math.round(x.rate*100)}%できていない（ふだん${Math.round(x.avg*100)}%）。「もし${WD[x.w]}曜で〜なら…する」と決めておくと続きやすい</small></div>`).join("");
   return head+`<b class="lt-sub">気分と関係がありそうなこと</b><small class="who">数字＝あった日の平均気分 − なかった日の平均気分（1〜5）</small>${Fh}
-    ${cor(R.cA,"📋 やったことの数")}${cor(R.cE,"⚡ エネルギー")}
+    ${cor(R.cA,"📋 やったことの数")}${cor(R.cE,"⚡ エネルギー")}${cor(R.cS,"🛌 前の夜の睡眠時間")}
     <b class="lt-sub">曜日ごとの平均気分</b>${WDh}
     <b class="lt-sub">やったことが多い時間帯</b>${HRh}${pk.length?`<small class="who">多いのは ${pk.join("・")} 台。大事なことはこの時間に入れると進みやすい</small>`:""}
     ${FEh?`<b class="lt-sub">よく出た気持ち</b><div class="lt-seg">${FEh}</div>`:""}
@@ -7218,7 +7221,7 @@ function baseHTML(){ const L=baseOn(); if(!L.length&&!baseEasy()) return ""; if(
       else if((h>=19||h<4)&&tn==null){ const left=baseMinLeft(it.t); st=`<small>${left>0?`${it.t}まであと${left>=60?Math.floor(left/60)+"時間":""}${left%60}分${left<=60?"・そろそろ寝る準備":""}`:`${it.t}を過ぎています`}</small>`; act=`<button type="button" class="chip mini" data-base="sleep|${nt}|${left>=-15?1:0}">布団に入った</button>`; }
       else { const v=h>=4&&h<19?yv:tn; st=v===1?`<b class="b-ok">✓</b>`:v===0?`<small>きのうは守れず・今夜に</small>`:`<small>夜に記録</small>`; } }
     else { const s=baseSt(t,it); st=s===1?`<b class="b-ok">✓</b>`:s==="off"?`<small>今日はお休みの日</small>`:""; if(s!==1) act=it.k==="talk"?`<button type="button" class="chip mini" data-base="talk|${t}|1">話した</button>`:`<button type="button" class="chip mini" data-base="${it.k}|${t}|1">できた</button>`; }
-    return `<div class="base-r"><span class="base-ic">${it.ic}</span><div><b>${esc(it.l)}</b><small>${esc(it.min||"")}</small></div><span class="base-s">${st}</span><span class="base-a">${act}</span></div>`; };
+    return `<div class="base-r"><span class="base-ic">${it.ic}</span><div><b>${esc(it.l)}</b><small>${esc(it.min||"")}</small>${it.k==="sleep"&&typeof sleepLineHTML==="function"?sleepLineHTML():""}</div><span class="base-s">${st}</span><span class="base-a">${act}</span></div>`; };
   const W=[...Array(7)].map((_,i)=>addDays(t,i-6)).map(d=>{ const r=baseDay(d); const c=!r.n?"na":r.ok===r.n?"full":r.ok?"half":"none"; return `<i class="${c} ${d===t?"cur":""}" title="${short(d)} ${r.ok}/${r.n}"></i>`; }).join("");
   const yd=baseDay(y), yd2=baseDay(addDays(t,-2)), miss2=yd.n&&!yd.ok&&yd2.n&&!yd2.ok, miss1=yd.n&&yd.ok<yd.n;
   const msg=miss2?"2日続けて抜けています。今日は土台だけでOK。ほかは休んで大丈夫":miss1?"きのう抜けた分は気にしなくて大丈夫。今日、もう一度守れれば十分":"全部できなくてOK。ここだけ守れれば十分です";
@@ -7232,6 +7235,7 @@ function baseEditHTML(){ const L=baseCfg();
     ${it.k==="c1"?`<input type="text" data-basecfg="c1|l" value="${esc(it.l)}" maxlength="16" placeholder="名前（例：運動）" style="width:7em">`:`<b>${esc(it.l)}</b>`}
     <input type="text" data-basecfg="${it.k}|min" value="${esc(it.min)}" maxlength="40" placeholder="最低ライン（例：5分歩く）" style="flex:1;min-width:0">
     ${it.k==="sleep"?`<input type="time" data-basecfg="sleep|t" value="${esc(it.t||"23:00")}">`:""}</div>`).join("")}
+    ${typeof sleepSetupHTML==="function"?sleepSetupHTML():""}
     <small class="who">最低ラインは「調子が悪い日でもできる」くらいに。守れる日が増えたら少しずつ上げます。</small>
     <div class="lt-a"><button type="button" class="btn" data-base="editdone">閉じる</button><button type="button" class="link" data-base="hide">このカードを出さない</button></div></div>`; }
 if(typeof document!=="undefined"){
@@ -7245,6 +7249,44 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-base]"); 
   const [k,d,v]=a.split("|"); if(!k||!d) return; baseSet(d,k,Number(v)); haptic(Number(v)?"done":"tick");
   if(k==="sleep") toast(Number(v)?"🌙 おつかれさま。ゆっくり休んでください":"記録しました。今夜また"); else toast("✓ 土台を守れました",null,"done"); render(); },true);
 }
+
+
+/* v340: 就寝・起床の自動記録。iPhoneの「ショートカット」のオートメーション（就寝時刻・起床・アラーム停止など）から Apps Script のURLを開くと、
+   本人だけが読める場所（data/users/<自分>/sleep）に夜ごとの就寝・起床の時刻が入る。アプリはそれを読んで睡眠時間を出し、睡眠の土台にも自動で✓を付ける */
+let sleepDoc=null;
+function bindSleep(){ if(sleepDoc||!state.me||!db) return; try{ sleepDoc=db.doc(`data/users/${state.me}/sleep`); sleepDoc.onSnapshot(s=>{ let n={}; try{ n=s&&s.exists?JSON.parse((s.data()||{}).json||"{}")||{}:{}; }catch(_){ n={}; } state.sleepN=n; try{ sleepAutoMark(); }catch(_){} requestRender(); },()=>{}); }catch(_){} }
+function sleepLimit(d,t){ const [hh,mm]=String(t||"23:00").split(":").map(Number), b=new Date(parse(d)); b.setHours(hh||0,mm||0,0,0); if((hh||0)<12) b.setDate(b.getDate()+1); return b.getTime(); }
+function sleepAutoMark(){ const it=(typeof baseCfg==="function"?baseCfg():[]).find(x=>x.k==="sleep"); if(!it||!it.on) return; const L=baseLog(); let ch=false;
+  for(const [d,e] of Object.entries(state.sleepN||{})){ if(!e||!e.bed||(L[d]||{}).sleep!=null) continue; L[d]={...(L[d]||{}),sleep:e.bed<=sleepLimit(d,it.t)+15*60e3?1:0}; ch=true; }
+  if(ch){ prefs.baseLog=JSON.stringify(L); savePrefs(true); } }
+const slHM=ms=>{ const d=new Date(ms); return `${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const slDur=e=>e&&e.bed&&e.wake&&e.wake>e.bed&&e.wake-e.bed<16*3600e3?e.wake-e.bed:null;
+const slTxt=ms=>`${Math.floor(ms/3600e3)}時間${String(Math.round(ms%3600e3/60e3)).padStart(2,"0")}分`;
+function slAvg(n){ const t=today(), D=[]; for(let i=1;i<=n;i++){ const x=slDur((state.sleepN||{})[addDays(t,-i)]); if(x) D.push(x); } return D.length?{avg:D.reduce((s,v)=>s+v,0)/D.length,n:D.length}:null; }
+function sleepLineHTML(){ const N=state.sleepN||{}; if(!Object.keys(N).length) return ""; const t=today(), y=addDays(t,-1), h=new Date().getHours(), nt=h<4?y:t, e=N[y], tn=N[nt], A=slAvg(7); let s="";
+  if((h>=19||h<4)&&tn&&tn.bed&&!tn.wake) s=`就寝 ${slHM(tn.bed)} を記録`;
+  else if(e&&(e.bed||e.wake)) s=`昨夜 ${e.bed?slHM(e.bed):"？"} → ${e.wake?slHM(e.wake):"？"}${slDur(e)?`（${slTxt(slDur(e))}）`:""}`;
+  if(A&&A.n>=2) s+=`${s?"・":""}7日平均 ${slTxt(A.avg)}`;
+  return s?`<small class="base-sl">⌚ ${s}</small>`:""; }
+function sleepSetupHTML(){ const G=(window.FUTARI_GAS_URLS||{})[String((window.__futariEmail&&window.__futariEmail())||"").toLowerCase()]||window.FUTARI_GAS_URL||"", K=state.sleepKey;
+  if(!state.mcp||!G) return `<div class="base-slp"><b>⌚ 就寝・起床を自動で記録</b><small class="who">ホーム画面に追加したアプリ（単独アプリ版）で設定できます</small></div>`;
+  const u=ty=>`${G}?sleep=${ty}&k=${K}`;
+  return `<div class="base-slp"><b>⌚ 就寝・起床を自動で記録（iPhoneのショートカット）</b>
+    ${K?`<ol class="slp-st"><li>「ショートカット」アプリ → 下の「オートメーション」→ 右上の「＋」</li>
+      <li>「睡眠」→「就寝時刻になったとき」（または「集中モード」→「睡眠」→「オンになったとき」）→「すぐに実行」</li>
+      <li>アクション「URLの内容を取得」を追加し、URLに下の<b>就寝のURL</b>を貼る</li>
+      <li>もう1つ作る：「睡眠」→「起床したとき」（または「アラーム」→「止めたとき」）で<b>起床のURL</b></li></ol>
+      <div class="slp-u"><button type="button" class="btn" data-slp="copy|bed">🌙 就寝のURLをコピー</button><button type="button" class="btn" data-slp="copy|wake">☀️ 起床のURLをコピー</button></div>
+      <small class="who">iPhoneのヘルスケアで睡眠スケジュールを入れていると「睡眠」の項目が使えます。URLには本人用の鍵が入っているので人に渡さないでください（<button type="button" class="link" data-slp="renew">鍵を作り直す</button>）。記録は本人だけが見られます。</small>
+      <small class="who">試すとき：コピーしたURLをSafariで開くと、その時刻で記録されます（「ok」が出れば成功）。</small>`
+    :`<small class="who">寝た時刻・起きた時刻を自動で記録し、睡眠時間と「睡眠の土台」に使います。</small><div class="slp-u"><button type="button" class="btn primary" data-slp="key">設定を始める</button></div>`}</div>`; }
+if(typeof document!=="undefined") document.addEventListener("click",async e=>{ const b=e.target.closest("[data-slp]"); if(!b||!b.closest("#main")) return; e.stopPropagation(); const [a,ty]=b.dataset.slp.split("|");
+  if(a==="key"||a==="renew"){ if(a==="renew"&&!confirm("鍵を作り直すと、今のショートカットのURLは使えなくなります。作り直しますか？")) return; b.disabled=true;
+    try{ const r=await state.mcp.callTool("gas","sleepKey",{renew:a==="renew"}); const k=((r&&r.payload)||r||{}).key; if(!k) throw Error("鍵を受け取れませんでした"); state.sleepKey=k; toast(a==="renew"?"鍵を作り直しました。ショートカットのURLも貼り直してください":"準備ができました。下の手順でショートカットを作ってください",null,"done"); }
+    catch(x){ toast(/未対応の操作/.test(String(x&&x.message))?"Apps Scriptの更新がまだです。少し待ってからもう一度":"準備できませんでした（"+String((x&&(x.code||x.message))||"").slice(0,40)+"）"); }
+    b.disabled=false; render(); return; }
+  if(a==="copy"){ const G=(window.FUTARI_GAS_URLS||{})[String((window.__futariEmail&&window.__futariEmail())||"").toLowerCase()]||window.FUTARI_GAS_URL||"", u=`${G}?sleep=${ty}&k=${state.sleepKey}`;
+    try{ await navigator.clipboard.writeText(u); toast(ty==="bed"?"就寝のURLをコピーしました":"起床のURLをコピーしました",null,"done"); }catch(_){ prompt("このURLをコピーしてください",u); } } },true);
 
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -11080,7 +11122,7 @@ setTimeout(()=>{ if(!prefsDoc&&!window.__FUTARI_PWA) maybeOnb(); },2500);
     if(JSON.stringify(next)!==JSON.stringify(prefs)){ prefs=next; store.set("futari.prefs",JSON.stringify(prefs)); applyPrefs(); resolveRole();
       if(first&&!state.editing&&!state.sheet.open){ const sv=prefs.startView==="cal"?"cal":prefs.startView==="auto"?(AUTO_SV.includes(prefs.autoStartV)?prefs.autoStartV:"home"):prefs.startView==="last"&&TITLES[prefs.view]&&prefs.view!=="settings"?prefs.view:"home"; if(state.view!==sv&&state.view==="home") state.view=sv; }
       render(); placeRail(false); }
-    if(first){bindFavorites();if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
+    if(first){bindFavorites();if(typeof bindSleep==="function")bindSleep();if(prefs.onboarded==="1"&&state.onbAuto&&!$("onb").hidden&&ONB.mode==="setup"){ $("onb").hidden=true; state.onbAuto=false; render(); } maybeOnb(); } },()=>{});
 })();
 </script>
 
