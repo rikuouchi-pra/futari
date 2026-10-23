@@ -1349,6 +1349,32 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .hubbar{scroll-behavior:smooth;scroll-snap-type:x proximity}
 .hubbar button{scroll-snap-align:center;transition:background-color .25s,color .25s,transform .12s}
 .hubbar button.on{box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* v352: 上部をすっきり */
+body.cc .appname{display:none!important}
+body.cc:not([data-v="home"]) #greet{display:none!important}
+body.cc .brand .trow{display:flex!important;align-items:center;gap:6px}
+body.cc .brand h1{margin:0!important;font-size:clamp(20px,5.6vw,24px)!important;transition:font-size .2s}
+body.cc #sync{display:inline-flex!important;align-items:center;justify-content:center;flex:none;width:18px;height:18px;padding:0!important;margin:0 0 0 -2px;border-radius:50%;background:transparent!important;box-shadow:none!important;font-size:0!important;overflow:hidden}
+body.cc #sync .dot{margin:0!important}
+body.cc #sync #syncText{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+body.cc #sync.offl{width:auto;height:22px;padding:0 9px 0 7px!important;border-radius:99px;background:var(--surface)!important;font-size:11px!important;gap:4px;margin-left:4px}
+body.cc #sync.offl #syncText{position:static;width:auto;height:auto;clip:auto}
+body.cc header{transition:padding .2s}
+body.ccmini header{padding-block:4px 4px!important}
+body.ccmini .brand h1{font-size:17px!important}
+body.ccmini #greet{display:none!important}
+body.ccmini .brand .hbtn,body.ccmini .brand .trow-r>button{transform:scale(.88)}
+body.cc .hubbar{background:color-mix(in srgb,var(--ground) 90%,transparent)!important;box-shadow:none!important;border-radius:0!important;padding:0 2px!important;gap:0!important;margin:0 -2px 10px!important;border-bottom:1px solid color-mix(in srgb,var(--line) 85%,transparent);backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important}
+body.cc .hubbar button{position:relative;padding:9px 12px 11px!important;border-radius:10px 10px 0 0!important;background:transparent!important;box-shadow:none!important;color:var(--muted)!important;font-size:14px!important}
+body.cc .hubbar button.on{color:var(--ink)!important}
+body.cc .hubbar button::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--accent);transform:scaleX(0);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+body.cc .hubbar button.on::after{transform:scaleX(1)}
+body.cc .hubbar button:active{background:color-mix(in srgb,var(--ink) 6%,transparent)!important}
+body.cc .dtabs{margin-top:0}
+body.cc .dtabs .seg button{padding:6px 4px!important;font-size:12.5px!important}
+body.cc .dstrip{padding:3px!important;border-radius:12px!important;margin-top:6px}
+body.cc .dstrip .icon-btn{width:34px!important;height:34px!important;min-height:0!important;border-radius:10px!important}
+body.cc .dstrip .ttl{font-size:15px!important}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2752,7 +2778,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="351";
+const APP_VERSION="352";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7918,6 +7944,11 @@ if(typeof document!=="undefined"){
   document.addEventListener("click",e=>{ const h=e.target.closest("#main section.hf > .hc-head"); if(!h) return; if(e.target.closest("button,a,[data-go],[data-go2],[data-act],.link")) return; e.stopPropagation(); hfToggle(h); },true);
   document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#main section.hf > .hc-head")){ e.preventDefault(); hfToggle(e.target); } });
 }
+/* v352: 画面上部をすっきり。アプリ名の行をなくし（接続状態はタイトル横の点に）、あいさつ・記念日はホームだけ。
+   スクロールすると上部が小さくなる。切り替えタブは下線のタブに、日付の帯・人の切り替えは低く */
+function ccInit(){ if(typeof document==="undefined"||!document.body||document.body.classList.contains("cc")) return; document.body.classList.add("cc"); const h=document.querySelector(".brand .trow h1"), s=document.getElementById("sync"); if(h&&s&&s.parentElement!==h.parentElement) h.after(s); }
+if(typeof window!=="undefined"&&typeof render==="function"){ const _r352=render; render=function(){ const r=_r352.apply(this,arguments); try{ ccInit(); document.body.dataset.v=state.view; }catch(_){} return r; }; }
+if(typeof window!=="undefined"){ let ccT=0; addEventListener("scroll",()=>{ if(ccT) return; ccT=requestAnimationFrame(()=>{ ccT=0; const on=document.body.classList.contains("ccmini"); if(!on&&scrollY>80) document.body.classList.add("ccmini"); else if(on&&scrollY<20) document.body.classList.remove("ccmini"); }); },{passive:true}); }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
