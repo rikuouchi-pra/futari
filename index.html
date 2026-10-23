@@ -1375,6 +1375,18 @@ body.cc .dtabs .seg button{padding:6px 4px!important;font-size:12.5px!important}
 body.cc .dstrip{padding:3px!important;border-radius:12px!important;margin-top:6px}
 body.cc .dstrip .icon-btn{width:34px!important;height:34px!important;min-height:0!important;border-radius:10px!important}
 body.cc .dstrip .ttl{font-size:15px!important}
+/* v353: 切り替えタブを浮いたガラスのバーに（背景写真・暗いテーマでも浮かない）。端が切れるときはふわっと消える */
+body.cc .hubbar{background:color-mix(in srgb,var(--surface) 80%,transparent)!important;backdrop-filter:blur(18px) saturate(1.4)!important;-webkit-backdrop-filter:blur(18px) saturate(1.4)!important;border:1px solid color-mix(in srgb,var(--ink) 9%,transparent)!important;border-radius:16px!important;margin:0 0 10px!important;padding:2px 4px!important;box-shadow:0 6px 20px rgba(0,0,0,.14)!important}
+body.cc .hubbar.hb-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+body.cc .hubbar.hb-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 28px);mask-image:linear-gradient(90deg,transparent,#000 28px)}
+body.cc .hubbar.hb-l.hb-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
+body.cc .hubbar button{padding:10px 12px 11px!important;border-radius:12px!important}
+body.cc .hubbar button::after{bottom:3px;left:14px;right:14px;height:3px;border-radius:3px}
+body.cc .hubbar button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)!important}
+body.cc .hubbar button i{transform:translateY(-1px)}
+body.cc[data-v="home"] #navBk{display:none!important}
+body.cc .rbbar:not(.on){margin:0 0 6px}
+body.cc .rbbar:not(.on) .link{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:99px;background:color-mix(in srgb,var(--surface) 75%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:12px;font-weight:700}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2778,7 +2790,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="352";
+const APP_VERSION="353";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7948,7 +7960,11 @@ if(typeof document!=="undefined"){
    スクロールすると上部が小さくなる。切り替えタブは下線のタブに、日付の帯・人の切り替えは低く */
 function ccInit(){ if(typeof document==="undefined"||!document.body||document.body.classList.contains("cc")) return; document.body.classList.add("cc"); const h=document.querySelector(".brand .trow h1"), s=document.getElementById("sync"); if(h&&s&&s.parentElement!==h.parentElement) h.after(s); }
 if(typeof window!=="undefined"&&typeof render==="function"){ const _r352=render; render=function(){ const r=_r352.apply(this,arguments); try{ ccInit(); document.body.dataset.v=state.view; }catch(_){} return r; }; }
-if(typeof window!=="undefined"){ let ccT=0; addEventListener("scroll",()=>{ if(ccT) return; ccT=requestAnimationFrame(()=>{ ccT=0; const on=document.body.classList.contains("ccmini"); if(!on&&scrollY>80) document.body.classList.add("ccmini"); else if(on&&scrollY<20) document.body.classList.remove("ccmini"); }); },{passive:true}); }
+if(typeof window!=="undefined"){ let ccT=0; addEventListener("scroll",()=>{ if(ccT) return; ccT=requestAnimationFrame(()=>{ ccT=0; const on=document.body.classList.contains("ccmini"); let ch=0; if(!on&&scrollY>80){ document.body.classList.add("ccmini"); ch=1; } else if(on&&scrollY<20){ document.body.classList.remove("ccmini"); ch=1; } if(ch&&typeof stickVars==="function"){ stickVars(); setTimeout(stickVars,230); } }); },{passive:true}); }
+/* v353: 切り替えタブの端のフェード（続きがある側だけ） */
+function hbEdge(hb){ if(!hb) return; const l=hb.scrollLeft>4, r=hb.scrollLeft+hb.clientWidth<hb.scrollWidth-4; hb.classList.toggle("hb-l",l); hb.classList.toggle("hb-r",r); }
+if(typeof document!=="undefined"){ document.addEventListener("scroll",e=>{ const t=e.target; if(t&&t.classList&&t.classList.contains("hubbar")) hbEdge(t); },true); }
+if(typeof window!=="undefined"&&typeof render==="function"){ const _r353=render; render=function(){ const r=_r353.apply(this,arguments); try{ const hb=document.querySelector("#hubBar .hubbar"); hbEdge(hb); setTimeout(()=>hbEdge(hb),400); }catch(_){} return r; }; }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
