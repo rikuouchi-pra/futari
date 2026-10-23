@@ -1092,7 +1092,7 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .base-sl{display:block;font-size:11.5px;color:var(--accent);margin-top:2px}.base-slp{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 7%,transparent)}.slp-st{margin:0;padding-left:20px;font-size:12px;display:flex;flex-direction:column;gap:3px}.slp-u{display:flex;gap:6px;flex-wrap:wrap}
 /* v341 大事な予定 */
 .impr{display:block;width:calc(100% - 2px);max-width:calc(100% - 2px);flex:none;align-self:stretch;box-sizing:border-box;font-size:9px;line-height:11px;max-height:24px;padding:1px 2px;letter-spacing:-.03em;text-align:center;border-radius:5px;color:#fff;font-weight:800;white-space:normal;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;background:linear-gradient(110deg,#e0577a,#f08a3c 45%,#e0577a 60%,#b25ad6);background-size:220% 100%;animation:impShine 6s ease-in-out infinite;box-shadow:0 1px 4px rgba(224,87,122,.35)}
-.day{position:relative}.impic{position:absolute;top:2px;right:2px;font-style:normal;font-size:11px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+.day{position:relative}.impic{font-style:normal;font-size:9px;line-height:1;margin-right:1px} /* v344: アイコンは帯の中へ（天気のアイコンと重なっていた） */
 .impr.more{display:inline-block;width:auto;margin-top:1px;background:#e0577a;animation:none}
 .day.imp{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#e0577a 70%,transparent),0 0 10px color-mix(in srgb,#e0577a 25%,transparent)}
 .day.imp.imp-past{box-shadow:inset 0 0 0 1px color-mix(in srgb,#e0577a 30%,transparent)}.day.imp.imp-past .impr{opacity:.55;animation:none}
@@ -2516,7 +2516,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="343";
+const APP_VERSION="344";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4852,7 +4852,7 @@ function calCells(start,count,curMonth,byDay,diaryDays,selOn){
     const its=list.filter(o=>o.c==="items"||o.c==="pitems").sort((a,b)=>a.x.list<b.x.list?1:-1);
     const dots=(cau?'<span class="mk c"></span>':"")+(pl?'<span class="mk p"></span>':"")+its.slice(0,Math.max(0,2-(cau?1:0)-(pl?1:0))).map(o=>`<span class="mk ${o.x.list==="shop"?"s":""} ${o.x.done?"done":s<t?"over":""}"></span>`).join("")+(diaryDays.has(s)?'<span class="mk d"></span>':"");
     const IM=IMP[s]||[], imIds=new Set(IM.map(o=>o.id)), evs=list.filter(o=>o.c==="events"&&!imIds.has(o.x.id)), rest=list.length-evs.length-IM.filter(o=>o.c==="events").length;
-    const impl=IM.length?`<i class="impic" aria-hidden="true">${IM[0].ic}</i><span class="impr ${IM[0].pos?"rg rg-"+IM[0].pos:""}" title="${esc(IM.map(o=>o.t).join("、"))}">${IM[0].pos&&IM[0].pos!=="s"&&d.getDay()!==0?"→":esc(IM[0].t)}</span>${IM.length>1?`<span class="impr more">+${IM.length-1}</span>`:""}`:"";
+    const impl=IM.length?`<span class="impr ${IM[0].pos?"rg rg-"+IM[0].pos:""}" title="${esc(IM.map(o=>o.t).join("、"))}">${IM[0].pos&&IM[0].pos!=="s"&&d.getDay()!==0?"→":`<i class="impic" aria-hidden="true">${IM[0].ic}</i>${esc(IM[0].t)}`}</span>${IM.length>1?`<span class="impr more">+${IM.length-1}</span>`:""}`:"";
     const evl=evs.length?`<span class="evl" title="${esc(evs.map(o=>o.x.text).join("、"))}">${esc(evs[0].x.text)}</span>${evs.length>1?`<span class="evl more">+${evs.length-1}</span>`:""}`:"";
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
