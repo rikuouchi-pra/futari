@@ -1090,6 +1090,25 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .base-f{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.base-ed{display:flex;flex-direction:column;gap:6px}.base-er{display:flex;align-items:center;gap:6px}
 /* v340 */
 .base-sl{display:block;font-size:11.5px;color:var(--accent);margin-top:2px}.base-slp{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:color-mix(in srgb,var(--accent) 7%,transparent)}.slp-st{margin:0;padding-left:20px;font-size:12px;display:flex;flex-direction:column;gap:3px}.slp-u{display:flex;gap:6px;flex-wrap:wrap}
+/* v341 大事な予定 */
+.impr{display:block;width:calc(100% - 2px);max-width:calc(100% - 2px);flex:none;align-self:stretch;box-sizing:border-box;font-size:9px;line-height:11px;max-height:24px;padding:1px 2px;letter-spacing:-.03em;text-align:center;border-radius:5px;color:#fff;font-weight:800;white-space:normal;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;background:linear-gradient(110deg,#e0577a,#f08a3c 45%,#e0577a 60%,#b25ad6);background-size:220% 100%;animation:impShine 6s ease-in-out infinite;box-shadow:0 1px 4px rgba(224,87,122,.35)}
+.day{position:relative}.impic{position:absolute;top:2px;right:2px;font-style:normal;font-size:11px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+.impr.more{display:inline-block;width:auto;margin-top:1px;background:#e0577a;animation:none}
+.day.imp{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#e0577a 70%,transparent),0 0 10px color-mix(in srgb,#e0577a 25%,transparent)}
+.day.imp.imp-past{box-shadow:inset 0 0 0 1px color-mix(in srgb,#e0577a 30%,transparent)}.day.imp.imp-past .impr{opacity:.55;animation:none}
+.day.imp-soon{animation:impPulse 2.4s ease-in-out infinite}
+.day.impflash{animation:impFlash .9s ease-out 2}
+@keyframes impShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes impPulse{0%,100%{box-shadow:inset 0 0 0 1.5px #e0577a,0 0 6px rgba(224,87,122,.25)}50%{box-shadow:inset 0 0 0 2px #e0577a,0 0 16px rgba(224,87,122,.55)}}
+@keyframes impFlash{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+.imps{margin:8px 0 10px;display:flex;flex-direction:column;gap:6px}.imps-h{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}.imps-h b{font-size:13.5px}
+.imps-l{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;scrollbar-width:none}.imps-l::-webkit-scrollbar{display:none}
+.impc{all:unset;cursor:pointer;scroll-snap-align:start;flex:none;width:150px;box-sizing:border-box;padding:10px 12px;border-radius:16px;background:var(--surface);box-shadow:var(--elev,0 2px 8px rgba(0,0,0,.12));display:grid;grid-template-columns:auto 1fr;grid-template-areas:"ic n" "t t" "d d";gap:2px 6px;border:1.5px solid color-mix(in srgb,#e0577a 25%,transparent);transition:transform .15s}
+.impc:active{transform:scale(.96)}.impc-ic{grid-area:ic;font-size:20px}.impc-n{grid-area:n;justify-self:end;align-self:center;font-size:12px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,#e0577a 14%,transparent);color:#d0476a;font-variant-numeric:tabular-nums}
+.impc-t{grid-area:t;font-size:13.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.impc-d{grid-area:d;font-size:11.5px;color:var(--muted)}
+.impc.next{border-color:#e0577a}.impc.soon .impc-n{background:#e0577a;color:#fff;animation:impBeat 2s ease-in-out infinite}
+@keyframes impBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.impr,.day.imp-soon,.impc.soon .impc-n,.day.impflash{animation:none!important}}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2493,7 +2512,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="340";
+const APP_VERSION="341";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4821,19 +4840,20 @@ function viewCaution(){
 }
 
 function calCells(start,count,curMonth,byDay,diaryDays,selOn){
-  const t=today(), PM=prefs.calPh!=="0"?diaryPhotoMap():{};
+  const t=today(), PM=prefs.calPh!=="0"?diaryPhotoMap():{}, IMP={}; try{ const e0=new Date(start); e0.setDate(e0.getDate()+count-1); if(typeof impList==="function") for(const o of impList(ymd(start),ymd(e0))) (IMP[o.d]=IMP[o.d]||[]).push(o); }catch(_){}
   let cells=WD.map((w,k)=>`<div class="wd ${k===0?"sun":k===6?"sat":""}">${w}</div>`).join("");
   for(let k=0;k<count;k++){
     const d=new Date(start); d.setDate(start.getDate()+k); const s=ymd(d);
     const list=byDay[s]||[], cau=list.some(o=>o.c==="cautions"), pl=list.some(o=>o.c==="plans"||o.c==="rec"), evn=list.some(o=>o.c==="events");
     const its=list.filter(o=>o.c==="items"||o.c==="pitems").sort((a,b)=>a.x.list<b.x.list?1:-1);
     const dots=(cau?'<span class="mk c"></span>':"")+(pl?'<span class="mk p"></span>':"")+its.slice(0,Math.max(0,2-(cau?1:0)-(pl?1:0))).map(o=>`<span class="mk ${o.x.list==="shop"?"s":""} ${o.x.done?"done":s<t?"over":""}"></span>`).join("")+(diaryDays.has(s)?'<span class="mk d"></span>':"");
-    const evs=list.filter(o=>o.c==="events"), rest=list.length-evs.length;
+    const IM=IMP[s]||[], imIds=new Set(IM.map(o=>o.id)), evs=list.filter(o=>o.c==="events"&&!imIds.has(o.x.id)), rest=list.length-evs.length-IM.filter(o=>o.c==="events").length;
+    const impl=IM.length?`<i class="impic" aria-hidden="true">${IM[0].ic}</i><span class="impr" title="${esc(IM.map(o=>o.t).join("、"))}">${esc(IM[0].t)}</span>${IM.length>1?`<span class="impr more">+${IM.length-1}</span>`:""}`:"";
     const evl=evs.length?`<span class="evl" title="${esc(evs.map(o=>o.x.text).join("、"))}">${esc(evs[0].x.text)}</span>${evs.length>1?`<span class="evl more">+${evs.length-1}</span>`:""}`:"";
     const more=rest>2?`<span class="more-n">+${rest-2}</span>`:"";
     const sh=shiftOf("h",s), sw_=shiftOf("w",s), off=offState(s);
-    cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0||jpHolName(s)?"sun":d.getDay()===6?"sat":""} ${jpHolName(s)?"hol":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""}" data-day="${s}" title="${esc(jpHolName(s))}" aria-label="${jpDate(s)} ${esc(jpHolName(s))} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
-      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx ${W.far?"far":""}" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°${W.far?"（先の予報なので変わりやすい）":""}">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${evl}<span class="marks">${dots}${more}</span></button>`;
+    cells+=`<button class="day ${off} ${curMonth>=0&&d.getMonth()!==curMonth?"out":""} ${d.getDay()===0||jpHolName(s)?"sun":d.getDay()===6?"sat":""} ${jpHolName(s)?"hol":""} ${s===t?"today":""} ${s===state.sel&&selOn?"sel":""} ${IM.length&&!(curMonth>=0&&d.getMonth()!==curMonth)?`imp ${s>=t&&dDiff(s,t)<=1?"imp-soon":""} ${s<t?"imp-past":""}`:""}" data-day="${s}" title="${esc(jpHolName(s))}" aria-label="${jpDate(s)} ${esc(jpHolName(s))} ${esc(nameOf("h"))}${SHIFT_NAME[sh]||"未入力"} ${esc(nameOf("w"))}${SHIFT_NAME[sw_]||"未入力"} ${list.length}件${off==="both"?" ふたり休み":""}">
+      ${PM[s]?`<img class="cthumb" src="${photoUrl(PM[s][0].id)}" alt="" loading="lazy">`:""}<span class="dtop"><span class="num">${d.getDate()}</span>${(()=>{ if(curMonth>=0&&d.getMonth()!==curMonth) return `</span><span class="dgm"></span>`; const W=wxDay(s), G=gomiOn(s); return `${W?`<i class="cwx ${W.far?"far":""}" title="${esc(WXN[W.k])} ${W.max}°/${W.min}°${W.far?"（先の予報なので変わりやすい）":""}">${wxSvg(W.k)}</i>`:""}</span>${G.length?`<span class="dgm" title="${esc(G.join("・"))}">${[...new Set(G.map(gomiIcon))].map(x=>`<i>${x}</i>`).join("")}</span>`:`<span class="dgm"></span>`}`; })()}<span class="shrow">${shiftBadge(sh,"h")}${shiftBadge(sw_,"w")}</span>${impl}${evl}<span class="marks">${dots}${more}</span></button>`;
   }
   return cells;
 }
@@ -4891,7 +4911,7 @@ function viewCal(){
   let offs=[]; for(let i=0;i<120&&offs.length<6;i++){ const s=addDays(t,i); if(offState(s)==="both") offs.push(s); }
   let h=`<div class="calhead"><div class="dstrip" data-strip="cal"><button class="icon-btn" data-act="cprev" aria-label="前へ">‹</button><div class="ttl">${title}</div><button class="icon-btn" data-act="cnext" aria-label="次へ">›</button></div>
     <div class="tools cal-tools"><div class="cal-tr"><button class="pill ${P.on?"on":""}" data-act="paint">${P.on?"入力を終える":"シフト入力"}</button><button class="pill today-p" data-act="ctoday">今日</button></div></div>`;
-  if(!P.on) h+=shiftRemindHTML();
+  if(!P.on) h+=shiftRemindHTML()+(typeof impStripHTML==="function"?impStripHTML():"");
   if(P.on){
     h+=`<div class="paint"><div class="edit-row"><span class="who">だれの分</span>${seg("pwho",P.who||myRole(),[["h",esc(nameOf("h"))],["w",esc(nameOf("w"))]])}</div>
       <div class="pal">${SHIFTS.map(([v,n])=>`<button class="pbtn s-${v}" data-pv="${v}" aria-pressed="${P.val===v}" aria-label="${n}">${v}</button>`).join("")}<button class="pbtn clr" data-pv="" aria-pressed="${P.val===""}" aria-label="消す"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 4h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9l-6-8z"/><path d="M11 9l5 6M16 9l-5 6"/></svg></button></div>
@@ -7288,6 +7308,28 @@ if(typeof document!=="undefined") document.addEventListener("click",async e=>{ c
   if(a==="copy"){ const G=(window.FUTARI_GAS_URLS||{})[String((window.__futariEmail&&window.__futariEmail())||"").toLowerCase()]||window.FUTARI_GAS_URL||"", u=`${G}?sleep=${ty}&k=${state.sleepKey}`;
     try{ await navigator.clipboard.writeText(u); toast(ty==="bed"?"就寝のURLをコピーしました":"起床のURLをコピーしました",null,"done"); }catch(_){ prompt("このURLをコピーしてください",u); } } },true);
 
+
+/* v341: 大事な予定をカレンダーで目立たせる
+   ・大事な予定＝⭐を付けた予定、記念日（毎年の日付）、旅行、ことば（誕生日・記念日・旅行・病院・面接・引っ越し・契約など）から自動
+   ・カレンダーのマスに色つきの帯（アイコン＋名前）、マスの枠も光らせる。今日・明日の分はゆっくり脈打つ
+   ・カレンダーの上に「これからの大事な予定」（カウントダウン付き・横にスクロール・タップでその日へ） */
+const IMP_RE=/記念日|誕生日|結婚|旅行|挙式|入籍|出産|検診|健診|手術|病院|面接|試験|引っ越し|引越|契約|納車|帰省|法事|七五三|お宮参り|発表会|入学|卒業|式$/;
+function impIcon(t){ t=String(t||""); return /誕生日/.test(t)?"🎂":/記念日|結婚|入籍|挙式/.test(t)?"💍":/旅行|帰省/.test(t)?"✈️":/病院|健診|検診|手術|出産/.test(t)?"🏥":/面接|試験|発表/.test(t)?"📝":/引っ越し|引越|契約|納車/.test(t)?"📦":/七五三|お宮参り|入学|卒業|式$/.test(t)?"🎉":"⭐"; }
+const evImp=e=>!!e&&(e.imp===true||(e.imp!==false&&IMP_RE.test(e.text||"")));
+function impList(from,to){ const L=[];
+  for(const e of state.events||[]) if(e.date&&e.date>=from&&e.date<=to&&evImp(e)) L.push({d:e.date,t:e.text,ic:impIcon(e.text),c:"events",id:e.id,time:e.start||"",who:e.who||"both"});
+  for(const p of state.plans||[]){ if(p.cat==="anniv"){ if(!p.date) continue; const [,m,dd]=p.date.split("-").map(Number); for(let y=Number(from.slice(0,4));y<=Number(to.slice(0,4));y++){ const o=ymd(new Date(y,m-1,dd)); if(o>=from&&o<=to){ const n=y-Number(p.date.slice(0,4)); L.push({d:o,t:p.text+(n>0?`（${n}年目）`:""),ic:/誕生日/.test(p.text||"")?"🎂":"💍",c:"plans",id:p.id,time:""}); } } }
+    else if(p.date&&!p.done&&p.date>=from&&p.date<=to&&(p.imp===true||p.cat==="travel"||IMP_RE.test(p.text||""))) L.push({d:p.date,t:p.text,ic:p.cat==="travel"?"✈️":impIcon(p.text),c:"plans",id:p.id,time:""}); }
+  return L.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:(a.time||"99")<(b.time||"99")?-1:1); }
+function impCount(d){ const n=dDiff(d,today()); return n===0?"今日":n===1?"明日":n===2?"あさって":`あと${n}日`; }
+function impStripHTML(){ if(prefs.impStrip==="off") return ""; const t=today(), L=impList(t,addDays(t,90)).slice(0,10); if(!L.length) return "";
+  return `<div class="imps"><div class="imps-h"><b>⭐ これからの大事な予定</b><small class="who">タップでその日へ</small></div><div class="imps-l">${L.map((o,i)=>{ const n=dDiff(o.d,t);
+    return `<button type="button" class="impc ${n<=1?"soon":""} ${i===0?"next":""}" data-impgo="${o.d}"><span class="impc-ic">${o.ic}</span><span class="impc-t">${esc(o.t)}</span><span class="impc-d">${short(o.d)}（${WD[parse(o.d).getDay()]}）${o.time?" "+esc(o.time):""}</span><b class="impc-n">${impCount(o.d)}</b></button>`; }).join("")}</div></div>`; }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",e=>{ const b=e.target.closest("[data-impgo]"); if(!b||!b.closest("#main")) return; e.stopPropagation(); haptic("tick"); selectDay(b.dataset.impgo); setTimeout(()=>{ const g=document.querySelector(`#grid [data-day="${b.dataset.impgo}"]`); if(g){ g.scrollIntoView({block:"center",behavior:"smooth"}); g.classList.remove("impflash"); void g.offsetWidth; g.classList.add("impflash"); } },80); },true);
+  document.addEventListener("click",e=>{ const b=e.target.closest("[data-evimp]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const x=(state.events||[]).find(q=>q.id===b.dataset.evimp); if(!x) return; const v=!evImp(x); x.imp=v; dupd("events",x.id,{imp:v}); haptic("tick"); b.setAttribute("aria-pressed",String(v)); b.textContent=v?"⭐ 大事な予定（カレンダーで目立たせる）":"☆ 大事な予定にする"; toast(v?"カレンダーで目立たせます":"ふつうの予定にしました"); },true);
+}
+
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -8086,6 +8128,7 @@ function eventRow(x){
       <div class="edit-row"><span class="who mlbl">日付</span><input type="date" id="evD" value="${esc(x.date||"")}"></div>
       <div class="edit-row tmrow"><span class="who mlbl">時間</span><input type="time" id="evS" value="${esc(x.start||"")}"><span class="who">〜</span><input type="time" id="evE" value="${esc(x.end||"")}"></div>
       <div class="edit-row"><span class="who mlbl">共有</span>${seg("evshare","us",[["us","ふたりに表示"],["me","じぶんだけ"]])}</div>
+      <div class="edit-row"><span class="who mlbl">重要</span><button type="button" class="chip" data-evimp="${esc(x.id)}" aria-pressed="${typeof evImp==="function"&&evImp(x)}">${typeof evImp==="function"&&evImp(x)?"⭐ 大事な予定（カレンダーで目立たせる）":"☆ 大事な予定にする"}</button></div>
       <div class="who" style="font-size:11px;margin:-4px 0 4px">「じぶんだけ」にして保存すると、じぶんの予定に移り相手には見えなくなります</div>
       ${editWho(x)}<textarea id="editMemo" rows="2" maxlength="600" placeholder="メモ（場所など）">${esc(x.memo||"")}</textarea>
       ${editActions("events",x,x.date?`<a class="glink" href="${esc(gcalUrl({due:x.date,time:x.start||null,text:x.text,list:"task"}))}" target="_blank" rel="noopener">Googleカレンダー ↗</a>`:"")}</div></li>`;
