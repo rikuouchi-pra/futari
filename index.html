@@ -1295,6 +1295,43 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .tr-t{font-size:10px;fill:var(--muted)}.tr-t.cur{fill:var(--ink);font-weight:800}
 .env-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:4px}.env-lg span{display:flex;align-items:center;gap:4px}.env-lg i{width:10px;height:10px;border-radius:3px;display:block}
 .env-setup .edit-row .nm{display:flex;align-items:center;gap:6px;font-size:13px}.env-setup .edit-row .nm i{width:10px;height:10px;border-radius:3px}
+/* v350: お金の画面 */
+.mhero{position:relative;border-radius:22px;padding:12px 14px 12px;background:linear-gradient(150deg,color-mix(in srgb,var(--habit) 16%,var(--surface)),var(--surface) 60%);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;margin-bottom:10px;overflow:hidden}
+.mhero.over{background:linear-gradient(150deg,color-mix(in srgb,var(--danger) 16%,var(--surface)),var(--surface) 60%)}
+.mhero.fast{background:linear-gradient(150deg,color-mix(in srgb,var(--shop) 18%,var(--surface)),var(--surface) 60%)}
+.mh-nav{display:flex;align-items:center;justify-content:space-between}.mh-nav b{font-size:15px;display:flex;align-items:center;gap:6px}.mh-nav b small{font-size:10.5px;font-weight:800;color:var(--habit);background:color-mix(in srgb,var(--habit) 15%,transparent);padding:2px 7px;border-radius:99px}
+.mh-nav .icon-btn{width:34px;height:34px}
+.mh-main{display:flex;align-items:center;gap:14px}
+.mh-ring{width:104px;height:104px;flex:none;transform:rotate(-90deg)}
+.mh-ring text{transform:rotate(90deg);transform-origin:50px 50px}
+.mr-bg{fill:none;stroke:color-mix(in srgb,var(--ink) 9%,transparent);stroke-width:9}
+.mr-fg{fill:none;stroke:var(--habit);stroke-width:9;stroke-linecap:round;transition:stroke-dasharray .8s cubic-bezier(.2,.8,.2,1);animation:mrIn .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes mrIn{from{stroke-dasharray:0 300}}
+.mhero.fast .mr-fg{stroke:var(--shop)}.mhero.over .mr-fg{stroke:var(--danger)}
+.mr-ideal{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}
+.mr-p{font-size:19px;font-weight:800;fill:var(--ink)}.mr-s{font-size:8.5px;fill:var(--muted);font-weight:700}
+.mh-num{display:flex;flex-direction:column;min-width:0;gap:1px}
+.mh-num>small{font-size:12px;font-weight:800;color:var(--muted)}
+.mh-num>b{font-size:30px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--habit)}
+.mhero.over .mh-num>b{color:var(--danger)}.mhero.fast .mh-num>b{color:color-mix(in srgb,var(--shop) 80%,var(--ink))}
+.mh-sub{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mh-day{font-size:12.5px;margin-top:3px}.mh-day b{font-size:15px;font-variant-numeric:tabular-nums}.mh-day small{color:var(--muted)}
+.mh-msg{font-size:12px;color:var(--muted);font-weight:600}
+.mh-q{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mh-q button{all:unset;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:14px;background:color-mix(in srgb,var(--surface) 70%,var(--ground));font-size:11.5px;font-weight:700;text-align:center;transition:transform .12s,background .2s;-webkit-tap-highlight-color:transparent}
+.mh-q button:active{transform:scale(.94)}
+.mh-q i{font-style:normal;font-size:18px;line-height:1;height:20px}
+.mh-q button[data-mq="spend"]{background:var(--habit);color:#fff}.mh-q button[data-mq="spend"] i{font-weight:800}
+.mh-q em{position:absolute;top:4px;right:10px;font-style:normal;font-size:10px;background:var(--danger);color:#fff;border-radius:99px;padding:0 5px;line-height:15px}
+.mtabs{position:sticky;top:calc(var(--hdrH,0px) + var(--hubH,0px));z-index:5;display:grid;grid-template-columns:repeat(4,1fr);padding:4px;border-radius:16px;background:color-mix(in srgb,var(--surface) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow);margin-bottom:10px}
+.mtabs button{all:unset;cursor:pointer;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;font-size:11.5px;font-weight:700;color:var(--muted);text-align:center;transition:color .2s}
+.mtabs button span{font-size:16px;line-height:1.1}
+.mtabs button[aria-selected="true"]{color:var(--ink)}
+.mt-ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:12px;background:color-mix(in srgb,var(--habit) 18%,var(--surface));transform:translateX(calc(var(--i)*100%));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.mwho{margin:-2px 0 8px}.mwho .seg{font-size:12px}
+.mgo-env{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mgo-env .btn{flex:none;white-space:nowrap}
+.mr-fg.z{opacity:0}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2698,7 +2735,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="349";
+const APP_VERSION="350";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6488,6 +6525,14 @@ function moneyEntries(){
 }
 function viewMoney(){
   const t=state.moneyTab||"sum";
+  if(typeof moneyHeroHTML==="function"){ /* v350 */
+    let body=t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():t==="env"?viewMoneyEnv():viewMoneySum();
+    body=body.replace(/<div class="dstrip" data-strip="mmon">[\s\S]*?<\/div>[\s\S]*?<\/div>/,"").replace(/<div class="chart env-sum">[\s\S]*?<div class="env-kv">[\s\S]*?<\/div><\/div>/,"");
+    if(t==="sum") body=body.replace(/<button class="rcbtn[^"]*" data-act="rcpt"[\s\S]*?<\/button>/,"");
+    if(t==="sum"&&state.moneyP!=="week"&&state.moneyP!=="year") body=body.replace(/<div class="dstrip" data-strip="money">[\s\S]*?<\/div>[\s\S]*?<\/div>/,"");
+    if(t==="goal"){ const a=body.indexOf('<div class="section-label"><span>分類ごとの毎月の目標'), z=body.indexOf('<div class="section-label"><span>貯金の目標'); if(a>=0&&z>a) body=body.slice(0,a)+`<div class="chart mgo-env"><span class="who">分類ごとの毎月の予算・繰越は「💰 予算」タブにまとめました</span><button class="btn" data-mtab="env">予算へ</button></div>`+body.slice(z); }
+    setTimeout(moneyCountUp,30);
+    return moneyHeroHTML()+moneyTabsHTML(t)+`<div class="mwho">${whoBar()}</div>`+body; }
   const head=whoBar()+`<div class="tools">${seg("mtab",t,[["sum","集計"],["env","予算・繰越"],["month","毎月・振込"],["goal","目標"]])}</div>`;
   return head+(t==="sum"&&Number((state.kakei||{}).limit||0)?`<div class="chart">${paceHTML()}</div>`:"") /* v244: 上限がないときは下の「支出の実績」と同じ数字になるので出さない */+(t==="month"?viewMoneyMonthly():t==="goal"?viewMoneyGoals():t==="env"&&typeof viewMoneyEnv==="function"?viewMoneyEnv():viewMoneySum());
 }
@@ -7799,6 +7844,32 @@ if(typeof document!=="undefined"){
       envSave({annual:[...(E.annual||[]),{id:newId().slice(-8),text:t.slice(0,30),a,m:mo,cat,from:ymOf(today())}],roll,rollFrom:rf},`${t}：毎月 ${yen(Math.round(a/12))} を${MCATS[cat].l}に積み立てます`); return; }
     if(b.dataset.envandel){ const x=(E.annual||[]).find(q=>q.id===b.dataset.envandel); envSave({annual:(E.annual||[]).filter(q=>q.id!==b.dataset.envandel)},x?`「${x.text}」を削除しました`:""); return; }
   },true);
+}
+/* v350: お金の画面を1つの流れに。いちばん上に「今月あといくら使えるか」（リング・1日あたり・ペース）と よく使う操作、その下にアイコン付きのタブ。
+   予算は「予算」タブ1か所にまとめる（目標タブの分類ごとの目標は予算タブへ）。月の切り替えも上の1か所に */
+const MTABS=[["sum","📊","まとめ"],["env","💰","予算"],["month","🏦","毎月の支払い"],["goal","🎯","貯金"]];
+function mHeroData(){ const ym=ymOf(state.moneyRef||today()), [y,m]=ym.split("-").map(Number), dim=new Date(y,m,0).getDate(), t=today(), cur=ym===ymOf(t), past=ym<ymOf(t);
+  const R=typeof envRows==="function"?envRows(ym):[], hasB=R.some(r=>r.goal||r.ann||r.carry||r.mv), K=state.kakei||{};
+  const spent=byWho(moneyEntries()).filter(e=>e.actual&&!e.save&&e.aDate&&ymOf(e.aDate)===ym).reduce((s,e)=>s+e.actual,0);
+  const avail=hasB?R.reduce((s,r)=>s+r.avail,0):Number(K.limit||0), left=avail-spent, di=cur?parse(t).getDate():past?dim:0, ideal=avail*di/dim, rest=cur?dim-di+1:past?0:dim;
+  let unpaid=0; try{ unpaid=byWho(state.recur).filter(r=>rActive(r,ym)&&["due","part"].includes(rStatus(r,ym))).length; }catch(_){}
+  return {ym,y,m,dim,cur,past,hasB,spent,avail,left,di,ideal,rest,perDay:rest&&left>0?Math.floor(left/rest):0,unpaid,over:R.filter(r=>r.left<0).length}; }
+function moneyHeroHTML(){ const D=mHeroData(), C=2*Math.PI*44, pct=D.avail>0?Math.min(1,D.spent/D.avail):0, ip=D.avail>0?Math.min(1,D.ideal/D.avail):0, st=!D.avail?"none":D.left<0?"over":D.spent>D.ideal*1.05&&D.cur?"fast":"ok";
+  const ia=ip*2*Math.PI-Math.PI/2, ix=50+44*Math.cos(ia), iy=50+44*Math.sin(ia);
+  const msg=!D.avail?`予算か毎月の上限を決めると、あといくら使えるかが出ます`:D.left<0?`${yen(-D.left)} 使いすぎています${D.over?`（${D.over}分類）`:""}`:D.cur?(st==="fast"?`ペースが少し早めです（今日までの目安 ${yen(Math.round(D.ideal))}）`:`ペース内です（今日までの目安 ${yen(Math.round(D.ideal))}）`):D.past?`${D.m}月は ${yen(D.left)} 残りました`:`これからの月です`;
+  return `<section class="mhero ${st}"><div class="mh-nav"><button class="icon-btn" data-act="mmprev" aria-label="前の月">‹</button><b>${D.y}年${D.m}月${D.cur?"<small>今月</small>":""}</b><button class="icon-btn" data-act="mmnext" aria-label="次の月">›</button></div>
+    <div class="mh-main"><svg class="mh-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" class="mr-bg"/><circle cx="50" cy="50" r="44" class="mr-fg ${pct>0?"":"z"}" style="stroke-dasharray:${(C*pct).toFixed(1)} ${C.toFixed(1)}"/>${D.cur&&D.avail?`<circle cx="${ix.toFixed(1)}" cy="${iy.toFixed(1)}" r="3.4" class="mr-ideal"><title>今日までの目安</title></circle>`:""}<text x="50" y="47" text-anchor="middle" class="mr-p">${D.avail?Math.round(pct*100)+"%":"—"}</text><text x="50" y="62" text-anchor="middle" class="mr-s">使った割合</text></svg>
+      <div class="mh-num"><small>${D.avail?(D.left<0?"予算オーバー":"あと使える額"):"今月の支出"}</small><b data-cnt="${D.avail?Math.abs(D.left):D.spent}">${yen(D.avail?Math.abs(D.left):D.spent)}</b>
+        <span class="mh-sub">${D.avail?`使える ${yen(D.avail)}・使った ${yen(D.spent)}`:""}</span>${D.cur&&D.perDay?`<span class="mh-day">1日あたり <b>${yen(D.perDay)}</b><small>（残り${D.rest}日）</small></span>`:""}</div></div>
+    <div class="mh-msg">${msg}</div>
+    <div class="mh-q"><button type="button" data-mq="spend"><i>＋</i>出費</button><button type="button" data-act="rcpt"><i>📷</i>レシート</button><button type="button" data-mq="env"><i>🔀</i>付け替え</button><button type="button" data-mq="month"><i>✅</i>振込確認${D.unpaid?`<em>${D.unpaid}</em>`:""}</button></div></section>`; }
+function moneyTabsHTML(t){ return `<nav class="mtabs" role="tablist" aria-label="お金の表示">${MTABS.map(([k,ic,l])=>`<button type="button" role="tab" data-mtab="${k}" aria-selected="${t===k}"><span>${ic}</span>${l}</button>`).join("")}<i class="mt-ind" style="--i:${Math.max(0,MTABS.findIndex(x=>x[0]===t))}"></i></nav>`; }
+function moneyCountUp(){ for(const el of document.querySelectorAll("#main .mhero [data-cnt]")){ const to=Number(el.dataset.cnt)||0; if(el.dataset.done==="1"||matchMedia("(prefers-reduced-motion: reduce)").matches) continue; el.dataset.done="1"; const t0=performance.now(), d=600; const f=now=>{ const k=Math.min(1,(now-t0)/d), e=1-Math.pow(1-k,3); el.textContent=yen(Math.round(to*e)); if(k<1) requestAnimationFrame(f); }; requestAnimationFrame(f); } }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-mtab],#main [data-mq]"); if(!b) return; e.stopPropagation(); e.preventDefault(); haptic("tick");
+    if(b.dataset.mtab){ state.moneyTab=b.dataset.mtab; state.mCnt=0; render(); return; }
+    const q=b.dataset.mq; if(q==="spend"){ openSheet("spend"); return; }
+    state.moneyTab=q; render(); if(q==="env") setTimeout(()=>{ const x=document.querySelector("#main .env-mvf"); if(x) x.scrollIntoView({behavior:"smooth",block:"center"}); },60); },true);
 }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
@@ -10918,8 +10989,8 @@ const HUBS=[
   {k:"today",l:"今日",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>',v:[["home","まとめ"],["task","やること"],["shop","買い物"],["meal","料理"],["chore","家事"]]},
   {k:"plan",l:"予定",ic:'<svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>',v:[["cal","カレンダー"],["duo","ふたりの予定"]]} /* v249: 予定に関するものは「予定」へまとめる */,
   {k:"us",l:"ふたり",ic:'<svg viewBox="0 0 24 24"><path d="M4 6.5A1.5 1.5 0 0 1 5.5 5h9A1.5 1.5 0 0 1 16 6.5v5a1.5 1.5 0 0 1-1.5 1.5H9l-3 2.5V13h-.5A1.5 1.5 0 0 1 4 11.5z"/><path d="M16 9h2.5A1.5 1.5 0 0 1 20 10.5v5a1.5 1.5 0 0 1-1.5 1.5H18v2.5L15 17h-4"/></svg>',v:[["daylog","やったこと"],["talk","話す"],["dec","決めたこと"],["trouble","気になること"]]},
-  {k:"fut",l:"将来",ic:'<svg viewBox="0 0 24 24"><path d="M12 3.8l2.4 5 5.4.6-4 3.7 1.1 5.4L12 15.8l-4.9 2.7 1.1-5.4-4-3.7 5.4-.6z"/></svg>',v:[["future","将来の計画"],["baby","子ども"],["money","お金"]]},
-  {k:"more",l:"その他",ic:'<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',v:[["diary","日記"],["habit","習慣"],["reflect","内省"],["ltgoal","目標"],["usage","利用状況"],["settings","設定"]]}];
+  {k:"fut",l:"お金・将来",ic:'<svg viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="12" rx="2.5"/><path d="M3.5 10h17M15.5 14.2h2"/><path d="M6.5 6.5l9-3 1 3"/></svg>',v:[["money","お金"],["future","将来の計画"],["baby","子ども"]]} /* v350: お金はよく使うので先頭に・タブ名にも */,
+  {k:"more",l:"じぶん",ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',v:[["diary","日記"],["reflect","内省"],["habit","習慣"],["ltgoal","目標"],["usage","利用状況"],["settings","設定"]]}]; /* v350: 日記・内省・習慣・目標は自分のことなので「じぶん」に。内省は日記の隣へ */
 function hubOf(v){ if(v==="caution") v="trouble"; if(v==="psched") v="cal"; return HUBS.find(h=>h.v.some(([x])=>x===v))||HUBS[4]; }
 function hubBadge(h){ return h.v.reduce((n,[k])=>n+(Number(k==="home"?0:tabBadge(k))||0),0)+(h.k==="plan"?Number(tabBadge("psched"))||0:0); }
 function hubBarHTML(v){ const h=hubOf(v), hs=hiddenTabs(); const items=h.v.filter(([k])=>!hs.has(k)||k===v||k==="home"||k==="settings"||k==="usage"||k==="ltgoal"||k==="dec"||k==="meal"); if(items.length<2) return "";
