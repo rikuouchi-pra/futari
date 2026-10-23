@@ -7617,6 +7617,44 @@ function feelAnaHTML(){ const t=today(), d30=addDays(t,-29), d60=addDays(t,-59),
     <div class="chart fa"><h3>気持ちと気分の関係</h3>${relH}</div>`; }
 if(typeof document!=="undefined") document.addEventListener("keydown",e=>{ const t=e.target; if(!t||t.id!=="feelAdd"||e.key!=="Enter") return; e.preventDefault(); const v=t.value.trim().slice(0,12); if(!v) return; const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]); F.add(v); saveReflect({feel:[...F]}); haptic("tick"); render(); });
 if(typeof document!=="undefined") document.addEventListener("change",e=>{ const t=e.target; if(!t||t.id!=="feelAdd") return; const v=t.value.trim().slice(0,12); if(!v) return; const r=state.reflect.find(x=>x.id===state.refDate)||{}, F=new Set(r.feel||[]); if(F.has(v)) return; F.add(v); saveReflect({feel:[...F]}); render(); });
+/* v348: 気分・エネルギーを顔とバーで（タップでも、指でなぞっても選べる）。日記の画面でもその日の気分と気持ちを1タップで（内省と同じ記録・自分だけ） */
+const MF={1:["😣","#d9534f"],2:["🙁","#ec8a3a"],3:["😐","#c9a227"],4:["🙂","#58a65c"],5:["😄","#2f9e6e"]};
+const ENL=["","へとへと","低め","ふつう","元気","絶好調"];
+function moodFacesHTML(cur,attr){ return `<div class="mf" data-mfrow="${attr}" role="radiogroup" aria-label="気分">${MOODS.map(([v,l])=>`<button type="button" class="mf-b" ${attr}="${v}" role="radio" aria-pressed="${cur===v}" aria-checked="${cur===v}" style="--mc:${MF[v][1]}"><span class="mf-e" aria-hidden="true">${MF[v][0]}</span><small>${l}</small></button>`).join("")}</div>`; }
+function energyBarsHTML(cur,attr){ return `<div class="enr2" data-mfrow="${attr}" role="radiogroup" aria-label="エネルギー">${[1,2,3,4,5].map(v=>`<button type="button" class="en2 ${cur>=v?"fill":""} ${cur===v?"on":""}" ${attr}="${v}" aria-label="エネルギー${v} ${ENL[v]}" aria-pressed="${cur===v}"><i style="height:${30+v*14}%"></i></button>`).join("")}<span class="en2-l">${cur?`<b>${ENL[cur]}</b>`:"未入力"}</span></div>`; }
+function refFor(d){ return state.reflect.find(x=>x.id===d)||{}; }
+function saveReflectOn(d,extra){ const keep=state.refDate; state.refDate=d; try{ saveReflect(extra); } finally{ state.refDate=keep; } }
+function diaryMoodHTML(d){ const r=refFor(d), F=new Set(r.feel||[]), C={}; for(const q of state.reflect.filter(q=>q.id>=addDays(today(),-60))) for(const f of q.feel||[]) C[f]=(C[f]||0)+1;
+  const quick=[...new Set([...F,...Object.entries(C).sort((a,b)=>b[1]-a[1]).map(x=>x[0]),"うれしい","楽しい","安心","感謝","疲れた","不安","イライラ","モヤモヤ"])].slice(0,10);
+  return `<div class="dmood"><div class="dmood-h"><b>きょうの気分</b><small class="who">🔒自分だけ・内省と同じ記録</small></div>${moodFacesHTML(r.mood,"data-dmood")}
+    <div class="feels dm-f">${quick.map(f=>{ const M=typeof FMAP!=="undefined"&&FMAP[f]; return `<button type="button" class="feel ${F.has(f)?"on":""}" data-dfeel="${esc(f)}" style="--fc:var(${M?M.c:"--reflect"})">${esc(f)}</button>`; }).join("")}<button type="button" class="link" data-go2="reflect">もっと ›</button></div></div>`; }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",e=>{ const b=e.target.closest("#main [data-dmood],#main [data-dfeel],#main [data-denergy]"); if(!b) return; e.stopPropagation(); const d=state.diaryDate||today(), r=refFor(d);
+    if(b.dataset.dmood){ const v=Number(b.dataset.dmood); saveReflectOn(d,{mood:r.mood===v?null:v}); }
+    else if(b.dataset.dfeel){ const F=new Set(r.feel||[]), f=b.dataset.dfeel; F.has(f)?F.delete(f):F.add(f); saveReflectOn(d,{feel:[...F]}); }
+    haptic("tick"); const ae=document.activeElement, y=scrollY; const w=document.querySelector("#main .dmood"); if(w) w.outerHTML=diaryMoodHTML(d); else render(); scrollTo(0,y); },true);
+  /* 指でなぞって選ぶ（顔・エネルギー）：離したところの値に */
+  let mfDrag=null;
+  document.addEventListener("pointerdown",e=>{ const row=e.target.closest&&e.target.closest("[data-mfrow]"); if(!row) return; mfDrag={row,x:e.clientX,moved:false,last:null}; },true);
+  document.addEventListener("pointermove",e=>{ if(!mfDrag) return; if(Math.abs(e.clientX-mfDrag.x)<8&&!mfDrag.moved) return; mfDrag.moved=true; const a=mfDrag.row.dataset.mfrow, el=document.elementFromPoint(e.clientX,mfDrag.row.getBoundingClientRect().top+mfDrag.row.offsetHeight/2), b=el&&el.closest&&el.closest(`[${a}]`); if(!b||!mfDrag.row.contains(b)||b===mfDrag.last) return; mfDrag.last=b; haptic("tick"); for(const x of mfDrag.row.querySelectorAll(`[${a}]`)) x.classList.toggle("hov",x===b); },true);
+  document.addEventListener("pointerup",e=>{ const D=mfDrag; mfDrag=null; if(!D||!D.moved||!D.last) return; for(const x of D.row.querySelectorAll(".hov")) x.classList.remove("hov"); const b=D.last; setTimeout(()=>b.click(),0); window.__mfSkip=Date.now(); },true);
+  document.addEventListener("click",e=>{ if(window.__mfSkip&&Date.now()-window.__mfSkip<60&&e.target.closest&&e.target.closest("[data-mfrow]")&&e.isTrusted){ window.__mfSkip=0; e.stopPropagation(); e.preventDefault(); } },true);
+  /* 日記の入力欄は書いた分だけ広がる */
+  const grow=t=>{ t.style.height="auto"; t.style.height=Math.min(Math.max(t.scrollHeight,160),window.innerHeight*0.7)+"px"; };
+  document.addEventListener("input",e=>{ if(e.target&&e.target.id==="diaryText") grow(e.target); });
+  document.addEventListener("focusin",e=>{ if(e.target&&e.target.id==="diaryText") grow(e.target); });
+}
+/* v348: 内省の「学び」から、習慣だけでなく やること・じぶんのタスク・話すこと・気をつけること にも */
+const L2H_TO=[["habit","🌱 習慣"],["ptask","🔒 じぶんのタスク"],["task","✅ やること（共有）"],["topic","🗣 話すこと"],["caution","⚠️ 気をつけること"]];
+const l2hTo=()=>state.l2hTo||"habit";
+const l2hLbl=()=>(L2H_TO.find(x=>x[0]===l2hTo())||L2H_TO[0])[1].replace(/^\S+\s/,"").replace(/（共有）/,"");
+function l2hHave(){ const k=l2hTo(); const T=k==="habit"?habitItems():k==="ptask"?(state.pitems||[]).filter(x=>!x.done):k==="task"?(state.items||[]).filter(x=>x.list==="task"&&!x.done):k==="topic"?(state.topics||[]).filter(x=>x.status!=="done"):(state.cautions||[]); return new Set(T.map(x=>x.text)); }
+function l2hMake(t,i,now){ const k=l2hTo(), id=newId(), d=addDays(state.refDate||today(),1);
+  if(k==="habit"){ dset("habits",id,{text:t,entryKind:"habit",showInTimetable:false,target:7,log:{},from:"reflect",fromDate:state.refDate,createdAt:now+i,updatedAt:now}); return ["habits",id]; }
+  if(k==="ptask"){ const it=baseItem("task",t,d,""); delete it.who; delete it.by; it.from="reflect"; dset("pitems",id,it); return ["pitems",id]; }
+  if(k==="task"){ const it=baseItem("task",t,d,"",myRole()); dset("items",id,it); return ["items",id]; }
+  if(k==="topic"){ dset("topics",id,{text:t,who:myRole(),status:"open",note:"",ref:null,by:state.me||null,createdAt:now+i,updatedAt:now}); return ["topics",id]; }
+  dset("cautions",id,{text:t,level:"warn",who:myRole(),by:state.me||null,createdAt:now+i,updatedAt:now,ack:{}}); return ["cautions",id]; }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
