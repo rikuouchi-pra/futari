@@ -1510,7 +1510,7 @@ body .htile-w .htile small.ht-d{display:-webkit-box!important;-webkit-line-clamp
 .dec-ed{padding:12px 14px}.dec-ed textarea,.ck-ed.dec2 textarea{width:100%;box-sizing:border-box}.dec-ed .edit-actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .dec-r .dec-none{color:var(--muted);font-size:12px}
 /* v208: 記念日のドット表示 */
-.anv{padding:14px 14px 10px}.anv button{all:unset;display:block;width:100%;box-sizing:border-box;cursor:pointer}
+.anv{padding:14px 14px 10px}.anv button:not(.edit button):not(.edit *){all:unset;display:block;width:100%;box-sizing:border-box;cursor:pointer} /* v355: 編集欄のボタンには効かせない（記念日の編集でボタンが崩れていた） */
 .anv-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}.anv-h b{display:block;font-size:17px}.anv-h small{color:var(--muted);font-size:12px}
 .anv-pct{font-size:20px;font-variant-numeric:tabular-nums}
 .anv-g{display:grid;grid-template-columns:repeat(21,1fr);gap:5px}.anv-g i{aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 14%,transparent)}
@@ -2808,7 +2808,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="354";
+const APP_VERSION="355";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
