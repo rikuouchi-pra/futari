@@ -1405,6 +1405,14 @@ body:has(.ted-sheet) .tabbar,body:has(.ted-sheet) #plus,body:has(.ted-sheet) .ai
 .imps-l .impc.soon .impc-dt{animation:impcGlow 2.4s ease-in-out infinite}
 @keyframes impcGlow{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--ia,#e0577a) 25%,transparent),0 4px 12px color-mix(in srgb,var(--ia,#e0577a) 35%,transparent)}}
 @media (prefers-reduced-motion:reduce){.imps-l .impc.soon .impc-dt{animation:none}}
+/* v356: 押した瞬間の反応 */
+.check.tap{animation:chkTap .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes chkTap{40%{transform:scale(.82)}100%{transform:scale(1)}}
+li.just-done .text{opacity:.55;transition:opacity .2s}
+/* v356: 画面外のカードは描かない（長いホームやリストのスクロール・描き直しを軽く） */
+#main ul.list > li.item:nth-child(n+12){content-visibility:auto;contain-intrinsic-size:auto 64px}
+/* v356: カードの「すりガラス（ぼかし）」は処理が重いので、上部・タブ以外は止めて少し濃い半透明に（見た目はほぼ同じ） */
+:root:is([data-style="glass"],[data-style="dynamic"]) #main :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary-peek,.paper,.tl-day,.dstrip,.shiftset,.entry,.week7,.card2,.legend.lg2,.calkey,.album,.cguide,.rcbtn,.impc,.mhero){backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:color-mix(in srgb,var(--surface) 90%,transparent)!important}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2808,7 +2816,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="355";
+const APP_VERSION="356";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5561,7 +5569,7 @@ function renderChrome(){ applyTabOrder();
     for(const L of ["us","me"]){ const x=layerN(L,n), b=document.querySelector(`#lsw [data-layer="${L}"]`); if(b){ b.classList.toggle("has-hb",x>0&&layer!==L&&state.view!=="home"); b.dataset.hb=x; } } }
   $("plus").hidden=(v==="settings"||v==="check"||v==="log");
   if(state.lastLayer!==layer){ state.lastLayer=layer; setROff(0); }
-  placeRail(false); railShowActive(); requestAnimationFrame(railShowActive);
+  cancelAnimationFrame(window.__prRaf); window.__prRaf=requestAnimationFrame(()=>{ placeRail(false); railShowActive(); }); /* v356: 描画の後に1回 */
   renderFlick(layer,n); fbPlace(); fitTitle(); wxRender(); songRender(); logoApply();
 }
 const hintSess=new Set();
@@ -7967,7 +7975,7 @@ function homeFold(){ if(state.view!=="home") return; const F=hfGet();
     let ch=h.querySelector(".hf-chev"); if(!ch){ ch=document.createElement("i"); ch.className="hf-chev"; ch.setAttribute("aria-hidden","true"); h.append(ch); }
     let pk=h.querySelector(".hf-peek"); if(fold){ const t=hfPeek(k,card); if(!pk){ pk=document.createElement("span"); pk.className="hf-peek"; const first=h.querySelector(".hf-ic")?h.children[1]:h.firstElementChild; (first||h).after(pk); } pk.textContent=t; } else if(pk) pk.remove();
     h.setAttribute("role","button"); h.setAttribute("aria-expanded",String(!fold)); h.tabIndex=0; } }
-function hubCenter(){ const hb=document.querySelector("#hubBar .hubbar"), on=hb&&hb.querySelector(".on"); if(!hb||!on||hb.dataset.cv===state.view) return; hb.dataset.cv=state.view; const L=on.offsetLeft-(hb.clientWidth-on.offsetWidth)/2; hb.scrollTo({left:Math.max(0,L),behavior:"smooth"}); }
+let hubCV=""; function hubCenter(){ if(hubCV===state.view) return; hubCV=state.view; requestAnimationFrame(()=>{ const hb=document.querySelector("#hubBar .hubbar"), on=hb&&hb.querySelector(".on"); if(!hb||!on) return; const L=on.offsetLeft-(hb.clientWidth-on.offsetWidth)/2; hb.scrollTo({left:Math.max(0,L),behavior:"smooth"}); }); } /* v356: レイアウトの読み取りは描画の後に1回だけ（毎回の描画で画面全体の再計算が起きて遅くなっていた） */
 if(typeof window!=="undefined"&&typeof render==="function"){ const _r351=render; render=function(){ const r=_r351.apply(this,arguments); try{ homeFold(); hubCenter(); }catch(_){} return r; }; }
 if(typeof document!=="undefined"){
   const hfToggle=h=>{ const card=h.closest("section.hf"); if(!card) return; const k=card.dataset.hfk, F=hfGet(), now=!card.classList.contains("hf-fold"); F[k]=now?1:0; hfSet(F); haptic("tick"); homeFold(); if(!now){ card.classList.add("hf-open"); setTimeout(()=>card.classList.remove("hf-open"),400); } };
@@ -7982,7 +7990,18 @@ if(typeof window!=="undefined"){ let ccT=0; addEventListener("scroll",()=>{ if(c
 /* v353: 切り替えタブの端のフェード（続きがある側だけ） */
 function hbEdge(hb){ if(!hb) return; const l=hb.scrollLeft>4, r=hb.scrollLeft+hb.clientWidth<hb.scrollWidth-4; hb.classList.toggle("hb-l",l); hb.classList.toggle("hb-r",r); }
 if(typeof document!=="undefined"){ document.addEventListener("scroll",e=>{ const t=e.target; if(t&&t.classList&&t.classList.contains("hubbar")) hbEdge(t); },true); }
-if(typeof window!=="undefined"&&typeof render==="function"){ const _r353=render; render=function(){ const r=_r353.apply(this,arguments); try{ const hb=document.querySelector("#hubBar .hubbar"); hbEdge(hb); setTimeout(()=>hbEdge(hb),400); }catch(_){} return r; }; }
+if(typeof window!=="undefined"&&typeof render==="function"){ const _r353=render; render=function(){ const r=_r353.apply(this,arguments); try{ cancelAnimationFrame(window.__hbRaf); window.__hbRaf=requestAnimationFrame(()=>{ const hb=document.querySelector("#hubBar .hubbar"); hbEdge(hb); }); }catch(_){} return r; }; }
+/* v356: 動作を軽く。①「完了」などのチェックは押した瞬間に見た目を切り替える ②データの更新が続いたときの描き直しを1フレームに1回へまとめる
+   ③バッジの数え直しを1回の描画につき1回に ④サイドメニューの位置合わせは描画の後に */
+if(typeof window!=="undefined"){
+  window.__rSeq=0;
+  if(typeof render==="function"){ const _r356=render; render=function(){ window.__rSeq++; (window.__memoClr||[]).forEach(f=>f()); return _r356.apply(this,arguments); }; }
+  if(typeof counts==="function"){ const _c356=counts; let cc=null; (window.__memoClr=window.__memoClr||[]).push(()=>{ cc=null; }); counts=function(){ if(cc) return cc; cc=_c356.apply(this,arguments); const k=cc; queueMicrotask(()=>{ if(cc===k) cc=null; }); return cc; }; }
+  const memo=name=>{ const f=window[name]; if(typeof f!=="function") return; let c=null; (window.__memoClr=window.__memoClr||[]).push(()=>{ c=null; }); window[name]=function(){ if(arguments.length) return f.apply(this,arguments); if(c) return c.slice(); c=f.apply(this,arguments); if(!Array.isArray(c)){ const v=c; c=null; return v; } const k=c; queueMicrotask(()=>{ if(c===k) c=null; }); return c.slice(); }; };
+  memo("moneyEntries"); memo("checkList");
+  if(typeof requestRender==="function"){ const _rr=requestRender; let raf=0; requestRender=function(){ if(raf) return; const s0=window.__rSeq; raf=requestAnimationFrame(()=>{ raf=0; if(window.__rSeq!==s0&&!state.dirty) return; _rr(); }); }; }
+  document.addEventListener("click",e=>{ const c=e.target.closest&&e.target.closest("#main .check[data-act='right']"); if(!c) return; c.classList.toggle("on"); c.classList.add("tap"); const row=c.closest("li"); if(row) row.classList.toggle("just-done",c.classList.contains("on")); },true);
+}
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -10460,6 +10479,7 @@ addEventListener("resize",()=>placeRail(false));
 
 /* アプリ名を、下のあいさつと同じ幅になるよう文字数に合わせて拡大・縮小（11〜24px） */
 function fitTitle(){
+  if(document.documentElement.classList.contains("cc")) return; /* v356: 上部をすっきり表示のときはアプリ名を出さないので計算しない */
   const t=$("appTitle"); if(!t) return; const g=document.querySelector("#greet:not([hidden]) .gw");
   t.classList.add("big"); t.style.fontSize="11px"; const w0=t.scrollWidth; if(!w0) return;
   const target=g?Math.max(g.offsetWidth,120):150, fs=Math.max(13,Math.min(22,Math.floor(11*target/w0*10)/10));
