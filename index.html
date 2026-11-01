@@ -2816,7 +2816,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="356";
+const APP_VERSION="357";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -6119,6 +6119,7 @@ $("main").addEventListener("click",e=>{
   else if(a==="rcpaste") rcptTextStart();
   else if(a==="rcskip") rcptSkip();
   else if(a==="rcclose") rcptClose();
+  else if(a==="rcmanual") rcptManual();
   else if(a==="rcadd"){ RQ.append=true; rcptStart(); }
   else if(a==="dphadd"){ const i=$("dphIn"); if(i){ i.value=""; i.click(); } }
   else if(a==="fridgePick"){ const i=$("fridgeIn"); if(i){ i.value=""; i.click(); } }
@@ -9854,29 +9855,33 @@ function rcptApply(d){ const today0=today(), ok=d&&typeof d==="object";
 async function rcptFromText(){
   const ta=$("rcTxt"), txt=ta?ta.value.trim():""; if(!txt){ toast("レシートの文字を貼り付けてください"); return; }
   if(!state.sampleTxt){ toast("読み取り機能を準備中です"); return; }
-  const C=RQ.cur||{}; RQ.cur={...C,status:"reading",url:C.url||"",d:C.d||null,err:""}; state.rcptOn=true; render(); rcptScroll();
+  const C=RQ.cur||{}; RQ.cur={...C,status:"reading",url:C.url||"",d:C.d||null,err:"",t0:Date.now()}; state.rcptOn=true; render(); rcptScroll();
   RQ.ctl=new AbortController();
-  try{ const d=await state.sampleTxt.json(rcptPrompt("次はレシート（または領収書）から書き写した文字です。\n----\n"+txt.slice(0,6000)+"\n----\n"),{signal:RQ.ctl.signal,modelTier:"quick"}); RQ.cur={...RQ.cur,status:"ready",err:"",d:rcptApply(d)}; }
-  catch(e){ if(e&&e.code==="cancelled") return; RQ.cur={...RQ.cur,status:"ready",err:e&&e.code==="not_granted"?"読み取れませんでした":"うまく読み取れませんでした。手で入力してください",d:RQ.cur.d||rcptApply(null)}; }
+  try{ const d=await state.sampleTxt.json(rcptPrompt("次はレシート（または領収書）から書き写した文字です。\n----\n"+txt.slice(0,6000)+"\n----\n"),{signal:RQ.ctl.signal,modelTier:"quick"}); if(RQ.cur&&RQ.cur.status==="reading") RQ.cur={...RQ.cur,status:"ready",err:"",d:rcptApply(d)}; }
+  catch(e){ if(e&&(e.code==="cancelled"||e.code==="ai_cancelled"||e.name==="AbortError")) return; RQ.cur={...RQ.cur,status:"ready",err:e&&e.code==="not_granted"?"読み取れませんでした":"うまく読み取れませんでした。手で入力してください",d:RQ.cur.d||rcptApply(null)}; }
   render(); rcptScroll();
 }
 function rcptTextStart(){ RQ.files=[]; RQ.i=0; RQ.cur={status:"ready",url:"",err:"",d:rcptApply(null),paste:true}; state.rcptOn=true; if(state.view!=="money"){ state.moneyTab="sum"; go("money"); } else render(); rcptScroll(); setTimeout(()=>{ const t=$("rcTxt"); if(t) t.focus(); },120); }
 /* v269: レシートを連続で。選んだ写真は裏で順に先読みしておき、確認→保存ですぐ次へ。確認中に「＋ 追加」、終わったら「続けて読み取る」 */
 async function rcptAI(f){
-  RQ.ctl=new AbortController(); const P=rcptPrompt("これは日本の買い物のレシート（または領収書）の写真です。");
-  const ask=tier=>state.sample.json(P,{images:f,signal:RQ.ctl.signal,imgOpt:{doc:1},...(tier?{modelTier:tier}:{}),timeoutMs:120000});
+  /* v357: 「読み取り中…」が終わらない対策。1枚あたり最長90秒で必ず打ち切り、手入力に切り替える（以前は 賢いモデル120秒→ふつう120秒→再読み取り で最長6分以上、中継経由だとさらに長く待つことがあった） */
+  const ctl=RQ.ctl=new AbortController(), P=rcptPrompt("これは日本の買い物のレシート（または領収書）の写真です。"), t0=Date.now(), LIMIT=90000; let timedOut=false;
+  const hard=setTimeout(()=>{ timedOut=true; ctl.abort(); },LIMIT), left=()=>LIMIT-(Date.now()-t0);
+  const ask=(tier,ms)=>state.sample.json(P,{images:f,signal:ctl.signal,imgOpt:{doc:1},...(tier?{modelTier:tier}:{}),timeoutMs:Math.max(5000,Math.min(ms,left()-1000))});
+  const blank=()=>({store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:"",warn:[]});
   try{
-    let d; try{ d=await ask("pro"); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json"].includes(e.code)&&!RQ.ctl.signal.aborted) d=await ask(""); else throw e; } /* v337: 読み取りは賢いモデル。混雑・失敗時はふつうのモデルでもう一度 */
-    let r=rcptApply(d); if(!r.total&&!RQ.ctl.signal.aborted){ try{ const d2=await ask(""); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
+    let d; try{ d=await ask("pro",50000); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json","gas_response"].includes(e.code)&&!ctl.signal.aborted&&left()>15000) d=await ask("",left()); else throw e; } /* v337: 読み取りは賢いモデル。混雑・失敗・時間切れはふつうのモデルでもう一度（残り時間の範囲で） */
+    let r=rcptApply(d); if(!r.total&&!ctl.signal.aborted&&left()>20000){ try{ const d2=await ask("",left()); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
     return {status:"ready",d:r,err:""};
   }catch(e){
+    if(timedOut) return {status:"ready",err:"90秒たっても読み取れなかったので止めました。写真を見ながら手で入力するか、やめるから選び直してください",d:blank()};
     if(e&&(e.code==="cancelled"||e.code==="ai_cancelled"||e.name==="AbortError")) return {status:"cancelled"};
     const msg={not_granted:"読み取りが許可されませんでした。手入力で登録できます",images_unavailable:"この画面では写真を送れません。手入力で登録できます",image_rejected:"この写真は読めませんでした（形式・サイズ）",bad_image:"写真を開けませんでした。スクリーンショットにして選び直すと読めることがあります",too_large:"写真が大きすぎます。レシートの部分だけ切り取って選び直してください",rate_limited:"AIが混み合っています。少し待ってからもう一度",invalid_json:"うまく読み取れませんでした。手で入力してください",refused:"読み取れない内容でした",gas_connection:"AIのサーバーにつながりません（会社などのネットワークでは使えないことがあります）。4Gで試すか、手で入力してください",ai_timeout:"AIの返事が時間内に届きませんでした。もう一度試すか、手で入力してください",gas_update_required:"AIのサーバーの更新が必要です。手で入力できます"}[e&&e.code]||`読み取りに失敗しました（${esc(String(e&&(e.code||e.message)||"不明").slice(0,40))}）。手で入力できます`;
-    return {status:"ready",err:msg,d:{store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:"",warn:[]}};
-  }
+    return {status:"ready",err:msg,d:blank()};
+  }finally{ clearTimeout(hard); }
 }
 async function rcptPump(){ if(RQ.pumping||!state.sample) return; RQ.pumping=true; const gen=RQ.gen;
-  try{ for(let i=0;i<RQ.files.length;i++){ if(gen!==RQ.gen) return; if(RQ.res[i]) continue; RQ.res[i]={status:"reading"}; const r=await rcptAI(RQ.files[i]); if(gen!==RQ.gen) return; RQ.res[i]=r;
+  try{ for(let i=0;i<RQ.files.length;i++){ if(gen!==RQ.gen) return; if(RQ.res[i]) continue; RQ.res[i]={status:"reading",t0:Date.now()}; RQ.busyI=i; const r=await rcptAI(RQ.files[i]); RQ.busyI=-1; if(gen!==RQ.gen) return; if(RQ.res[i]&&RQ.res[i].manual){ if(r.status!=="cancelled"&&i!==RQ.i) RQ.res[i]=r; continue; } RQ.res[i]=r;
       if(i===RQ.i&&RQ.cur&&RQ.cur.status==="reading") rcptShow(); else if(state.rcptOn) rcptHead(); } }
   finally{ if(gen===RQ.gen) RQ.pumping=false; } }
 function rcptReadyN(){ let n=0; for(let k=RQ.i+1;k<RQ.files.length;k++) if(RQ.res[k]&&RQ.res[k].status==="ready") n++; return n; }
@@ -9894,9 +9899,15 @@ function rcptShow(){
   else { const r=RQ.res[RQ.i]; RQ.cur=r&&r.status==="ready"?{status:"ready",url,err:r.err||"",d:{...r.d}}:{status:"reading",url,d:null,err:""}; if(!r||r.status==="cancelled"){ RQ.res[RQ.i]=null; rcptPump(); } }
   render(); rcptScroll(); }
 const rcptRead=rcptShow;
+/* v357: 待っている途中でも「手で入力する」で抜けられる */
+function rcptManual(){ const C=RQ.cur; if(!C||C.status!=="reading") return;
+  if(RQ.files.length){ RQ.res[RQ.i]={status:"ready",manual:1,err:"",d:{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:"",warn:[]}}; if(RQ.busyI===RQ.i&&RQ.ctl) RQ.ctl.abort(); }
+  else if(RQ.ctl) RQ.ctl.abort();
+  RQ.cur={...C,status:"ready",err:"",d:C.d||{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:"",warn:[]}}; render(); rcptScroll(); setTimeout(()=>{ const t=$("rcT"); if(t) t.focus(); },120); }
+function rcptTick(){ clearTimeout(RQ.tick); const el=document.querySelector(".rcpt .rc-sec"); if(!el||!RQ.cur||RQ.cur.status!=="reading") return; const r=RQ.res[RQ.i], s=Math.max(0,Math.round((Date.now()-((r&&r.t0)||RQ.cur.t0||Date.now()))/1000)); el.textContent=`${s}秒経過・最長90秒で止めます`; RQ.tick=setTimeout(rcptTick,1000); }
 function rcptNext(){ RQ.i++; if(RQ.i<RQ.files.length) rcptShow(); else rcptDone(); }
 function rcptDone(){ if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.res=[]; RQ.i=0; RQ.cur={status:"done"}; render(); rcptScroll(); }
-function rcptScroll(){ setTimeout(()=>{ const el=document.querySelector(".rcpt"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },60); }
+function rcptScroll(){ setTimeout(rcptTick,80); setTimeout(()=>{ const el=document.querySelector(".rcpt"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },60); }
 function rcptClose(){ if(RQ.ctl) RQ.ctl.abort(); if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.res=[]; RQ.gen=(RQ.gen||0)+1; RQ.pumping=false; RQ.saved=0; RQ.cur=null; state.rcptOn=false; render(); }
 async function rcptSave(){
   const C=RQ.cur; if(!C||C.status!=="ready"||C.saving) return; const d=C.d;
@@ -9914,7 +9925,7 @@ function rcptHTML(){
   if(!state.rcptOn||!RQ.cur) return "";
   if(RQ.cur.status==="done") return `<section class="chart rcpt rc-done"><div class="rc-dh">✓ ${RQ.saved?`${RQ.saved}件 登録しました`:"確認が終わりました"}</div><div class="rc-da"><button class="btn primary" data-act="rcpt">📷 続けて読み取る</button><button class="btn" data-act="rcclose">終わる</button></div><div class="who" style="font-size:11px">何枚でもまとめて選べます。選んだ分は裏で先に読み取っておきます</div></section>`;
   const C=RQ.cur, n=Math.max(1,RQ.files.length), head=`<div class="hc-head"><h3>${C.paste&&!RQ.files.length?"レシート（文字から）":`レシート ${RQ.i+1}/${n}`}<small class="rc-q">${rcptQHTML()}</small></h3><span class="rc-hb">${RQ.files.length?`<button class="link" data-act="rcadd">＋ 追加</button>`:""}<button class="link" data-act="rcclose">やめる</button></span></div>`;
-  if(C.status==="reading") return `<section class="chart rcpt">${head}<div class="rc-body">${C.url?`<img src="${C.url}" alt="レシート" class="rc-img">`:""}<div class="rc-wait"><span class="spin"></span>読み取り中…<br><small>10〜30秒ほどかかります</small></div></div></section>`;
+  if(C.status==="reading") return `<section class="chart rcpt">${head}<div class="rc-body">${C.url?`<img src="${C.url}" alt="レシート" class="rc-img">`:""}<div class="rc-wait"><span class="spin"></span>読み取り中…<br><small class="rc-sec">ふつう20〜60秒・最長90秒で止めます</small><br><button class="btn" data-act="rcmanual" style="margin-top:10px">手で入力する</button></div></div></section>`;
   const d=C.d, L=rcptLinkables();
   return `<section class="chart rcpt">${head}${C.err?`<div class="notice" style="margin:0 0 8px">${esc(C.err)}</div>`:""}${d&&d.warn&&d.warn.length?`<div class="rc-warn">⚠️ ${d.warn.map(esc).join("<br>⚠️ ")}</div>`:""}
     ${!state.sample&&state.sampleTxt?`<div class="rc-paste"><div class="who"><b>文字を貼り付けて自動入力</b>：写真アプリでレシートを開き、文字を長押し→「すべてを選択」→「コピー」して下に貼り付け</div><textarea id="rcTxt" rows="3" placeholder="ここに貼り付け"></textarea><button class="btn" data-act="rctxt">文字から読み取る</button></div>`:""}

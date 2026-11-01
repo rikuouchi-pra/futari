@@ -299,7 +299,7 @@
     phase("このネットワークではAIのサーバーに直接つながらないため、中継で送っています（返事まで1〜2分）");
     var written=fbSend_(ref.path,"set",doc);await waitAbort_(written,signal);
     try{
-      var ans=await new Promise(function(ok,ng){var done=false,stop=null,t=setTimeout(function(){fin(gasError_("ai_timeout","中継のAIから時間内に返事が届きませんでした。会社などのネットワークでは1〜2分かかります。入力は残しています。"));},240000);
+      var ans=await new Promise(function(ok,ng){var done=false,stop=null,t=setTimeout(function(){fin(gasError_("ai_timeout","中継のAIから時間内に返事が届きませんでした。会社などのネットワークでは1〜2分かかります。入力は残しています。"));},Math.max(5000,Math.min(240000,Number(o.timeoutMs)||240000)));
         function fin(err,v){if(done)return;done=true;clearTimeout(t);try{if(stop)stop();}catch(_){}if(signal)signal.removeEventListener("abort",ab);err?ng(err):ok(v);}
         function ab(){fin(aiAbortError_());}
         if(signal)signal.addEventListener("abort",ab,{once:true});
