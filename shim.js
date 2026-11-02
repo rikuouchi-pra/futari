@@ -246,7 +246,7 @@
     finally { setTimeout(function(){ URL.revokeObjectURL(url); }, 30000); }
   }
   async function aiShrink(blob,opt){
-    var doc=!!(opt&&opt.doc), src = await aiDecode_(blob), max = doc?3200:2000, q = doc?0.86:0.82, out = null; /* v337: レシートなど文字の写真は解像度を上げ、白黒・くっきりにして容量を抑える */
+    var doc=!!(opt&&opt.doc), src = await aiDecode_(blob), max = doc?2400:1800, q = doc?0.84:0.8, out = null; /* v337: レシートなど文字の写真は解像度を上げ、白黒・くっきりにして容量を抑える */
     for(var i = 0; i < 7; i++){
       var W0 = src.naturalWidth || src.width, H0 = src.naturalHeight || src.height, k = Math.min(1, max / Math.max(W0, H0)), c = document.createElement("canvas"); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
       var g=c.getContext("2d"); g.drawImage(src, 0, 0, c.width, c.height);
@@ -281,13 +281,15 @@
       var direct=!!(r.payload&&r.payload.directAI===1);aiBackendInfo={url:G,at:Date.now(),direct:direct};return direct;
     })().finally(function(){aiBackendJob=null;});return waitAbort_(aiBackendJob,signal);
   }
+  /* v359: 起動時・アプリに戻ったときに接続を温めておく（5分キャッシュ。失敗しても何もしない） */
+  try{window.FUTARI_AI_WARM=function(){try{if(!me||!gasUrl())return;aiSupportsDirect_().catch(function(){});}catch(_){}};}catch(_){}
   /* v336: 会社などで Apps Script に直接つながらないときは Firestore 経由の「中継」で聞く（Apps Script が1分ごとに取りに来て答えを書き戻す） */
   var relayUntil=0;
   async function aiAsk(prompt,o){
     o=o||{};if(!gasUrl())throw gasError_("no_gas","AIの接続先がありません");
     if(Date.now()<relayUntil)return aiAskRelay_(prompt,o);
     try{var r=await aiAskNet_(prompt,o);relayRegMaybe_();return r;}
-    catch(e){if(e&&e.code==="gas_connection"&&navigator.onLine!==false&&!(o.signal&&o.signal.aborted)){relayUntil=Date.now()+30*60e3;return aiAskRelay_(prompt,o);}throw e;}
+    catch(e){if(e&&(e.code==="gas_connection"||e.code==="gas_access")&&navigator.onLine!==false&&!(o.signal&&o.signal.aborted)){relayUntil=Date.now()+(e.code==="gas_access"?10:30)*60e3;return aiAskRelay_(prompt,o);}throw e;} /* v359: ログイン切れ（gas_access）でも中継で答える */
   }
   async function aiAskRelay_(prompt,o){
     o=o||{};var signal=o.signal;if(signal&&signal.aborted)throw aiAbortError_();

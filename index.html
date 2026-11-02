@@ -1413,6 +1413,9 @@ li.just-done .text{opacity:.55;transition:opacity .2s}
 #main ul.list > li.item:nth-child(n+12){content-visibility:auto;contain-intrinsic-size:auto 64px}
 /* v356: カードの「すりガラス（ぼかし）」は処理が重いので、上部・タブ以外は止めて少し濃い半透明に（見た目はほぼ同じ） */
 :root:is([data-style="glass"],[data-style="dynamic"]) #main :is(.card,.hcard,ul.list,.chart,.tt,.notice,.empty,.grid,.diary-peek,.paper,.tl-day,.dstrip,.shiftset,.entry,.week7,.card2,.legend.lg2,.calkey,.album,.cguide,.rcbtn,.impc,.mhero){backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:color-mix(in srgb,var(--surface) 90%,transparent)!important}
+.ai-fix{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ai-fix .btn{font-size:13px}
+.ai-fix-n{display:block;margin-top:6px;line-height:1.5}
+.gasdep{display:flex;align-items:center;justify-content:space-between;gap:10px}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2816,7 +2819,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="358";
+const APP_VERSION="359";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5333,6 +5336,7 @@ function viewSettings(){
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   setTimeout(()=>{ if(typeof setIdxFill==="function") setIdxFill(); },0);
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"><nav class="setidx" id="setIdx" aria-label="設定の目次"></nav>
+  ${myRole()==="h"&&typeof gasBase==="function"&&gasBase()?`<section class="card gasdep"><div><b>🔄 アプリの更新を反映</b><small class="who" style="display:block">新しい版を準備したと伝えられたらここを押す（会社以外のネットワークで）</small></div><button class="btn primary" data-gasdeploy="1">反映する</button></section>`:""}
   ${window.__FUTARI_PWA?`<section class="card qmini" data-go-quota="1" role="button" tabindex="0" aria-label="使用上限をくわしく見る">${quotaHeroHTML("mini")}</section>`:""}
   ${screenPointerSettingsHTML()}
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
@@ -8003,6 +8007,25 @@ if(typeof window!=="undefined"){
   if(typeof requestRender==="function"){ const _rr=requestRender; let raf=0; requestRender=function(){ if(raf) return; const s0=window.__rSeq; raf=requestAnimationFrame(()=>{ raf=0; if(window.__rSeq!==s0&&!state.dirty) return; _rr(); }); }; }
   document.addEventListener("click",e=>{ const c=e.target.closest&&e.target.closest("#main .check[data-act='right']"); if(!c) return; c.classList.toggle("on"); c.classList.add("tap"); const row=c.closest("li"); if(row) row.classList.toggle("just-done",c.classList.contains("on")); },true);
 }
+/* v359: AIにつながらないとき、その場で「接続を確認（Apps Scriptを開く）」「もう一度送る」。開いて戻ってきたら自動でもう一度送る。
+   設定に「アプリの更新を反映」（りくだけ）。起動時・アプリに戻ったときにAIの接続を先に温めておく */
+function gasBase(){ try{ const U=window.FUTARI_GAS_URLS||{}; for(const k in U) if(U[k]) return U[k]; return window.FUTARI_GAS_URL||""; }catch(_){ return ""; } }
+function aiFixHTML(x){ if(!x||!x.a||!x.a.err) return ""; const g=gasBase();
+  return `<div class="ai-fix"><button type="button" class="btn primary" data-aifix="retry">↻ もう一度送る</button>${g?`<button type="button" class="btn" data-aifix="open">🔌 接続を確認する</button>`:""}</div>${g?`<small class="who ai-fix-n">「接続を確認する」でAIのサーバーを開きます。Googleのログインを求められたらログインして、このアプリに戻ってください（戻ると自動でもう一度送ります）。</small>`:""}`; }
+function aiResend(){ const A=state.ai, last=A.log[A.log.length-1], q=A.q||A.lastQ||(last&&last.q)||""; if(!q||A.busy) return; if(last&&last.a&&last.a.err) A.log.pop(); A.q=""; aiAsk(q===("☀ 今日を組む")?q:q,last&&last.brief?{brief:true}:{}); }
+if(typeof document!=="undefined"){
+  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-aifix],[data-gasdeploy]"); if(!b) return; e.preventDefault(); e.stopPropagation(); haptic("tick");
+    if(b.dataset.gasdeploy){ const g=gasBase(); if(!g){ toast("反映のURLが設定されていません"); return; } window.open(g+"?deploy=1","_blank","noopener"); toast("開いた画面に「反映」と出れば完了です。アプリを開き直すと新しい版になります"); return; }
+    if(b.dataset.aifix==="retry"){ aiResend(); return; }
+    const g=gasBase(); if(!g) return; state.aiFixAt=Date.now(); window.open(g+"?diag=1","_blank","noopener"); },true);
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="visible") return;
+    if(state.aiFixAt&&Date.now()-state.aiFixAt<10*60e3){ state.aiFixAt=0; try{ if(state._smt&&state._smt.resetConnection) state._smt.resetConnection(); }catch(_){} setTimeout(()=>{ toast("もう一度送っています"); aiResend(); },400); return; }
+    aiWarm(); });
+}
+/* 接続の温め（5分に1回まで）。AIの最初の返事が速くなり、ログイン切れなどにも先に気づける */
+let aiWarmAt=0;
+function aiWarm(){ try{ if(Date.now()-aiWarmAt<5*60e3||!navigator.onLine) return; aiWarmAt=Date.now(); if(typeof window.FUTARI_AI_WARM==="function") window.FUTARI_AI_WARM(); }catch(_){} }
+if(typeof window!=="undefined") setTimeout(aiWarm,6000);
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
@@ -9484,7 +9507,7 @@ function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,r
 });}
 function aiStoreLimited(e){return !!e&&(e.code==="ai_store_rate_limited"||/(^|\/)resource-exhausted$/.test(String(e.code||""))||/問い合わせ内容を読めませんでした[（(]429[）)]/.test(String(e.detail||e.message||"")));}
 function aiFailure(e,q){try{usageFeat("aiFail");}catch(_){}const code=String(e?.code||''),detail=String(e?.detail||e?.message||code||'接続エラー').slice(0,700),config=/gas_access|gas_response|no_gas/.test(code)||/ログイン画面|デプロイ/.test(detail),busy=/busy|rate_limited|混み合|回数制限|混雑/.test(code+detail);
-  return {reply:aiStoreLimited(e)?"質問の保存先が利用制限（429）に達しています。質問は入力欄に残しています。1分ほど待ってから再送してください。続く場合は保存先の利用枠の確認が必要です。":code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIの接続先から正しい応答が届きませんでした。リフレッシュ後も続く場合は、接続設定の確認が必要です。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
+  return {reply:aiStoreLimited(e)?"質問の保存先が利用制限（429）に達しています。質問は入力欄に残しています。1分ほど待ってから再送してください。続く場合は保存先の利用枠の確認が必要です。":code==='ai_timeout'?"応答が時間内に届きませんでした。質問は入力欄に残しています。再送するか、リフレッシュしてやり直せます。":config?"AIのサーバーにつながりませんでした（Googleのログインが切れていることが多いです）。下の「接続を確認する」を押してログインし、戻ってきてください。":busy?"AIが混み合っています。質問は入力欄に残しています。少し待ってから再送してください。":"AIに接続できませんでした。質問は入力欄に残しています。通信状態を確認して再送できます。",detail,next:[],err:true,retry:false};
 }
 /* v309: 返事に混ざる参照番号（[r12] など）は画面に出さない。番号は acts の ref だけで使う */
 function aiReplyText(s){ return String(s||"").replace(/[ \t]*[\[［(（]\s*r\d+(?:\s*[,、・]\s*r\d+)*\s*[\]］)）]/g,"").replace(/[ \t]+\n/g,"\n").trim(); }
@@ -9573,7 +9596,7 @@ async function aiAsk(q,opt){ opt=opt||{}; q=String(q||"").trim().slice(0,2000); 
 __AI_CTX__
 ${hist?`\n【これまでの会話】\n${hist}\n`:""}
 ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフト・天気・大事な予定・期限・話す議題）を3〜5行で。そのあと今日のタイムテーブルを組んだ結果を時刻順に書き、acts で並べ替え・追加を出す（最大15個）。【新しいやることの生成】のルールで、先の予定・将来の項目から新しいやることも2〜3個入れる\n":""}【質問】${q}`;
-  const prompt=prompt0.replace("__AI_CTX__",()=>aiCtx().slice(0,Math.max(3000,AI_PROMPT_MAX-500-prompt0.length))); /* v193: 状況は入る限り多く渡す（上限内） */
+  const prompt=prompt0.replace("__AI_CTX__",()=>aiCtx().slice(0,Math.max(3000,(opt.brief?16000:AI_PROMPT_MAX)-500-prompt0.length))); /* v359: 朝のブリーフは状況を短めに（返事を速く） */ /* v193: 状況は入る限り多く渡す（上限内） */
   /* v212: 「追加して・変更して」などの操作は速いモデル、相談はPro。Proが時間切れ・接続エラーのときは速いモデルで自動でやり直す */
   const isOp=!opt.brief&&q.length<=80&&!AI_CONSULT_RE.test(q)&&/(して|しといて|しておいて|に変更|に変えて|追加|登録|消して|削除|入れて|戻して|にして|変えて|設定)[。！!]?\s*$/.test(q.trim());
   const RF={...(state.ai.refs||{})}, req=(tier,c2,ms)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;if(/中継/.test(phase)){A.capMs=Math.max(A.capMs||0,200000);}aiWaitPaint();}}},c2,ms||(tier==="pro"?55000:40000));
@@ -9650,12 +9673,12 @@ function aiCardHTML(where){ if(!aiCan()) return ""; const A=state.ai, last=A.log
   const base=talk?["話し合いの準備をして","メモからやることを作って","今日決まったことを整理して"]:["☀ 今日を組む",...AIQ];
   const chips=(last&&last.a&&last.a.next&&last.a.next.length?last.a.next:base).slice(0,3), retry=last&&last.a&&last.a.retry;
   const od=!talk&&!A.busy?aiOverdue():[], mb=aiMemB(), mp=aiMemP();
-  const qa=(x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(aiReplyText(x.a.reply)).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`;
+  const qa=(x,li)=>`<div class="ai-q">${esc(x.q)}</div>${x.a?`<div class="ai-a ${x.a.err?"err":""}">${esc(aiReplyText(x.a.reply)).replace(/\n/g,"<br>")}${x.a.detail?`<details class="ai-error-details"><summary>接続エラーの詳細</summary><p>${esc(x.a.detail)}</p></details>`:""}${typeof aiFixHTML==="function"&&li===A.log.length-1?aiFixHTML(x):""}</div>${(x.a.acts||[]).length?`<div class="ai-acts">${x.a.acts.map((c,ai)=>`<button class="ai-act ${c.ok?"ok":""}" data-aiact="${li}|${ai}" ${c.ok?"disabled":""}><span>${esc(aiActText(c))}</span><b>${c.ok?"✓ 済み":"実行"}</b></button>`).join("")}${x.a.acts.filter(c=>!c.ok).length>1?`<button class="btn primary ai-all" data-aiall="${li}">${x.brief?"この通りにする":"すべて実行"}（${x.a.acts.filter(c=>!c.ok).length}件）</button>`:""}</div>`:""}`:`<div class="ai-a busy" role="status"><span class="spin"></span><span data-ai-wait>${aiWaitText()}</span></div>`}`;
   const L=A.log, older=L.slice(0,-1);
   /* v307: ホームのAIカードはミニマルに（1行の入力＋最近の返事だけ。前の会話・設定は「ひらく」で） */
   if(where==="home"&&!state.aiOpen){ const pend=last&&last.a?(last.a.acts||[]).filter(c=>!c.ok).length:0, fresh=last&&(A.busy||pend||(last.at&&Date.now()-last.at<30*60e3));
     return `<section class="aicard mini ${state.aiVoiceStatus||state.aiListening||aiRecM||state.aiVoiceTranscribing||state.aiVoiceStarting?"vs":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ AI</b>${od.length?`<button class="ai-odm" data-act="aiReplan">⏰ 過ぎた予定 ${od.length}件・組み直す</button><button class="ai-odx" data-act="aiOdHide" aria-label="今日は出さない">×</button>`:""}<button class="link ai-open" data-act="aiOpen">${L.length?`会話 ${L.length} ›`:"ひらく ›"}</button></div>
-      ${fresh?`<div class="ai-last ${A.busy&&!last.a?"busy":""}">${A.busy&&!last.a?`<span class="ai-wait">考え中…</span>`:`<div class="ai-q1">${esc(last.q)}</div><div class="ai-a1 ${last.a&&last.a.err?"err":""}">${esc(last.a?aiReplyText(last.a.reply):"")}</div>${pend?`<button class="ai-pend" data-act="aiOpen">提案 ${pend}件を確認して実行 ›</button>`:`<button class="link ai-more1" data-act="aiOpen">続きを見る</button>`}`}</div>`:""}
+      ${fresh?`<div class="ai-last ${A.busy&&!last.a?"busy":""}">${A.busy&&!last.a?`<span class="ai-wait">考え中…</span>`:`<div class="ai-q1">${esc(last.q)}</div><div class="ai-a1 ${last.a&&last.a.err?"err":""}">${esc(last.a?aiReplyText(last.a.reply):"")}</div>${last.a&&last.a.err&&typeof aiFixHTML==="function"?aiFixHTML(last):""}${pend?`<button class="ai-pend" data-act="aiOpen">提案 ${pend}件を確認して実行 ›</button>`:`<button class="link ai-more1" data-act="aiOpen">続きを見る</button>`}`}</div>`:""}
       ${aiComposerHTML(false)}
       ${A.busy||fresh?"":`<div class="ai-chips">${chips.map(c=>`<button class="chip mini" data-aiq="${esc(c)}">${retry?"↻ "+esc(c.slice(0,14)):esc(c)}</button>`).join("")}</div>`}</section>`; }
   return `<section class="aicard ${dock?"ai-dock":""}" aria-label="AIに相談"><div class="ai-h"><b>✦ ${talk?"AIと話し合いの準備":"AI"}</b><span class="who mx">${talk?"議題・メモ・アプリ内の情報をふまえて、準備と後片付けを手伝います":"アプリ内の情報をふまえて答えます。追加・変更などは「実行」を押したときだけ行います"}</span><button class="icon-btn sm ai-refresh" data-act="aiRefresh" aria-label="AIをリフレッシュ" title="待機を中止し、会話をリフレッシュ（入力は残ります）">↻</button>${dock?`<button class="icon-btn sm" data-act="aiDockClose" aria-label="AIを閉じる">✕</button>`:""}</div>
@@ -9872,8 +9895,8 @@ async function rcptAI(f){
   const ask=(tier,ms)=>state.sample.json(P,{images:f,signal:ctl.signal,imgOpt:{doc:1},...(tier?{modelTier:tier}:{}),timeoutMs:Math.max(5000,Math.min(ms,left()-1000))});
   const blank=()=>({store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:"",warn:[]});
   try{
-    let d; try{ d=await ask("pro",50000); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json","gas_response"].includes(e.code)&&!ctl.signal.aborted&&left()>15000) d=await ask("",left()); else throw e; } /* v337: 読み取りは賢いモデル。混雑・失敗・時間切れはふつうのモデルでもう一度（残り時間の範囲で） */
-    let r=rcptApply(d); if(!r.total&&!ctl.signal.aborted&&left()>20000){ try{ const d2=await ask("",left()); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
+    let d; try{ d=await ask("quick",40000); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json","gas_response"].includes(e.code)&&!ctl.signal.aborted&&left()>15000) d=await ask("pro",left()); else throw e; } /* v359: 先に速いモデル（文字の読み取りは速いモデルで十分・賢いモデルは50秒以上かかって終わらないように見えていた）。だめなときだけ賢いモデル */ /* v337: 読み取りは賢いモデル。混雑・失敗・時間切れはふつうのモデルでもう一度（残り時間の範囲で） */
+    let r=rcptApply(d); if(!r.total&&!ctl.signal.aborted&&left()>20000){ try{ const d2=await ask("pro",left()); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
     return {status:"ready",d:r,err:""};
   }catch(e){
     if(timedOut) return {status:"ready",err:"90秒たっても読み取れなかったので止めました。写真を見ながら手で入力するか、やめるから選び直してください",d:blank()};
