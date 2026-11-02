@@ -2816,7 +2816,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="357";
+const APP_VERSION="358";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -9469,7 +9469,7 @@ function aiSRFinish(S,failed){if(aiSRS!==S||S.id!==aiVoiceRun)return;
 }
 function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,processing=!!state.aiVoiceTranscribing,recording=!!aiRecM,st=state.aiVoiceStatus||(!A.busy&&aiVoiceAIOk()?"声を録音してAIへ送り、文字にします。話し終わったら ■ を押してください。":"");return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${state.aiVoiceStarting?"マイクを準備中…":recording?"録音中… ■ を押すと文字になります":processing?"文字起こし中…":listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy||processing?"disabled":""} ${listening||processing?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy||processing?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening||processing?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="やめて入力を消す">✕</button>':`${A.q&&!A.busy?'<button class="ai-ib" data-act="aiClear" aria-label="入力を消す">✕</button>':""}<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy||processing?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
-function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000));return `${sec>=10?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒`;}
+function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000)),relay=/中継/.test(A.phase||""),cap=Math.round((A.capMs||0)/1000);return `${relay?"中継で送信中（1〜2分かかります）":sec>=10&&!/やり直し|作り直/.test(A.phase||"")?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒${cap?`（最長${cap}秒で止めます）`:""}`;} /* v358: 終わりが見えるように最長時間を表示 */
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
 function aiRefresh(){const A=state.ai,input=$("aiIn"),last=A.log[A.log.length-1],draft=(input?input.value:A.q)||((A.busy||last?.a?.err)?A.lastQ||last?.q||"":"");
   A.runId=(A.runId||0)+1;const ctl=A.ctl;A.ctl=null;A.busy=false;clearInterval(A.waitTimer);A.waitTimer=null;ctl?.abort();
@@ -9576,16 +9576,18 @@ ${opt.brief?"\n【朝のブリーフとして】まず今日の要点（シフ�
   const prompt=prompt0.replace("__AI_CTX__",()=>aiCtx().slice(0,Math.max(3000,AI_PROMPT_MAX-500-prompt0.length))); /* v193: 状況は入る限り多く渡す（上限内） */
   /* v212: 「追加して・変更して」などの操作は速いモデル、相談はPro。Proが時間切れ・接続エラーのときは速いモデルで自動でやり直す */
   const isOp=!opt.brief&&q.length<=80&&!AI_CONSULT_RE.test(q)&&/(して|しといて|しておいて|に変更|に変えて|追加|登録|消して|削除|入れて|戻して|にして|変えて|設定)[。！!]?\s*$/.test(q.trim());
-  const RF={...(state.ai.refs||{})}, req=(tier,c2)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;aiWaitPaint();}}},c2,tier==="pro"?(opt.brief?90000:60000):45000);
-  let d; try{ d=await req(isOp?"quick":"pro",ctl); }catch(e1){ if(aiStoreLimited(e1)||isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
+  const RF={...(state.ai.refs||{})}, req=(tier,c2,ms)=>aiRequest(state._smt,prompt,{modelTier:tier,onProgress:phase=>{if(A.runId===runId){A.phase=phase;if(/中継/.test(phase)){A.capMs=Math.max(A.capMs||0,200000);}aiWaitPaint();}}},c2,ms||(tier==="pro"?55000:40000));
+  /* v358: 朝のブリーフ・「今日を組む」は速いモデルで（賢いモデルは状況が長いと90秒以上かかり、終わらないように見えていた）。全体で最長100秒（中継のときは200秒）で必ず止める */
+  A.capMs=Math.max(A.capMs||0,100000); clearTimeout(A.capT); A.capT=setTimeout(()=>{ if(A.runId===runId&&A.busy){ A.capHit=runId; try{ A.ctl&&A.ctl.abort(); }catch(_){} try{ ctl.abort(); }catch(_){} } },A.capMs); setTimeout(()=>{ if(A.runId===runId&&A.busy&&A.capMs>100000){ clearTimeout(A.capT); A.capT=setTimeout(()=>{ if(A.runId===runId&&A.busy){ A.capHit=runId; try{ A.ctl&&A.ctl.abort(); }catch(_){} } },A.capMs-30000); } },30000);
+  let d; try{ d=await req(isOp||opt.brief?"quick":"pro",ctl,opt.brief?60000:undefined); }catch(e1){ if(aiStoreLimited(e1)||isOp||A.runId!==runId||!/gas_response|gas_access|ai_timeout|tool_error|busy|rate_limited/.test(String(e1&&e1.code||""))) throw e1; const c2=A.ctl=new AbortController(); A.phase="速いモデルでやり直し中"; aiWaitPaint(); d=await req("quick",c2,35000); } /* v193: 相談・操作は賢いモデル（Pro）。考える時間がかかるので待ち時間を延ばす */
     if(A.runId!==runId)return;
-    if(typeof aiNorm==="function"){ d=aiNorm(d); if(!aiHasReply(d)&&!(Array.isArray(d.acts)&&d.acts.length)){ try{ A.phase="答えを作り直しています"; aiWaitPaint(); d=aiNorm(await req("quick",ctl)); }catch(_){} if(A.runId!==runId)return; } }
+    if(typeof aiNorm==="function"){ d=aiNorm(d); if(!aiHasReply(d)&&!(Array.isArray(d.acts)&&d.acts.length)){ if(Date.now()-A.startedAt<60000){ try{ A.phase="答えを作り直しています"; aiWaitPaint(); const c3=A.ctl=new AbortController(); d=aiNorm(await req("quick",c3,30000)); }catch(_){} } if(A.runId!==runId)return; } }
     const reply=aiReplyText((d&&(d.reply||d.answer||d.text))||"")||"うまく答えを作れませんでした。もう一度聞いてみてください。";
     const acts=(Array.isArray(d&&d.acts)?d.acts:[]).filter(x=>x&&AI_ACT_L[x.type]&&!(AI_REF_TYPES.has(x.type)&&!RF[x.ref])&&!(x.type==="remember"&&[...aiMemB(),...aiMemP()].some(m=>m.t===String(x.text||"").trim()))).slice(0,15).map(x=>({...x,_r:RF[x.ref]||null,...(Array.isArray(x.refs)?{_rs:x.refs.map(k=>RF[k]).filter(Boolean)}:{})}));
     try{ usageFeat("aiProp",acts.length); }catch(_){}
     entry.a={reply,acts,next:Array.isArray(d&&d.next)?d.next.slice(0,3).map(aiReplyText).filter(Boolean):[]};haptic("done");
-  }catch(e){if(A.runId!==runId)return;entry.a=aiFailure(e,q);A.q=q;}
-  finally{if(A.runId===runId){clearInterval(A.waitTimer);A.waitTimer=null;A.ctl=null;A.busy=false;aiLogSave();if(state.aiOpen||state.view==="home"||state.view==="talk")render();else toast("AIの結果は ✦ ボタンで見られます");}}
+  }catch(e){if(A.runId!==runId)return;if(A.capHit===runId)e=Object.assign(new Error("時間切れ"),{code:"ai_timeout"});entry.a=aiFailure(e,q);A.q=q;}
+  finally{if(A.runId===runId){clearTimeout(A.capT);A.capMs=0;clearInterval(A.waitTimer);A.waitTimer=null;A.ctl=null;A.busy=false;aiLogSave();if(state.aiOpen||state.view==="home"||state.view==="talk")render();else toast("AIの結果は ✦ ボタンで見られます");}}
 }
 
 /* v159: 覚え書き（ふたり共通＝共有データ／🔒自分＝自分の設定）・朝のブリーフ・遅れたら組み直し・話し合いの準備と片付け */
