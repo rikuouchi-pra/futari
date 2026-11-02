@@ -2819,7 +2819,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="359";
+const APP_VERSION="360";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -10743,6 +10743,8 @@ function bgPhotoApply(){
   if(!id){ if(el) el.remove(); document.documentElement.classList.remove("has-bgphoto"); return; }
   if(!el){ el=document.createElement("div"); el.id="bgPhoto"; el.setAttribute("aria-hidden","true"); document.body.prepend(el); }
   let u; try{ u=photoUrl(id); }catch(e){ setTimeout(bgPhotoApply,60); return; }
+  /* v360: 写真の読み込み前は仮の画像のURL（…#fb=id）が返る。背景はimgではないので自動で差し替わらず、表示されないままになっていた。本物が届くまで待って付け直す */
+  if(/#fb=/.test(String(u))){ clearTimeout(bgPhotoApply.t); bgPhotoApply.n=(bgPhotoApply.n||0)+1; if(bgPhotoApply.n<80) bgPhotoApply.t=setTimeout(bgPhotoApply,bgPhotoApply.n<10?300:1500); } else bgPhotoApply.n=0;
   if(prefs.bgPhotoLumId!==id&&!bgPhotoApply.busy){ bgPhotoApply.busy=true; bgLumOf(u).then(l=>{ bgPhotoApply.busy=false; if(l==null) return; prefs.bgPhotoLum=String(Math.round(l*1000)/1000); prefs.bgPhotoLumId=id; savePrefs(true); applyPrefs(); }); }
   el.style.setProperty("--bgimg",`url("${u}")`); el.style.setProperty("--bgdim",(Number(prefs.bgDim)||45)+"%"); el.classList.toggle("blur",prefs.bgBlur==="1");
   document.documentElement.classList.add("has-bgphoto"); }
