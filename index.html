@@ -1416,6 +1416,50 @@ li.just-done .text{opacity:.55;transition:opacity .2s}
 .ai-fix{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.ai-fix .btn{font-size:13px}
 .ai-fix-n{display:block;margin-top:6px;line-height:1.5}
 .gasdep{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* v361: 見た目と動きを今どきのアプリ風に（動きは transform / opacity だけ＝軽い）。下のメニューは浮いたカプセル＋すべる選択表示 */
+:root.cc body.nav-tab .tabbar{left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 6px);padding:5px 6px;border-radius:28px;border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);background:color-mix(in srgb,var(--surface) 78%,transparent);box-shadow:0 10px 30px rgba(0,0,0,.22),inset 0 1px 0 color-mix(in srgb,#fff 18%,transparent);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+:root.cc body.nav-tab.nav-hide .tabbar{transform:translateY(calc(100% + env(safe-area-inset-bottom,0px) + 16px))}
+:root.cc .tabbar::before{content:"";position:absolute;z-index:0;top:5px;bottom:5px;left:6px;width:calc((100% - 12px)/var(--tbn,5));border-radius:22px;background:color-mix(in srgb,var(--accent) 16%,transparent);transform:translateX(calc(var(--tbi,0)*100%));transition:transform .38s cubic-bezier(.3,1.3,.5,1);opacity:var(--tbo,0)}
+:root.cc .tabbar button{position:relative;z-index:1;padding:3px 0 2px}
+:root.cc .tabbar button.on .tb-i{background:transparent}
+:root.cc .tabbar .tb-i svg{transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
+:root.cc .tabbar button.on .tb-i svg{transform:translateY(-1px) scale(1.12)}
+:root.cc .tabbar button.on .tb-l{font-weight:800}
+/* 追加ボタン・AIボタン：丸く、押すと沈む */
+:root.cc body.nav-tab #plus,:root.cc .ai-fab{transition:transform .2s cubic-bezier(.3,1.4,.5,1),box-shadow .2s}
+:root.cc body.nav-tab #plus:active,:root.cc .ai-fab:active{transform:scale(.9)}
+:root.cc .ai-fab{border-radius:50%;border:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
+/* お知らせ（トースト）：浮いたカプセルで下からすっと */
+:root.cc .toast{border-radius:999px;padding:10px 10px 10px 18px;background:color-mix(in srgb,var(--ink) 92%,transparent);box-shadow:0 10px 28px rgba(0,0,0,.28);animation:tIn361 .34s cubic-bezier(.2,.9,.3,1.15)}
+:root.cc body.nav-tab .toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+@keyframes tIn361{from{opacity:0;transform:translate(-50%,18px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+/* 追加画面：うしろを少し暗く、ばねのように開く */
+:root.cc .sheet{transition:transform .36s cubic-bezier(.2,.9,.25,1.05);box-shadow:0 18px 50px rgba(0,0,0,.3)}
+:root.cc body:has(.sheet.open)::after{content:"";position:fixed;inset:0;z-index:19;background:rgba(0,0,0,.28);pointer-events:none;animation:scrim361 .25s both}
+@keyframes scrim361{from{opacity:0}}
+/* 画面を切り替えたとき：カードが下から順に、グラフの棒は左から伸びる（切り替えの時だけ） */
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.975)}}
+#main.enter :is(.mbar,.cr-bar,.env-meter,.fa-b,.fb-b,.pay-b)>i{animation:growX361 .7s cubic-bezier(.2,.8,.2,1) .12s both;transform-origin:left center}
+@keyframes growX361{from{transform:scaleX(0)}}
+#main.enter .mh-ring .mr-fg{animation:mrIn .9s cubic-bezier(.2,.8,.2,1)}
+#main:not(.enter) .mh-ring .mr-fg{animation:none}
+/* カード：角をそろえ、押せるカードは押した感じを出す */
+:root.cc #main :is(.hcard,.card,.chart){border-radius:22px}
+:root.cc #main :is(.impc,.htile,.hj,.tl-day,.anv button,.qmini,[data-go2].hcard){transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+:root.cc #main :is(.impc,.htile,.hj,.tl-day,.qmini):active{transform:scale(.97)}
+/* チェック：丸がはねて、行がすっと薄くなる */
+.check.tap{animation:chkTap361 .42s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chkTap361{0%{transform:scale(1)}35%{transform:scale(.78)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* AIの待ち：光が流れる */
+:root.cc .ai-a.busy{position:relative;overflow:hidden;border-radius:12px}
+:root.cc .ai-a.busy::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--accent) 16%,transparent) 50%,transparent 70%);transform:translateX(-100%);animation:shim361 1.6s linear infinite;pointer-events:none}
+@keyframes shim361{to{transform:translateX(100%)}}
+/* 切り替えボタン（seg）：選んだ側がふわっと */
+:root.cc .seg button[aria-pressed="true"]{animation:segPop361 .26s cubic-bezier(.3,1.4,.5,1)}
+#main:not(.enter) .seg button[aria-pressed="true"]{animation:none}
+.seg.seg-tap button[aria-pressed="true"]{animation:segPop361 .26s cubic-bezier(.3,1.4,.5,1)!important}
+@keyframes segPop361{from{transform:scale(.9)}}
+@media (prefers-reduced-motion:reduce){:root.cc .tabbar::before,:root.cc .tabbar .tb-i svg,:root.cc .sheet{transition:none}:root.cc .toast,.check.tap,:root.cc .ai-a.busy::after,#main.enter :is(.mbar,.cr-bar,.env-meter,.fa-b,.fb-b,.pay-b)>i,:root.cc body:has(.sheet.open)::after{animation:none}}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2819,7 +2863,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="360";
+const APP_VERSION="361";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -8026,6 +8070,9 @@ if(typeof document!=="undefined"){
 let aiWarmAt=0;
 function aiWarm(){ try{ if(Date.now()-aiWarmAt<5*60e3||!navigator.onLine) return; aiWarmAt=Date.now(); if(typeof window.FUTARI_AI_WARM==="function") window.FUTARI_AI_WARM(); }catch(_){} }
 if(typeof window!=="undefined") setTimeout(aiWarm,6000);
+/* v361: 下のメニューの「すべる選択表示」の位置を合わせる（描き直しても位置は残るので、動くのはタブを変えたときだけ） */
+function tbInd(){ const bar=document.getElementById("tbar"); if(!bar||bar.hidden) return; const B=[...bar.children], i=B.findIndex(b=>b.classList.contains("on")); bar.style.setProperty("--tbn",B.length||5); if(i<0){ bar.style.setProperty("--tbo","0"); return; } bar.style.setProperty("--tbi",i); bar.style.setProperty("--tbo","1"); }
+if(typeof window!=="undefined"&&typeof render==="function"){ const _r361=render; render=function(){ const r=_r361.apply(this,arguments); try{ tbInd(); }catch(_){} return r; }; }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
