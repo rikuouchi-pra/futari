@@ -2863,7 +2863,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="361";
+const APP_VERSION="362";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -5380,7 +5380,7 @@ function viewSettings(){
   const opt=(key,val,label,pv)=>`<button class="opt" data-pref="${key}" data-val="${val}" aria-pressed="${String(prefs[key])===val}">${pv||""}${label}</button>`;
   setTimeout(()=>{ if(typeof setIdxFill==="function") setIdxFill(); },0);
   return `<div class="setwrap" style="display:flex;flex-direction:column;gap:12px;margin-top:8px"><nav class="setidx" id="setIdx" aria-label="設定の目次"></nav>
-  ${myRole()==="h"&&typeof gasBase==="function"&&gasBase()?`<section class="card gasdep"><div><b>🔄 アプリの更新を反映</b><small class="who" style="display:block">新しい版を準備したと伝えられたらここを押す（会社以外のネットワークで）</small></div><button class="btn primary" data-gasdeploy="1">反映する</button></section>`:""}
+  ${myRole()==="h"&&typeof gasBase==="function"&&gasBase()?`<section class="card gasdep"><div><b>🔄 アプリの更新を反映</b><small class="who" style="display:block">新しい版を準備したと伝えられたらここを押す（会社以外のネットワークで）</small></div><a class="btn primary" href="${esc(gasBase())}?deploy=1" target="_blank" rel="noopener" data-gasdeploy2="1" style="text-decoration:none">反映する</a></section>`:""}
   ${window.__FUTARI_PWA?`<section class="card qmini" data-go-quota="1" role="button" tabindex="0" aria-label="使用上限をくわしく見る">${quotaHeroHTML("mini")}</section>`:""}
   ${screenPointerSettingsHTML()}
   <details class="card gguide"><summary><h2 style="display:inline">👆 操作ガイド</h2></summary><div class="gg">${[["タップ","開く・編集"],["長押し","よく使う操作（完了・日付・担当・議題・くり返し・削除）"],["→ スワイプ","完了・話した"],["← スワイプ","削除（下の「元に戻す」で取り消し）"],["ダブルタップ","議題：決めたことを書く／カレンダー：その日に追加"],["上で ↓ に引く","追加"],["項目以外で ← →","タブ切替（日付の帯では日付を移動）"],["下へスクロール","タブバーが隠れて広く表示。上へ戻すと出る"],["タブをもう一度押す","いちばん上へ"]].map(([g,d])=>`<div><b>${g}</b><span>${d}</span></div>`).join("")}</div></details>
@@ -8055,7 +8055,7 @@ if(typeof window!=="undefined"){
    設定に「アプリの更新を反映」（りくだけ）。起動時・アプリに戻ったときにAIの接続を先に温めておく */
 function gasBase(){ try{ const U=window.FUTARI_GAS_URLS||{}; for(const k in U) if(U[k]) return U[k]; return window.FUTARI_GAS_URL||""; }catch(_){ return ""; } }
 function aiFixHTML(x){ if(!x||!x.a||!x.a.err) return ""; const g=gasBase();
-  return `<div class="ai-fix"><button type="button" class="btn primary" data-aifix="retry">↻ もう一度送る</button>${g?`<button type="button" class="btn" data-aifix="open">🔌 接続を確認する</button>`:""}</div>${g?`<small class="who ai-fix-n">「接続を確認する」でAIのサーバーを開きます。Googleのログインを求められたらログインして、このアプリに戻ってください（戻ると自動でもう一度送ります）。</small>`:""}`; }
+  return `<div class="ai-fix"><button type="button" class="btn primary" data-aifix="retry">↻ もう一度送る</button>${g?`<a class="btn" href="${esc(g)}?diag=1" target="_blank" rel="noopener" data-aifix2="1" style="text-decoration:none">🔌 接続を確認する</a>`:""}</div>${g?`<small class="who ai-fix-n">「接続を確認する」でAIのサーバーを開きます。Googleのログインを求められたらログインして、このアプリに戻ってください（戻ると自動でもう一度送ります）。</small>`:""}`; }
 function aiResend(){ const A=state.ai, last=A.log[A.log.length-1], q=A.q||A.lastQ||(last&&last.q)||""; if(!q||A.busy) return; if(last&&last.a&&last.a.err) A.log.pop(); A.q=""; aiAsk(q===("☀ 今日を組む")?q:q,last&&last.brief?{brief:true}:{}); }
 if(typeof document!=="undefined"){
   document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-aifix],[data-gasdeploy]"); if(!b) return; e.preventDefault(); e.stopPropagation(); haptic("tick");
@@ -8070,6 +8070,8 @@ if(typeof document!=="undefined"){
 let aiWarmAt=0;
 function aiWarm(){ try{ if(Date.now()-aiWarmAt<5*60e3||!navigator.onLine) return; aiWarmAt=Date.now(); if(typeof window.FUTARI_AI_WARM==="function") window.FUTARI_AI_WARM(); }catch(_){} }
 if(typeof window!=="undefined") setTimeout(aiWarm,6000);
+/* v362: 反映・接続確認はふつうのリンクで開く（ホーム画面のアプリでは window.open が開かないことがあった） */
+if(typeof document!=="undefined") document.addEventListener("click",e=>{ const a=e.target.closest&&e.target.closest("[data-aifix2],[data-gasdeploy2]"); if(!a) return; if(a.dataset.aifix2) state.aiFixAt=Date.now(); else toast("開いた画面に「反映」と出れば完了です。アプリを開き直すと新しい版になります"); });
 /* v361: 下のメニューの「すべる選択表示」の位置を合わせる（描き直しても位置は残るので、動くのはタブを変えたときだけ） */
 function tbInd(){ const bar=document.getElementById("tbar"); if(!bar||bar.hidden) return; const B=[...bar.children], i=B.findIndex(b=>b.classList.contains("on")); bar.style.setProperty("--tbn",B.length||5); if(i<0){ bar.style.setProperty("--tbo","0"); return; } bar.style.setProperty("--tbi",i); bar.style.setProperty("--tbo","1"); }
 if(typeof window!=="undefined"&&typeof render==="function"){ const _r361=render; render=function(){ const r=_r361.apply(this,arguments); try{ tbInd(); }catch(_){} return r; }; }
