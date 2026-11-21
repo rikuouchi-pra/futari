@@ -2863,7 +2863,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="363";
+const APP_VERSION="364";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -7257,7 +7257,7 @@ lpBind('#plus',()=>({title:"追加する",items:[["task","✓","やること"],[
 /* ④上へ */
 { let b=null, sT=0; addEventListener("scroll",()=>{ clearTimeout(sT); sT=setTimeout(()=>{ const show=scrollY>900&&!state.sheet.open; if(show&&!b){ b=document.createElement("button"); b.id="toTop"; b.type="button"; b.setAttribute("aria-label","いちばん上へ"); b.textContent="↑ 上へ"; b.onclick=()=>{ haptic("tick"); scrollTo({top:0,behavior:"smooth"}); }; document.body.appendChild(b); } if(b) b.classList.toggle("on",show); },120); },{passive:true}); }
 /* ⑤なめらかな切り替え */
-{ const o=window.tbGo, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; if(typeof o==="function"&&document.startViewTransition&&!reduce) window.tbGo=function(b,f){ return o.call(this,b,()=>{ try{ document.startViewTransition(()=>f()); }catch(_){ f(); } }); }; }
+{ const o=window.tbGo, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; if(false&&typeof o==="function"&&document.startViewTransition&&!reduce) /* v364: 画面全体を撮って重ねる切り替えはやめる（重い画面でタブの反応が遅れ、連打の原因になっていた。カードが下から出る動きは残る） */ window.tbGo=function(b,f){ return o.call(this,b,()=>{ try{ document.startViewTransition(()=>f()); }catch(_){ f(); } }); }; }
 /* ⑥キーボード */
 document.addEventListener("keydown",e=>{ if(e.metaKey||e.ctrlKey||e.altKey||e.isComposing) return; const a=document.activeElement, typing=a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.isContentEditable);
   if(e.key==="Escape"){ if($("lpMenu")){ lpClose(); return; } if(state.sheet.open){ closeSheet(); return; } if(typing) a.blur(); return; }
@@ -11768,7 +11768,7 @@ document.addEventListener("click",e=>{ const q=e.target.closest("#main [data-go-
 document.addEventListener("click",e=>{ const b=e.target.closest('#main [data-seg="ugtab"] [data-sv]'); if(!b) return; e.stopPropagation(); state.ugTab=b.dataset.sv; haptic("tick"); render(); },true);
 /* v305: 下のタブは押した瞬間に色を変え、描き直しはその後に（重い画面で反応がないように見えて連打されていた） */
 let tbPend=0;
-function tbGo(b,f){ if(tbPend) return; try{ const bar=b.parentElement; bar.querySelectorAll("[data-tb]").forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-current",x===b?"page":"false"); }); }catch(_){} tbPend=1; const run=()=>{ if(!tbPend) return; tbPend=0; f(); }; requestAnimationFrame(()=>setTimeout(run,0)); setTimeout(run,120); }
+function tbGo(b,f){ if(tbPend) return; try{ const bar=b.parentElement; bar.querySelectorAll("[data-tb]").forEach(x=>{ x.classList.toggle("on",x===b); x.setAttribute("aria-current",x===b?"page":"false"); }); if(typeof tbInd==="function") tbInd(); }catch(_){} tbPend=1; const run=()=>{ if(!tbPend) return; tbPend=0; f(); }; requestAnimationFrame(()=>setTimeout(run,0)); setTimeout(run,120); }
 /* v305: ホームのAIカードは、カードのどこを押しても入力欄へ */
 document.addEventListener("click",e=>{ const c=e.target.closest("#main .aicard"); if(!c||e.target.closest("button,a,input,textarea,select,label,summary,[data-act],[role=button],.chip,details")) return; const t=c.querySelector("#aiIn"); if(t){ t.focus(); } });
 function viewUsage(){ const ugT=`<div class="tools ug-tabs">${seg("ugtab",state.ugTab==="quota"?"quota":"hist",[["hist","📊 利用履歴"],["quota","🔋 使用上限"]])}</div>`;
