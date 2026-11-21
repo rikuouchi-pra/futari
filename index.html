@@ -2872,7 +2872,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="365";
+const APP_VERSION="366";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -9554,7 +9554,8 @@ function aiSRFinish(S,failed){if(aiSRS!==S||S.id!==aiVoiceRun)return;
 }
 function aiComposerHTML(talk=false){const A=state.ai,listening=!!state.aiListening,processing=!!state.aiVoiceTranscribing,recording=!!aiRecM,st=state.aiVoiceStatus||(!A.busy&&aiVoiceAIOk()?"声を録音してAIへ送り、文字にします。話し終わったら ■ を押してください。":"");return `<div class="ai-compose ai-row"><textarea id="aiIn" rows="1" maxlength="2000" enterkeyhint="enter" aria-label="AIへの相談" aria-describedby="aiVoiceStatus" placeholder="${state.aiVoiceStarting?"マイクを準備中…":recording?"録音中… ■ を押すと文字になります":processing?"文字起こし中…":listening?"聞いています…":talk?"今日の議題の順番は？":"AIに話しかける・書く"}" ${A.busy||processing?"disabled":""} ${listening||processing?"readonly":""}>${esc(A.q||"")}</textarea><button class="ai-ib ai-mic ${listening?"on":""}" data-act="aiMic" ${A.busy||processing?"disabled":""} aria-pressed="${listening}" aria-label="${listening?"聞き取りを終了":"声で入力"}"><svg viewBox="0 0 24 24" aria-hidden="true">${listening?'<rect x="7" y="7" width="10" height="10" rx="2"/>':'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>'}</svg></button>${listening||processing?'<button class="ai-ib" data-act="aiVoiceCancel" aria-label="やめて入力を消す">✕</button>':`${A.q&&!A.busy?'<button class="ai-ib" data-act="aiClear" aria-label="入力を消す">✕</button>':""}<button class="ai-ib ai-send" data-act="aiAsk" ${A.busy||processing?"disabled":""} aria-label="送る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>`}</div><p class="ai-voice-status" id="aiVoiceStatus" role="status" aria-live="polite" ${st?"":"hidden"}>${esc(st)}${state.aiVoiceRaw&&/直しました/.test(st)?` <button class="link" data-act="aiVoiceRaw">元に戻す</button>`:""}</p>`;}
 /* AI requests own their response slot; refresh invalidates in-flight work immediately. */
-function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000)),relay=/中継/.test(A.phase||""),cap=Math.round((A.capMs||0)/1000);return `${relay?"中継で送信中（1〜2分かかります）":sec>=10&&!/やり直し|作り直/.test(A.phase||"")?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒${cap?`（最長${cap}秒で止めます）`:""}`;} /* v358: 終わりが見えるように最長時間を表示 */
+function aiNetWhy(){try{const e=window.FUTARI_AI_NETERR;if(!e)return "";return e.code==="gas_access"?"直接つながらない理由：サーバーがログイン画面を返した":e.code==="gas_connection"?"直接つながらない理由：サーバーに届かない":"";}catch(_){return "";}} /* v366 */
+function aiWaitText(){const A=state.ai,sec=Math.max(0,Math.floor((Date.now()-(A.startedAt||Date.now()))/1000)),relay=/中継/.test(A.phase||""),cap=Math.round((A.capMs||0)/1000),why=relay&&typeof aiNetWhy==="function"?aiNetWhy():"";return `${relay?`中継で送信中（1〜2分かかります${why?`・${why}`:""}）`:sec>=10&&!/やり直し|作り直/.test(A.phase||"")?"応答を待っています":A.phase||"AIに問い合わせています"}… ${sec}秒${cap?`（最長${cap}秒で止めます）`:""}`;} /* v358: 終わりが見えるように最長時間を表示 */
 function aiWaitPaint(){document.querySelectorAll('[data-ai-wait]').forEach(e=>{e.textContent=aiWaitText();});}
 function aiRefresh(){const A=state.ai,input=$("aiIn"),last=A.log[A.log.length-1],draft=(input?input.value:A.q)||((A.busy||last?.a?.err)?A.lastQ||last?.q||"":"");
   A.runId=(A.runId||0)+1;const ctl=A.ctl;A.ctl=null;A.busy=false;clearInterval(A.waitTimer);A.waitTimer=null;ctl?.abort();
@@ -9562,7 +9563,7 @@ function aiRefresh(){const A=state.ai,input=$("aiIn"),last=A.log[A.log.length-1]
   A.log=[];A.refs={};A.q=draft;A.autoTried=true;A.phase="";A.startedAt=0;try{state._smt?.resetConnection?.();}catch(e){}
   aiLogSave();render();toast("AIをリフレッシュしました。入力と保存済みの内容は残っています");
 }
-function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,reject)=>{let done=false,timer;const finish=(err,value)=>{if(done)return;done=true;clearTimeout(timer);ctl.signal.removeEventListener('abort',abort);err?reject(err):resolve(value);},abort=()=>finish(Object.assign(new Error('AIをリフレッシュしました'),{code:'ai_cancelled'}));
+function aiRequest(provider,prompt,options,ctl,ms){return new Promise((resolve,reject)=>{let done=false,timer,ext=false;const op=options&&options.onProgress;options={...options,onProgress:p=>{if(!ext&&/中継/.test(p||"")){ext=true;clearTimeout(timer);timer=setTimeout(()=>{finish(Object.assign(new Error('中継のAIから時間内に返事が届きませんでした'),{code:'ai_timeout'}));ctl.abort();},190000);}if(typeof op==="function")op(p);}}; /* v366: 中継になったら1回の待ち時間を190秒に（以前は40秒で切れて、中継の答えが届く前に失敗していた） */const finish=(err,value)=>{if(done)return;done=true;clearTimeout(timer);ctl.signal.removeEventListener('abort',abort);err?reject(err):resolve(value);},abort=()=>finish(Object.assign(new Error('AIをリフレッシュしました'),{code:'ai_cancelled'}));
   if(ctl.signal.aborted){abort();return;}ctl.signal.addEventListener('abort',abort,{once:true});
   timer=setTimeout(()=>{finish(Object.assign(new Error('応答が時間内に届きませんでした'),{code:'ai_timeout'}));ctl.abort();},ms);
   Promise.resolve().then(()=>{if(ctl.signal.aborted)throw Object.assign(new Error('cancelled'),{code:'ai_cancelled'});return provider.json(prompt,{...options,signal:ctl.signal,timeoutMs:ms});}).then(v=>finish(null,v),e=>finish(e));
@@ -9952,16 +9953,18 @@ function rcptTextStart(){ RQ.files=[]; RQ.i=0; RQ.cur={status:"ready",url:"",err
 /* v269: レシートを連続で。選んだ写真は裏で順に先読みしておき、確認→保存ですぐ次へ。確認中に「＋ 追加」、終わったら「続けて読み取る」 */
 async function rcptAI(f){
   /* v357: 「読み取り中…」が終わらない対策。1枚あたり最長90秒で必ず打ち切り、手入力に切り替える（以前は 賢いモデル120秒→ふつう120秒→再読み取り で最長6分以上、中継経由だとさらに長く待つことがあった） */
-  const ctl=RQ.ctl=new AbortController(), P=rcptPrompt("これは日本の買い物のレシート（または領収書）の写真です。"), t0=Date.now(), LIMIT=90000; let timedOut=false;
-  const hard=setTimeout(()=>{ timedOut=true; ctl.abort(); },LIMIT), left=()=>LIMIT-(Date.now()-t0);
-  const ask=(tier,ms)=>state.sample.json(P,{images:f,signal:ctl.signal,imgOpt:{doc:1},...(tier?{modelTier:tier}:{}),timeoutMs:Math.max(5000,Math.min(ms,left()-1000))});
+  const ctl=RQ.ctl=new AbortController(), P=rcptPrompt("これは日本の買い物のレシート（または領収書）の写真です。"), t0=Date.now(); let LIMIT=90000, timedOut=false, relay=false;
+  let hard=setTimeout(()=>{ timedOut=true; ctl.abort(); },LIMIT); const left=()=>LIMIT-(Date.now()-t0);
+  const onP=p=>{ if(!relay&&/中継/.test(p||"")){ relay=true; LIMIT=210000; RQ.lim=210; clearTimeout(hard); hard=setTimeout(()=>{ timedOut=true; ctl.abort(); },Math.max(1000,left())); } }; /* v366: 中継のときは最長210秒（中継は1〜2分かかる） */
+  RQ.lim=90;
+  const ask=(tier,ms)=>state.sample.json(P,{images:f,signal:ctl.signal,imgOpt:{doc:1},onProgress:onP,...(tier?{modelTier:tier}:{}),timeoutMs:Math.max(5000,Math.min(relay?left():ms,left()-1000))});
   const blank=()=>({store:"",date:today(),total:"",cat:"other",items:[],who:"both",link:"",warn:[]});
   try{
-    let d; try{ d=await ask("quick",40000); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json","gas_response"].includes(e.code)&&!ctl.signal.aborted&&left()>15000) d=await ask("pro",left()); else throw e; } /* v359: 先に速いモデル（文字の読み取りは速いモデルで十分・賢いモデルは50秒以上かかって終わらないように見えていた）。だめなときだけ賢いモデル */ /* v337: 読み取りは賢いモデル。混雑・失敗・時間切れはふつうのモデルでもう一度（残り時間の範囲で） */
-    let r=rcptApply(d); if(!r.total&&!ctl.signal.aborted&&left()>20000){ try{ const d2=await ask("pro",left()); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
+    let d; try{ d=await ask("quick",40000); }catch(e){ if(e&&["rate_limited","ai_timeout","tool_error","invalid_json","gas_response"].includes(e.code)&&!ctl.signal.aborted&&!relay&&left()>15000) d=await ask("pro",left()); else throw e; } /* v359: 先に速いモデル（文字の読み取りは速いモデルで十分・賢いモデルは50秒以上かかって終わらないように見えていた）。だめなときだけ賢いモデル */ /* v337: 読み取りは賢いモデル。混雑・失敗・時間切れはふつうのモデルでもう一度（残り時間の範囲で） */
+    let r=rcptApply(d); if(!r.total&&!ctl.signal.aborted&&!relay&&left()>20000){ try{ const d2=await ask("pro",left()); const r2=rcptApply(d2); if(r2.total) r=r2; }catch(_){} }
     return {status:"ready",d:r,err:""};
   }catch(e){
-    if(timedOut) return {status:"ready",err:"90秒たっても読み取れなかったので止めました。写真を見ながら手で入力するか、やめるから選び直してください",d:blank()};
+    if(timedOut) return {status:"ready",err:(relay?"中継で210秒":"90秒")+"たっても読み取れなかったので止めました。写真を見ながら手で入力するか、やめるから選び直してください",d:blank()};
     if(e&&(e.code==="cancelled"||e.code==="ai_cancelled"||e.name==="AbortError")) return {status:"cancelled"};
     const msg={not_granted:"読み取りが許可されませんでした。手入力で登録できます",images_unavailable:"この画面では写真を送れません。手入力で登録できます",image_rejected:"この写真は読めませんでした（形式・サイズ）",bad_image:"写真を開けませんでした。スクリーンショットにして選び直すと読めることがあります",too_large:"写真が大きすぎます。レシートの部分だけ切り取って選び直してください",rate_limited:"AIが混み合っています。少し待ってからもう一度",invalid_json:"うまく読み取れませんでした。手で入力してください",refused:"読み取れない内容でした",gas_connection:"AIのサーバーにつながりません（会社などのネットワークでは使えないことがあります）。4Gで試すか、手で入力してください",ai_timeout:"AIの返事が時間内に届きませんでした。もう一度試すか、手で入力してください",gas_update_required:"AIのサーバーの更新が必要です。手で入力できます"}[e&&e.code]||`読み取りに失敗しました（${esc(String(e&&(e.code||e.message)||"不明").slice(0,40))}）。手で入力できます`;
     return {status:"ready",err:msg,d:blank()};
@@ -9991,7 +9994,7 @@ function rcptManual(){ const C=RQ.cur; if(!C||C.status!=="reading") return;
   if(RQ.files.length){ RQ.res[RQ.i]={status:"ready",manual:1,err:"",d:{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:"",warn:[]}}; if(RQ.busyI===RQ.i&&RQ.ctl) RQ.ctl.abort(); }
   else if(RQ.ctl) RQ.ctl.abort();
   RQ.cur={...C,status:"ready",err:"",d:C.d||{store:"",date:today(),total:"",cat:"food",items:[],who:"both",link:"",warn:[]}}; render(); rcptScroll(); setTimeout(()=>{ const t=$("rcT"); if(t) t.focus(); },120); }
-function rcptTick(){ clearTimeout(RQ.tick); const el=document.querySelector(".rcpt .rc-sec"); if(!el||!RQ.cur||RQ.cur.status!=="reading") return; const r=RQ.res[RQ.i], s=Math.max(0,Math.round((Date.now()-((r&&r.t0)||RQ.cur.t0||Date.now()))/1000)); el.textContent=`${s}秒経過・最長90秒で止めます`; RQ.tick=setTimeout(rcptTick,1000); }
+function rcptTick(){ clearTimeout(RQ.tick); const el=document.querySelector(".rcpt .rc-sec"); if(!el||!RQ.cur||RQ.cur.status!=="reading") return; const r=RQ.res[RQ.i], s=Math.max(0,Math.round((Date.now()-((r&&r.t0)||RQ.cur.t0||Date.now()))/1000)); el.textContent=`${s}秒経過・${RQ.lim>90?"中継で送信中・":""}最長${RQ.lim||90}秒で止めます`; RQ.tick=setTimeout(rcptTick,1000); }
 function rcptNext(){ RQ.i++; if(RQ.i<RQ.files.length) rcptShow(); else rcptDone(); }
 function rcptDone(){ if(RQ.cur&&RQ.cur.url) URL.revokeObjectURL(RQ.cur.url); RQ.files=[]; RQ.res=[]; RQ.i=0; RQ.cur={status:"done"}; render(); rcptScroll(); }
 function rcptScroll(){ setTimeout(rcptTick,80); setTimeout(()=>{ const el=document.querySelector(".rcpt"); if(el) el.scrollIntoView({block:"start",behavior:"smooth"}); },60); }
