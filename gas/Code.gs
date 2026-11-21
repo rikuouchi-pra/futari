@@ -571,20 +571,34 @@ function relayToken_() {
 }
 function relayTick() {
   const h = Number(Utilities.formatDate(new Date(), "Asia/Tokyo", "H")); if (h < 5 || h >= 24) return;
-  const lock = LockService.getScriptLock(); if (!lock.tryLock(5000)) return;
+  /* v18：ほかの処理（反映・睡眠の記録）を止めないよう、スクリプト全体のロックは使わず「実行中」の印で重ならないようにする */
+  const C0 = CacheService.getScriptCache(); if (C0.get("relayRun")) return; C0.put("relayRun", "1", 75);
   try {
     const tok = relayToken_(); if (!tok) return;
-    const base = "https://firestore.googleapis.com/v1/projects/" + FIREBASE_PROJECT_ID + "/databases/(default)/documents";
-    const q = { structuredQuery: { from: [{ collectionId: "aitmp" }], where: { fieldFilter: { field: { fieldPath: "relay" }, op: "EQUAL", value: { integerValue: "1" } } }, limit: 4 } };
-    const r = UrlFetchApp.fetch(base + ":runQuery", { method: "post", contentType: "application/json", payload: JSON.stringify(q), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
-    if (r.getResponseCode() !== 200) return;
-    JSON.parse(r.getContentText()).filter(function (x) { return x && x.document; }).forEach(function (x) {
-      const name = x.document.name, id = name.split("/").pop(), at = Number(((x.document.fields || {}).at || {}).integerValue || 0); let out;
-      if (at && at < Date.now() - 15 * 60e3) out = { error: { code: "ai_timeout", message: "古い質問なので答えませんでした" } };
-      else { try { out = { payload: ai_(tok, id) }; } catch (e) { out = { error: { code: e.code || "tool_error", message: String((e && e.message) || e) } }; } }
-      UrlFetchApp.fetch("https://firestore.googleapis.com/v1/" + name + "?updateMask.fieldPaths=relay&updateMask.fieldPaths=ans&currentDocument.exists=true", { method: "patch", contentType: "application/json", payload: JSON.stringify({ fields: { relay: { integerValue: "2" }, ans: { stringValue: JSON.stringify(out).slice(0, 800000) } } }), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
-    });
-  } finally { lock.releaseLock(); }
+    /* v18：中継を使っている間（最後に答えてから10分）は、1回の実行の中で3秒ごとに見に行く（1分待たずに答える） */
+    const C = CacheService.getScriptCache(), t0 = Date.now();
+    let hot = Number(C.get("relayHot") || 0);
+    while (true) {
+      const n = relayOnce_(tok);
+      if (n > 0) { hot = Date.now(); C.put("relayHot", String(hot), 1800); }
+      if (n < 0 || Date.now() - hot > 10 * 60e3 || Date.now() - t0 > 45000) break;
+      Utilities.sleep(3000);
+    }
+  } finally { C0.remove("relayRun"); }
+}
+function relayOnce_(tok) {
+  const base = "https://firestore.googleapis.com/v1/projects/" + FIREBASE_PROJECT_ID + "/databases/(default)/documents";
+  const q = { structuredQuery: { from: [{ collectionId: "aitmp" }], where: { fieldFilter: { field: { fieldPath: "relay" }, op: "EQUAL", value: { integerValue: "1" } } }, limit: 4 } };
+  const r = UrlFetchApp.fetch(base + ":runQuery", { method: "post", contentType: "application/json", payload: JSON.stringify(q), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return -1;
+  const docs = JSON.parse(r.getContentText()).filter(function (x) { return x && x.document; });
+  docs.forEach(function (x) {
+    const name = x.document.name, id = name.split("/").pop(), at = Number(((x.document.fields || {}).at || {}).integerValue || 0); let out;
+    if (at && at < Date.now() - 15 * 60e3) out = { error: { code: "ai_timeout", message: "古い質問なので答えませんでした" } };
+    else { try { out = { payload: ai_(tok, id) }; } catch (e) { out = { error: { code: e.code || "tool_error", message: String((e && e.message) || e) } }; } }
+    UrlFetchApp.fetch("https://firestore.googleapis.com/v1/" + name + "?updateMask.fieldPaths=relay&updateMask.fieldPaths=ans&currentDocument.exists=true", { method: "patch", contentType: "application/json", payload: JSON.stringify({ fields: { relay: { integerValue: "2" }, ans: { stringValue: JSON.stringify(out).slice(0, 800000) } } }), headers: { Authorization: "Bearer " + tok }, muteHttpExceptions: true });
+  });
+  return docs.length;
 }
 
 /* ---------- v14：睡眠の自動記録（iPhoneの「ショートカット」→ オートメーションでこのURLを開く）----------

@@ -275,8 +275,8 @@
   function aiDelay_(ms,signal){return new Promise(function(ok,ng){var timer,done=false;function finish(error){if(done)return;done=true;clearTimeout(timer);if(signal)signal.removeEventListener("abort",abort);error?ng(error):ok();}function abort(){finish(aiAbortError_());}if(signal&&signal.aborted){abort();return;}if(signal)signal.addEventListener("abort",abort,{once:true});timer=setTimeout(function(){finish();},ms);});}
   var aiBackendInfo=null,aiBackendJob=null;
   async function aiSupportsDirect_(signal){
-    var G=gasUrl();if(aiBackendInfo&&aiBackendInfo.url===G&&Date.now()-aiBackendInfo.at<300000)return aiBackendInfo.direct;
-    if(!aiBackendJob)aiBackendJob=(async function(){var tok=await me.getIdToken(),r=await gasCall_(G,{idToken:tok,tool:"capabilities",args:{}},20000);
+    var G=gasUrl();if(aiBackendInfo&&aiBackendInfo.url===G&&Date.now()-aiBackendInfo.at<1800000)return aiBackendInfo.direct; /* v366: 30分キャッシュ */
+    if(!aiBackendJob)aiBackendJob=(async function(){var tok=await me.getIdToken(),r;try{r=await gasCall_(G,{idToken:tok,tool:"capabilities",args:{}},10000);}catch(e){if(e&&e.code==="ai_timeout")throw gasError_("gas_connection","AIのサーバーが10秒以内に応答しませんでした");throw e;} /* v366: 確認は10秒まで（つながらないときに20秒待たない） */
       if(r.error&&!/未対応の操作.*capabilities/.test(r.error.message||""))throw gasError_(r.error.code,r.error.message);
       var direct=!!(r.payload&&r.payload.directAI===1);aiBackendInfo={url:G,at:Date.now(),direct:direct};return direct;
     })().finally(function(){aiBackendJob=null;});return waitAbort_(aiBackendJob,signal);
@@ -284,12 +284,26 @@
   /* v359: 起動時・アプリに戻ったときに接続を温めておく（5分キャッシュ。失敗しても何もしない） */
   try{window.FUTARI_AI_WARM=function(){try{if(!me||!gasUrl())return;aiSupportsDirect_().catch(function(){});}catch(_){}};}catch(_){}
   /* v336: 会社などで Apps Script に直接つながらないときは Firestore 経由の「中継」で聞く（Apps Script が1分ごとに取りに来て答えを書き戻す） */
-  var relayUntil=0;
+  var relayUntil=0,relayProbeAt=0;
+  /* v366: 直接つながらなかった理由を覚えて画面に出す（原因を突き止めるため） */
+  function aiNetErr_(e){try{window.FUTARI_AI_NETERR={code:String((e&&e.code)||""),msg:String((e&&e.message)||e||"").slice(0,160),at:Date.now()};}catch(_){}}
+  function aiConnErr_(e){return !!e&&(e.code==="gas_connection"||e.code==="gas_access");}
+  async function aiProbe_(ms){var G=gasUrl(),tok=await me.getIdToken(),r;try{r=await gasCall_(G,{idToken:tok,tool:"capabilities",args:{}},ms);}catch(e){if(e&&e.code==="ai_timeout")throw gasError_("gas_connection","AIのサーバーが応答しませんでした");throw e;}
+    if(r.error&&!/未対応の操作.*capabilities/.test(r.error.message||""))throw gasError_(r.error.code,r.error.message);aiBackendInfo={url:G,at:Date.now(),direct:!!(r.payload&&r.payload.directAI===1)};return true;}
+  /* v366: 中継は「本当につながらないとき」だけ。一度の失敗ですぐ中継にせず、1回だけすぐやり直す。中継中も45秒ごとに直接つながるか確かめ、つながれば直接に戻す（中継は1〜2分かかるため） */
   async function aiAsk(prompt,o){
     o=o||{};if(!gasUrl())throw gasError_("no_gas","AIの接続先がありません");
+    var ph=function(t){if(typeof o.onProgress==="function")o.onProgress(t);};
+    if(Date.now()<relayUntil&&Date.now()-relayProbeAt>45000){relayProbeAt=Date.now();try{ph("AIのサーバーに直接つながるか確認しています");await waitAbort_(aiProbe_(6000),o.signal);relayUntil=0;aiConnectionIssue=null;}catch(e){if(o.signal&&o.signal.aborted)throw e;aiNetErr_(e);}}
     if(Date.now()<relayUntil)return aiAskRelay_(prompt,o);
-    try{var r=await aiAskNet_(prompt,o);relayRegMaybe_();return r;}
-    catch(e){if(e&&(e.code==="gas_connection"||e.code==="gas_access")&&navigator.onLine!==false&&!(o.signal&&o.signal.aborted)){relayUntil=Date.now()+(e.code==="gas_access"?10:30)*60e3;return aiAskRelay_(prompt,o);}throw e;} /* v359: ログイン切れ（gas_access）でも中継で答える */
+    try{var r=await aiAskNet_(prompt,o);relayRegMaybe_();window.FUTARI_AI_NETERR=null;return r;}
+    catch(e){
+      if(!aiConnErr_(e)||navigator.onLine===false||(o.signal&&o.signal.aborted))throw e;
+      aiNetErr_(e);
+      try{aiBackendInfo=null;aiConnectionIssue=null;gasMode=null;ph("つながらなかったので、もう一度直接送っています");await aiDelay_(800,o.signal);var r2=await aiAskNet_(prompt,o);relayRegMaybe_();window.FUTARI_AI_NETERR=null;return r2;}
+      catch(e2){if(!aiConnErr_(e2)||(o.signal&&o.signal.aborted))throw e2;aiNetErr_(e2);}
+      relayUntil=Date.now()+3*60e3;relayProbeAt=Date.now();return aiAskRelay_(prompt,o);
+    }
   }
   async function aiAskRelay_(prompt,o){
     o=o||{};var signal=o.signal;if(signal&&signal.aborted)throw aiAbortError_();
@@ -301,7 +315,7 @@
     phase("このネットワークではAIのサーバーに直接つながらないため、中継で送っています（返事まで1〜2分）");
     var written=fbSend_(ref.path,"set",doc);await waitAbort_(written,signal);
     try{
-      var ans=await new Promise(function(ok,ng){var done=false,stop=null,t=setTimeout(function(){fin(gasError_("ai_timeout","中継のAIから時間内に返事が届きませんでした。会社などのネットワークでは1〜2分かかります。入力は残しています。"));},Math.max(5000,Math.min(240000,Number(o.timeoutMs)||240000)));
+      var ans=await new Promise(function(ok,ng){var done=false,stop=null,t=setTimeout(function(){fin(gasError_("ai_timeout","中継のAIから時間内に返事が届きませんでした。会社などのネットワークでは1〜2分かかります。入力は残しています。"));},Math.min(240000,Math.max(180000,Number(o.timeoutMs)||0)));
         function fin(err,v){if(done)return;done=true;clearTimeout(t);try{if(stop)stop();}catch(_){}if(signal)signal.removeEventListener("abort",ab);err?ng(err):ok(v);}
         function ab(){fin(aiAbortError_());}
         if(signal)signal.addEventListener("abort",ab,{once:true});
@@ -403,7 +417,7 @@
   }
 
   var SAMPLE = {
-    resetConnection: function(){gasMode=null;aiConnectionIssue=null;},
+    resetConnection: function(){gasMode=null;aiConnectionIssue=null;relayUntil=0;aiBackendInfo=null;},
     limits: function(){ return gasUrl() ? { images: { mediaTypes: ["image/*"] }, ai: "gemini" } : {}; },
     json: async function(prompt, o){
       if(!gasUrl()){ if(o && o.images){ var e = new Error("no_ai"); e.code = "no_ai"; throw e; } return parseReceipt(prompt); }
