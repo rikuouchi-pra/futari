@@ -141,6 +141,20 @@ function openai_(parts) {
 }
 // v10：相談・操作（tier=pro）は賢いモデルを先に試し、使えない・回数制限なら Flash に切り替える
 const GEMINI_PRO_MODELS = ["gemini-pro-latest", "gemini-3-pro-preview", "gemini-2.5-pro"];
+function gThink_(m) {
+  if (/lite|2\.0/.test(m)) return null;
+  if (/2\.5-flash/.test(m)) return { thinkingBudget: 0 };
+  if (/2\.5-pro/.test(m)) return { thinkingBudget: 128 };
+  if (/pro/.test(m)) return { thinkingLevel: "low" };
+  return { thinkingLevel: "minimal" };
+}
+function gFetch_(m, key, parts, think) {
+  const gc = { responseMimeType: "application/json", temperature: 0.1 }; if (think) gc.thinkingConfig = think;
+  return UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent", {
+    method: "post", contentType: "application/json", headers: { "x-goog-api-key": key }, muteHttpExceptions: true,
+    payload: JSON.stringify({ contents: [{ role: "user", parts: parts }], generationConfig: gc }),
+  });
+}
 function gemini_(parts, tier) {
   const P = PropertiesService.getScriptProperties(), key = P.getProperty("GEMINI_API_KEY");
   if (!key) throw err_("no_key", "GeminiのAPIキーが未設定です（スクリプト プロパティ GEMINI_API_KEY）");
@@ -154,10 +168,10 @@ function gemini_(parts, tier) {
   let lastErr = "", busy = 0;
   for (let i = 0; i < list.length; i++) {
     const m = list[i];
-    const res = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent", {
-      method: "post", contentType: "application/json", headers: { "x-goog-api-key": key }, muteHttpExceptions: true,
-      payload: JSON.stringify({ contents: [{ role: "user", parts: parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.1 } }),
-    });
+    /* v19：考える時間（thinking）を短くして返事を速く。モデルが対応していない設定なら、設定なしでもう一度 */
+    const think = gThink_(m);
+    let res = gFetch_(m, key, parts, think);
+    if (think && res.getResponseCode() === 400 && /think/i.test(res.getContentText())) res = gFetch_(m, key, parts, null);
     const code = res.getResponseCode(), body = res.getContentText();
     if (/pro/.test(m) && code !== 200) { lastErr = m + "：" + code; continue; } // Pro が使えない・混雑・回数制限のときは Flash へ
     if (code === 404 || (code === 400 && /not found|not supported|unknown/i.test(body))) { lastErr = m + "：使えません"; continue; }
