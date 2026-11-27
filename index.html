@@ -2879,7 +2879,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="368";
+const APP_VERSION="369";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -11539,9 +11539,11 @@ function dayInfoHTML(d,withNnh){ const h=jpHolName(d), n=withNnh?nanohi(d):[]; i
 function wcCfg(r){ const W=((state.kakei||{}).workCal||{})[r]||{}; return {on:!!W.on,wk:W.wk!=null?String(W.wk):"06",hol:W.hol||"work",off:W.off||[],work:W.work||[],auto:W.auto||{},src:W.src||"",pre:W.pre||"",dcal:W.dcal||{},dchk:W.dchk||0,derr:W.derr||""}; }
 /* デンソー年度カレンダー（4月〜翌3月）：取得済みならその休日を使う */
 const fyOf=d=>{ const y=Number(d.slice(0,4)), m=Number(d.slice(5,7)); return m>=4?y:y-1; };
-function dcalMonth(C,d){ const F=C.dcal[fyOf(d)]; return F&&F.months&&F.months[d.slice(0,7)]||null; }
+/* v369: 2026年度（2026年4月〜2027年3月）のデンソー フレックス部門カレンダーを内蔵（公式PDFの■＝休日。各月の稼働日数とも一致を確認済み）。公式サイトから取り込めないときもこれで反映する */
+const DCAL_BUILTIN={2026:{months:{"2026-04":{off:[4,5,11,12,18,19,25,26,29,30],work_days:20},"2026-05":{off:[1,2,3,4,5,9,10,16,17,23,24,30,31],work_days:18},"2026-06":{off:[6,7,13,14,20,21,27,28],work_days:22},"2026-07":{off:[4,5,11,12,18,19,25,26],work_days:23},"2026-08":{off:[1,2,8,9,10,11,12,13,14,15,16,22,23,29,30],work_days:16},"2026-09":{off:[5,6,12,13,19,20,26,27],work_days:22},"2026-10":{off:[3,4,10,11,17,18,24,25,31],work_days:22},"2026-11":{off:[1,7,8,14,15,21,22,28,29],work_days:21},"2026-12":{off:[5,6,12,13,19,20,26,27,28,29,30,31],work_days:19},"2027-01":{off:[1,2,3,4,5,9,10,16,17,23,24,30,31],work_days:18},"2027-02":{off:[6,7,13,14,20,21,27,28],work_days:20},"2027-03":{off:[6,7,13,14,20,21,27,28],work_days:23}}}};
+function dcalMonth(C,d){ const F=C.dcal[fyOf(d)], M=F&&F.months&&F.months[d.slice(0,7)]; if(M&&M.ok!==false) return M; const B=DCAL_BUILTIN[fyOf(d)]; return B&&B.months[d.slice(0,7)]||M||null; }
 function wcSave(r,ch){ const all={...((state.kakei||{}).workCal||{})}; all[r]={...(all[r]||{}),...ch}; state.kakei={...(state.kakei||{}),workCal:all}; if(kakeiDoc) kakeiPut({...state.kakei,updatedAt:Date.now()}).catch(()=>{}); }
-function wcWant(C,d){ if(C.work.includes(d)) return "日"; if(C.off.includes(d)) return "休";
+function wcWant(C,d){ if(C.pre==="denso"){ const M0=dcalMonth(C,d); if(M0) return M0.off.includes(Number(d.slice(8)))?"休":"日"; } /* v369: デンソーの年度カレンダーがある月は、写真から読んだ休日（読み間違いがある）より優先 */ if(C.work.includes(d)) return "日"; if(C.off.includes(d)) return "休";
   if(C.pre==="denso"){ const M=dcalMonth(C,d); if(M) return M.off.includes(Number(d.slice(8)))?"休":"日"; } if(C.wk.includes(String(parse(d).getDay()))) return "休"; if(C.hol==="off"&&isJpHol(d)) return "休"; return "日"; }
 function wcRun(r,force){
   const C=wcCfg(r); if(!C.on) return 0; if(db&&(!state.shiftsLoaded||!state.kakeiLoaded||state.readOnlyCache)) return 0;
@@ -11564,7 +11566,8 @@ async function dcalCheck(force){
     for(const x of L){ if(!x||!x.found){ continue; } const old=dcal[x.fy]; dcal[x.fy]={hash:x.hash,at:x.at,months:x.months,bad:x.bad||[],url:x.url};
       if(!old) msg.push(`${x.fy}年度のカレンダーを取り込みました`); else if(old.hash!==x.hash) msg.push(`${x.fy}年度のカレンダーが更新されていたので反映しました`); }
     for(const k of Object.keys(dcal)) if(Number(k)<fy-1) delete dcal[k];
-    wcSave(r,{dcal,dchk:Date.now(),derr:""}); const n=wcRun(r,true);
+    const nf=!L.some(x=>x&&x.found&&x.fy===fy);
+    wcSave(r,{dcal,dchk:Date.now(),derr:nf?(DCAL_BUILTIN[fy]?"":"公式サイトから今年度のPDFを取得できませんでした"):""}); const n=wcRun(r,true);
     if(msg.length) toast(msg.join("・")+(n?`（${n}日分を更新）`:"")); else if(force) toast(n?`${n}日分を更新しました`:"変更はありません（最新です）");
   }catch(e){ wcSave(r,{dchk:Date.now(),derr:String((e&&(e.detail||e.code||e.message))||"取得できませんでした").slice(0,120)}); if(force) toast("デンソーカレンダーを取得できませんでした"); }
   state.dcalBusy=false; render(); }
@@ -11590,8 +11593,8 @@ function wcHTML(){
     <div class="sho-act">${mine?`<button class="btn primary" data-act="wcNow">今すぐ反映（今月〜3か月先）</button>`:`<span class="who">${esc(nameOf(r))}の画面で自動反映されます</span>`}<button class="link" data-act="wcClose">閉じる</button></div></div>`;
   return h; }
 function dcalStatusHTML(C,mine){
-  const fy=fyOf(today()), ys=Object.keys(C.dcal).map(Number).filter(y=>y>=fy).sort();
-  const rows=ys.map(y=>{ const F=C.dcal[y], bad=(F.bad||[]).map(m=>Number(m.slice(5))+"月"); return `<div class="who">・<b>${y}年度</b>：取り込み済み（${F.at?new Date(F.at).toLocaleDateString("ja-JP",{month:"numeric",day:"numeric"}):""}時点のPDF）${bad.length?`<span class="dc-bad">　${bad.join("・")}は稼働日数が合わないので確認してください</span>`:"　稼働日数も一致"}</div>`; }).join("");
+  const fy=fyOf(today()), ys=[...new Set([...Object.keys(C.dcal).map(Number),...Object.keys(DCAL_BUILTIN).map(Number)])].filter(y=>y>=fy).sort();
+  const rows=ys.map(y=>{ const F=C.dcal[y]; if(!F) return `<div class="who">・<b>${y}年度</b>：反映済み（公式カレンダーの内容をアプリに内蔵・稼働日数も一致）</div>`; const bad=(F.bad||[]).map(m=>Number(m.slice(5))+"月"); return `<div class="who">・<b>${y}年度</b>：取り込み済み（${F.at?new Date(F.at).toLocaleDateString("ja-JP",{month:"numeric",day:"numeric"}):""}時点のPDF）${bad.length?`<span class="dc-bad">　${bad.join("・")}は稼働日数が合わないので確認してください</span>`:"　稼働日数も一致"}</div>`; }).join("");
   return `<div class="dcal"><div class="who">デンソー公式サイトの年度カレンダー（フレックス部門のPDF）から休日を読み込みます。年度が変わってもPDFが改訂されても、2日に1回確認して自動で反映します。</div>
     ${rows||`<div class="who">・まだ取り込んでいません</div>`}${ys.includes(fy+1)?"":`<div class="who">・${fy+1}年度：公開されたら自動で取り込みます</div>`}
     ${C.derr?`<div class="sho-err">前回の確認でエラー：${esc(C.derr)}</div>`:""}
