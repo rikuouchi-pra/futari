@@ -1469,6 +1469,13 @@ li.just-done .text{opacity:.55;transition:opacity .2s}
 .tb-cols button{all:unset;flex:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--ia),var(--ib));cursor:pointer;box-sizing:border-box;display:grid;place-items:center;transition:transform .15s}
 .tb-cols button.none{background:var(--ground);border:1px solid var(--line);font-size:11px;color:var(--muted)}
 .tb-cols button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--raised),0 0 0 4px var(--ia,var(--muted));transform:scale(1.08)}
+/* v368: 選んだ予定の調整パネルが画面の右にはみ出していた（中の色の列の幅でパネルが広がっていた） */
+.tt-bar{grid-template-columns:minmax(0,1fr);box-sizing:border-box;max-width:min(520px,calc(100vw - 24px))}
+.tt-bar>*{min-width:0;max-width:100%}
+.tt-bar .tb-g{flex-wrap:wrap}.tt-bar .tb-g button{flex:1 1 30%}
+.tb-col{flex-wrap:wrap;row-gap:6px}.tb-cols{flex-wrap:wrap;overflow:visible;min-width:0}
+.tt-bar .mv-ch{flex-wrap:wrap}
+body:has(.tt-bar) #toast,body.nav-flick:has(.tt-bar) #toast{bottom:auto!important;top:calc(env(safe-area-inset-top,0px) + 64px)!important}
 /* v203: カレンダーのマスを整理（日付・天気・ごみを1行に、重なりをなくす） */
 #grid .day{padding:3px 2px 4px;gap:3px;align-items:center;min-height:64px;overflow:hidden}
 #grid .dtop{display:flex;align-items:center;justify-content:space-between;width:100%;height:20px;padding:0 1px;box-sizing:border-box}
@@ -2872,7 +2879,7 @@ const ORDER_GAP=new Set(["task","cal","future"]); /* ふたり: 話す | 日々 
 const layerOf=v=>LAYER_TABS.me.includes(v)?"me":"us";
 let ORDER=LAYER_TABS.us;
 const PRIVATE=new Set(["pitems","habits","reflect","blocks","gsync"]);
-const APP_VERSION="367";
+const APP_VERSION="368";
 const WHO_KEYS=["both","h","w"];
 const KINDS={chore:{label:"家事",c:"--future"},topic:{label:"議題",c:"--talk"},task:{label:"やること",c:"--task"},shop:{label:"買い物",c:"--shop"},trouble:{label:"困りごと",c:"--trouble"},caution:{label:"注意",c:"--caution"},event:{label:"ふたりの予定",c:"--cal",both:1},plan:{label:"将来",c:"--future"},spend:{label:"出費",c:"--shop"},recur:{label:"毎月の支払い・貯金",c:"--habit"},goal:{label:"貯金の目標",c:"--habit"},
   ptask:{label:"じぶんのタスク",c:"--task",me:1},pshop:{label:"じぶんの買い物",c:"--shop",me:1},habit:{label:"習慣",c:"--habit",me:1},pwish:{label:"やりたいこと",c:"--future",me:1},block:{label:"時間の予定",c:"--cal",me:1},rtask:{label:"繰り返しのタスク",c:"--task"},gevent:{label:"Googleの予定",c:"--muted",me:1}};
@@ -4164,7 +4171,7 @@ function ttBarHTML(date){
   return `<div class="tt-bar" role="toolbar" aria-label="選んだ予定の調整">
     <div class="tb-h"><div class="tb-title"><b>${esc(o.t)}</b><small class="tb-time">${hhmm(o.s%1440)}–${hhmm(o.e%1440)}　${len}分</small></div><button class="tb-x" data-act="ttx" aria-label="選択をやめる">✕</button></div>${ttBadges(o)}
     <div class="tb-g"><button class="tb-e" data-act="ttedit">詳しく編集</button>${o.kind==="i"?`<button data-act="ttun">時間を外す</button>`:""}${ttRecur(o)?`<button data-act="ttskip">${ttSkipped(o)?"やる日に戻す":o.c==="chores"?"この日はやらない":"この日はできない"}</button>`:`<button class="tb-del ${state.ttDelArm?"arm":""}" data-act="ttdel">${state.ttDelArm?(o.kind==="g"?"もう一度押すとGoogleから削除":"もう一度押すと削除（くり返しすべて）"):(o.kind==="g"?"Googleの予定を削除":o.x.rep&&o.x.rep!=="none"?"削除（くり返しすべて）":o.x.auto?"この日はやらない（自動）":"削除")}</button>`}</div>
-    ${o.kind==="g"||!o.x||!o.x.id||!state[o.c]?"":`<div class="tb-col"><span class="who">色で強調</span><div class="tb-cols"><button type="button" class="none" data-ttcol="" aria-pressed="${!o.x.ttCol}" aria-label="強調しない">✕</button>${IMP_PAL.map(([k,l,a,b])=>`<button type="button" data-ttcol="${k}" aria-pressed="${o.x.ttCol===k}" aria-label="${l}" title="${l}" style="--ia:${a};--ib:${b}"></button>`).join("")}</div></div>`}
+    ${o.kind==="g"||!o.x||!o.x.id||!state[o.c]?"":`<div class="tb-col"><span class="who">色で強調</span><div class="tb-cols"><button type="button" class="none" data-ttcol="" aria-pressed="${!(typeof ttColOf==="function"?ttColOf(o.c,o.x):o.x.ttCol)}" aria-label="強調しない">✕</button>${IMP_PAL.map(([k,l,a,b])=>`<button type="button" data-ttcol="${k}" aria-pressed="${(typeof ttColOf==="function"?ttColOf(o.c,o.x):o.x.ttCol)===k}" aria-label="${l}" title="${l}" style="--ia:${a};--ib:${b}"></button>`).join("")}</div></div>`}
     ${o.kind==="g"?"":mvRowHTML(date,"data-ttmv",isRecurEnt(o.c,o.x))}
     <div class="tb-g tt-len"><span class="who">長さ</span>${[15,30,45,60,90].map(n=>`<button data-ttlen="${n}" aria-pressed="${o.e-o.s===n}">${n<60?n+"分":n===60?"1時間":"1.5時間"}</button>`).join("")}</div>
     <div class="tb-g"><button data-act="tttime">時刻・変更範囲</button><button data-act="ttshare">相手に共有・通知</button></div>
@@ -4242,7 +4249,7 @@ function timetable(date){
       const y=Math.max(0,top(o.s)), ht=Math.max(10,top(Math.min(o.e,E*60))-y-2);
       const w=scroll?`calc(100% / ${o.lanes} - 4px)`:`calc(100% - 56px)`, l=scroll?`calc(100% / ${o.lanes} * ${o.lane})`:"52px";
       const sk=(o.kind==="g"?"g":o.c)+"|"+o.x.id, sel=state.ttSel===sk;
-      h+=`<button class="tt-b ${o.x&&o.x.ttCol?"hl":""} ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" data-ttbase="${base}" style="top:${y-base}px;height:${ht}px;left:${l};width:${w};--bc:${typeof ttBc==="function"?ttBc(o):`var(--${o.col})`}" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
+      h+=`<button class="tt-b ${o.x&&(typeof ttColOf==="function"?ttColOf(o.c,o.x):o.x.ttCol)?"hl":""} ${o.kind==="g"?"g":""} ${o.skip?"skp":""} ${o.done?"done":""} ${ht<40?"short":""} ${ht<20?"tiny":""} ${sel?"sel":""}" title="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" aria-label="${esc(o.t)} ${hhmm(o.s)}–${hhmm(o.e%1440)} ${esc(ttMeta(o))}" data-ttbase="${base}" style="top:${y-base}px;height:${ht}px;left:${l};width:${w};--bc:${typeof ttBc==="function"?ttBc(o):`var(--${o.col})`}" ${o.kind==="g"?`data-gid="${esc(o.x.id)}"`:`data-tb="${o.c}" data-tid="${esc(o.x.id)}"`}><b>${esc(o.t)}</b><span>${hhmm(o.s)}–${hhmm(o.e%1440)}</span>${ht>=60?ttBadges(o,true):""}${o.kind==="i"?`<i class="tt-ck" data-ttck="${o.c}|${esc(o.x.id)}" role="button" aria-label="${o.done?"未完了に戻す":"完了にする"}">${CHECK}</i>`:""}${sel?`<i class="tt-rs top" aria-label="つまんで上下：開始時刻"></i><i class="tt-rs" aria-label="つまんで上下：終了時刻"></i>`:""}</button>`;
     }
     if(scroll) h+=`</div></div></div>`;
   }
@@ -8086,8 +8093,9 @@ if(typeof document!=="undefined") document.addEventListener("click",e=>{ const a
 function tbInd(){ const bar=document.getElementById("tbar"); if(!bar||bar.hidden) return; const B=[...bar.children], i=B.findIndex(b=>b.classList.contains("on")); bar.style.setProperty("--tbn",B.length||5); if(i<0){ bar.style.setProperty("--tbo","0"); return; } bar.style.setProperty("--tbi",i); bar.style.setProperty("--tbo","1"); }
 if(typeof window!=="undefined"&&typeof render==="function"){ const _r361=render; render=function(){ const r=_r361.apply(this,arguments); try{ tbInd(); }catch(_){} return r; }; }
 /* v365: タイムテーブルの項目を好きな色で強調（選んだ項目の下のバーから。くり返しは全部の回に同じ色） */
-function ttBc(o){ const k=o&&o.x&&o.x.ttCol, p=k&&typeof IMP_PAL!=="undefined"&&IMP_PAL.find(x=>x[0]===k); return p?p[2]:`var(--${o.col})`; }
-if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".tt-bar [data-ttcol]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const o=ttSelEntry(state.sel); if(!o||!o.x||!state[o.c]) return; const k=b.dataset.ttcol||null; applyLocal(o.c,o.x.id,{ttCol:k}); o.x.ttCol=k; dupd(o.c,o.x.id,{ttCol:k}); haptic("tick"); render(); },true);
+function ttBc(o){ const k=o&&o.x&&(typeof ttColOf==="function"?ttColOf(o.c,o.x):o.x.ttCol), p=k&&typeof IMP_PAL!=="undefined"&&IMP_PAL.find(x=>x[0]===k); return p?p[2]:`var(--${o.col})`; }
+if(typeof document!=="undefined") document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".tt-bar [data-ttcol]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const o=ttSelEntry(state.sel); if(!o||!o.x||!state[o.c]) return; const k=b.dataset.ttcol||null, ch={ttCol:k}; if(["items","pitems","events","plans","cautions"].includes(o.c)){ ch.imp=!!k; ch.impCol=k; } /* v368: 色で強調はカレンダー（月の表示）の強調も同じ色で */ applyLocal(o.c,o.x.id,ch); Object.assign(o.x,ch); dupd(o.c,o.x.id,ch); haptic("tick"); toast(k?"タイムテーブルとカレンダーで強調します":"強調をやめました"); render(); },true);
+function ttColOf(c,x){ if(!x) return ""; if(x.ttCol) return x.ttCol; if(x.ttCol===null) return ""; return ["items","pitems","events","plans","cautions"].includes(c)&&x.imp===true&&x.impCol?x.impCol:""; }
 function viewDay(){
   if(state.dayView==="review") return dayModeSeg()+reviewHTML();
   const d=state.dayDate||dayNow(),all=duoActivityEntries(d),role=state.dayRole||'all',kind=state.dayKind||'all',mode=state.dayMode||'all';
